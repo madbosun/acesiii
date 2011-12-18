@@ -3015,19 +3015,13 @@
 #
       PARDO b, a, j, i
 #
-            REQUEST                    L2old_ab(j,b,i,a) a
-            REQUEST                    L2new_ab(j,b,i,a) a
-            Tiajb(i,a,j,b)           = L2new_ab(j,b,i,a)
-            T1iajb(i,a,j,b)          = L2old_ab(j,b,i,a)
-#
-            REQUEST                    L2old_ab(i,a,j,b) a
-            REQUEST                    L2new_ab(i,a,j,b) a
-            Tiajb(i,a,j,b)          += L2new_ab(i,a,j,b)
-            T1iajb(i,a,j,b)         += L2old_ab(i,a,j,b)
-#
+            REQUEST                    L2old_ab(i,a,j,b) a 
+            REQUEST                    L2new_ab(i,a,j,b) a 
+            Tiajb(i,a,j,b)           = L2new_ab(i,a,j,b)
+            T1iajb(i,a,j,b)          = L2old_ab(i,a,j,b)
             execute energy_denominator Tiajb
             t1iajb(i,a,j,b)         += tiajb(i,a,j,b)
-            t1iajb(i,a,j,b)         *= -0.5
+            t1iajb(i,a,j,b)         *= -1.0
 #
             if kiter == 1
                PREPARE e1iajb(i,a,j,b) = T1iajb(i,a,j,b)
@@ -5879,7 +5873,7 @@
 # Write amplitudes to file
 # ------------------------
 #
-     #CALL WRITE_2EL 
+      CALL WRITE_2EL 
       execute blocks_to_list t1a_old
       execute blocks_to_list T2old_aa
       execute blocks_to_list T2old_ab

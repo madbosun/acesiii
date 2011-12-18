@@ -70,6 +70,7 @@ c---------------------------------------------------------------------
       my_company = pst_get_my_company()
       master = pst_get_master()
       call init_timers()
+      call init_counters()
 
       if (my_company .eq. io_company_id) then
          if (dryrun) return

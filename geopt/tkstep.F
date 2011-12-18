@@ -32,9 +32,6 @@ C
 #include "mxatms.par"
 #include "machsp.com"
 #include "coord.com"
-#include "flags.h"
-#include "jodaflags.com"
-C
       PARAMETER (STPTOL = 1.0D-12, LUOUT = 6,
      &           LUDONE = 80,
      &           EPS = 1.0D-8)
@@ -60,47 +57,7 @@ C and printing. Note that STPMAX is a user defined flag. It is
 C initially set in mkvmol.F but is reprocessed in setup.f.
 C
       IBREAK = 0 
-      IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 1) THEn
-C     
-C This is a user defined internal optimization
-C
-          CALL SETUP(HES, GRD, HESMOD, GRDMOD, IQFIX, STPMAX, LUOUT)
-C
-      ELSE IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 2) THEN
-C
-C
-C This is a Cartesian optimization
-
-          CALL DCOPY(NOPT, GRD, 1, GRDMOD, 1)
-C 
-C Vibrations and rotation must be projected out from the Hessian. In
-C this particular instance unit masses at the points where atoms are
-C located.
-C        
-         Do Iatoms = 1, NX/3
-            Fscr(Iatoms) = 1.0D0
-         Enddo 
-#ifdef _DEBUG_LVLM1
-      Write(6,*) "@-TKSTEP, The Hessian before the projection"
-      call output(Hes, 1, NXM6, 1, NXM6, NXM6, NXM6, 1)
-#endif   
-         CALL PROJEC_FC(Q, Hes, Fscr, GrdMOD, HesMOd, Scratch,
-     &                  EPS, Nx/3, .True., .True., .False.)
-#ifdef _DEBUG_LVLM1
-      Write(6,*) "@-TKSTEP The Hessian after the projection"
-      call output(Hes, 1, NX, 1, NX, NX, NX, 1)
-#endif   
-         CALL SETUP(HES, GRD, HESMOD, GRDMOD, IQFIX, STPMAX, LUOUT)
-         CALL DCOPY(NOPT*NOPT, HES, 1, HESMOD, 1)
-C
-      ELSE IF (iFlags2(h_IFLAGS2_geom_opt) .gt. 2) THEN
-C
-C This is a redundant internal optimization
-C
-         CALL  PROJEC_IFC(HES, FSCR, HESMOD, HES_INTACT, DIAGHES,
-     &                    GRD, NXM6)
-         CALL SETUP(HES, GRD, HESMOD, GRDMOD, IQFIX, STPMAX, LUOUT)
-      ENDIF
+      CALL SETUP(HES, GRD, HESMOD, GRDMOD, IQFIX, STPMAX, LUOUT)
 C
 C Diagonalize the symmetrized Hessian. First, save the
 C original symmetrized Hessian in HES to be used in QST/LST
@@ -111,8 +68,6 @@ C
       CALL DCOPY(NOPT*NOPT, HESMOD, 1, HES, 1)
 CSSS      CALL OUTPUT(HES, 1, NOPT, 1, NOPT, NOPT, NOPT, 1)
       CALL EIG(HESMOD, DIAGHES, NOPT, NOPT, 1)
-      IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 2) CALL EVEC_SHIFT(HESMOD,
-     &           DIAGHES, HES_INTACT, NOPT)
 C
 C Analyse the eigenvalues and eigenvectors of the current Hessian
 C to decide the direction to follow. Note that ANALYSHES does
@@ -222,7 +177,7 @@ C
      &                  TS, RFA, QSTLST_CLIMB)
 C         
          IF (RFA) CALL FLOWEVFMIN(SCRATCH, GRDHES, HESMOD, DIAGHES, 
-     &                           LMBDAN, MORSE, NX, NOPT)
+     &                           LMBDAN, NX, NOPT)
 C
          IF (EVFTS) CALL FLOWEVFTS(SCRATCH, GRDHES, HESMOD, DIAGHES,
      &                             LMBDAN, LMBDAP, STPMAX, MORSE, 

@@ -15,7 +15,7 @@ C  in the file COPYRIGHT.
       SUBROUTINE REMAPX(CMPPGP,IORDGP,NATOMS,NORBCMP,COORD,
      &                 SCR,IMEMCMP,IPOPCMP,IMAP,itype)
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-C $Id: remap.F,v 1.3 2010/06/30 15:58:42 ponton Exp $
+C $Id: remap.F,v 1.3 2010-06-30 15:58:42 ponton Exp $
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C NAME
 C     remap -- determine the VMol -> ZMAT reordering vector

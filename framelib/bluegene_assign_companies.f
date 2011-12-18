@@ -14,12 +14,12 @@ C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
       subroutine bluegene_assign_companies(hosts, nprocs, 
      *                  nproc_per_node,
-     *                  company_id, platoon_id)
+     *                  company_id)
       implicit none
       include 'company.h'
    
       integer nprocs, nproc_per_node
-      integer hosts(nprocs), company_id(nprocs), platoon_id(nprocs)
+      integer hosts(nprocs), company_id(nprocs)
       integer nodes, ionodes, nworker, nserver, nserver_per_ionode
       integer node, proc, proc_skip
 
@@ -27,7 +27,6 @@ C  in the file COPYRIGHT.
 
       do i = 1, nprocs
          company_id(i) = 0
-         platoon_id(i) = 0
       enddo
  
       nodes = nprocs / nproc_per_node
@@ -58,7 +57,6 @@ c---------------------------------------------------------------------------
             endif
 
             company_id(proc) = 2
-            platoon_id(proc) = 1 
             proc = proc + proc_skip
          enddo
       enddo

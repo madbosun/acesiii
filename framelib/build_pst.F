@@ -218,7 +218,7 @@ c-------------------------------------------------------------------------
       if (me .eq. master) then
 #ifdef BLUEGENE
          call bluegene_assign_companies(ihosts, nprocs, nproc_per_node,
-     *                  pst(1,r_company_id), pst(1,r_platoon_id))
+     *                  pst(1,r_company_id))
 #else
          call assign_companies(ihosts, nprocs, 
      *                         pst(1,r_company_id), 

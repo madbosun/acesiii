@@ -502,6 +502,10 @@ C
             Print*, "Before the call to GMETRY, XYZIN", XYZIN
 #endif
         IF (.NOT. XYZIN) CALL GMETRY()
+        IF (XYZIN .AND. Iflags(h_IFLAGS_vib) .GT. 1 .AND.
+     &      IPASS1 .EQ. 0) CALL GETXYZ
+C
+
         call geomout
 C
 C Internal coordinate geo. optimizations, Cartesian Coordinate 
@@ -1102,25 +1106,15 @@ C Read internal Hessian from FCMINT file!
             CALL GETICFCM(Z(N2),NXM6,IICFCM)
             IF(IICFCM.EQ.1)IHES=-1
          ELSE
-            If (iFlags2(h_IFLAGS2_geom_opt).eq.2) Then
-                CALL GETICFCM(Z(N2),3*NATOMS,IICFCM)
-            Else
-               CALL GETICFCM(Z(1),3*NATOMS,IICFCM)
-            Endif
+C Read Cartesian Hessian from FCMINT file!
+            CALL GETICFCM(Z(1),3*NATOMS,IICFCM)
             IF(IICFCM.EQ.1)IHES=-1
          END IF
       EndIf
 #ifdef _DEBUG_LVL0
       Print*, "The Cartesian Hessian after reading fron GETICFCM"
-      if (ncycle .eq.0 .and. (EXPRT_INT_HESS .eq. "FCMINT ")) then
-      if (iFlags2(h_IFLAGS2_geom_opt).eq.2) Then
-      CALL output(Z(N2), 1, 3*NATOMS, 1, 3*NATOMS,  3*NATOMS,
+      CALL output(Z(1), 1, 3*NATOMS, 1, 3*NATOMS,  3*NATOMS, 
      &            3*NATOMS, 1)
-      else
-      CALL output(Z(1), 1, 3*NATOMS, 1, 3*NATOMS,  3*NATOMS,
-     &            3*NATOMS, 1)
-      endif
-      endif 
 #endif
 #ifdef _DEBUG_LVL0
       Write(6,*)
@@ -1142,7 +1136,8 @@ C
       IF (iFlags2(h_IFLAGS2_geom_opt).eq.2) Then
           CALL XDCOPY(NOPT, Z(N6), 1, Z(N7), 1)
       ELSE
-          CALL CONVQ(Z(N3), Z(N6), Z(N7), 0, 0)
+c         CALL CONVQ(Z(N3), Z(N6), Z(N7), 0, 1)
+         CALL CONVQ(Z(N3), Z(N6), Z(N7), 0, 0)
       ENDIF
       CALL FORCEOUT(Z(N7))
 C
@@ -1246,8 +1241,9 @@ C
        Print*, "Entering convhess:piece of cart2int transformation"
        Print*, "IAVHES: ", IAVHES
 #endif 
-            CALL CONVHESS(Z(N3),Z(N4),Z(1),Z(N2),Z(N1),-IAVHES)
-
+              IF (iFlags2(h_IFLAGS2_geom_opt) .ge. 3) 
+     &            CALL CONVHESS(Z(N3),Z(N4),Z(1),Z(N2),Z(N1),-IAVHES)
+C
            END IF
 
 C       ENDIF(IICFCM.EQ.0)
@@ -1285,7 +1281,7 @@ C
      &                      EXPRT_INT_HESS .EQ. "EXACT  " ) 
 C
         IF (IMPORT_CART_HESS .AND. XYZIN .AND.
-     &      iFlags2(h_IFLAGS2_geom_opt).ge.3) THEN
+     &      iFlags2(h_IFLAGS2_geom_opt).eq.3) THEN
 #ifdef _DEBUG_LVL0
        Print*, "The RIC: Importing Cartesian Hessian",
      &          IMPORT_CART_HESS
@@ -1372,7 +1368,7 @@ C NEGATIVE EIGENVALUES.  FORCE DIMENSION TO BE (NOPT+1) FOR EVERYTHING
 C BUT TS, WHERE IS MUST BE NOPT.
 C
       IAUGHS = 1
-CSSS      IF(INR .EQ. 4 .OR. INR .EQ. 5) IAUGHS=0
+      IF(INR .EQ. 4 .OR. INR .EQ. 5) IAUGHS=0
 C
 C Copy the updated Hessian for approximate frequencies in the final
 C iteration. We need to keep a copy of the Hessian because tkstep will

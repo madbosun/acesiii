@@ -146,11 +146,11 @@ C built the PHP and stored in HI).
 
       CALL XDSCAL(TOTREDNCO*TOTREDNCO,1000.0D0,TEMP1,1)
       CALL XDAXPY(TOTREDNCO*TOTREDNCO,-1.d0,TEMP1,1,HI,1)
-#ifdef _DEBUG_LVL0
+C#ifdef _DEBUG_LVL0
           print*,'The projected hessian in redundent internals '
           CALL OUTPUT(HI,1,TOTREDNCO,1,TOTREDNCO,TOTREDNCO,
      &                TOTREDNCO,1)
-#endif
+C#endif
       RETURN
       END
 

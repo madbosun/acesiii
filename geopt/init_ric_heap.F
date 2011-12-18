@@ -39,23 +39,20 @@ c   o don't allocate memory more than once
 
 c   o DerBMat: The derivative of the B-matrix for transforming the
 c              Hessian between RICs and Cartesians.
-C      s_DerBMat = 9*mxatms*mxatms*maxredunco
+c      s_DerBMat = 9*mxatms*mxatms*maxredunco
       s_DerBMat = 9*natoms*natoms*totrednco
       iNeed = iNeed + s_DerBMat
 
 c   o BMat: The B-matrix for RIC/Cartesian transformations.
       s_BMat = 9*totrednco*natoms
-c      s_BMat = 9*mxatms*mxatms
       iNeed = iNeed + s_BMat
 
 c   o GMat: The G-matrix for RIC/Cartesian gradient transformations.
       s_GMat = totrednco*max(totrednco,3*natoms)
-C      s_GMat = 9*mxatms*mxatms
       iNeed = iNeed + s_GMat
 
 c   o BTGInv: inv(trans(B)*G) required for transforming the Hessian.
       s_BTGInv = 3*natoms*totrednco
-C      s_BTGInv = 3*mxatms*maxredunco
       iNeed = iNeed + s_BTGInv
 
 c      ndx = iintfp*iNeed

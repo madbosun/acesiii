@@ -1,3 +1,17 @@
+C  Copyright (c) 2003-2010 University of Florida
+C
+C  This program is free software; you can redistribute it and/or modify
+C  it under the terms of the GNU General Public License as published by
+C  the Free Software Foundation; either version 2 of the License, or
+C  (at your option) any later version.
+
+C  This program is distributed in the hope that it will be useful,
+C  but WITHOUT ANY WARRANTY; without even the implied warranty of
+C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C  GNU General Public License for more details.
+
+C  The GNU General Public License is included in this distribution
+C  in the file COPYRIGHT.
       SUBROUTINE NEWRAPH(SCRATCH, GRDHES, HESMOD, DIAGHES, MORSE, 
      &                   NOPT, NX, LUOUT)
 C
@@ -25,8 +39,9 @@ C
 #endif
       DO 10 I = 1, NOPT
          DO 20 J = 1, NOPT
-            IF (HESMOD(I,I) .EQ. 0.0D0) Then
-                    SCRATCH(J+NOPT) = SCRATCH(J+NOPT) - 0.0D0
+            IF (iFlags2(h_IFLAGS2_geom_opt) .EQ. 2 .and.
+     &          HESMOD(I,I) .LT. 0.0D0) Then
+                    SCRATCH(J+NOPT) = 0.0D0
             ELSE
 C
                 SCRATCH(J+NOPT)=SCRATCH(J+NOPT)-GRDHES(I)*
@@ -36,14 +51,12 @@ C
  10   CONTINUE
 C
 C Notice that there is no Morse adjustments can be made for
-C pure Cartesian OLPtimization (no connections), Also, no
-C Morse scaling can be done for redundent internals.
-C Ajith Perera,08/2008, 2011.
+C pure Cartesian OLPtimization (no connections), Ajith Perera,08/2008.
 C
       IF (MORSE) THEN
          IF (iFlags2(h_IFLAGS2_geom_opt) .ge. 3) THEN
-CSSS           CALL DOMORSEXYZ_RIC(SCRATCH, NOPT, NX, LUOUT)
-         ELSE IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 1) THEN
+           CALL DOMORSEXYZ_RIC(SCRATCH, NOPT, NX, LUOUT)
+         ELSE
            CALL DOMORSEZMT(SCRATCH, NOPT, NX, LUOUT)
          ENDIF  
       ENDIF

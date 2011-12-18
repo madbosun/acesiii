@@ -22,6 +22,7 @@ c----------------------------------------------------------------------------
 
       implicit none
       integer jodadone
+      integer n, manulfds
 
       integer dummy, nforcecon
 
@@ -31,7 +32,25 @@ c      call iputrec(1,'JOBARC','DIRTYFLG',1,1)
 c      call geopt(jodadone)
 c      call aces_ja_fin()
 
-      call aces2_joda_main()
+c--------------------------------------------------------------------------
+c   Check for MANULFDS parameter on JOBARC.  If it exists, we will simply 
+c   set JODADONE to 1, thereby halting execution.
+c 
+c   Otherwise, we execute the normal aces2_joda_main processing, which 
+c   determines whether or not to continue processing based on convergence 
+c   criteria and other parameter data.
+c--------------------------------------------------------------------------
+
+      call aces_ja_init()
+      call igetrec(0,'JOBARC', 'MANULFDS', n, manulfds)
+      if (n .gt. 0) then
+         jodadone = 1  
+         call iputrec(1,'JOBARC', 'JODADONE', 1, jodadone)
+      else
+         call aces_ja_fin()
+         call aces2_joda_main()
+      endif
+
       call aces_ja_init()
       call igetrec(1, 'JOBARC', 'JODADONE',  1, jodadone)
 c      if (jodadone .eq. 0) then

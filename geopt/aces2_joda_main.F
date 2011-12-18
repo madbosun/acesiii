@@ -50,11 +50,11 @@ C  in the file COPYRIGHT.
       integer memreq, m, ierr
       double precision z(1)
       integer iz(1)
-      equivalence (z, iz)
 #ifdef ALTIX
       include 'sheap.h'
       pointer (dptr, z)
 #else
+      equivalence (z, iz)
 #ifndef BLUEGENE
       common z
 #endif

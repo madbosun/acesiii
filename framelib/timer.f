@@ -701,6 +701,100 @@ c---------------------------------------------------------------------------
  9800 format('CALL ',a32,' at line ',i6,': ',4(f12.5,1x))
       end
 
+      subroutine counter_report(descs, counter_data, contrib,
+     *                        sumsq, nprocs)
+c-------------------------------------------------------------------------
+c   Called by the master to produce a report of the accumulated timer
+c   data collected from each integral worker.
+c-------------------------------------------------------------------------
+
+      implicit none
+      include 'timerz.h'
+
+      integer ranks_per_line
+      parameter (ranks_per_line = 4)
+
+      integer i, j, k, l, ndx, lndx, nprocs
+      integer nline, nworker
+      integer ntimers
+      double precision counter_data(max_counters,3)
+      double precision contrib(max_counters)
+      double precision sumsq(max_counters)
+      
+      character*(max_counter_desc_len) descs(*)
+      character*256 aces_source_dir
+      character*120 srcline, token
+      character*256 srcfile, sialfile
+      character*40  counterdesc
+      character*60 line_fmt
+
+      integer n
+      integer lineno, lenval, ierr
+      integer str_trimlen
+      integer ndesc, nxtcall, ncalls
+ 
+      integer ranks(ranks_per_line)
+      double precision data(ranks_per_line)
+      double precision sum, avg, sdev
+      double precision temp
+      double precision calc_sdev
+      
+      logical source_level_analysis 
+
+c---------------------------------------------------------------------------
+c   Build a table of all the unique counter descriptions.
+c---------------------------------------------------------------------------
+
+      print *,'Entry to counter_report'
+      if (.not. do_timer) return   ! nothing to do.
+
+c---------------------------------------------------------------------------
+c   Print individual worker's statistics.
+c---------------------------------------------------------------------------
+
+      print *,'---------- Summary of Counter Statistics ----------'
+      print *,' '
+
+c--------------------------------------------------------------------------
+c   Calculate and print average and standard dev. of all counters.
+c--------------------------------------------------------------------------
+
+       print 400
+       print 500
+       call c_flush_stdout()
+      do i = 1, max_counters
+         avg  = counter_data(i,1) 
+         sdev = 0.
+
+         if (descs(i)(1:1) .ne. ' ' .and.
+     *       descs(i)(1:1) .ne. char(0)) then
+            if (contrib(i) .le. 1.) then
+               avg = counter_data(i,1)
+               sdev = 0.d0
+            else  
+               avg = counter_data(i,1)/contrib(i)
+               sdev = calc_sdev(sumsq(i), counter_data(i,1), contrib(i))
+            endif
+
+            if (counter_data(i,3) .eq. 1.d10)    ! remove init value for min
+     *          counter_data(i,3) = 0.d0
+       
+            if (avg .gt. .0005) 
+     *          print 200,descs(i)(1:25), avg, sdev, 
+     *             counter_data(i,3), counter_data(i,2) 
+         endif
+      enddo
+      return
+
+  100 format(1x,a25,5(1x,f12.3))
+  200 format(1x,a25,1x,f12.3,1x,f12.3,7x,f8.3,3x,f8.3)
+  300 format(1x,'Rank               ',9(9x,i4))
+  400 format(32x,'Average    Standard deviation',
+     *       '  Min. Val   Max. Val')
+  500 format(25x,'-------------   ------------------',
+     *       '   --------   --------')
+      end
+
       subroutine print_timers()
 c--------------------------------------------------------------------------
 c   Print the contents of all timers for debugging purposes.
@@ -759,4 +853,86 @@ c------------------------------------------------------------------------
       dnom = contrib * (contrib - 1.d0)
       calc_sdev = dsqrt(temp / dnom ) 
       return 
+      end
+
+      subroutine init_counters()
+c---------------------------------------------------------------------------
+c   Initialize the message counters.
+c---------------------------------------------------------------------------
+      implicit none
+      include 'timerz.h'
+      integer i
+
+      do i = 1, max_counters
+         counter_desc(i) = ' '
+         counters(i)     = 0
+      enddo
+
+      return
+      end
+
+      subroutine register_counter(descriptor, key)
+c---------------------------------------------------------------------------
+c   Sets up a new message counter with the descriptor "descriptor", 
+c   returns "key", which is used to reference the counter in subsequent 
+c   calls.
+c---------------------------------------------------------------------------
+      implicit none
+      include 'timerz.h'
+
+      character*(*) descriptor
+      integer key
+
+      integer i, m, n
+      integer str_trimlen
+
+c---------------------------------------------------------------------------
+c   Search for a descriptor matching the argument.
+c----------------------------------------------------------------------------
+
+      n = str_trimlen(descriptor)
+      do i = 1, max_counters
+         m = str_trimlen(counter_desc(i))
+         if (m .eq. n .and. 
+     *       descriptor(1:n) .eq. counter_desc(i)(1:n)) then 
+            
+c---------------------------------------------------------------------------
+c   Entry has a previous match.  
+c---------------------------------------------------------------------------
+
+             key = i
+             return
+         endif  
+
+         if (m .eq. 0) then
+   
+c----------------------------------------------------------------------------
+c   We are past all existing entries.  Add a new descriptor.
+c----------------------------------------------------------------------------
+
+            key = i
+            counter_desc(i) = descriptor
+            return 
+         endif 
+      enddo
+
+      print *,'No room for more message counters.'
+      call abort_job()
+
+      return
+      end 
+
+      subroutine increment_counter(key, increment)
+c-------------------------------------------------------------------------
+c   Increments the counter defined by "key".  
+c-------------------------------------------------------------------------
+      include 'timerz.h'
+      integer key, increment
+
+      if (key .gt. 0 .and.
+     *    key .le. max_counters) then
+         counters(key) = counters(key) + increment
+      endif
+
+      return
       end

@@ -14,7 +14,7 @@ C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
       SUBROUTINE VMLGENX(PGRP,IORDGP,QREF,QGEN,IGEN, ITYPE)
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-C $Id: vmlgen.f,v 1.3 2010/06/30 15:58:42 ponton Exp $
+C $Id: vmlgen.f,v 1.3 2010-06-30 15:58:42 ponton Exp $
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C NAME
 C     vmlgen -- generate symmetry equivalent atoms like VMol does

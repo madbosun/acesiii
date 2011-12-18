@@ -31,6 +31,13 @@ c--------------------------------------------------------------------------
       integer c_pardo_next_batch_start
       integer c_pardo_signal
       integer c_server_stat_key
+      integer c_get_counter
+      integer c_put_counter
+      integer c_putinc_counter
+      integer c_prepare_counter
+      integer c_preparesum_counter
+      integer c_request_counter
+      integer c_pardomsg_counter
       parameter (c_opcode = 1)
       parameter (c_op1_array = 2)
       parameter (c_op2_array = 3)
@@ -52,9 +59,16 @@ c--------------------------------------------------------------------------
       parameter (c_pardo_signal  = c_pardo_max_batch+1)
       parameter (c_server_stat_key = c_pardo_signal+1)
       parameter (c_lineno        = c_server_stat_key+1)
+      parameter (c_get_counter   = c_lineno+1)
+      parameter (c_put_counter   = c_get_counter+1)
+      parameter (c_putinc_counter = c_put_counter+1)
+      parameter (c_prepare_counter = c_putinc_counter+1)
+      parameter (c_preparesum_counter = c_prepare_counter+1)
+      parameter (c_request_counter = c_preparesum_counter+1)
+      parameter (c_pardomsg_counter = c_request_counter+1)
 
       integer loptable_entry
-      parameter (loptable_entry = c_lineno)
+      parameter (loptable_entry = c_pardomsg_counter) 
 
 c--------------------------------------------------------------------------
 c   "Equivalenced" optable indices for pardo load-balancing data

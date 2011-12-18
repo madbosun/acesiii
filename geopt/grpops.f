@@ -70,7 +70,7 @@ C     linblnk   Returns the index of the last non-blank character
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
 C $Log: grpops.f,v $
-C Revision 1.4  2010/10/07 14:33:58  ponton
+C Revision 1.4  2010-10-07 14:33:58  ponton
 C Add symcor changes, fix bugs in optimization code, change numerical lib calls to use proper routines
 C
 C Revision 1.2  2010/02/10 17:20:48  ponton

@@ -124,7 +124,6 @@ C started in 2000.
 C  
          XYZIN = .TRUE.
          IF (iFlags2(h_IFLAGS2_geom_opt).eq.0) THEN
-            Write(6,*) "Entering getxyz"
             CALL GETXYZ
             GO TO 3431
          END IF 
@@ -247,9 +246,10 @@ c----------------------------------------------------------------------------
             CALL IPUTREC(20, 'JOBARC', 'REDNCORD', 1, TOTREDNCO)
          ENDIF
 
+         call init_ric_heap
+
          IF (VERY_FIRST_TIME) THEN
             CALL GETXYZ
-            call init_ric_heap
             ISCRATCH = 1
             ITMPQ    = ISCRATCH + 9*NATOMS
             INEWQ    = ITMPQ    + 3*NATOMS
@@ -826,7 +826,6 @@ C
          IFLAGS(68) = 1
          CALL DGETREC(20,'JOBARC','NEXTGEOM',3*NATOMS,Q)
       END IF
-      Write(6, "(3F10.5)")(Q(I), I=1, 3*NATOMS)
 
 C COUNT NUMBER OF REAL ATOMS
 C Also add a record that contains the sum of both real and dummy atoms.

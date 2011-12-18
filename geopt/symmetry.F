@@ -1,3 +1,17 @@
+C  Copyright (c) 2003-2010 University of Florida
+C
+C  This program is free software; you can redistribute it and/or modify
+C  it under the terms of the GNU General Public License as published by
+C  the Free Software Foundation; either version 2 of the License, or
+C  (at your option) any later version.
+
+C  This program is distributed in the hope that it will be useful,
+C  but WITHOUT ANY WARRANTY; without even the implied warranty of
+C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C  GNU General Public License for more details.
+
+C  The GNU General Public License is included in this distribution
+C  in the file COPYRIGHT.
 #include "flags.h"
       SUBROUTINE SYMMETRY(SCRATCH,QTMP,NEWQ,NOSILENT)
 C
@@ -54,10 +68,10 @@ C
  7733 FORMAT(1X,F15.10)
 C
 #ifdef _DEBUG_LVL0
-      Write(6,"(a, 5I)"), "The number of atoms", Natoms
+      Write(6,"(a, I5)") "The number of atoms", Natoms
       Write(6,*)
       Print*, "The Cartesians before translations to CM" 
-      Write(6, "(3F10.5)"), (Q(I), I=1, 3*NATOMS)
+      Write(6, "(3F10.5)") (Q(I), I=1, 3*NATOMS)
       Write(6,*)
 #endif
       CALL DCOPY(3*NATOMS, Q, 1, QOLD, 1)
@@ -86,11 +100,6 @@ cYAU         CLOSE(UNIT=LUARC,STATUS='DELETE')
           Q(3*I-J) = Q(3*I-J)-CM(3-J)
   301   continue
    30 continue
-#ifdef _DEBUG_LVL0
-      Write(6,*), "The Cartesians in center of mass coords"
-      Write(6, "(3F12.7)"), (Q(I), I=1, 3*NATOMS)
-      Write(6,*)
-#endif     
       IF(IPRNT .GE. 4 .AND. NOSILENT)WRITE(LUOUT,*)
      &     'After translation to center of mass coordinates '
       IF(IPRNT .GE. 4 .AND. NOSILENT)WRITE(LUOUT,80)(Q(I),I = 1,NX)
@@ -132,6 +141,7 @@ C
       ELSE
         RELDIF=0.0
       ENDIF
+
       IF(RELDIF.LT.DEGTOL)THEN
         RANG=90.D0
         CALL ROTM(2,RANG,1,RM)
@@ -160,6 +170,7 @@ C
       Print*, "Rotational constant computation"
 #endif
       Call RotCon (IT, 1, IErr, NOSILENT)
+
 C
 C CHECK HANDEDNESS OF INERTIAL AXES AND SWAP IF NECESSARY.  DETERMINANT
 C   HAS TO BE UNITY.
@@ -233,7 +244,7 @@ CSSS         ENDDO
 CSSS      ENDDO
 #ifdef _DEBUG_LVL0
       Print*, "The Cartesians wrt CM origin"
-      Write(6, "(3F10.5)"), (Q(I), I=1, 3*NATOMS)
+      Write(6, "(3F10.5)") (Q(I), I=1, 3*NATOMS)
       Write(6,*)
 #endif   
 c
@@ -252,8 +263,8 @@ C
          CALL DCOPY(9, ORIEN2, 1, SCRATCH, 1)
 C
 C Since under this condition no call are made to SYMDRV.F, so all
-C the JOBACR records that are created by FLUSH.F (call by SYMDRV.F)
-C recorded. The content of these records can be trivialy generated
+C the JOBARC records that are created by FLUSH.F (call by SYMDRV.F)
+C recorded. The content of these records can be trivially generated
 C for SYM=NONE (same as SYM=C1). 
 C 
          CALL IPUTREC(20,'JOBARC','LINEAR  ',IONE,ILINEAR)
@@ -304,31 +315,17 @@ C It will be put into JOBARC (see below).
 C
          IF (IFLAGS2(h_IFLAGS2_noreori).EQ.1) THEN
 C
-C Undo the rotation and translation, if xxx less than zero, then 
-C Handedness of the inertial frame has changed and we must undo
-C that before undo the principal axix rotation (See above). 
-C
-            IF (XXX .LT. 0.0D0) Then
-               DO I=2,NX-1,3
-                  NEWQ(I)=-NEWQ(I) 
-               ENDDO
-            ENDIF  
+C Undo the rotation and translation
 C
             CALL XGEMM('N','N',3,NATOMS,3,ONE,IV,3,NEWQ,3,ZILCH,Q,3)
-#ifdef _DEBUG_LVL0
-      Write(6,*)
-      Print*, "The Cartesians after no-principal axis rot. "
-      Write(6, "(3F10.5)"), (Q(I), I=1, 3*NATOMS)
-#endif
             DO I = 1,NATOMS
                DO J = 0,2
                   Q(3*I-J) = Q(3*I-J)+ CM(3-J)
                ENDDO
             ENDDO
 #ifdef _DEBUG_LVL0
-      Write(6,*)
       Print*, "The Cartesians after no-reorintation CM"
-      Write(6, "(3F10.5)"), (Q(I), I=1, 3*NATOMS)
+      Write(6, "(3F10.5)") (Q(I), I=1, 3*NATOMS)
 #endif
          ELSE
 C
@@ -336,12 +333,6 @@ C When symmetry is none NOREORI is turned on by default and so
 C in principle this block is inactive.
 C 
             CALL DCOPY(3*nAtoms, NEWQ, 1, Q, 1)
-
-#ifdef _DEBUG_LVL0
-      Write(6,*)
-      Print*, "The Cartesians used when sym=none,noreori=off"
-      Write(6, "(3F10.5)"), (NEWQ(I), I=1, 3*NATOMS)
-#endif
          END IF
 C
          IF (IPRNT .GT. 4 .AND. NOSILENT) THEN
@@ -390,6 +381,7 @@ C
                ENDDO
             ENDDO
 #endif
+
             CALL SYMMETRY_AUTO(SCRATCH, QTMP, NEWQ, IT, IDEGEN, 
      &                         ORIEN2, NOSILENT)
 C
@@ -400,34 +392,14 @@ C
          IF (IFLAGS2(h_IFLAGS2_noreori).EQ.1) THEN
             IF (PGRP.EQ."C1  ") THEN
 C
-C Undo the rotation and translation, if xxx less than zero, then
-C Handedness of the inertial frame has changed and we must undo
-C that before undo the principal axix rotation (See above).
-C
-            IF (XXX .LT. 0.0D0) Then
-               DO I=2,NX-1,3
-                  NEWQ(I)=-NEWQ(I)
-               ENDDO
-            ENDIF
-
-#ifdef _DEBUG_LVL0
-      Write(6,*), "The Cartesians in the principal axis rotation ori."
-      Write(6, "(3F12.7)"), (NEWQ(I), I=1, 3*NATOMS)                  
-      Write(6,*)
-      Write(6,*) "The transformation matrix"
-      Write(6,"(3F12.7)")((Iv(I,J),J = 1,3),I = 1,3)
-      Write(6,*)
-#endif
-C
 C Reorientation is due to rotation of the principal axis.
 C If no reorientation is requested, undo the rotation and translation. 
 C
                CALL XGEMM('N','N',3,NATOMS,3,ONE,IV,3,NEWQ,3,ZILCH,
      &                     QTMP,3)
 #ifdef _DEBUG_LVL0
-      Write(6,*), "The Cartesians in center of mass coords"
-      Write(6, "(3F12.7)"), (QTMP(J), J=1, 3*NATOMS)                  
-      Write(6,*)
+      Print*, "The Cartesians after undoing the principal axis rotation"
+      Print*, (QTMP(I), I=1, 3*NATOMS)                  
 #endif
                DO I = 1,NATOMS
                   DO J = 0,2
@@ -439,8 +411,8 @@ C
                CALL DCOPY(3*NATOMS, QTMP, 1, Q, 1)
 
 #ifdef _DEBUG_LVL0
-      Write(6,*), "The Cartesians after undoing the sym. REORIENT"
-      Write(6, "(3F12.7)"), (QTMP(J), J=1, 3*NATOMS)                  
+      Print*, "The Cartesians after undoing the sym. REORIENT"
+      Print*, (QTMP(I), I=1, 3*NATOMS)
 #endif
 C
             ELSE
@@ -484,6 +456,7 @@ C
       CALL PUTCREC(20, 'JOBARC', "PTGP    ", 4, FPGRP)
       CALL PUTCREC(20, 'JOBARC', "ABL_PTGP", 4, BPGRP)
       CALL PUTCREC(20, 'JOBARC', "CMP_PTGP", 4, PGRP) 
+      iTmp = 1
       call IGETREC(0,'JOBARC','ZSYM',iTmp,indx)
 C
       if (iTmp.lt.0) then

@@ -21,7 +21,7 @@ C      It is NOT the original source code itself.
 C WARNING WARNING WARNING WARNING WARNING WARNING WARNING
       LOGICAL FUNCTION QSAME(Q1,Q2)
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-C $Id: qsame.f,v 1.3 2010/06/30 15:58:20 ponton Exp $
+C $Id: qsame.f,v 1.3 2010-06-30 15:58:20 ponton Exp $
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C NAME
 C     qsame -- determine the equivalence of two cartesian coordinates

@@ -1,7 +1,0 @@
-#ifndef _CONTROL_COM_
-#define _CONTROL_COM_
-      LOGICAL          ENERONLY,GRADONLY,ROTPROJ,RAMAN,GMTRYOPT,
-     &                 SNPTGRAD
-      COMMON /CONTROL/ ENERONLY,GRADONLY,ROTPROJ,RAMAN,GMTRYOPT,
-     &                 SNPTGRAD 
-#endif /* _CONTROL_COM_ */

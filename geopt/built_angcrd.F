@@ -24,8 +24,7 @@ C B(*,*,b,*)(x,y,z) = B(*,a,*,*) - B(*,*,*,c)
 C
 C
       IMPLICIT DOUBLE PRECISION (A-H, O-Z)
-      DOUBLE PRECISION COSGAMA ,DISTBA ,DISTBC ,DISTAC, ANGL,
-     &                 LEN_N2AC
+      DOUBLE PRECISION COSGAMA ,DISTBA ,DISTBC ,DISTAC, ANGL
       INTEGER TOTREDNCO
 C
       DIMENSION CARTCOORD(3*NRATMS), BMATRX(TOTREDNCO,3*NRATMS),
@@ -78,8 +77,8 @@ C
 C
           LEN_N2AC = DSQRT(DABS(XDOT(3, VECN2AC, 1, VECN2AC, 1)))
           IF (LEN_N2AC .LE. 1.0D-8) THEN
-             VECN2AC(1) =  VECBC(2) + VECBC(3)
-             VECN2AC(2) =  VECBC(1) - VECBC(3)
+             VECN2AC(1) =  VECBC(2) - VECBC(3)
+             VECN2AC(2) = -VECBC(1) + VECBC(3)
              VECN2AC(3) = -VECBC(1) - VECBC(2)
           ENDIF
 C
@@ -92,7 +91,7 @@ C
           LEN_N2AC = DSQRT(DABS(XDOT(3, VECN2AC, 1, VECN2AC, 1)))
           IF (LEN_N2AC .LE. 1.0D-8) THEN
              VECN2AC(1) =  VECBC(2) - VECBC(3)
-             VECN2AC(2) =  VECBC(1) + VECBC(3)
+             VECN2AC(2) = -VECBC(1) - VECBC(3)
              VECN2AC(3) =  VECBC(1) + VECBC(2)
           ENDIF
 C
@@ -115,12 +114,12 @@ C
 #endif
 C
           DO IXYZ = 1, 3
-             BMATRX(IANGS, (3*ICON3 - 3) + IXYZ) = 
+             BMATRX(IANGS, (3*ICON1 - 3) + IXYZ) = 
      &                                   VECBN2A(IXYZ)/DISTBC
-             BMATRX(IANGS, (3*ICON2 - 3) + IXYZ) = 
+             BMATRX(IANGS, (3*ICON3 - 3) + IXYZ) = 
      &                                  - VECBN2A(IXYZ)/DISTBC 
      &                                  - VECBN2B(IXYZ)/DISTBA
-             BMATRX(IANGS, (3*ICON1 - 3) + IXYZ) = 
+             BMATRX(IANGS, (3*ICON2 - 3) + IXYZ) = 
      &                                  VECBN2B(IXYZ)/DISTBA
           ENDDO
       ENDIF 

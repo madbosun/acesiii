@@ -14,7 +14,7 @@ C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
       Subroutine SAVORI ( PtGrp, NAtms, Q, AtNr, At1, At2, XYOri, Err )
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-C $Id: savori.F,v 1.3 2010/06/30 15:58:24 ponton Exp $
+C $Id: savori.F,v 1.3 2010-06-30 15:58:24 ponton Exp $
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C Purpose:
 C     Save information about the xy-orientation of the molecule.

@@ -42,6 +42,8 @@ c---------------------------------------------------------------------------
       integer timer_request(2*nprocs)
       double precision timer_stats(1) 
       integer timer_descs(1) 
+      double precision counter_stats(1)
+      integer counter_descs(1)
 
       integer itdesc(1)
       equivalence (itdesc(1), tdesc(1))
@@ -59,11 +61,15 @@ c---------------------------------------------------------------------------
 #ifdef ALTIX
       pointer (iptr, timer_descs)
       pointer (dptr, timer_stats)
+      pointer (iptr1, counter_descs)
+      pointer (dptr1, counter_stats)
 
       iptr = ishptr
       dptr =dshptr
+      iptr1 = ishptr
+      dptr1 = dshptr
 #else
-      common timer_stats, timer_descs
+      common timer_stats, counter_stats, timer_descs, counter_descs
 #endif
 
 c--------------------------------------------------------------------------
@@ -178,6 +184,110 @@ c----------------------------------------------------------------------------
      *          timer_stats(itimer_sd),
      *          nprocs_save)
 
+c--------------------------------------------------------------------------
+c   Now, set up the counter statistic buffer.
+c--------------------------------------------------------------------------
+      
+      call mem_alloc_reset()
+
+      nw = 4*max_counters
+      call mem_alloc(counter_stats, nw, bytes_per_double, itstat,
+     *                .true., ierr)
+      if (ierr .ne. 0) then
+         print *,'Cannot alloc counter memory: itstat nw ',nw
+         call abort_job()
+      endif
+ 
+      nw = max_counters
+      call mem_alloc(counter_stats, nw, bytes_per_double, itimer_avg,
+     *               .true., ierr)
+      if (ierr .ne. 0) then
+         print *,'Cannot alloc counter memory: itimer_avg nw ',nw
+         call abort_job()
+      endif
+ 
+      call mem_alloc(counter_stats, nw, bytes_per_double, itimer_sd,
+     *               .true., ierr)
+      if (ierr .ne. 0) then
+         print *,'Cannot alloc counter memory: itimer_sd nw ',nw
+         call abort_job()
+      endif
+
+      nints = (max_counters*max_counter_desc_len+intsize-1)/intsize
+      nw = 2*nints
+      call mem_alloc(counter_descs, nw, intsize, idesc,
+     *               .true., ierr)
+      if (ierr .ne. 0) then
+         print *,'Cannot alloc counter memory: idesc nw ',nw
+         call abort_job()
+      endif
+      
+c--------------------------------------------------------------------------
+c   Initialize the sum, avg, and sd buffers.
+c--------------------------------------------------------------------------
+
+      call sum_counter_data(counter_stats(itstat), 
+     *                    counters,
+     *                    counter_descs(idesc),             
+     *                    counter_desc,
+     *                    counter_stats(itimer_avg),
+     *                    counter_stats(itimer_sd), max_counters,
+     *                    max_counter_desc_len, .true.) 
+
+c--------------------------------------------------------------------------
+c   Post a recv for each contraction worker and integral worker in which
+c   to receive the counter statistics for the workers.
+c
+c   These recv's will not complete until each process sends the master its
+c   counter data at termination time.
+c--------------------------------------------------------------------------
+
+      do i = 2, nprocs
+         status = pst_get_role(i-1)
+         if (status .eq. worker_status .or.
+     *       status .eq. both_status .or.
+     *       status .eq. master_worker_status) then
+
+c--------------------------------------------------------------------------
+c   Receive the counter data from proc i-1.
+c--------------------------------------------------------------------------
+
+            itimer = itstat + 3*max_counters
+            call mpi_recv(counters, max_counters,
+     *               mpi_integer, (i-1),
+     *               counter_data_request_tag, mpi_comm_world,
+     *               status_mpi, ierr)
+
+c--------------------------------------------------------------------------
+c   Receive the counter descriptor data from proc i-1.
+c--------------------------------------------------------------------------
+
+            irecv = nints + idesc   
+            call mpi_recv(counter_descs(irecv), nints,
+     *                  mpi_integer, (i-1),
+     *                  counter_desc_request_tag, mpi_comm_world,
+     *                  status_mpi, ierr)
+
+            call sum_counter_data(counter_stats(itstat), 
+     *                          counters,
+     *                          counter_descs(idesc),             
+     *                          counter_descs(idesc+nints),
+     *                          counter_stats(itimer_avg),
+     *                          counter_stats(itimer_sd), max_counters,
+     *                          max_counter_desc_len, .false.) 
+         endif
+      enddo
+
+c----------------------------------------------------------------------------
+c   Print the counter data.
+c----------------------------------------------------------------------------
+
+      call counter_report(counter_descs(idesc), 
+     *          counter_stats(itstat), 
+     *          counter_stats(itimer_avg),
+     *          counter_stats(itimer_sd),
+     *          nprocs_save)
+
       return
       end
 
@@ -250,3 +360,78 @@ c------------------------------------------------------------------------
       enddo
       return
       end
+
+      subroutine sum_counter_data(sumdata, instance, descs, 
+     *                          descs_instance, contrib, sumsq,
+     *                          max_counters, max_counter_desc_len,
+     *                          init)  
+c---------------------------------------------------------------------------
+c   Sums the counter data from one processor (instance) into the total sum 
+c   buffer.  The number of contributing elements and the sum of squares 
+c   for each counter is also accumulated.
+c---------------------------------------------------------------------------
+      
+      implicit none
+      integer i, j
+      integer max_counters
+      integer max_counter_desc_len
+      double precision sumdata(max_counters,3)
+      integer  instance(max_counters)
+      double precision sumsq(max_counters), contrib(max_counters)
+      double precision x
+      character*(max_counter_desc_len) descs(max_counters)
+      character*(max_counter_desc_len) descs_instance(max_counters)
+      logical init
+
+      if (init) then
+         do i = 1, max_counters
+            descs(i) = descs_instance(i)
+            if (descs(i)(1:1) .ne. ' ' .and. 
+     *          descs(i)(1:1) .ne. char(0) ) then
+               contrib(i) = 1.
+               x = instance(i)
+               sumdata(i,1) = x
+               sumdata(i,2) = x
+               sumdata(i,3) = x
+               sumsq(i) = x * x
+            else
+               contrib(i)   = 0.
+               sumsq(i)     = 0.
+               sumdata(i,1) = 0.
+               sumdata(i,2) = 0.d0
+               sumdata(i,3) = 1.d10 
+            endif
+         enddo 
+
+         return
+      endif
+
+      do i = 1, max_counters
+         if (descs_instance(i)(1:1) .ne. ' ' .and.
+     *       descs_instance(i)(1:1) .ne. char(0)) then
+            if (descs_instance(i) .eq. descs(i)) then
+              
+c------------------------------------------------------------------------
+c   Sum in the data.
+c------------------------------------------------------------------------
+   
+               if (instance(i) .ne. 0.d0) then
+                  x = instance(i)
+                  sumdata(i,1) = sumdata(i,1) + x
+                  sumdata(i,2) = max(sumdata(i,2), x)
+                  sumdata(i,3) = min(sumdata(i,3), x)
+                  contrib(i)   = contrib(i) + 1.
+                  sumsq(i)     = sumsq(i) + x * x
+               endif   
+            else
+               print *,'Error: Counter desc ',descs_instance(i),
+     *             ' does not match proc 0 counter_desc ',
+     *              descs(i)
+               print *,'i = ',i
+               call abort_job()
+            endif
+         endif
+      enddo
+      return
+      end
+

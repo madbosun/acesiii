@@ -35,6 +35,7 @@ c------------------------------------------------------------------------
       integer pst_get_master
       integer nints
       integer treq1, treq2
+      integer creq1, creq2
       integer status(mpi_status_size)
 
       save
@@ -65,9 +66,22 @@ c--------------------------------------------------------------------------
      *              master, timer_desc_request_tag, mpi_comm_world, 
      *              treq2, ierr)
 
+            call mpi_isend(counters, max_counters, 
+     *              mpi_integer,
+     *              master, counter_data_request_tag, mpi_comm_world, 
+     *              creq1, ierr)
+
+            nints = (max_counters*max_counter_desc_len + intsize-1) / 
+     *                intsize
+            call mpi_isend(counter_desc, nints, mpi_integer,
+     *              master, counter_desc_request_tag, mpi_comm_world, 
+     *              creq2, ierr)
+
             call prt_time('Waiting on timer data requests...')
             call mpi_wait(treq1, status, ierr)
             call mpi_wait(treq2, status, ierr)
+            call mpi_wait(creq1, status, ierr)
+            call mpi_wait(creq2, status, ierr)
             call prt_time('Completed timer data requests')
          endif
       endif

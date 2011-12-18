@@ -1,6 +1,19 @@
+C  Copyright (c) 2003-2010 University of Florida
+C
+C  This program is free software; you can redistribute it and/or modify
+C  it under the terms of the GNU General Public License as published by
+C  the Free Software Foundation; either version 2 of the License, or
+C  (at your option) any later version.
+
+C  This program is distributed in the hope that it will be useful,
+C  but WITHOUT ANY WARRANTY; without even the implied warranty of
+C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C  GNU General Public License for more details.
+
+C  The GNU General Public License is included in this distribution
+C  in the file COPYRIGHT.
       SUBROUTINE GEN_NEW_RIC(CARTCOORD, REDUNCO, IATOMICNMBER, 
-     &                       NRATMS, TOTNOFBND, NW_TOTREDNCO, 
-     &                       TOTNOFANG, TEST_4CHANGE)
+     &                       NRATMS, TOTNOFBND, NW_TOTREDNCO)
 C
 C Generate the redundent internal coordinates. 
 C
@@ -8,13 +21,10 @@ C
 C
 #include "mxatms.par"
 #include "io_units.par"
-#include "cbchar.com"
 C 
-      PARAMETER(THRESHOLD = 5.0D00, EPSILON = 1.0D-10)
+      PARAMETER(THRESHOLD = 0.5D00, EPSILON = 1.0D-10)
 C
-      INTEGER TOTREDNCO, TOTNOFBND, TOTNOFANG, TOTNOFDIH,
-     &        FRAGSCR
-      LOGICAL TEST_4CHANGE
+      INTEGER TOTREDNCO, TOTNOFBND, TOTNOFANG, TOTNOFDIH
 C
 C The following arrays need to be managed dynamically:
 C
@@ -29,23 +39,37 @@ C             maximum number is set to 10, so this is a
 C             rather small (it is not currently being
 C             used, but needs in the future).
 C
-      DIMENSION CARTCOORD(3*MXATMS), BNDLENTHS(MXATMS, MXATMS), 
-     &          IATOMICNMBER(MXATMS), SMOFCOVRADI(MXATMS, MXATMS),
-     &          IBNDTO(MXATMS*MXATMS), NCONPRCNTR(MXATMS),
+      DIMENSION CARTCOORD(3*NRATMS), BNDLENTHS(NRATMS, NRATMS), 
+     &          IATOMICNMBER(NRATMS), SMOFCOVRADI(NRATMS, NRATMS),
+     &          IBNDTO(NRATMS*NRATMS), NCONPRCNTR(MAXCNTVS),
      &          IREDUNCO(4, MAXREDUNCO), 
-     &          REDUNCO(MAXREDUNCO), MARK_FRAGMENTS(MXATMS, MXATMS),       
-     &          LENGTH_FRAGEMENTS(MXATMS), VECBA(3), VECBC(3), 
+     &          REDUNCO(MAXREDUNCO), MARK_FRAGMENTS(NRATMS, NRATMS),       
+     &          LENGTH_FRAGEMENTS(NRATMS), VECBA(3), VECBC(3), 
      &          VECBAD(3), VECCB(3), VECAB(3), VECCD(3), VECABC(3),
-     &          VECBCD(3),
-     &          FRAGSCR(MXATMS*MXATMS),BLNGT_IJFRGS(MXATMS)
+     &          VECBCD(3)
 C      
       DATA  IZERO, MONE, ZERO /0, -1, 0.0D0/
 C
       DINVPI = (ATAN(DFLOAT(1))*DFLOAT(4))/180.0D0 
-      PI     = (ATAN(DFLOAT(1))*DFLOAT(4))
-
-      BHORTOANG    = 0.529177249D0
       NW_TOTREDNCO = IZERO
+C
+#ifdef _NO_SKIP
+C
+C Reassigning connectivites during iterative determination of 
+C Cartesians from internals can be problematic, especially if
+C isolated fragments are invloved. If someone wants to be 
+C adventurous, define _NOSKIP during compilation.
+
+#ifdef _DEBUG_LVLM1
+      Print*, "Entering assign connectivities"
+      Print*, (IATOMICNMBER(I), I=1, NRATMS)
+#endif
+C
+      CALL ASIGN_CNTVTES(CARTCOORD, BNDLENTHS, IATOMICNMBER, 
+     &                   SMOFCOVRADI, NCONPRCNTR, IBNDTO, MAXCNTVS,
+     &                   NRATMS, MARK_FRAGMENTS, LENGTH_FRAGEMENTS)
+C
+#else
 C
       CALL IGETREC(20, 'JOBARC', 'REDNCORD', 1, TOTREDNCO)
       CALL IGETREC(20, 'JOBARC', 'CONTEVIT', 4*TOTREDNCO,
@@ -55,6 +79,7 @@ C
       CALL IGETREC(20, 'JOBARC', 'TNUMODIH', 1, TOTNOFDIH)
       CALL IGETREC(20, 'JOBARC', 'IBONDTO ', NRATMS*NRATMS,
      &            IBNDTO)
+#endif
 C
 #ifdef _DEBUG_LVL0 
       Print*, "The redundent internal coordinates assignments"
@@ -62,11 +87,20 @@ C
       Do i = 1, TOTREDNCO
          Write(6,111) (iredunco(j, i), j=1, 4)
       Enddo
+ 111  Format(5X, 4(I3, 1X))
+      Write(6,*) 
+      Write(6,"(a)") "The Ibndto array"
+      Write(6,"(8I4)") (Ibndto(I), I=1, nratms*nratms)
+      Write(6,*)
 #endif
+C 
+C Assign bond length Coordinates.
 C
-C Assign bond coordiante
+#ifdef _NO_SKIP
+      CALL ASSIGN_BONDS(IBNDTO, IREDUNCO, NW_TOTREDNCO, TOTNOFBND,
+     &                  NRATMS, MAXREDUNCO)
 C
-
+#endif
       DO IBNDS = 1, TOTNOFBND
          IF (IREDUNCO(2, IBNDS) .NE. 0) THEN
             ICON1  = IREDUNCO(1, IBNDS)
@@ -74,14 +108,16 @@ C
             DISTAB = DIST(CARTCOORD(3*ICON1 - 2), 
      &               CARTCOORD(3*ICON2 - 2))
             REDUNCO(IBNDS) = DISTAB
-C     
-#ifdef _DEBUG_LVL0
-            WRITE(6,"(a,F10.5)") "The bond distance =",DISTAB*0.529177249d0
-#endif
          ENDIF
       ENDDO
 C
 C Assign bond angle Coordinates.
+C
+#ifdef _NO_SKIP
+      CALL ASSIGN_ANGLS(CARTCOORD, IBNDTO, IREDUNCO, NW_TOTREDNCO,
+     &                  TOTNOFBND, TOTNOFANG, NRATMS, MAXREDUNCO,
+     &                  THRESHOLD)
+#endif
 C
       DO IANGS = (TOTNOFBND + 1), (TOTNOFANG + TOTNOFBND)
      
@@ -90,10 +126,7 @@ C
 C This is for linear arrangements (two angle coordinates are
 C required). 
 C
-            REDUNCO(IANGS) = 180.0D0*DINVPI
-#ifdef _DEBUG_LVL0
-            WRITE(6,"(a,F10.5)") "The Bond Angle =", ANGL/DINVPI
-#endif
+            REDUNCO(IANGS) = ZERO
 C
          ELSE
 C
@@ -108,16 +141,37 @@ C
      &               VECBA, 1)
             ANGL    = ANGLE(VECBC, VECBA, 3)*DINVPI
             REDUNCO(IANGS) = ANGL
-#ifdef _DEBUG_LVL0
-            WRITE(6,"(a,F10.5)") "The Bond Angle =", ANGL/DINVPI
-#endif
          ENDIF
 C
       ENDDO
 C
 C Assign bond dihedral angle Coordinates.
 C
-      DO IDIHS = (TOTNOFANG + TOTNOFBND + 1),  TOTREDNCO
+#ifdef _DEBUG_LVL0
+      Print*, "Entering assign dihedral angles"
+      Print*, "Total # of Angles:", TOTNOFANG 
+#endif 
+C
+#ifdef _NO_SKIP
+      CALL ASSIGN_DIHLS(IBNDTO, IREDUNCO, NW_TOTREDNCO, TOTNOFBND,
+     &                  TOTNOFANG, NRATMS, TOTNOFDIH, MAXREDUNCO)
+C
+C Assign dihedral angles for nearly planar structures.
+C
+      IF (TOTNOFDIH .EQ. IZERO) THEN
+C
+#ifdef _DEBUG_LVL0
+      Print*, "Entering assign planar dihedrals"
+#endif 
+
+         CALL ASSIGN_DIHLSNPL(CARTCOORD, IBNDTO, IREDUNCO,  
+     &                        NW_TOTREDNCO, TOTNOFBND, TOTNOFANG, 
+     &                        TOTNOFDIH, NRATMS, MAXREDUNCO, 
+     &                        THRESHOLD)
+      ENDIF
+#endif
+C
+      DO IDIHS = (TOTNOFANG + TOTNOFBND + 1),  NW_TOTREDNCO
          ICON1  = IREDUNCO(1, IDIHS)
          ICON2  = IREDUNCO(2, IDIHS)
          ICON3  = IREDUNCO(3, IDIHS)
@@ -148,23 +202,8 @@ C We need the vector CD, obtain that from vec DC (note the misnomar)
 C
          CALL DSCAL(3, -1.0D0, VECCD, 1)
          CALL CROSS(VECBC, VECCD, VECBCD, 1)
-C
          DANG = (ANGLE(VECABC, VECBCD, 3))*DINVPI
-C
-C--- Obtainig the sign of the dihedral angle:
-C
-         CALL DSCAL(3, -1.0D0, VECCD, 1)
-         CALL CROSS(VECCD, VECCB, VECBCD, 0)
-C
-         SENSE = DDOT(3, VECAB, 1, VECBCD, 1)
-
-         IF (SENSE .GT. 0.0D0) DANG = -DANG
          REDUNCO(IDIHS) = DANG
-         
-#ifdef _DEBUG_LVL0
-            WRITE(6,"(a,F10.5)") "The Dihedral Angle =", DANG/DINVPI
-#endif
-C
 #ifdef _DEBUG_LVLM1
       Print*, "The vectors making the dihedral angle"
       Print*,  (CARTCOORD(3*ICON1 - 2 + I), I=0, 2)
@@ -174,76 +213,16 @@ C
       Print*, "The vec. BC: ", (VECBC(I), I=1, 3)
       Print*, "The vec. AB: ", (VECAB(I), I=1, 3)
       Print*, "The vec. CB: ", (VECCB(I), I=1, 3)
-      Print*, "The vec. CD: ", (-VECCD(I), I=1, 3)
-      Print*, "The vec. ABC:", (VECABC(I), I=1,3)
-      Print*, "The vec. BCD:", (VECBCD(I), I=1,3)
-      Write(6,"(a,F10.5)") "The dihedral angle", DANG/DINVPI
+      Print*, "The vec. CD: ", (VECCD(I), I=1, 3)
+      Print*, "The angle:", DANG/DINVPI
 #endif
-C
+
       ENDDO 
 C
-      IF (.NOT. TEST_4CHANGE) THEN
-          NW_TOTREDNCO = TOTREDNCO
-          RETURN
-      ENDIF
-C
-C Assign new set of redundent internal coordiantes to check whether
-C the number of redundent internal coordiantes are changing.
-C
-      CALL ASIGN_CNTVTES(CARTCOORD, BNDLENTHS, IATOMICNMBER,
-     &                   SMOFCOVRADI, NCONPRCNTR, IBNDTO, MAXCNTVS,
-     &                   NRATMS, MARK_FRAGMENTS, LENGTH_FRAGEMENTS,
-     &                   FRAGSCR, BLNGT_IJFRGS)
 #ifdef _DEBUG_LVL0
-      Print*, "Entering assign bonds"
       Write(6,*)
-#endif 
-      CALL ASSIGN_BONDS(IBNDTO, IREDUNCO, NW_TOTREDNCO, TOTNOFBND,
-     &                  NRATMS, MAXREDUNCO)
-#ifdef _DEBUG_LVL0
-      Print*, "Entering assign angles"
-      Print*, "Total # of bonds:", TOTNOFBND
-#endif 
-      CALL ASSIGN_ANGLS(CARTCOORD, IBNDTO, IREDUNCO, NW_TOTREDNCO,
-     &                  TOTNOFBND, TOTNOFANG, NRATMS, MAXREDUNCO,
-     &                  THRESHOLD)
-#ifdef _DEBUG_LVL0
-      Print*, "Entering assign dihedral angles"
-      Print*, "Total # of Angles:", TOTNOFANG
+      Print*, "The total redundent internal", NW_TOTREDNCO
 #endif
-      CALL ASSIGN_DIHLS(IBNDTO, IREDUNCO, NW_TOTREDNCO, TOTNOFBND,
-     &                  TOTNOFANG, NRATMS, TOTNOFDIH, MAXREDUNCO)
-
-#ifdef _DEBUG_LVL0
-      Write(6,*)
-      Print*, "Total # of dihedrals:", TOTNOFDIH
-      Print*, "The total redundent internal", TOTREDNCO
-      Write(6,*)
-      Print*, "The redundent internal coordinates assignments"
-      Write(6,*)
-      Do i = 1, TOTREDNCO
-         Write(6,111) (iredunco(j, i), j=1, 4)
-      Enddo
- 111  Format(5X, 4(I3, 1X))
-#endif
-      IF (NW_TOTREDNCO .NE. TOTREDNCO) THEN
-          Write(6,*) 
-          Write(6,"(1x,a,a,a,a)")"The total number of redundent ",
-     &                           "internals have changed during ", 
-     &                           "the optimization, please start ",
-     &                           "from the following coords (Angs.)"
-C
-          IOFF = 1
-          DO I =1, NRATMS
-             WRITE(6,100)ZSYM(I)(1:2),(BHORTOANG*CARTCOORD(J),
-     &                                 J=IOFF,IOFF+2)
-             IOFF=IOFF+3
-          END DO
-
-
-         CALL ERREX
-      ENDIF 
- 100  FORMAT(T6,A,T10,F14.8,T25,F14.8,T40,F14.8)
 
       RETURN
       END
