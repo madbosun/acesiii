@@ -1,5 +1,7 @@
 include ../GNUmakefile.chssi
 
+LIB_DIRS:=-L../lib $(LIB_DIRS)
+
 ACES2_LIB=../lib/libaces2.a
 EXE=../bin/xtest_compare
 

@@ -5,29 +5,12 @@ MPIRUN="mpirun ./xaces3 >./job.out"
 RUN_COMPARE="mpirun .xtest_compare "
 ENV_VARS=" "
 
-# Machine-specific variable settings
-
 ifeq ($(MACHNAME),submit1)
-WORKDIR=/scratch/ufhpc/${USER}
+WORKDIR=./acestest
 endif
 
 ifeq ($(MACHNAME),submit2)
-WORKDIR=/scratch/ufhpc/${USER}
-endif
-
-ifeq ($(MACHNAME),chugach)
-PBS_LINES="\#PBS -j oe"
-PBS_LINES += "\#PBS -N ACES3_TEST"
-PBS_LINES += "\#PBS -l mppwidth=64"
-PBS_LINES += "\#PBS -l walltime=12:00:00"
-PBS_LINES += "\#PBS -q standard"
-PBS_LINES += "\#PBS -e ACESIII_tests.err"
-PBS_LINES += "\#PBS -o ACESIII_tests.out"
-PBS_LINES += "\#PBS -A ARONC24913112"
-ENV_VARS="setenv MPICH_GNI_NDREG_LAZYMEM disabled"
-SET_ACES_EXE_PATH=setenv ACES_EXE_PATH
-MPIRUN="aprun -n 64 ./xaces3 >./job.out"
-RUN_COMPARE="aprun -n 64 ./xtest_compare "
+WORKDIR=./acestest
 endif
 
 ifeq ($(MACHNAME),pingo)
@@ -185,8 +168,6 @@ scripts: % : ;
 	   do echo >>runscript  ; \
 	      echo \#\#\# Test $$test \#\#\# >>runscript ; \
 	      echo cd $(INSTALL_DIR)/$$test >>runscript ; \
-              echo lfs setstripe BLOCKDATA  0 -1 -1 >>runscript ; \
-              echo lfs setstripe BLOCKDATA2 0 -1 -1 >>runscript ; \
 	      echo "echo Running $$test >>../monitor_tests" >>runscript ; \
               echo "date >>../monitor_tests" >>runscript ; \
 	      echo $(MPIRUN) >>runscript ; \
