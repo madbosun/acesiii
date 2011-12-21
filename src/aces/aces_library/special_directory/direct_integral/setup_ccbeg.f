@@ -12,29 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-
-      subroutine setup_ccbeg(alpha, ixalpha, pcoeff, ixpcoeff,
-     *                       ncfps, npfps, nshells, ccbeg, ccend,
-     *                       indx_cc)
-c---------------------------------------------------------------------------
-c   Computes the beginning and ending non-zero contraction coefficients,
-c   used to gain efficiency in the ERD integral package.
-c---------------------------------------------------------------------------
-      implicit none
-      include 'shared_mem_data.h'
-      integer nshells
-      integer ncfps(*), npfps(*), ixalpha(*), ixpcoeff(*)
-      integer nalpha, npcoeff
-      double precision alpha(*), pcoeff(*)
-      integer ccbeg(*), ccend(*), indx_cc(nshells)
-      integer i, j, ishell
-      integer k, l, icc
-      call setup_ccbeg2(alpha, shared_buf(shared_mem_offset), pcoeff,
-     *                       ixpcoeff,ncfps, npfps, nshells, ccbeg,
-     *                       ccend,indx_cc)
-      end
-
-      subroutine setup_ccbeg2(alpha, ixalpha, pcoeff, ixpcoeff, 
+      subroutine setup_ccbeg(alpha, ixalpha, pcoeff, ixpcoeff, 
      *                       ncfps, npfps, nshells, ccbeg, ccend,
      *                       indx_cc)
 c---------------------------------------------------------------------------

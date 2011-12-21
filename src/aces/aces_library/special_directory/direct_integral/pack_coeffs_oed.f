@@ -12,40 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-
-      subroutine pack_coeffs_oed(alpha, ixalpha, pcoeff, ixpcoeff,
-     *                       ncfps, npfps, m, n,
-     *                       alpha_pack, nalpha, pcoeff_pack,
-     *                       npcoeff, ccbeg, ccend, indx_cc,
-     *                       ccbeg_pack, ccend_pack,
-     *                       maxpack)
-c---------------------------------------------------------------------------
-c   Formats the integral exponents and contraction coefficients for use
-c   in the ERD integral package.
-c---------------------------------------------------------------------------
-      implicit none
-      include 'machine_types.h'
-      include 'shared_mem_data.h'
-      integer ncfps(*), npfps(*), ixalpha(*), ixpcoeff(*)
-      integer ccbeg(*), ccend(*), indx_cc(*)
-      integer ccbeg_pack(*), ccend_pack(*)
-      integer maxpack
-      integer m, n
-      integer nalpha, npcoeff
-      integer ialpha
-      integer ipcoeff
-      integer quad(2)
-      double precision alpha(*), pcoeff(*)
-      double precision alpha_pack(*), pcoeff_pack(*)
-      call pack_coeffs_oed2(alpha, shared_buf(shared_mem_offset),
-     *                       pcoeff,ixpcoeff,ncfps, npfps, m, n,
-     *                       alpha_pack, nalpha, pcoeff_pack,
-     *                       npcoeff, ccbeg, ccend, indx_cc,
-     *                       ccbeg_pack, ccend_pack,
-     *                       maxpack)
-      end
-
-      subroutine pack_coeffs_oed2 (alpha, ixalpha, pcoeff, ixpcoeff, 
+      subroutine pack_coeffs_oed(alpha, ixalpha, pcoeff, ixpcoeff, 
      *                       ncfps, npfps, m, n,
      *                       alpha_pack, nalpha, pcoeff_pack, 
      *                       npcoeff, ccbeg, ccend, indx_cc,

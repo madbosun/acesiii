@@ -430,13 +430,12 @@ C
      &          COORD(3,*)
 
       INTEGER IXALPHA(*), IXPCOEF(*)
-      
+ 
       DOUBLE PRECISION X, Y, Z 
       INTEGER ISHL(6)
 
       integer nxt_alpha, nxt_pcoef
-      print *,'read_basis_info called'
-C
+C     
       PI=DATAN(1.0D+00)*4.D+00
       PICNST=(0.5D+00/PI)**0.75D+00
 C

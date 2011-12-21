@@ -30,7 +30,6 @@ c---------------------------------------------------------------------
       include 'machine_types.h'
       include 'dbugcom.h'
       include 'erd_dbug.h'
-      include 'shared_mem_data.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -186,10 +185,8 @@ c-------------------------------------------------------------------------
             call aces_to_erd(nfps, ivangmom, nshells, ispherical,
      *                       ibuf(ierdind), dbuf(iscale_fac)) 
 
-            call setup_ccbeg(dbuf(ialpha),
-     *   shared_buf(shared_mem_offset)
-     * , dbuf(ipcoeff),
-     *                       ixpcoef, ncfps, npfps, nshells,
+            call setup_ccbeg(dbuf(ialpha), ixalpha, dbuf(ipcoeff), 
+     *                       ixpcoef, ncfps, npfps, nshells, 
      *                       ibuf(iccbeg), ibuf(iccend), indx_cc)
          endif
 
@@ -199,21 +196,19 @@ c-------------------------------------------------------------------------
             do_erd_scratch_calc = .false.   ! only 1 time EVER!
 
             if (fast_erd_memcalc) then
-               call fast_erd_scratch_mem_calc(nshells, ivangmom,
+               call fast_erd_scratch_mem_calc(nshells, ivangmom, 
      *                          ncfps, npfps,
      *                          atom, dbuf(icoord), dbuf(ialpha),
-     *                          dbuf(ipcoeff),
-     *                      shared_buf(shared_mem_offset), ixpcoef,
+     *                          dbuf(ipcoeff), ixalpha, ixpcoef,
      *                          ibuf(iccbeg), ibuf(iccend), indx_cc,
      *                          spherical, ncenters, intmax, zmax)
             else
-               call erd_scratch_mem_calc(nshells, ivangmom,
+               call erd_scratch_mem_calc(nshells, ivangmom, 
      *                          ncfps, npfps,
      *                          atom, dbuf(icoord), dbuf(ialpha),
-     *                          dbuf(ipcoeff),
-     *                      shared_buf(shared_mem_offset), ixpcoef,
-     *                          ibuf(iccbeg), ibuf(iccend), indx_cc,
-     *                          spherical, ncenters,
+     *                          dbuf(ipcoeff), ixalpha, ixpcoef,
+     *                          ibuf(iccbeg), ibuf(iccend), indx_cc, 
+     *                          spherical, ncenters, 
      *                          calc_2der_integrals,
      *                          intmax, zmax, me, company_size)
             endif

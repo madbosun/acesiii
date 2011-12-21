@@ -12,9 +12,10 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      
       program aces3
+c      subroutine beta()
       implicit none
+
       include 'mpif.h'
       include 'aces3_version.h'
       include 'int_gen_parms.h'
@@ -31,7 +32,6 @@ C  in the file COPYRIGHT.
       include 'timerz.h'
       include 'sial_config_params.h'
       include 'checkpoint_data.h'
-      include 'shared_mem_data.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -57,6 +57,7 @@ C  in the file COPYRIGHT.
       integer status(MPI_STATUS_SIZE)
       integer company_id
       integer saveocc, savevirt, saveao
+
       character*20 logfile
       character*80 sial_program
       character*80 company_string
@@ -96,6 +97,7 @@ C  in the file COPYRIGHT.
 #else
       common dbuf
 #endif
+
       call init_machine_types()
       call aces_init_rte()
       call mpi_init(ierr)
@@ -109,15 +111,6 @@ C  in the file COPYRIGHT.
       call mpi_comm_size(mpi_comm_world, nprocs, mpierr)
       call mpi_comm_rank(mpi_comm_world, me, mpierr)
 
-c-------------------------------------------------------------------------
-c Allocate shared memory
-c
-c------------------------------------------------------------------------
-      shared_size = max_shells * intsize
-      call malloc_shared_mem(shared_buf,shared_size,
-     * shared_mem_offset)
-      print *, 'Node ',me,'offset is ',shared_mem_offset
-
 c---------------------------------------------------------------------------
 c   Scan the ZMAT file for the MAXMEM parameter.  This is needed to set
 c   up the heap memory that will be used.
@@ -125,12 +118,14 @@ c---------------------------------------------------------------------------
 
       if (me .eq. 0) then
          call init_params('ZMAT')
+         maxmem = 0
          call igetparam('MAXMEM', 1, maxmem)
       endif
 
 c---------------------------------------------------------------------------
 c   Initial call to set up memory.
 c---------------------------------------------------------------------------
+
       call mpi_bcast(maxmem, 1, mpi_integer, 0,
      *               mpi_comm_world, mpierr)
       if (maxmem .eq. 0) maxmem = check_malloc() * 0.8
@@ -148,7 +143,6 @@ c---------------------------------------------------------------------------
          print *,'ACESIII version, ',aces3_version,
      *            ' is run on ',nprocs,' processors.'
 c         call prt_time('Program start')
-
 
 c-------------------------------------------------------------------------
 c   Do we have an existing JOBARC file?  If not, we are doing an SCF
@@ -178,7 +172,6 @@ c--------------------------------------------------------------------------
 
          call init_params('ZMAT.AUTO')
 
-
 c-------------------------------------------------------------------------
 c   Scan all sio files to determine whether second derivative integrals
 c   are needed.
@@ -197,13 +190,13 @@ c-------------------------------------------------------------------------
             call get_sial_config_params(sial_program)
             if (.not. use_2der_integrals) then
                sial_program_instance = sial_program_instance + 1
-               go to 10
+	       go to 10
             endif
          endif
          print *,'USE_2DER_INTEGRALS = ',use_2der_integrals
       endif
+
       call mpi_barrier(mpi_comm_world, mpierr)
-     
 
       calc_2der_integrals = use_2der_integrals
 
@@ -236,7 +229,6 @@ c------------------------------------------------------------------------
       call mpi_barrier(mpi_comm_world, mpierr)
 
    50 continue
-      call mpi_barrier(mpi_comm_world, mpierr)
       call reset_internal_system_data()   ! restore system flags
       write_hess = .false.
       t1 =  mpi_wtime()
@@ -473,8 +465,7 @@ c----------------------------------------------------------------------------
          endif
 
          call mpi_finalize(ierr)
-         go to 99
-c         stop
+         stop
 c         return
       endif
 
@@ -774,11 +765,7 @@ c----------------------------------------------------------------------
            call mpi_abort(mpi_comm_world, 1, mpierr)
         else
 
-c---------------------------------------------------------------------------
-c Call int_gen_init by passing it shared_buf
-c 
-c--------------------------------------------------------------------------
-           call int_gen_init(shared_buf(shared_mem_offset))
+           call int_gen_init()
 
            print *,'----------- Parameter Summary ----------------'
            print *,'DRYRUN...........................',dryrun
@@ -1023,13 +1010,6 @@ c----------------------------------------------------------------------------
       endif
       call mpi_barrier(mpi_comm_world, mpierr)
       go to 50
-
-c-------------------------------------------------------------------
-c Free shared memory
-c
-c------------------------------------------------------------------c
-   99 call free_shared_mem()
-      stop
 
       end
 

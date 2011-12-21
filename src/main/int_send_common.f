@@ -23,7 +23,6 @@ c-------------------------------------------------------------------------
       include 'int_gen_parms.h'
       include 'machine_types.h'
       include 'fmo.h'
-      include 'shared_mem_data.h'
 
       integer ierr, len
       integer*8 ixx, c_loc64
@@ -38,16 +37,6 @@ c---------------------------------------------------------------------------
       call mpi_bcast(memptr, len, mpi_integer, 0, 
      *               mpi_comm_world, ierr)
 
-c---------------------------------------------------------------------------
-c   Broadcast ixalpha block, which is allocated using shared memory
-c---------------------------------------------------------------------------
-c      call mpi_bcast(shared_buf(shared_mem_offset),
-c     *     max_shells, mpi_integer, 0, mpi_comm_world, ierr)
-
-      call bcast_shared_mem()
-c     Do we need a barrier here?
-      call mpi_barrier(mpi_comm_world,ierr)
-c      call protect_shared_mem()
 c---------------------------------------------------------------------------
 c  Broadcast fmo labeled common block.
 c---------------------------------------------------------------------------

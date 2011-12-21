@@ -17,12 +17,12 @@ c This routine fills in the /int_gen_com/ common block and prints a
 c summary of the basis set.
 
 
-      subroutine int_gen_init(shared_ixalpha)
+      subroutine int_gen_init
       implicit none
 
       integer i, j, n, iCenter, iShell, iOffset, iTmp
       integer previous_end
-      integer shared_ixalpha(*)
+
       include 'int_gen_parms.h'
 #ifdef ALTIX
       include 'sheap.h'
@@ -112,11 +112,11 @@ c---------------------------------------------------------------------------
          enddo
 
          do i = 1, nshells
-            temp(i) = shared_ixalpha(i)
+            temp(i) = ixalpha(i)
          enddo
 
          do i = 1, nshells
-            shared_ixalpha(i) = temp(ixshells(i))
+            ixalpha(i) = temp(ixshells(i))
          enddo
 
          do i = 1, nshells

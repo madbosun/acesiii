@@ -22,7 +22,6 @@ C  in the file COPYRIGHT.
       include 'trace.h'
       include 'dropmo.h'
       include 'sial_config_params.h'
-      include 'shared_mem_data.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -452,12 +451,13 @@ c--------------------------------------------------------------------------
          call igetrec(1, 'JOBARC', 'OCCUPYB0', 1, nbeta_occupied)
       endif
 
-CDEBUG      call read_basis_info('CHSSI.MOL', ncenters, ncenters, npop,
-      call read_basis_info('MOL', ncenters, ncenters, npop,
-     *           ireorder, cartesian, itfct, lnp1, lnpo, nfct,
-     *           nbasis, dbuf(ialpha), shared_buf(shared_mem_offset),
-     *           dbuf(ipcoeff), ixpcoef, atmnam,
+CDEBUG      call read_basis_info('CHSSI.MOL', ncenters, ncenters, npop, 
+      call read_basis_info('MOL', ncenters, ncenters, npop, 
+     *           ireorder, cartesian, itfct, lnp1, lnpo, nfct, 
+     *           nbasis, dbuf(ialpha), ixalpha, 
+     *           dbuf(ipcoeff), ixpcoef, atmnam, 
      *           dbuf(master_icoord), naoatm)
+ 
 c-------------------------------------------------------------------------
 c   If the SCF has already been performed check if MOs are to be dropped.
 c-------------------------------------------------------------------------

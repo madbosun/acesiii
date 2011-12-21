@@ -15,7 +15,7 @@ C  in the file COPYRIGHT.
       Subroutine WrPBas (LuB,BasFil,BasNam,LuAbi,IRet,IForm,IStat,
      &                   INTTYP,NULLST,IATNUM,NORD)
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-C $Id: wrpbas.F,v 1.3 2010/06/30 15:58:20 ponton Exp $
+C $Id: wrpbas.F,v 1.3 2010-06-30 15:58:20 ponton Exp $
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C Purpose: Read the basis library for a given basis name & write it
 C          on LuAbi in the appropriate format.
