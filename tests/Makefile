@@ -13,6 +13,10 @@ ifeq ($(MACHNAME),submit2)
 WORKDIR=./acestest
 endif
 
+ifeq ($(MACHNAME),emperor)
+WORKDIR=./acestest
+endif
+
 ifeq ($(MACHNAME),pingo)
 PBS_LINES="\#PBS -j oe"
 PBS_LINES += "\#PBS -N ACES3_TEST"

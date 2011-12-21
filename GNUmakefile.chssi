@@ -255,6 +255,19 @@ LIBS=-lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -ler
 SIAL_COMPILER_LIBS=-lsial -lsip_shared -laces2 -lifcore
 endif
 
+ifeq ($(MACHNAME),emperor)
+FFLAGS=-D__fortran -D__fortran77 -fPIC -DMPIF2C -DMPI2 -malign-double -ffast-math -mtune=native -mfpmath=sse -msse3 -Wall -lmpi_f90 -lmpi -O2
+CFLAGS=-DMPIF2C -DMPI2 -DC_SUFFIX -DCB_SUFFIX -DMPI2 -DINTEL -O2 -fPIC
+CPPFLAGS=-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -DMPI2 -Wall -O2 -fPIC
+FC=mpif90
+CC=mpicc
+CPP=mpicxx
+SERIAL_CPP=g++
+LIB_DIRS=-L/usr/lib
+LIBS=-lmpi_cxx -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lblas -llapack -lstdc++
+SIAL_COMPILER_LIBS=-lsial -lsip_shared -laces2 -lgfortranbegin -lgfortran -ldl -lsip1 -lsip2
+endif
+
 ifeq ($(MACHNAME),submit)
 FFLAGS=-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2 
 CFLAGS=-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX 
