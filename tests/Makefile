@@ -8,11 +8,11 @@ ENV_VARS=" "
 # Machine-specific variable settings
 
 ifeq ($(MACHNAME),submit1)
-WORKDIR=/scratch/ufhpc/${USER}
+WORKDIR=./acestest
 endif
 
 ifeq ($(MACHNAME),submit2)
-WORKDIR=/scratch/ufhpc/${USER}
+WORKDIR=./acestest
 endif
 
 ifeq ($(MACHNAME),chugach)
