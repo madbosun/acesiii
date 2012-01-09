@@ -5,17 +5,7 @@ MPIRUN="mpirun ./xaces3 >./job.out"
 RUN_COMPARE="mpirun .xtest_compare "
 ENV_VARS=" "
 
-ifeq ($(MACHNAME),submit1)
 WORKDIR=./acestest
-endif
-
-ifeq ($(MACHNAME),submit2)
-WORKDIR=./acestest
-endif
-
-ifeq ($(MACHNAME),emperor)
-WORKDIR=./acestest
-endif
 
 ifeq ($(MACHNAME),pingo)
 PBS_LINES="\#PBS -j oe"
