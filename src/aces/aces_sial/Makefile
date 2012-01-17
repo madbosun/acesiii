@@ -3,6 +3,8 @@ SIAL_COMPILER=../../../bin/sial
 SIO_DIR=../../../bin/sio
 
 SIAL_SOURCE := $(wildcard */*.sial)
+SIAL_SOURCE += $(wildcard */*/*.sial)
+SIAL_SOURCE += $(wildcard */*/*/*.sial)
 SIAL_SOURCE += $(wildcard *.sial)
 SIO_OBJS=$(SIAL_SOURCE:.sial=.sio)
 
