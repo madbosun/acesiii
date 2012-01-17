@@ -5,15 +5,7 @@ MPIRUN="mpirun ./xaces3 >./job.out"
 RUN_COMPARE="mpirun .xtest_compare "
 ENV_VARS=" "
 
-# Machine-specific variable settings
-
-ifeq ($(MACHNAME),submit1)
 WORKDIR=./acestest
-endif
-
-ifeq ($(MACHNAME),submit2)
-WORKDIR=./acestest
-endif
 
 ifeq ($(MACHNAME),chugach)
 PBS_LINES="\#PBS -j oe"
@@ -185,8 +177,6 @@ scripts: % : ;
 	   do echo >>runscript  ; \
 	      echo \#\#\# Test $$test \#\#\# >>runscript ; \
 	      echo cd $(INSTALL_DIR)/$$test >>runscript ; \
-              echo lfs setstripe BLOCKDATA  0 -1 -1 >>runscript ; \
-              echo lfs setstripe BLOCKDATA2 0 -1 -1 >>runscript ; \
 	      echo "echo Running $$test >>../monitor_tests" >>runscript ; \
               echo "date >>../monitor_tests" >>runscript ; \
 	      echo $(MPIRUN) >>runscript ; \

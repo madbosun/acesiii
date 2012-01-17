@@ -1,0 +1,12 @@
+SIAL MYTEST
+
+scalar x
+scalar y
+
+# MAIN
+	execute sip_barrier
+	x=45.45
+	y=x
+	execute print_scalar y
+
+ENDSIAL MYTEST
