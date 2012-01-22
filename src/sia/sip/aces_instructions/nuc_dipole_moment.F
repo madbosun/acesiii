@@ -12,121 +12,57 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine nuc_dipole_moment(array_table, 
-     *                      narray_table, index_table,
-     *                      nindex_table, segment_table, nsegment_table,
-     *                      block_map_table, nblock_map_table,
-     *                      scalar_table, nscalar_table, 
-     *                      address_table, op)
-
+      subroutine nuc_dipole_moment(x,nindex, type, bval,
+     *                              eval, bdim, edim,
+     *                      x2, nindex2, type2, bval2,
+     *                              eval2, bdim2, edim2)
 c--------------------------------------------------------------------------
-c
-c The scalar1 is raised to the scalar2 power and replaced. 
-c
-c scalar1 = scalar1**scalar2 
-c   
+c   Usage: nuc_dipole_moment scalar1 scalar2
+c   scalar1 indicates x, y, or z moment to be computed.
+c   scalar2 is the result.
 c--------------------------------------------------------------------------
 
       implicit none
       include 'int_gen_parms.h'
       include 'interpreter.h'
       include 'trace.h'
-#ifdef ALTIX
-      include 'sheap.h'
-#endif
 
-      integer narray_table, nindex_table, nsegment_table, 
-     *        nblock_map_table 
-      integer op(loptable_entry)
-      integer array_table(larray_table_entry, narray_table)
-      integer index_table(lindex_table_entry, nindex_table)
-      integer segment_table(lsegment_table_entry, nsegment_table)
-      integer block_map_table(lblock_map_entry, nblock_map_table)
-      integer type(mx_array_index) 
-      integer nscalar_table
-      double precision scalar_table(nscalar_table)
-      integer*8 address_table(narray_table)
-
-      integer*8 iarray, ievec, get_index_from_base
-      integer natoms, imoment
-      integer i, j, n1, n2, n3, n4  
-      integer array, evec_array
-      integer array_type, evec_type
-      integer nindex, nindex_evec
-      integer sind, xind, ind(mx_array_index)
-      integer seg, index(mx_array_index), val1(mx_array_index), 
-     *        val2(mx_array_index), junk
-
-      integer block, blkndx
-      integer find_current_block
-      integer stack
+	double precision x 
+	integer nindex, type(*), bval(*), eval(*)
+      integer bdim(*), edim(*)
+      double precision x2
+      integer nindex2, type2(*), bval2(*), eval2(*)
+      integer bdim2(*), edim2(*)  
 
       double precision DNUC,XCOORD,YCOORD,ZCOORD
-      double precision x(1)
-#ifdef ALTIX
-      pointer (dptr, x)
-#else
-      common x
-#endif
+
+      integer imoment, natoms, i
 
       if (dryrun) return
-#ifdef ALTIX
-      dptr = dshptr
-#endif
 
-c----------------------------------------------------------------------------
-c   Locate the scalar that tells whether X Y or Z nuclear dipole moment
-c---------------------------------------------------------------------------
-
-      array      = op(c_result_array)
-      array_type = array_table(c_array_type, array)
-      nindex     = array_table(c_nindex, array)
-
-      if (array_type .ne. scalar_value) then
-         print *,'Error: The argument in nn_dipole_moment
-     *            must be a scalar.'  
-         print *,(op(i),i=1,loptable_entry)
+      if (nindex .ne. 0) then
+         print *,'Error: nuc_dipole_moment at line ',current_line
+         print *,'First arg. must be a scalar.'
          call abort_job()
       endif
 
-      sind =  array_table(c_scalar_index, array)
-      if (sind .lt. 1 .or. sind .gt. nscalar_table) then
-        print *,'Scalar table index out of range in nn_dipole_moment, ',
-     *          'line ',current_line
-        print *,'Index for array ',array,' is ',sind,' should be ',
-     *          'between 1 and ',nscalar_table
-        call abort_job()
+      if (nindex2 .ne. 0) then
+         print *,'Error: nuc_dipole_moment at line ',current_line,
+     *           'must be called with scalar in 2nd arg.'
+         call abort_job()
       endif
 
-c----------------------------------------------------------------------------
-c   Locate the scalar that will hold the nuclear dipole moment
-C
-C   !!!  On input, this scalar has the number of atoms  !!!
-c---------------------------------------------------------------------------
-
-      evec_array  = op(c_op1_array)
-      evec_type   = array_table(c_array_type, evec_array)
-      nindex_evec = array_table(c_nindex, evec_array)
-
-      xind =  array_table(c_scalar_index, evec_array)
-      if (xind .lt. 1 .or. xind .gt. nscalar_table) then
-        print *,'Scalar table index out of range in nn_dipole_moment, ',
-     *          'line ',current_line
-        print *,'Index for array ',evec_array,'is',xind,' should be ',
-     *          'between 1 and ',nscalar_table
-        call abort_job()
-      endif
 C
 C
 C   Compute the nuclear contribution to the dipole moment
 C
 C 
-      if ( abs (scalar_table(sind) - 1) .LT. 0.0001 ) imoment = 1
-      if ( abs (scalar_table(sind) - 2) .LT. 0.0001 ) imoment = 2
-      if ( abs (scalar_table(sind) - 3) .LT. 0.0001 ) imoment = 3
+      if ( abs (x - 1) .LT. 0.0001 ) imoment = 1
+      if ( abs (x - 2) .LT. 0.0001 ) imoment = 2
+      if ( abs (x - 3) .LT. 0.0001 ) imoment = 3
 
-      natoms = scalar_table(xind)
-      scalar_table(xind) = 0.0D0
+      natoms = x2
+      x2 = 0.0D0
       DNUC = 0.0D0
       IF (imoment .EQ. 1) THEN
          DO I = 1, natoms
@@ -145,8 +81,9 @@ C
          ENDDO ! I
       ELSE
          WRITE(*,*) "Wrong type of moment; should be 1, 2, or 3."
+         call abort_job()
       ENDIF
-      scalar_table(xind) = DNUC
+      x2 = DNUC
 
       return 
       end 

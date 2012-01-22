@@ -12,15 +12,10 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine get_my_rank(array_table, narray_table,
-     *                      index_table,
-     *                      nindex_table, segment_table, nsegment_table,
-     *                      block_map_table, nblock_map_table,
-     *                      scalar_table, nscalar_table, 
-     *                      address_table, op)
+      subroutine get_my_rank(x, nindex, type, bval,
+     *                              eval, bdim, edim)
 c---------------------------------------------------------------------------
-c   Determines the processor rank and sets it in the scalar defined by the
-c   c_result_array field of the op argument.
+c   Returns the rank of the current processor in the scalar variable.
 c----------------------------------------------------------------------------
       implicit none
       include 'interpreter.h'
@@ -29,44 +24,10 @@ c----------------------------------------------------------------------------
       include 'parallel_info.h'
       include 'dbugcom.h'
 
-      integer narray_table, nindex_table, nsegment_table,
-     *        nblock_map_table
-      integer op(loptable_entry)
-      integer array_table(larray_table_entry, narray_table)
-      integer index_table(lindex_table_entry, nindex_table)
-      integer segment_table(lsegment_table_entry, nsegment_table)
-      integer block_map_table(lblock_map_entry, nblock_map_table)
-      integer nscalar_table
-      double precision scalar_table(nscalar_table)
-      integer*8 address_table(narray_table)
+      double precision x
+      integer nindex, type(*), bval(*), eval(*)
+      integer bdim(*), edim(*)
 
-      integer ierr, array, array_type, ind
-      integer i
-
-      array = op(c_result_array)
-      array_type = array_table(c_array_type, array)
-      if (array_type .ne. scalar_value) then
-         print *,'Error in get_my_rank: Arg must be a scalar'
-         call abort_job()
-      endif
-
-      if (array .lt. 1 .or. array .gt. narray_table) then
-         print *,'Error: Invalid array in get_my_rank, line ',
-     *     current_line
-         print *,'Array index is ',array,' Allowable values are ',
-     *      ' 1 through ',narray_table
-         call abort_job()
-      endif
-
-      ind =  array_table(c_scalar_index, array)
-      if (ind .lt. 1 .or. ind .gt. nscalar_table) then
-         print *,'Scalar table index out of range in print_scalar, ',
-     *           'line ',current_line
-         print *,'Index for array ',array,' is ',ind,' should be ',
-     *           'between 1 and ',nscalar_table
-         call abort_job()
-      endif
-
-      scalar_table(ind) = me   ! save the rank in the scalar table.
+      x = me   ! save the rank in the scalar table.
       return
       end

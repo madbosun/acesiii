@@ -12,12 +12,8 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine energy_bdenominator(array_table, narray_table, 
-     *                      index_table,
-     *                      nindex_table, segment_table, nsegment_table,
-     *                      block_map_table, nblock_map_table,
-     *                      scalar_table, nscalar_table, 
-     *                      address_table, op)
+      subroutine energy_bdenominator(x, nindex, type, bval,
+     *                              eval, bdim, edim)
 c--------------------------------------------------------------------------
 c   Divides each sample of the block given by the array argument by the 
 c       eps = f_alpha(i)+f_beta(i)-f_alpha(a)-f_beta(a)
@@ -25,110 +21,22 @@ c--------------------------------------------------------------------------
 
       implicit none
       include 'interpreter.h'
-      include 'trace.h'
-      include 'mpif.h'
       include 'epsilon.h'
-#ifdef ALTIX
-      include 'sheap.h'
-#endif
 
-      integer narray_table, nindex_table, nsegment_table, 
-     *        nblock_map_table
-      integer op(loptable_entry)
-      integer array_table(larray_table_entry, narray_table)
-      integer index_table(lindex_table_entry, nindex_table)
-      integer segment_table(lsegment_table_entry, nsegment_table)
-      integer block_map_table(lblock_map_entry, nblock_map_table)
-      integer nscalar_table
-       double precision scalar_table(nscalar_table)
-      integer*8 address_table(narray_table)
-
-      integer i, j, k
-      integer array, index, nindex, ierr
-      integer block, blkndx, seg
-      integer find_current_block
-      integer*8 indblk, get_block_index
-      integer stack
-      
-      integer comm
-
-      integer val1(mx_array_index), val2(mx_array_index)
-      integer type(mx_array_index)
-      integer na1, na2, ni1, ni2
-      integer*8 addr, get_index_from_base
-
-      double precision x(1)
-#ifdef ALTIX
-      pointer (dptr, x)
-#else
-      common x
-#endif
-
-      if (dryrun) return
-#ifdef ALTIX
-      dptr = dshptr
-#endif
-
-c---------------------------------------------------------------------------
-c   Find the indices of the array block.
-c---------------------------------------------------------------------------
-       
-      array = op(c_result_array)
-      nindex = array_table(c_nindex, array)
-      do i = 1, nindex
-         index = array_table(c_index_array1+i-1,array)
-         type(i) = index_table(c_index_type, index)
-         seg = index_table(c_current_seg,index)
-
-c-------------------------------------------------------------------------
-c   Get segment ranges.
-c-------------------------------------------------------------------------
-
-         call get_index_segment(index, seg, segment_table,
-     *                             nsegment_table, index_table,
-     *                             nindex_table, val1(i), val2(i))
-      enddo
-
-c---------------------------------------------------------------------------
-c   Get array data address.
-c---------------------------------------------------------------------------
-
-      if (array_table(c_array_type,array) .eq. static_array) then
-         addr = address_table(array)
-         indblk = get_index_from_base(addr, x, 2)
-      else
-         block = find_current_block(array, array_table(1,array),
-     *                             index_table, nindex_table,
-     *                             segment_table, nsegment_table,
-     *                             block_map_table, blkndx)
-
-         stack = array_table(c_array_stack,array)
-         indblk = get_block_index(array, block, stack,
-     *                            blkndx, x, .true.)
-      endif 
+      double precision x(*)
+      integer nindex, type(*), bval(*), eval(*)
+      integer bdim(*), edim(*)
 
       if (nindex .eq. 2) then
-
-         if (array_table(c_array_type,array) .eq. static_array) then
-            na1 = array_table(c_index_range1, array)
-            na2 = array_table(c_index_range2,array)
-            ni1 = array_table(c_index_range1+1,array)
-            ni2 = array_table(c_index_range2+1,array)
-         else
-            na1 = val1(1)
-            na2 = val2(1)
-            ni1 = val1(2)
-            ni2 = val2(2)
-         endif
-
-         call epsb_divide2(x(indblk), val1(1),val2(1),type(1),
-     *                    na1, na2,
-     *                    val1(2),val2(2),type(2),ni1,ni2,
+         call epsb_divide2(x, bval(1),eval(1),type(1),
+     *                    bdim(1), edim(1),
+     *                    bval(2),eval(2),type(2),
+     *                    bdim(2), edim(2),
      *                    epsilon,epsilonb)    
       else
          print *,'Error in energy_abdenominator: Result array ',
      *      'must have 2 indices.'
-         print *,'array ',array,' has ',nindex,' indices.'
+         print *,'array has ',nindex,' indices.'
          call abort_job()
       endif
       

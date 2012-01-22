@@ -12,92 +12,59 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine pardo_sects(array_table, narray_table,
-     *                      index_table,
-     *                      nindex_table, segment_table, nsegment_table,
-     *                      block_map_table, nblock_map_table,
-     *                      scalar_table, nscalar_table,
-     *                      address_table, op)
-c---------------------------------------------------------------------------
-c----------------------------------------------------------------------------
+      subroutine pardo_sects(x,nindex, type, bval,
+     *                              eval, bdim, edim,
+     *                      x2, nindex2, type2, bval2,
+     *                              eval2, bdim2, edim2)
+c--------------------------------------------------------------------------
+c   Usage: execute pardo_sects scalar1 scalar2
+c          
+c   scalar1 is type of calculation.
+c   scalar2 is output.
+c   
+c--------------------------------------------------------------------------
+
       implicit none
       include 'interpreter.h'
-      include 'mpif.h'
       include 'trace.h'
-      include 'parallel_info.h'
       include 'int_gen_parms.h'
-      include 'dbugcom.h'
+      include 'parallel_info.h'
 
-      integer narray_table, nindex_table, nsegment_table,
-     *        nblock_map_table
-      integer op(loptable_entry)
-      integer array_table(larray_table_entry, narray_table)
-      integer index_table(lindex_table_entry, nindex_table)
-      integer segment_table(lsegment_table_entry, nsegment_table)
-      integer block_map_table(lblock_map_entry, nblock_map_table)
-      integer nscalar_table
-      double precision scalar_table(nscalar_table)
-      integer*8 address_table(narray_table)
+      double precision x
+      integer nindex, type(*), bval(*), eval(*)
+      integer bdim(*), edim(*)
+      double precision x2
+      integer nindex2, type2(*), bval2(*), eval2(*)
+      integer bdim2(*), edim2(*)
 
-      integer ierr, array, array_type, ind
-      integer type, i, j, k, nsects, vcount, ocount, vseg, oseg
+      integer i, j, k
+      integer vcount
+      integer oseg, vseg, nsects
 
-c --------------------------------------------------------------------------- 
-c Define the input scalar --> type of segmentation 
-c --------------------------------------------------------------------------- 
-
-      array = op(c_result_array)
-      array_type = array_table(c_array_type, array)
-      if (array_type .ne. scalar_value) return
-
-      if (array .lt. 1 .or. array .gt. narray_table) then
-         print *,'Error: scalar in pardo_sects, line ',
-     *     current_line
+      if (nindex .ne. 0) then
+         print *,'Error: pardo_sects at line ',current_line
+         print *,'First arg. must be a scalar.'
          call abort_job()
       endif
 
-      ind =  array_table(c_scalar_index, array)
-      if (ind .lt. 1 .or. ind .gt. nscalar_table) then
-         print *,'Scalar table index out of range in pardo_sects, ',
-     *           'line ',current_line
-         print *,'Index for array ',array,' is ',ind,' should be ',
-     *           'between 1 and ',nscalar_table
-         call abort_job()
+      if (nindex2 .ne. 0) then
+         print *,'Error: pardo_sects at line ',current_line,' not ',
+     *           'called with scalar in 2nd arg.'
+         call abort_job()      
       endif
-
-      type = scalar_table(ind)
 
 c --------------------------------------------------------------------------- 
 c Define the output scalar --> number of segmentation 
 c --------------------------------------------------------------------------- 
 
-      array = op(c_op1_array)
-      array_type = array_table(c_array_type, array)
-      if (array_type .ne. scalar_value) return
-
-      if (array .lt. 1 .or. array .gt. narray_table) then
-         print *,'Error: scalar in pardo_sects, line ',
-     *     current_line
-         call abort_job()
-      endif
-
-      ind =  array_table(c_scalar_index, array)
-      if (ind .lt. 1 .or. ind .gt. nscalar_table) then
-         print *,'Scalar table index out of range in pardo_sects, ',
-     *           'line ',current_line
-         print *,'Index for array ',array,' is ',ind,' should be ',
-     *           'between 1 and ',nscalar_table
-         call abort_job()
-      endif
-
-      oseg = scalar_table(ind)  ! The number of occupied triplets 
+      oseg = x2  ! The number of occupied triplets 
       vseg = nalpha_virtual/sip_mx_virt_segsize
 c
 c --------------------------------------------------------------------------- 
 c RHF AAA triples calculation 
 c --------------------------------------------------------------------------- 
 c 
-      if (type .eq. 1) then
+      if (x .eq. 1) then
 
          vcount = 0
          do i = 1, vseg ! nalpha_virtual
@@ -112,7 +79,7 @@ c
          if (oseg .lt. nsects) nsects = oseg
          if (nsects .gt. 14.0) nsects = 14.0
          if (nsects .lt. 4.0) nsects = 4.0
-         scalar_table(ind) = nsects  
+         x2 = nsects  
 
          return
 
@@ -122,7 +89,7 @@ c ---------------------------------------------------------------------------
 c RHF AAB triples calculation 
 c --------------------------------------------------------------------------- 
 c 
-      if (type .eq. 2) then
+      if (x .eq. 2) then
 
          vcount = 0
          do i = 1, vseg ! nalpha_virtual
@@ -137,7 +104,7 @@ c
          if (oseg .lt. nsects) nsects = oseg
          if (nsects .gt. 14.0) nsects = 14.0
          if (nsects .lt. 4.0) nsects = 4.0
-         scalar_table(ind) = nsects  
+         x2 = nsects  
 
          return 
       
@@ -147,7 +114,7 @@ c ---------------------------------------------------------------------------
 c UHF aaa ring calculation 
 c --------------------------------------------------------------------------- 
 c 
-      if (type .eq. 3) then
+      if (x .eq. 3) then
 
          vseg = nalpha_virtual/sip_mx_virt_segsize
          oseg = nalpha_occupied/sip_mx_occ_segsize
@@ -161,7 +128,7 @@ c
 
          nsects = my_company_size/vcount + 1
          if (nsects .gt. 5.0) nsects = 5.0
-         scalar_table(ind) = nsects  
+         x2 = nsects  
 
          return 
       
@@ -171,7 +138,7 @@ c ---------------------------------------------------------------------------
 c UHF aaa ring calculation
 c ---------------------------------------------------------------------------
 c
-      if (type .eq. 3) then
+      if (x .eq. 3) then
 
          vseg = nalpha_virtual/sip_mx_virt_segsize
          oseg = nalpha_occupied/sip_mx_occ_segsize
@@ -188,7 +155,7 @@ c
 
          nsects = my_company_size/vcount + 1
          if (nsects .gt. 5.0) nsects = 5.0
-         scalar_table(ind) = nsects
+         x2 = nsects
 
          return
 

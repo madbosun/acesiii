@@ -45,6 +45,7 @@ c--------------------------------------------------------------------------
       include 'machine_types.h'
       include 'dbugcom.h'
       include 'checkpoint_data.h'
+      include 'sheap.h'
 
       integer narray_table
       integer nindex_table, index_table(lindex_table_entry,nindex_table)
@@ -65,7 +66,7 @@ c--------------------------------------------------------------------------
       integer find_current_block_map
       integer i, j, k, opcode, block, blkndx, result
       integer op1_blkndx, op2_blkndx
-      integer nindex
+      integer nindex, nindex1, nindex2
       integer op1, op2
       integer op1_block, op2_block
       integer ncind, cind(mx_array_index)
@@ -84,10 +85,34 @@ c--------------------------------------------------------------------------
       integer size
       integer dummy
       integer stack
+      integer uflag, nargs
+      integer type(mx_array_index), bval(mx_array_index), 
+     *        eval(mx_array_index), bdim(mx_array_index),
+     *        edim(mx_array_index)
+      integer*8 indblk
+      integer type1(mx_array_index), bval1(mx_array_index), 
+     *        eval1(mx_array_index), bdim1(mx_array_index),
+     *        edim1(mx_array_index)
+      integer type2(mx_array_index), bval2(mx_array_index), 
+     *        eval2(mx_array_index), bdim2(mx_array_index),
+     *        edim2(mx_array_index)
+      integer*8 indblk1
+      integer*8 indblk2
       
       integer push_do, pop_do
       logical direct_flag
       logical prefetch_flag
+
+      double precision x(1)
+#ifdef ALTIX
+      pointer (dptr, x)
+#else
+      common x
+#endif
+
+#ifdef ALTIX
+      dptr = dshptr
+#endif
 
       opcode = op(c_opcode)
       if (opcode .eq. do_op .or.
@@ -205,6 +230,79 @@ c--------------------------------------------------------------------------
       endif
 
       if (opcode .eq. user_sub_op) then
+         call get_upgrade_flag(op(c_user_sub), uflag)
+
+         if (uflag .eq. 1) then
+            nargs = 0
+            if (op(c_result_array) .ne. 0) then
+               nargs = nargs + 1
+
+c---------------------------------------------------------------------------
+c   Get system info about the result array's block.
+c---------------------------------------------------------------------------
+
+            call retrieve_block_info(x, op(c_result_array), 
+     *               array_table, narray_table,
+     *               index_table, nindex_table, segment_table,
+     *               nsegment_table, block_map_table, nblock_map_table,
+     *               scalar_table, nscalar_table,
+     *               address_table, op,
+     *               indblk, nindex,
+     *               type, bval, eval, bdim, edim)
+            endif
+
+            if (op(c_op1_array) .ne. 0) then
+               nargs = nargs + 1
+
+c---------------------------------------------------------------------------
+c   Get system info about the current block of the 1st operand array.
+c---------------------------------------------------------------------------
+
+               call retrieve_block_info(x, op(c_op1_array), 
+     *               array_table, narray_table,
+     *               index_table, nindex_table, segment_table,
+     *               nsegment_table, block_map_table, nblock_map_table,
+     *               scalar_table, nscalar_table,
+     *               address_table, op,
+     *               indblk1, nindex1,
+     *               type1, bval1, eval1, bdim1, edim1)
+            endif   
+
+            if (op(c_op2_array) .ne. 0) then
+               nargs = nargs + 1
+
+c---------------------------------------------------------------------------
+c   Get system info about the current block of the 2nd operand array.
+c---------------------------------------------------------------------------
+
+               call retrieve_block_info(x, op(c_op2_array), 
+     *               array_table, narray_table,
+     *               index_table, nindex_table, segment_table,
+     *               nsegment_table, block_map_table, nblock_map_table,
+     *               scalar_table, nscalar_table,
+     *               address_table, op,
+     *               indblk2, nindex2,
+     *               type2, bval2, eval2, bdim2, edim2)
+            endif   
+
+            if (nargs .gt. 0) then 
+             
+c---------------------------------------------------------------------------
+c   Call user-written code with only system info arguments.
+c---------------------------------------------------------------------------
+
+                  call exec_user_sub2(op(c_user_sub), x(indblk), 
+     *                  nindex, type, 
+     *                  bval, eval, bdim, edim,
+     *                 x(indblk1), nindex1, type1, bval1, eval1,
+     *                  bdim1, edim1,
+     *                 x(indblk2), nindex2, type2, bval2, eval2,
+     *                  bdim2, edim2, nargs)
+         else
+            print *,'Error:User instruction with upgrade, but no args.'
+            call abort_job()
+         endif   ! uflag
+      else  
 
 c---------------------------------------------------------------------------
 c   Call user-written code with standard args.
@@ -215,6 +313,7 @@ c---------------------------------------------------------------------------
      *               nsegment_table, block_map_table, nblock_map_table,
      *               scalar_table, nscalar_table, address_table,
      *               op)
+         endif
          return
       endif
 

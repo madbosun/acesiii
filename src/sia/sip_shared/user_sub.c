@@ -24,6 +24,7 @@
 
 int nuser_sub = 0;
 void *user_sub[MAX_USER_SUB];
+int upgrade_flag[MAX_USER_SUB];
 char user_sub_names[MAX_USER_SUB][MAX_USER_SUB_NAME];
 
 extern void F77_NAME(abort_job,ABORT_JOB)();
@@ -52,7 +53,10 @@ f_int F77_NAME(load_user_sub, LOAD_USER_SUB)(char *sub_name,  void (*fp)() )
    handle = nuser_sub;
    user_sub[nuser_sub-1] = (void *)fp;
    if (strlen(sub_name) <= MAX_USER_SUB_NAME)
+   {
       strcpy(user_sub_names[nuser_sub-1], sub_name);
+      upgrade_flag[nuser_sub-1] = 0;
+   }
    else
    {
       printf("User subroutine name %s greater than %d chars.\n", 
@@ -64,6 +68,17 @@ f_int F77_NAME(load_user_sub, LOAD_USER_SUB)(char *sub_name,  void (*fp)() )
    return ( (f_int) handle);
 }
 
+void F77_NAME(set_upgrade_flag, SET_UPGRADE_FLAG)(f_int *handle)
+{
+   upgrade_flag[*handle-1] = 1;
+}
+
+void F77_NAME(get_upgrade_flag, GET_UPGRADE_FLAG)(f_int *handle, f_int *uflag)
+{
+   *uflag = upgrade_flag[*handle-1];
+}
+
+ 
 void F77_NAME(exec_user_sub, EXEC_USER_SUB) (f_int *handle, 
       f_int *array_table, f_int *narray_table, 
       f_int *index_table, f_int *nindex_table, 
@@ -87,6 +102,66 @@ void F77_NAME(exec_user_sub, EXEC_USER_SUB) (f_int *handle,
           segment_table, nsegment_table, block_map_table,
           nblock_map_table, scalar_table, nscalar_table,
           address_table, op);
+   }
+   else
+   {
+      printf("Invalid handle in exec_user_sub: %d.\n", *handle);
+      ierr = 2;
+      F77_NAME(abort_job, ABORT_JOB)();
+   }
+}
+
+void F77_NAME(exec_user_sub2, EXEC_USER_SUB2) (f_int *handle,
+              double *x,
+              f_int *nindex, f_int *type, f_int *bval,
+              f_int *eval, f_int *bdim, f_int *edim,
+              double *x1, f_int *nindex1, f_int *type1, 
+              f_int *bval1, f_int *eval1, f_int *bdim1, f_int *edim1,
+              double *x2, f_int *nindex2, f_int *type2, 
+              f_int *bval2, f_int *eval2, f_int *bdim2, f_int *edim2,
+              f_int *nargs)
+{
+   /* Executes the subroutine stored in the user_sub table, referenced by
+      handle. The instruction is called with arguments suitable for SIAL 
+      instructions using 1, 2, or 3 arguments. */
+
+   int ierr;
+   void (*fp1)(double *, f_int *, f_int *, f_int *, f_int *, f_int *, f_int *);
+   void (*fp2)(double *, f_int *, f_int *, f_int *, f_int *, f_int *, f_int *,
+               double *, f_int *, f_int *, f_int *, f_int *, f_int *, f_int *);
+   void (*fp3)(double *, f_int *, f_int *, f_int *, f_int *, f_int *, f_int *,
+               double *, f_int *, f_int *, f_int *, f_int *, f_int *, f_int *,
+               double *, f_int *, f_int *, f_int *, f_int *, f_int *, f_int *);
+
+   if (*handle > 0 && *handle <= MAX_USER_SUB) 
+   {
+      if (*nargs == 3)
+      {
+         /* Three argument arrays to this instruction. */
+         fp3 = (void(*)())user_sub[*handle-1];
+         fp3(x, nindex, type, bval, eval, bdim, edim,
+             x1, nindex1, type1, bval1, eval1, bdim1, edim1,
+             x2, nindex2, type2, bval2, eval2, bdim2, edim2);
+      }
+      else 
+      {
+         if (*nargs == 2) 
+         {
+            /* Two argument arrays to this instruction. */
+
+            fp2 = (void(*)())user_sub[*handle-1];
+            fp2(x, nindex, type, bval, eval, bdim, edim,
+                x1, nindex1, type1, bval1, eval1, bdim1, edim1);
+         }
+         else
+         {
+            if (*nargs == 1) 
+            {
+               fp1 = (void(*)())user_sub[*handle-1];
+               fp1(x, nindex, type, bval, eval, bdim, edim);
+            }
+         } 
+      }
    }
    else
    {

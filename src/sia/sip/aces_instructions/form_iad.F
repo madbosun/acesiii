@@ -12,110 +12,31 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine form_iad(array_table, 
-     *                      narray_table, index_table,
-     *                      nindex_table, segment_table, nsegment_table,
-     *                      block_map_table, nblock_map_table,
-     *                      scalar_table, nscalar_table, 
-     *                      address_table, op)
+      subroutine form_iad(x,nindex, type, bval,
+     *                              eval, bdim, edim,
+     *                      x2, nindex2, type2, bval2,
+     *                              eval2, bdim2, edim2)
 c--------------------------------------------------------------------------
 c--------------------------------------------------------------------------
 
       implicit none
       include 'interpreter.h'
-      include 'trace.h'
-#ifdef ALTIX
-      include 'sheap.h'
-#endif
+      include 'epsilon.h'
 
-      integer narray_table, nindex_table, nsegment_table, 
-     *        nblock_map_table
-      integer op(loptable_entry)
-      integer array_table(larray_table_entry, narray_table)
-      integer index_table(lindex_table_entry, nindex_table)
-      integer segment_table(lsegment_table_entry, nsegment_table)
-      integer block_map_table(lblock_map_entry, nblock_map_table)
-      integer nscalar_table
-      double precision scalar_table(nscalar_table)
-      integer*8 address_table(narray_table)
+      double precision x(*)
+      integer nindex, type(*), bval(*), eval(*)
+      integer bdim(*), edim(*)
+      double precision x2(*)
+      integer nindex2, type2(*), bval2(*), eval2(*)
+      integer bdim2(*), edim2(*)
 
-      integer*8 iarray, ievec, get_index_from_base
-      integer i, j, na, nb  
-      integer array, evec_array
-      integer array_type, evec_type
-      integer nindex, nindex_evec
-      integer inda(mx_array_index)
-      integer indb(mx_array_index)
-      integer junk
+      integer na1, na2, nb1, nb2
 
-      double precision x(1)
-#ifdef ALTIX
-      pointer (dptr, x)
-#else
-      common x
-#endif
-
-      if (dryrun) return
-#ifdef ALTIX
-      dptr = dshptr
-#endif
-
-c----------------------------------------------------------------------------
-c   Locate the data for the input matrix.
-c---------------------------------------------------------------------------
-
-      array      = op(c_result_array)
-      evec_array = op(c_op1_array)
-
-      if (array .eq. 0 .or. evec_array .eq. 0) then
-         print *,'Error: remove_diagonal routine requires 2 
-     *            array arguments.'
-         print *,(op(i),i=1,loptable_entry)
-         call abort_job()
-      endif
-
-      array_type = array_table(c_array_type, array)
-      evec_type  = array_table(c_array_type, evec_array)
-
-      if (array_type .ne. static_array .or. 
-     *    evec_type .ne. static_array) then
-         print *,'Error: Both arrays in remove_diagonal routine 
-     *            must be static.'
-         call abort_job()
-      endif
-
-      nindex      = array_table(c_nindex, array)
-      nindex_evec = array_table(c_nindex, evec_array)
-
-      if (nindex .ne. nindex_evec) then
-         print *,'Error: Both arrays in remove_diagonal must use ',
-     *           'the same number of indices.'
-         print *,'First array has ',nindex,' indices.'
-         print *,'Second array has ',nindex_evec,' indices.'
-         call abort_job()
-      endif
-
-      do i = 1, nindex
-         na = array_table(c_index_array1+i-1,array)
-         nb = array_table(c_index_array1+i-1,evec_array)
-
-         inda(i) = index_table(c_index_size, na)  ! pick up length of index
-         indb(i) = index_table(c_index_size, nb)  ! pick up length of index
- 
-      enddo
-
-c---------------------------------------------------------------------------
-c   Look up each array's address.
-c---------------------------------------------------------------------------
-
-      iarray = get_index_from_base(address_table(array), x, 2)
-      ievec  = get_index_from_base(address_table(evec_array), x, 2)
-
-c     na = index_table(c_index_size, ind(1))  ! pick up length of index
-c     nb = index_table(c_index_size, ind(1))  ! pick up length of index
-
-      call do_formiad(x(iarray),x(ievec),nindex,
-     *                              inda(1),inda(2),indb(1),indb(2)) 
+      na1 = edim(1)-bdim(1) + 1
+      na2 = edim(2)-bdim(2) + 1
+      nb1 = edim2(1)-bdim2(1) + 1
+      nb2 = edim2(2)-bdim2(2) + 1
+      call do_formiad(x,x2,nindex,na1,na2,nb1,nb2)
 
       return 
       end 
