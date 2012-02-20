@@ -19,7 +19,8 @@ long long top_int = 0LL;     //highest address (as long long int) of allocated m
 long long total_bytes = 0LL; //total number of bytes allocated
 
 
-/** initializes dynamic memory system by obtaining requested memory via malloc
+/** 
+  *  initializes dynamic memory system by obtaining requested memory via malloc
   *
   *  @param[in] megabytes amount of memory to be allocate and managed
   *  @param[in] sheap_flag  not currently implemented
@@ -53,9 +54,10 @@ void F77_NAME(mem_alloc_init,MEM_ALLOC_INIT)(f_int *megabytes, f_int *sheap_flag
 	return;
 }
 
-/** allocates nwords elements of size element_size from managed array.  It is assumed that this subroutine
+/** 
+ * Allocates nwords elements of size element_size from managed array.  It is assumed that this subroutine
  * will be invoked from Fortran, so the parameters are described from the point of view of the Fortran code.
- *  After return, the allocated memory is in base(ixmem):base(ixmem+nwords-1)
+ * After return, the allocated memory is in base(ixmem):base(ixmem+nwords-1)
  *
  *  @param[in] base  the first element of a 1-element array declared and allocated in fortran
  *  @param[in] element_size the size of the elements in the array
@@ -112,7 +114,8 @@ char * mem_alloc_c(size_t nbytes){
 }
 
 
-/**  frees all memory above addr so that it can be reallocated.
+/** 
+ *  frees all memory above addr so that it can be reallocated.
  *
  *  @param addr[in] starting address of memory to be free. Must be in allocated memory
  *  @param ierr[out] return code
@@ -126,7 +129,8 @@ void F77_NAME(mem_alloc_free,MEM_ALLOC_FREE)(char *addr, f_int *ierr){
 	nxt_ptr = addr;
 }
 
-/**  mem_alloc_free_all returns all managed memory to OS and makes memory management inactive.
+/**  
+*  mem_alloc_free_all returns all managed memory to OS and makes memory management inactive.
 *  After calling this subroutine, the mem_alloc_init may be called to reinitialize the memory
 *  management system.
 */
@@ -138,15 +142,17 @@ void F77_NAME(mem_alloc_free_all,MEM_ALLOC_FREE_ALL)(){
 }
 
 
-/**  Frees all memory allocated by mem_alloc so that it can be reallocated.  The
- *   memory system remains active.  Freed memory is not reinitialized to 0.
+/**  
+ *  Frees all memory allocated by mem_alloc so that it can be reallocated.  The
+ *  memory system remains active.  Freed memory is not reinitialized to 0.
 */
 void F77_NAME(mem_alloc_reset,MEM_ALLOC_RESET)(){
 	nxt_ptr = base_ptr;
 }
 
 
-/** returns the amount of memory allocated
+/** 
+ *  returns the amount of memory allocated
  *
  *     *param nbused[out] amount of memory already allocated by mem_alloc
  */
@@ -155,7 +161,8 @@ void F77_NAME(mem_alloc_query, MEM_ALLOC_QUERY)(long long *nbused){
 }
 
 
-/** returns the number of objects of a particular size that can be allocated.
+/** 
+ *  returns the number of objects of a particular size that can be allocated.
  *
  *     *param size[in] size of the object 
  *     *param number[out] number of objects that can be allocated
@@ -165,7 +172,8 @@ void F77_NAME(mem_query_free, MEM_QUERY_FREE)(f_int* size,f_int *number){
 }
 
 
-/** returns the base address of the managed memory
+/** 
+ * returns the base address of the managed memory
  */
 long long F77_NAME(get_mem_base_addr,GET_MEM_BASE_ADDR)(){
 	return (long long)base_ptr;
