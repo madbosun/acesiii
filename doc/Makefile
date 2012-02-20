@@ -13,3 +13,5 @@ all: doxygen
 doxygen: ;
 	doxygen Doxyfile
 
+clean: ;
+	rm -rf html

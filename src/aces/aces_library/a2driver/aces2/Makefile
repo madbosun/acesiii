@@ -22,6 +22,7 @@ tabula_rasa: ;
 
 $(ACES2_LIB): libaces2.a
 	cp libaces2.a $(ACES2_LIB)
+	rm -f make.out make.err
 
 libaces2.a: $(F_OBJS) $(f_OBJS) $(c_OBJS)
 	ar $(ARFLAGS) libaces2.a $(F_OBJS) $(f_OBJS) $(c_OBJS)

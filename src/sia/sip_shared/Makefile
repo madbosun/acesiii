@@ -20,6 +20,7 @@ tabula_rasa: ;
 
 $(SIP_SHARED_LIB): libsip_shared.a
 	cp libsip_shared.a $(SIP_SHARED_LIB)
+	rm -f make.out make.err
 
 libsip_shared.a: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
 	ar $(ARFLAGS) libsip_shared.a $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)

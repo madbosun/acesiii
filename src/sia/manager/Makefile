@@ -12,9 +12,12 @@ c_OBJS:=$(cSOURCE:.c=.o)
 CPP_SOURCE=$(wildcard *.cpp)
 CPP_OBJS:=$(CPP_SOURCE:.cpp=.o)
 
-all rebuild relink: % : tabula_rasa $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
+all rebuild relink: % : tabula_rasa $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS) tabula_rasa2
 
 tabula_rasa: ;
+	rm -f make.out make.err
+
+tabula_rasa2: ;
 	rm -f make.out make.err
 
 ppclean clean distclean: % : tabula_rasa

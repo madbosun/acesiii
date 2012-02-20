@@ -21,6 +21,7 @@ tabula_rasa: ;
 
 $(SIP_LIB): libsip1.a
 	cp libsip1.a $(SIP_LIB)
+	rm -f make.out make.err
 
 libsip1.a: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
 	ar $(ARFLAGS) libsip1.a $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)

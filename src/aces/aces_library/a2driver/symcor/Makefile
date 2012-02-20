@@ -23,6 +23,7 @@ tabula_rasa: ;
 
 $(SYMCOR_LIB): libsymcor.a
 	cp libsymcor.a $(SYMCOR_LIB)
+	rm -f make.out make.err
 
 libsymcor.a: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
 	ar $(ARFLAGS) libsymcor.a $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)

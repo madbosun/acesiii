@@ -20,6 +20,7 @@ tabula_rasa: ;
 
 $(NLOLIB): libnlo.a
 	cp libnlo.a $(NLOLIB)
+	rm -f make.out make.err
 
 libnlo.a: $(F_OBJS) $(f_OBJS) $(c_OBJS)
 	ar $(ARFLAGS) libnlo.a $(F_OBJS) $(f_OBJS) $(c_OBJS)

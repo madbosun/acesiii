@@ -20,6 +20,7 @@ tabula_rasa: ;
 
 $(OEDLIB): liboedlib.a
 	cp liboedlib.a $(OEDLIB)
+	rm -f make.out make.err
 
 liboedlib.a: $(F_OBJS) $(f_OBJS) $(c_OBJS)
 	ar $(ARFLAGS) liboedlib.a $(F_OBJS) $(f_OBJS) $(c_OBJS)

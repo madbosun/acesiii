@@ -31,13 +31,14 @@ CPP_OBJS:=$(CPP_SOURCE:.cpp=.o)
 
 MAIN_OBJS=$(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
 
-all: tabula_rasa $(ACES3_EXE)
+all: tabula_rasa $(ACES3_EXE) 
 
 tabula_rasa: ;
 	rm -f make.out make.err
 
 $(ACES3_EXE): xaces3
 	cp xaces3 $(ACES3_EXE)
+	rm -f make.out make.err
 
 xaces3: $(FRAMELIB) $(ERD_LIB) $(SIP_LIB1) $(SIP_LIB2) $(SIAL_LIB) $(SIP_SHARED_LIB) \
         $(ACES2_LIB) $(GEOPT_LIB) $(SYMCOR_LIB) $(OED_LIB) $(DUP_LIB) $(INTEGRAL_OBJS) \

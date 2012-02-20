@@ -20,7 +20,7 @@ tabula_rasa: ;
 
 $(SIAL_LIB): libsial.a
 	cp libsial.a $(SIAL_LIB)
-
+	rm -f make.out make.err
 libsial.a: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
 	ar $(ARFLAGS) libsial.a $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS) 
 

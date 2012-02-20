@@ -21,6 +21,7 @@ tabula_rasa: ;
 
 $(DUPLIB): libdup.a
 	cp libdup.a $(DUPLIB)
+	rm -f make.out make.err
 
 libdup.a: $(F_OBJS) $(f_OBJS) $(c_OBJS)
 	ar $(ARFLAGS) libdup.a $(F_OBJS) $(f_OBJS) $(c_OBJS)

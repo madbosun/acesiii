@@ -11,9 +11,12 @@ f_OBJS:=$(fSOURCE:.f=.o)
 cSOURCE=$(wildcard *.c)
 c_OBJS:=$(cSOURCE:.c=.o)
 
-all rebuild relink: % : tabula_rasa $(F_OBJS) $(f_OBJS) $(c_OBJS)
+all rebuild relink: % : tabula_rasa $(F_OBJS) $(f_OBJS) $(c_OBJS) tabula_rasa2
 
 tabula_rasa: ;
+	rm -f make.out make.err
+
+tabula_rasa2: ;
 	rm -f make.out make.err
 
 ppclean clean distclean: % : tabula_rasa

@@ -23,6 +23,7 @@ tabula_rasa: ;
 
 $(GEOPT_LIB): libgeopt.a
 	cp libgeopt.a $(GEOPT_LIB)
+	rm -f make.out make.err
 
 libgeopt.a: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
 	ar $(ARFLAGS) libgeopt.a $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)

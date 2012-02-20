@@ -16,14 +16,14 @@ c_OBJS:=$(cSOURCE:.c=.o)
 CPP_SOURCE=$(wildcard *.cpp)
 CPP_OBJS:=$(CPP_SOURCE:.cpp=.o)
 
-all: tabula_rasa $(SIAL_COMPILER)
+all: tabula_rasa $(SIAL_COMPILER) 
 
 tabula_rasa: ;
 	rm -f make.out make.err
 
 $(SIAL_COMPILER): sial
 	cp sial $(SIAL_COMPILER)
-
+	rm -f make.out make.err
 sial: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS) $(SIAL_LIB) $(SIP_SHARED_LIB) 
 	$(SERIAL_CPP) $(CPPFLAGS) $(SIAL_INCLUDES) $(LIB_DIRS) -o sial \
 	$(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS) $(SIAL_COMPILER_LFLAGS) \

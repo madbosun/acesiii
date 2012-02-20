@@ -21,6 +21,7 @@ tabula_rasa: ;
 
 $(FRAMELIB): libframelib.a
 	cp libframelib.a $(FRAMELIB)
+	rm -f make.out make.err
 
 libframelib.a: $(F_OBJS) $(f_OBJS) $(c_OBJS)
 	ar $(ARFLAGS) libframelib.a $(F_OBJS) $(f_OBJS) $(c_OBJS)

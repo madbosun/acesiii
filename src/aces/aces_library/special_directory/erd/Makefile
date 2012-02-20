@@ -20,6 +20,7 @@ tabula_rasa: ;
 
 $(ERDLIB): liberd.a
 	cp liberd.a $(ERDLIB)
+	rm -f make.out make.err
 
 liberd.a: $(F_OBJS) $(f_OBJS) $(c_OBJS)
 	ar $(ARFLAGS) liberd.a $(F_OBJS) $(f_OBJS) $(c_OBJS)

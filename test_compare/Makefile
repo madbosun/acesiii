@@ -23,6 +23,7 @@ tabula_rasa: ;
 
 $(EXE): xtest_compare
 	cp xtest_compare $(EXE)
+	rm -f make.out make.err
 
 xtest_compare: $(ACES2_LIB) $(MAIN_OBJS)
 	$(FC) $(FFLAGS) $(LFLAGS) -o xtest_compare \
