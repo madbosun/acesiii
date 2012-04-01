@@ -45,7 +45,9 @@ c--------------------------------------------------------------------------
       include 'machine_types.h'
       include 'dbugcom.h'
       include 'checkpoint_data.h'
+#ifdef ALTIX
       include 'sheap.h'
+#endif
 
       integer narray_table
       integer nindex_table, index_table(lindex_table_entry,nindex_table)

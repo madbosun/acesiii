@@ -1,4 +1,25 @@
 include ../../../../../GNUmakefile.chssi
+
+#Compilers
+FC=@FC@
+CC=@CC@
+CPP=@CXX@
+SERIAL_CPP=@SERIAL_CPP@
+
+#Compiler flags
+FFLAGS=@FCFLAGS@
+CFLAGS=@CFLAGS@
+CPPFLAGS=@CXXFLAGS@
+
+#ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
+LIBS = @ACESLIBS@
+LIBS:= -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 $(LIBS)
+
+#ACESFLAGS variable will be replaced by the autoconf script with location of libraries
+LIB_DIRS= @ACESFLAGS@
+
+SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
+
 INCLUDE_DIRS := -I../../../../sia/include -I../aces2/include $(INCLUDE_DIRS)
 LIB_DIRS:=-L../../../lib $(LIB_DIRS)
 
