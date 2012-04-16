@@ -84,7 +84,7 @@ fi
 SERIAL_CPP="cc"
 #Also set COMPILER_LIBS accordingly
 if test x$SIAL_COMPILER_LIBS = x; then
-SIAL_COMPILER_LIBS="-lsial -lsip_shared -lacescore -ltools"
+SIAL_COMPILER_LIBS="-lsial -lsip_shared -lacescore -ltools -lsip1 -lsip2"
 fi
 ACESLIBS=$CRAYLIBS
 ACESFLAGS=$CRAYFLAGS
