@@ -5,7 +5,7 @@
 export
 #   gmake all: Builds the xchssi executable.
 CHSSI_EXE=xchssi
-FILES:=aces sia sial_compiler main
+FILES:=aces sia sial_compiler aces/aces_sial main
 TARGET_DIRS:=$(shell for dir in $(FILES); \
                      do test -f $$dir/Makefile && echo $$dir; \
                      done)

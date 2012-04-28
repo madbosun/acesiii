@@ -13,7 +13,7 @@ CPPFLAGS=@CXXFLAGS@
 
 #ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
 LIBS = @ACESLIBS@
-LIBS:= -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 $(LIBS)
+LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
 
 #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
 LIB_DIRS= @ACESFLAGS@
@@ -30,6 +30,7 @@ FRAMELIB=../../lib/libframelib.a
 ERD_LIB=../../lib/liberd.a
 SIP_LIB1=../../lib/libsip1.a
 SIP_LIB2=../../lib/libsip2.a
+LIB_SIALINST=../../lib/libsialinst.a
 SIAL_LIB=../../lib/libsial.a
 SIP_SHARED_LIB=../../lib/libsip_shared.a
 ACES2_LIB=../../lib/libaces2.a
@@ -63,7 +64,7 @@ $(ACES3_EXE): xaces3
 	cp xaces3 $(ACES3_EXE)
 	rm -f make.out make.err
 
-xaces3: $(FRAMELIB) $(ERD_LIB) $(SIP_LIB1) $(SIP_LIB2) $(SIAL_LIB) $(SIP_SHARED_LIB) \
+xaces3: $(FRAMELIB) $(ERD_LIB) $(SIP_LIB1) $(SIP_LIB2) $(LIB_SIALINST) $(SIAL_LIB) $(SIP_SHARED_LIB) \
         $(ACES2_LIB) $(GEOPT_LIB) $(SYMCOR_LIB) $(OED_LIB) $(DUP_LIB) $(INTEGRAL_OBJS) \
         $(MAIN_OBJS) $(WORKER_OBJS) $(MANAGER_OBJS)
 	$(FC) $(FFLAGS) $(LFLAGS) -o xaces3 \
