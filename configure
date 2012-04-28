@@ -2702,10 +2702,10 @@ echo "$as_me: error: Please specify all the library locations in variable  CRAYF
    { (exit 1); exit 1; }; }
 fi
 #Set c++ compiler
-SERIAL_CPP="cc"
+SERIAL_CPP=$CXX
 #Also set COMPILER_LIBS accordingly
 if test x$SIAL_COMPILER_LIBS = x; then
-SIAL_COMPILER_LIBS="-lsial -lsip_shared -lacescore -ltools"
+SIAL_COMPILER_LIBS="-lsial -lsip_shared -lacescore -ltools -lsip1 -lsip2"
 fi
 ACESLIBS=$CRAYLIBS
 ACESFLAGS=$CRAYFLAGS

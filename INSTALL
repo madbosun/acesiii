@@ -42,7 +42,7 @@ the configure script.
 
      
   o  Cray-XT systems:
-
+	For a cray system, it is highly recommended to set the C,C++ and FORTRAN compiler correctly. In the lines below, please change the compiler names accordingly.
 
 ./configure --enable-cray \
    CRAYLIBS="-lacml" \
@@ -50,6 +50,7 @@ the configure script.
    FCFLAGS="-fastsse -Mcache_align -O3 -D_PORTGRP -DXT3 -D__fortran -D__fortran77 -DMPI2 -DNO_MPI_IO" \
    CFLAGS="-fastsse -Mcache_align -O3 -D_PORTGRP -DC_SUFFIX -DCB_SUFFIX -DXT3 -DMPI2 -DNO_MPI_IO" \
    CXXFLAGS="-Mcache_align -D_PORTGRP -DC_SUFFIX -DCB_SUFFIX -DXT3 -DMPI2 -DNO_MPI_IO" \
-   SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2 -lpgf90 -lpghpf_mpi -lmpichf90 -lpghpf -lpghpf2 -lpgftnrtl -lrt"
+   SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2 -lpgf90 -lpghpf_mpi -lmpichf90 -lpghpf -lpghpf2 -lpgftnrtl -lrt" \
+   CC="cc" FC="ftn" CXX="CC"
 
 

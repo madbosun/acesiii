@@ -81,7 +81,7 @@ if test x$CRAYFLAGS = x; then
    AC_MSG_ERROR([Please specify all the library locations in variable  CRAYFLAGS])
 fi
 #Set c++ compiler
-SERIAL_CPP="cc"
+SERIAL_CPP=$CXX
 #Also set COMPILER_LIBS accordingly
 if test x$SIAL_COMPILER_LIBS = x; then
 SIAL_COMPILER_LIBS="-lsial -lsip_shared -lacescore -ltools -lsip1 -lsip2"
