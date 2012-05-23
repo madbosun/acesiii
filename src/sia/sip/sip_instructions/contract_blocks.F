@@ -100,32 +100,35 @@ c--------------------------------------------------------------------------
 c------------------------------------------------------------------------
 c   Allocate 3 scratch blocks for the 2-index contraction routines.
 c------------------------------------------------------------------------
+         if(gpu_enabled) then
+           call cwork_gpu_alloc()
+         else 
+           istat = allocate_scratch_block(scr, iscr1, handle1,
+     *                             array_table, narray_table,
+     *                             index_table, nindex_table, 
+     *                             block_map_table)
+           if (istat .ne. 0) then
+              print *,'Error: Unable to allocate scratch blocks.'
+              call abort_job()
+           endif
 
-         istat = allocate_scratch_block(scr, iscr1, handle1,
-     *                           array_table, narray_table,
-     *                           index_table, nindex_table, 
-     *                           block_map_table)
-         if (istat .ne. 0) then
-            print *,'Error: Unable to allocate scratch blocks.'
-            call abort_job()
-         endif
+           istat = allocate_scratch_block(scr, iscr2, handle2,
+     *                             array_table, narray_table,
+     *                             index_table, nindex_table,
+     *                             block_map_table)
+           if (istat .ne. 0) then
+              print *,'Error: Unable to allocate scratch blocks.'
+              call abort_job()
+           endif
 
-         istat = allocate_scratch_block(scr, iscr2, handle2,
-     *                           array_table, narray_table,
-     *                           index_table, nindex_table,
-     *                           block_map_table)
-         if (istat .ne. 0) then
-            print *,'Error: Unable to allocate scratch blocks.'
-            call abort_job()
-         endif
-
-         istat = allocate_scratch_block(scr, iscr3, handle3,
-     *                           array_table, narray_table,
-     *                           index_table, nindex_table,
-     *                           block_map_table)
-         if (istat .ne. 0) then
-            print *,'Error: Unable to allocate scratch blocks.'
-            call abort_job()
+           istat = allocate_scratch_block(scr, iscr3, handle3,
+     *                             array_table, narray_table,
+     *                             index_table, nindex_table,
+     *                             block_map_table)
+           if (istat .ne. 0) then
+              print *,'Error: Unable to allocate scratch blocks.'
+              call abort_job()
+           endif
          endif
       endif
 
@@ -313,12 +316,24 @@ c      print *,'indx1: ',(indx1(j),j=1,n1)
 c      print *,'indx2: ',(indx2(j),j=1,n2)
 c      print *,'cind: ',(cind(j),j=1,ncind)
 
+      if(gpu_enabled) then
+        do i = 1, mx_array_index
+           nya(i) = nyb(i) - nya(i)
+           nx1a(i) = nx1b(i) - nx1a(i)
+           nx2a(i) = nx2b(i) - nx2a(i)
+        enddo
+
+        call cwork_gpu( y(iy), ny,  nya, indy,
+     *               x1(ix1), n1, nx1a, indx1,
+     *               x2(ix2), n2, nx2a, indx2)
+      else
+
 c----------------------------------------------------------------------------
 c   Determine the array in which the first index of "y" is found.
 c   This determines the order of the operand arrays in some of the
 c   calls to low-order contraction routines.
 c----------------------------------------------------------------------------
-
+      
       iseq = 2
       do i = 1, n1
          if (indy(1) .eq. indx1(i)) iseq = 1
@@ -823,6 +838,7 @@ c--------------------------------------------------------------------------
          print *,'Error: Output of contraction must have 4 or less ',
      *           'indices, or be a scalar.'
          call abort_job()
+      endif
       endif
 
       return

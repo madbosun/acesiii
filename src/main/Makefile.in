@@ -1,5 +1,7 @@
 include ../../GNUmakefile.chssi
 
+CUDAPATH=@CUDAPATH@
+
 #Compilers
 FC=@FC@
 CC=@CC@
@@ -13,7 +15,7 @@ CPPFLAGS=@CXXFLAGS@
 
 #ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
 LIBS = @ACESLIBS@
-LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
+LIBS:= -lcublas -lcudart -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
 
 #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
 LIB_DIRS= @ACESFLAGS@
@@ -24,7 +26,7 @@ SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
 
 
 INCLUDE_DIRS := -I../sia/include -I../aces/aces_library/a2driver/aces2/include -I../sia/sip/include $(INCLUDE_DIRS)
-LIB_DIRS:=-L../../lib $(LIB_DIRS)
+LIB_DIRS:=-L$(CUDAPATH)/lib64 -L../../lib $(LIB_DIRS)
 
 FRAMELIB=../../lib/libframelib.a
 ERD_LIB=../../lib/liberd.a
