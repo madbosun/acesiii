@@ -15,7 +15,7 @@ C  in the file COPYRIGHT.
       SUBROUTINE ASIGN_CNTVTES(CARTCOORD, BNDLENTHS, IATOMICNMBER, 
      &                         SMOFCOVRADI, NCONPRCNTR, IBNDTO,
      &                         MAXCNTVS, NRATMS, MARK_FRAGMENTS, 
-     &                         LENGTH_FRAGMENTS,CONNECTED_ATOMS,
+     &                         LENGTH_FRAGMENTS,FRAGSCR,
      &                         BLNGT_IJFRGS)
 C
 C We need to decide some sort of a connectivity pattern if want to do
@@ -25,9 +25,16 @@ C So Let's use this covalent radii scheme Dr. Fau is talking about.
 C
       IMPLICIT DOUBLE PRECISION(A-H, O-Z)
       DOUBLE PRECISION PNTSEV
-      LOGICAL FLAG, NOPClFPS, FRAGMENT, CONN_FILE_EXISTS
+      LOGICAL FLAG, NOPClFPS, FRAGMENT, CONN_FILE_EXISTS, REGULAR_BND
       INTEGER AATOM, BATOM, VALENCY, iND, IDUM,
      &        JDUM, CONNECTED_ATOMS
+C
+C Watson
+C
+      INTEGER  FRAGSCR (1:NRATMS*NRATMS)
+      INTEGER  IPRINT,IERR,MAXFRAG,NFRAG_TMP
+C
+C Watson
 C
 CSSS    NEIGHBORS(NRATMS, NRATMS)
 C
@@ -35,8 +42,7 @@ C
      &          IATOMICNMBER(NRATMS), SMOFCOVRADI(NRATMS, NRATMS),
      &          IBNDTO(NRATMS, NRATMS), NCONPRCNTR(NRATMS),
      &          VALENCY(86), MARK_FRAGMENTS(NRATMS, NRATMS), 
-     &          LENGTH_FRAGMENTS(NRATMS),BLNGT_IJFRGS(NRATMS),
-     &          CONNECTED_ATOMS(NRATMS)
+     &          LENGTH_FRAGMENTS(NRATMS),BLNGT_IJFRGS(NRATMS)
 C      
       DIMENSION VRADII(17)
       DATA VRADII /1.20D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.7D0,
@@ -175,6 +181,7 @@ C
       Write(6,*)
 #endif
 C
+      NHBONDS = 0
       CALL DSCAL(NRATMS*NRATMS, 1.0D0/1.3D0, SMOFCOVRADI, 1)
       DO IBNDS = 1, NRATMS
          IF (IATOMICNMBER(IBNDS) .EQ. 1) THEN
@@ -187,6 +194,19 @@ C
      &                    (IATOMICNMBER(JBNDS) .EQ. 16) .OR.
      &                    (IATOMICNMBER(JBNDS) .EQ. 17))
 
+C
+C The check for regular bond is required in order to avoid treating
+C previoulsly assigned h-bond connections to assign new hydrogren
+C bonds. 02/22, Ajith Perera.
+C
+               DIST_IJ =  BNDLENTHS(JBNDS, IBNDS)
+               COVR_IJ = SMOFCOVRADI(JBNDS,IBNDS)*1.30D0
+               IF (DIST_IJ .LE. COVR_IJ) THEN
+                    REGULAR_BND = .TRUE.
+               ELSE
+                    REGULAR_BND = .FALSE.
+               ENDIF
+C
                IF (NOPClFPS.AND.IBNDTO(JBNDS,IBNDS).NE.JZERO) THEN
                   DO KBNDS = 1, NRATMS
                      IF (((IATOMICNMBER(KBNDS) .EQ. 7)  .OR.
@@ -220,6 +240,7 @@ C
                         IF ((DIST_HY .GT. SMOFCOVLRAD).AND.
      &                      (DIST_HY .LT. SMOFVRADII).AND.
      &                      (ANG_XHY .GT. 90.0D0)) THEN
+                           NHBONDS = NHBONDS + 1
                            IF (IBNDS .GT. KBNDS) THEN
                               IBNDTO(KBNDS, IBNDS) = IONE
                            ELSE
@@ -233,29 +254,36 @@ C
          END IF
       END DO
 C
-#ifdef _DEBUG_LVLM1
-      Write(6,*)
-      Print*, "The connectivity assignments after H-bond block"
-      Print*, ((ibndto(j, i), j=1, nratms),I=1, nratms)
-      Write(6,*)
+#ifdef _DEBUG_LVL0
+      Write(6,*) 
+      Write(6,"(a,I4)") "The no. of H bonds", NHBONDS
 #endif
 C
 C#ifdef _NOSKIP
 C
-      do iatoms=2,nratms
-         do jatoms=1,(iatoms-1)
-            if (ibndto(jatoms,iatoms).eq.1) ibndto(iatoms,jatoms)=1
-
-      call identfy_fragments(nratms,ibndto,connected_atoms,nfrags,
-     &                       length_fragments,mark_fragments)
-          enddo
-      enddo
+C
+CSSS      do iatoms=2,nratms
+CSSS         do jatoms=1,(iatoms-1)
+CSSS            if (ibndto(jatoms,iatoms).eq.1) ibndto(iatoms,jatoms)=1
+CSSS
+CSSS      call identfy_fragments(nratms,ibndto,connected_atoms,nfrags,
+CSSS     &                       length_fragments,mark_fragments)
+CSSS          enddo
+CSSS      enddo
+C
+C Watson
 C
 #ifdef _DEBUG_LVL0
-      Write(6,*)
-      Write(6,"(a)") "The Ibndto array"
-      Write(6,"(8I4)") ((Ibndto(I, J), I=1, nratms),
-     &         J=1, NRATMS)
+      iprint = 50
+#else
+      iprint =0
+#endif
+      
+      CALL  FRAG__INIT (nratms,ibndto,iprint,ierr,fragscr,
+     +                  nfrags,length_fragments,mark_fragments)
+C
+C Watson
+#ifdef _DEBUG_LVL0
       Write(6,*)
       Write(6,"(a,i3)") "The number of isolated fragments per center", 
      &  nfrags

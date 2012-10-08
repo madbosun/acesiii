@@ -19,6 +19,10 @@ C  in the file COPYRIGHT.
       integer ierr
     
       call print_opcounter()
+      write(66,10) 
       call mpi_abort(mpi_comm_world, 1, ierr)
       return
+
+10    Format(5x,'Aborting job. 
+     * Check output and error files to determine cause') 
       end

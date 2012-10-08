@@ -72,6 +72,7 @@ c      subroutine beta()
       character*80 ihess_str
       character*80 jhess_str
       character*80 sub_str
+      character*80 jobflow  
 
       logical company_defined
       logical is_file_open
@@ -84,6 +85,7 @@ c      subroutine beta()
       logical dryrun_abort
       logical do_restart, file_exist
       logical flag
+      logical do_write 
 
       double precision t1, t2
       double precision vnn, diff, avg
@@ -121,6 +123,12 @@ c---------------------------------------------------------------------------
          maxmem = 0
          call igetparam('MAXMEM', 1, maxmem)
       endif
+
+c---------------------------------------------------------------------------
+c   Set the summary print flag to true  
+c---------------------------------------------------------------------------
+
+         do_write = .true.
 
 c---------------------------------------------------------------------------
 c   Initial call to set up memory.
@@ -163,7 +171,7 @@ c   Create a ZMAT.AUTO file from the user's ZMAT, adding the defaulted
 c   parameters in the *SIP section.
 c-------------------------------------------------------------------------
 
-         call write_zmat_auto()
+         call write_zmat_auto(jobflow)
          call aces_ja_fin()   ! close JOBARC subsystem
 
 c--------------------------------------------------------------------------
@@ -766,6 +774,34 @@ c----------------------------------------------------------------------
         else
 
            call int_gen_init()
+cVFL  
+c          go to 333 
+           if (if_scf) then !  .eq. .true.) then
+
+           if (.not. dryrun .and. do_write) then
+
+              open(66,file='summary.out')
+              write(66,*) ' '
+              write(66,99) aces3_version, nprocs   
+              if (iuhf .eq. 0) write(66,101)
+              if (iuhf .eq. 1) write(66,102)
+              write(66,*) ' '
+              write(66,103) jobflow
+              write(66,104) nalpha_occupied+nbeta_occupied
+              write(66,105) end_nfps(nshells)
+
+99         FORMAT(5x,'ACESIII version,',2x,A10,2x,
+     *            'is run on',2x,I8,2x,'processors.')
+101        FORMAT(5x,'REFERENCE = RHF ')
+102        FORMAT(5x,'REFERENCE = UHF ')
+103        FORMAT(5x,'CALCULATION TYPE =',2x,A80)
+104        FORMAT(5x,'Number of electrons =',2x,I8)
+105        FORMAT(5x,'Number of basis functions =',2x,I8)
+
+              do_write = .false.
+           endif
+           endif
+
 
            print *,'----------- Parameter Summary ----------------'
            print *,'DRYRUN...........................',dryrun
@@ -968,6 +1004,11 @@ c---------------------------------------------------------------------------
      *         '----------- Normal termination of beta -----------'
             t2 = mpi_wtime()
             print *,'Elapsed time = ',t2-t1,' seconds.'
+
+            write(66,*) ' ' 
+            write(66,113) t2-t1  
+113         FORMAT(5x,'AcesIII has finished in',2x,F12.2,2x,'seconds') 
+            write(66,*) ' ' 
 
 c---------------------------------------------------------------------
 c   Receive timer data, print reports.

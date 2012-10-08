@@ -1,17 +1,3 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
       SUBROUTINE BUILT_BGMTRX(CARTCOORD, REDUNCO, IREDUNCO,
      &                        TOTREDNCO, TOTNOFBND, TOTNOFANG,
      &                        TOTNOFDIH, NRATMS, 
@@ -30,12 +16,12 @@ C
 C
       COMMON /MACHSP/ IINTLN,IFLTLN,IINTFP,IALONE,IBITWD
 C 
-C BTMP : used as temp storage of size 9*NRATMS*NRATMS need
+C BTMP : used as temp storage of size 9*MXATMS*MXATMS need
 C        to be dynamically allocated and discarded.
       DIMENSION CARTCOORD(3*NRATMS), IREDUNCO(4, MAXREDUNCO),
      &          BMATRX(TOTREDNCO, 3*NRATMS), 
-     &          BTMP(MAX(3*NRATMS,TOTREDNCO), MAX(3*NRATMS,TOTREDNCO)),
-     &          GMATRX(TOTREDNCO, MAX(TOTREDNCO,3*NRATMS)),
+     &          BTMP(3*MXATMS, 3*MXATMS), 
+     &          GMATRX(TOTREDNCO, 3*NRATMS),
      &          EIGVECTORS(TOTREDNCO, TOTREDNCO),
      &          REDUNCO(TOTREDNCO)
       DIMENSION DERBMAT(3*NRATMS,3*NRATMS*TOTREDNCO),
@@ -48,7 +34,7 @@ C
       CALL ZERO(DERBMAT,9*NRATMS*NRATMS*TOTREDNCO)
 C
       CMP_DBMAT = (IFLAGS2(h_IFLAGS2_init_hessian) .GT. 0) .OR.
-     &            (IFLAGS2(h_IFLAGS_eval_hess)    .ge. 0)
+     &            (IFLAGS2(h_IFLAGS_eval_hess)    .gt. 0)
 C
       DO 20 IBNDS = 1, TOTNOFBND
 C
@@ -83,7 +69,7 @@ C
      &                         IANGS, NRATMS, TOTREDNCO, EPSILON)
             REDUNCO(IANGS) = ANGL
 #ifdef _DEBUG_LVL0
-            WRITE(6,"(a,F10.5)") "The bond Angle =", DANG/DINVPI
+            WRITE(6,"(a,F10.5)") "The bond Angle =", ANGL/DINVPI
 #endif
 C
 C The Derivative of B matrix is zero for the angle 0.0 and 180.00
@@ -118,6 +104,10 @@ C
 C
  30   CONTINUE
 C
+#ifdef _DEBUG_LVL0
+            WRITE(6,*) "Entering the dihedral angle block"
+#endif 
+  
       DO 40 IDIHS = (TOTNOFANG + TOTNOFBND + 1),  TOTREDNCO
 C
          CALL  BULT_DIHANGCRD(CARTCOORD, BMATRX, DANG,
@@ -148,7 +138,7 @@ CSSS     &            3*NRATMS,3*NRATMS*TOTREDNCO,1)
 C
 C Let's write the B-matrix to the JOBARC file. 
 C
-cSSS     CALL DPUTREC(20,'JOBARC', 'BMATRIX ', TOTREDNCO, BMATRX)
+cSSS     CALL DPUTREC(20,'JOBARC', 'BMATRIX ',TOTREDNCO, BMATRX)
 C
 C Form the G matrix which is required to transfrom the gradient
 C from the Cartesian coordinates to redundent internal coordinates.   
@@ -158,9 +148,11 @@ C Built G = BuB(t) where u is an arbitrary nonsingular matrix, usually
 C the unit matrix. The notations are consistent with Pulay et al.
 C paper.
 C
-CSSS       Print*, "The B-Matrix"
-cSSS      CALL OUTPUT(BMATRX, 1, TOTREDNCO, 1, 3*NRATMS, TOTREDNCO,
-cSSS     &            3*NRATMS, 1)
+#ifdef _DEBUG_LVL0
+      Write(6,*) "B-Matrix"
+      CALL OUTPUT(BMATRX, 1, TOTREDNCO, 1, 3*NRATMS, TOTREDNCO,
+     &            3*NRATMS, 1)    
+#endif
 C
       CALL DCOPY(3*NRATMS*TOTREDNCO, BMATRX, 1, BTMP, 1)
 C
@@ -168,9 +160,9 @@ C
      &           BMATRX, TOTREDNCO, BTMP, TOTREDNCO, 0.0D0, GMATRX,
      &           TOTREDNCO)
 C
-cSSS      Print*, "The G-Matrix:BB^t"
-cSSS      CALL OUTPUT(GMATRX, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
-cSSS     &            TOTREDNCO, 1)
+CSSS      Print*, "The G-Matrix:BB^t", MXATMS, MAXREDUNCO
+CSSS      CALL OUTPUT(GMATRX, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
+CSSS     &            TOTREDNCO, 1)
       LENGMAT=TOTREDNCO*TOTREDNCO
       CALL DPUTREC(20,'JOBARC','G-MATRX ',LENGMAT,GMATRX)
 C---DEBUG
@@ -183,12 +175,13 @@ C there are eigenvalues that are zero. Invert the non-zero digonal
 C elements to built the Lambda(-1) matrix.
 C
       CALL EIG(GMATRX, EIGVECTORS, 1, TOTREDNCO , 1)
-cSSS      Print*, "The Eigenvalues of G-Matrix"
-cSSS      CALL OUTPUT(GMATRX, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
-cSSS     &            TOTREDNCO, 1)
-cSSS      Print*, "The Eigenvectors of G-Matrix"
-cSSS      CALL OUTPUT(EIGVECTORS, 1, TOTREDNCO, 1, TOTREDNCO, 
-cSSS     &            TOTREDNCO, TOTREDNCO, 1)
+C 
+CSSS      Print*, "The Eigenvalues of G-Matrix"
+CSSS      CALL OUTPUT(GMATRX, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
+CSSS     &            TOTREDNCO, 1)
+CSSS      Print*, "The Eigenvectors of G-Matrix"
+CSSS      CALL OUTPUT(EIGVECTORS, 1, TOTREDNCO, 1, TOTREDNCO, 
+CSSS     &            TOTREDNCO, TOTREDNCO, 1)
 C
       NULLEVAL = 0
       DO I = 1, TOTREDNCO
@@ -201,6 +194,10 @@ C
       ENDDO
 C  
       NONZERO_TOTREDNCO = TOTREDNCO - NULLEVAL
+  
+      CALL DPUTREC(20,'JOBARC','REDEVECS',NULLEVAL*TOTREDNCO,
+     &            EIGVECTORS)
+      CALL IPUTREC(20,'JOBARC','NUMREDCO', 1, NULLEVAL)
 C
 C Built the generalized inverse of G-matrix, what proceeded is generally
 C known as singular value decomposition (ineversion of singular matrices)
@@ -209,25 +206,25 @@ C
       CALL XGEMM('N', 'N', TOTREDNCO, TOTREDNCO, TOTREDNCO, 1.0D0,
      &           EIGVECTORS, TOTREDNCO, GMATRX, TOTREDNCO, 0.0D0,
      &           BTMP, TOTREDNCO)
-cSSS      Print*, "The INVERSE OF B-Matrix:1"
-cSSS      CALL OUTPUT(BTMP, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
-cSSS     &            TOTREDNCO, 1)
+CSSS      Print*, "The INVERSE OF B-Matrix:1"
+CSSS      CALL OUTPUT(BTMP, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
+CSSS     &            TOTREDNCO, 1)
       CALL XGEMM('N', 'T', TOTREDNCO, TOTREDNCO, TOTREDNCO, 1.0D0,
      &           BTMP, TOTREDNCO, EIGVECTORS, TOTREDNCO, 0.0D0,
      &           GMATRX, TOTREDNCO)
       CALL DPUTREC(20,'JOBARC','GI-MATRX',LENGMAT,GMATRX)
-C---DEBUG
-cSSS      CALL ZERO(BTMP, TOTREDNCO*TOTREDNCO)
-cSSS      CALL XGEMM('N', 'N', TOTREDNCO, TOTREDNCO, TOTREDNCO, 1.0D0,
-cSSS     &           GMATRX, TOTREDNCO, BMATRX, TOTREDNCO, 0.0D0,
-cSSS     &           BTMP, TOTREDNCO)
-cSSS      CALL XGEMM('N', 'N', TOTREDNCO, TOTREDNCO, TOTREDNCO, 1.0D0,
-cSSS     &           BTMP, TOTREDNCO, BMATRX, TOTREDNCO, 0.0D0,
-cSSS     &           GMATRX, TOTREDNCO)
+C---DEBULG
+CSSS      CALL ZERO(BTMP, TOTREDNCO*TOTREDNCO)
+CSSS      CALL XGEMM('N', 'N', TOTREDNCO, TOTREDNCO, TOTREDNCO, 1.0D0,
+CSSS     &           GMATRX, TOTREDNCO, BMATRX, TOTREDNCO, 0.0D0,
+CSSS     &           BTMP, TOTREDNCO)
+CSSS      CALL XGEMM('N', 'N', TOTREDNCO, TOTREDNCO, TOTREDNCO, 1.0D0,
+CSSS     &           BTMP, TOTREDNCO, BMATRX, TOTREDNCO, 0.0D0,
+CSSS     &           GMATRX, TOTREDNCO)
 
-cSSS      Print*, "The CHECK INVERSE OF B-Matrix"
-cSSS      CALL OUTPUT(GMATRX, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
-cSSS     &            TOTREDNCO, 1)
+CSSS      Print*, "The CHECK INVERSE OF B-Matrix"
+CSSS      CALL OUTPUT(GMATRX, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
+CSSS     &            TOTREDNCO, 1)
 C---DEBUG
 C
 C Built the intermediate matrix needed to built G and A matrices. 
@@ -240,19 +237,18 @@ CGAL  Here we build B(t)*G(-)
       CALL XGEMM('T','N',3*NRATMS,TOTREDNCO,TOTREDNCO,1.0D0,
      &            BMATRX,TOTREDNCO,GMATRX,TOTREDNCO,0.0D0,
      &            BTGMIN,3*NRATMS)
+CSSS      Write(6,*) "BTGMIN matrix"
 CSSS      CALL OUTPUT(BTGMIN,1,3*NRATMS,1,TOTREDNCO
 CSSS     &            ,3*NRATMS,TOTREDNCO,1)
 
-      IF (CMP_DBMAT) THEN
-         LENBTGMIN=3*NRATMS*TOTREDNCO
-         CALL DPUTREC(20,'JOBARC','BTGMIN',LENBTGMIN,BTGMIN)
-      END IF
+      LENBTGMIN=3*NRATMS*TOTREDNCO
+      CALL DPUTREC(20,'JOBARC','BTGMIN',LENBTGMIN,BTGMIN)
 C  
 C Built the the G-MATRIX (G(-1)B)^t; Note the transpose 
 C is necessary because the way the transformation is done in 
 C CONVQ.f (ACES II). This is the transformation matrix, when
 C act on right convert Cartesian gradients to internals, and
-C act on left convert internal coordinates to Cartesian. 
+C act on left convert internal coordiantes to Cartesian. 
 C   
       CALL TRANSP(BTMP, GMATRX, 3*NRATMS, TOTREDNCO)
 C
@@ -263,7 +259,7 @@ C
       CALL TRANSP(BMATRX, BTMP, 3*NRATMS, TOTREDNCO)
       CALL DCOPY(3*NRATMS*TOTREDNCO, BTMP, 1, BMATRX, 1)  
 C
-CSSS      Print*, "The A-Matrix"
+CSSS
 CSSS      CALL OUTPUT(GMATRX, 1, 3*NRATMS, 1, TOTREDNCO, 3*NRATMS,
 CSSS     &            TOTREDNCO, 1) 
 C

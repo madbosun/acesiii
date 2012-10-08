@@ -1265,14 +1265,20 @@ C
 #endif
 
 c Turn off symmetry if subgroup=C1.
-      if (ioppar(h_IOPPAR_subgroup).eq.1) then
-         call asv_update_kv('!sym'//achar(0),iASV,szData,0)
-      end if
+
+cVFL start 
+      szTmp = 'SYMMETRY=NONE'//achar(0)
+      call asv_update_kv(szTmp,iASV,szData,0)
+
+c     if (ioppar(h_IOPPAR_subgroup).eq.1) then
+c        call asv_update_kv('!sym'//achar(0),iASV,szData,0)
+c     end if
       if (ioppar(h_IOPPAR_geom_opt) .ge. 2) Then
-         szTmp = 'SYMMETRY=NONE'//achar(0)
-         if (ioppar(h_IOPPAR_sym).ne.0) then
-             call asv_update_kv(szTmp,iASV,szData,0)
-         Endif
+c        szTmp = 'SYMMETRY=NONE'//achar(0)
+c        if (ioppar(h_IOPPAR_sym).ne.0) then
+c            call asv_update_kv(szTmp,iASV,szData,0)
+c        Endif
+cVFL end 
 C
 C For geo. opt with FULL/RIC and SYM=NONE turn on the NOREORI
 C if it is not given as an input. Ajith Perera, 12/08
@@ -1282,6 +1288,28 @@ C
              szTmp = 'NOREORI=ON'//achar(0)
              call asv_update_kv(szTmp,iASV,szData,0)
           endif
+C
+C For Cartesian only optimizations (geo_opt=cart) set the opt_method
+C to RFA. Ajith Perera, 04/2011.
+C
+          if ((ioppar(h_IOPPAR_geom_opt) .eq. 2) .and.
+     &         (ioppar(h_IOPPAR_opt_method) .ne. 4)) Then
+          Write(6,"(5x,a,a)") "Cartesian only minima searches only RFA",
+     &                     " algorithm is "
+          Write(6,"(5x,a)") "allowed: Changing to RFA."
+               szTmp = "OPT_METHOD=RFA"//achar(0)
+               call asv_update_kv(szTmp,iASV,szData,0)
+          endif
+      endif
+C
+C For internal Coordinates do not allow symmetry=none (symmetry=none do no harm
+C except when dummy atoms are present but there is no need of this). 
+C Ajith Perera 02/2012.
+C
+      if ((ioppar(h_IOPPAR_coordinates).eq.0) .and.
+     &   (ioppar(h_IOPPAR_sym).eq.0)) then
+          szTmp = 'SYMMETRY=OFF'//achar(0)
+          call asv_update_kv(szTmp,iASV,szData,0)
       endif
 C
 c Ajith 11/98.
@@ -2513,7 +2541,10 @@ c   o (REF == RHF) && (MULT != 1)
 c   o DROPMO limitations
       if (nDrop(1)+nDrop(2).ne.0) then
          if (ioppar(h_IOPPAR_abcdtype ).ne.0.and.
-     &       ioppar(h_IOPPAR_deriv_lev).gt.0    ) then
+CSSS Bug fix Ajith Perera, 02/2012 (the test should be about dropmo
+CSSS AO-algoorithm)
+CSSS     &       ioppar(h_IOPPAR_deriv_lev).gt.0    ) then
+     &       ioppar(h_IOPPAR_grad_calc).eq.1    ) then
             print *, '@GTFLGS: No AO-basis gradients with dropped MOs.'
             call errex
          end if

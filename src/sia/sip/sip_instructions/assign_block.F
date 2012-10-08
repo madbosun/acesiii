@@ -474,7 +474,7 @@ c--------------------------------------------------------------------------
 
       do i = 1, 4
          do j = 1, 4
-            if (yind(i) .eq. xind(j)) map(i) = j
+            if (yind(i) .eq. xind(j)) map(j) = i
          enddo
       enddo
 
@@ -482,11 +482,13 @@ c--------------------------------------------------------------------------
 c   Optimized transposes.
 c--------------------------------------------------------------------------
 
+
+c 1243 
       if (map(1) .eq. 1 .and. map(2) .eq. 2 .and. 
      *    map(3) .eq. 4 .and. map(4) .eq. 3) then
          n = (ya2-ya1+1)*(yb2-yb1+1)
-         do c = yc1, yc2
          do d = yd1, yd2
+         do c = yc1, yc2
             do b = yb1, yb2
             do a = ya1, ya2
                y(a,b,c,d) = x(a,b,d,c)
@@ -497,13 +499,286 @@ c--------------------------------------------------------------------------
          return
       endif
 
+c 2134 
       if (map(1) .eq. 2 .and. map(2) .eq. 1 .and.
      *    map(3) .eq. 3 .and. map(4) .eq. 4) then
          do d = yd1, yd2
          do c = yc1, yc2
-         do a = ya1, ya2
-            do b = yb1, yb2
+         do b = yb1, yb2
+            do a = ya1, ya2
                y(a,b,c,d) = x(b,a,c,d)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 2143 
+      if (map(1) .eq. 2 .and. map(2) .eq. 1 .and.
+     *    map(3) .eq. 4 .and. map(4) .eq. 3) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(b,a,d,c)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 1432 
+      if (map(1) .eq. 1 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 2) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(a,d,c,b)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 1342 
+      if (map(1) .eq. 1 .and. map(2) .eq. 3 .and.
+     *    map(3) .eq. 4 .and. map(4) .eq. 2) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(a,c,d,b)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 1432 
+      if (map(1) .eq. 1 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 2) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(a,d,c,b)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 1423 
+      if (map(1) .eq. 1 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 3) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(a,d,b,c)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 3124 
+      if (map(1) .eq. 3 .and. map(2) .eq. 1 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 4) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(c,a,b,d)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 3142 
+      if (map(1) .eq. 3 .and. map(2) .eq. 1 .and.
+     *    map(3) .eq. 4 .and. map(4) .eq. 2) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(c,a,d,b)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 3214 
+      if (map(1) .eq. 3 .and. map(2) .eq. 2 .and.
+     *    map(3) .eq. 1 .and. map(4) .eq. 4) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(c,b,a,d)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 3241 
+      if (map(1) .eq. 3 .and. map(2) .eq. 2 .and.
+     *    map(3) .eq. 4 .and. map(4) .eq. 1) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(c,b,d,a)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 3412 
+      if (map(1) .eq. 3 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 1 .and. map(4) .eq. 2) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(c,d,a,b)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 3421 
+      if (map(1) .eq. 3 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 1) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(c,d,b,a)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 4123 
+      if (map(1) .eq. 4 .and. map(2) .eq. 1 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 3) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(d,a,b,c)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 4132 
+      if (map(1) .eq. 4 .and. map(2) .eq. 1 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 2) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(d,a,c,b)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 4213 
+      if (map(1) .eq. 4 .and. map(2) .eq. 2 .and.
+     *    map(3) .eq. 1 .and. map(4) .eq. 3) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(d,b,a,c)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 4231 
+      if (map(1) .eq. 4 .and. map(2) .eq. 2 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 1) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(d,b,c,a)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 4312 
+      if (map(1) .eq. 4 .and. map(2) .eq. 3 .and.
+     *    map(3) .eq. 1 .and. map(4) .eq. 2) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(d,c,a,b)
+            enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 4321 
+      if (map(1) .eq. 4 .and. map(2) .eq. 3 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 1) then
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d) = x(d,c,b,a)
             enddo
          enddo
          enddo
@@ -515,6 +790,12 @@ c--------------------------------------------------------------------------
 c--------------------------------------------------------------------------
 c   Generic 4-dimensional transpose.
 c--------------------------------------------------------------------------
+
+      do i = 1, 4
+         do j = 1, 4
+            if (yind(i) .eq. xind(j)) map(i) = j
+         enddo
+      enddo
 
 10101 continue
       do d = yd1, yd2
@@ -560,13 +841,79 @@ c--------------------------------------------------------------------------
 
       do i = 1, 3
          do j = 1, 3
-            if (yind(i) .eq. xind(j)) map(i) = j
+            if (yind(i) .eq. xind(j)) map(j) = i ! map(i) = j
          enddo
       enddo
 
 c--------------------------------------------------------------------------
 c   Optimized transposes.
 c--------------------------------------------------------------------------
+
+      if (map(1) .eq. 2 .and. map(2) .eq. 1 .and.
+     *    map(3) .eq. 3) then
+         do c = yc1, yc2
+         do b = yb1, yb2
+         do a = ya1, ya2
+               y(a,b,c) = x(b,a,c)
+         enddo
+         enddo
+         enddo
+         return
+      endif
+
+      if (map(1) .eq. 1 .and. map(2) .eq. 3 .and.
+     *    map(3) .eq. 2) then
+         do c = yc1, yc2
+         do b = yb1, yb2
+         do a = ya1, ya2
+               y(a,b,c) = x(a,c,b)
+         enddo
+         enddo
+         enddo
+         return
+      endif
+
+      if (map(1) .eq. 2 .and. map(2) .eq. 3 .and.
+     *    map(3) .eq. 1) then
+         do c = yc1, yc2
+         do b = yb1, yb2
+         do a = ya1, ya2
+               y(a,b,c) = x(b,c,a)
+         enddo
+         enddo
+         enddo
+         return
+      endif
+
+      if (map(1) .eq. 3 .and. map(2) .eq. 2 .and.
+     *    map(3) .eq. 1) then
+         do c = yc1, yc2
+         do b = yb1, yb2
+         do a = ya1, ya2
+               y(a,b,c) = x(c,b,a)
+         enddo
+         enddo
+         enddo
+         return
+      endif
+
+      if (map(1) .eq. 3 .and. map(2) .eq. 1 .and.
+     *    map(3) .eq. 2) then
+         do c = yc1, yc2
+         do b = yb1, yb2
+         do a = ya1, ya2
+               y(a,b,c) = x(c,a,b)
+         enddo
+         enddo
+         enddo
+         return
+      endif
+
+      do i = 1, 3
+         do j = 1, 3
+            if (yind(i) .eq. xind(j)) map(i) = j
+         enddo
+      enddo
 
 10101 continue
       do c = yc1, yc2
@@ -598,6 +945,7 @@ c   Transposes data into from one array into another, using the block
 c   ranges in yrange and xrange.
 c--------------------------------------------------------------------------
       implicit none
+      include 'trace.h'
 
       integer ya1,ya2,yb1,yb2,yc1,yc2,yd1,yd2,ye1,ye2,yf1,yf2
       integer nya1,nya2,nyb1,nyb2,nyc1,nyc2,nyd1,nyd2
@@ -615,15 +963,335 @@ c--------------------------------------------------------------------------
       integer a,b,c,d,e,f
       integer xval(6), map(6)
 
+c--------------------------------------------------------------------------
+c   'Optimized' 6-dimensional transpose.
+c--------------------------------------------------------------------------
+
+      do i = 1, 6
+         do j = 1, 6
+            if (yind(i) .eq. xind(j)) map(j) = i
+         enddo
+      enddo
+
+c 152634  
+      if (map(1) .eq. 1 .and. map(2) .eq. 5 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 6 .and. 
+     *    map(5) .eq. 3 .and. map(6) .eq. 4) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,e,b,f,c,d)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 162534  
+      if (map(1) .eq. 1 .and. map(2) .eq. 6 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 5 .and. 
+     *    map(5) .eq. 3 .and. map(6) .eq. 4) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,f,b,e,c,d)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 135624  
+      if (map(1) .eq. 1 .and. map(2) .eq. 3 .and.
+     *    map(3) .eq. 5 .and. map(4) .eq. 6 .and. 
+     *    map(5) .eq. 2 .and. map(6) .eq. 4) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,c,e,f,b,d)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 341526  
+      if (map(1) .eq. 3 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 1 .and. map(4) .eq. 5 .and. 
+     *    map(5) .eq. 2 .and. map(6) .eq. 6) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(c,d,a,e,b,f)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 123564  
+      if (map(1) .eq. 1 .and. map(2) .eq. 2 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 5 .and. 
+     *    map(5) .eq. 6 .and. map(6) .eq. 4) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,b,c,e,f,b)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 142534  
+      if (map(1) .eq. 1 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 5 .and. 
+     *    map(5) .eq. 3 .and. map(6) .eq. 6) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,d,b,e,c,f)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 142635  
+      if (map(1) .eq. 1 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 6 .and. 
+     *    map(5) .eq. 3 .and. map(6) .eq. 5) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,d,b,f,c,e)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 342615  
+      if (map(1) .eq. 3 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 6 .and. 
+     *    map(5) .eq. 1 .and. map(6) .eq. 5) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(c,d,b,f,a,e)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 342516  
+      if (map(1) .eq. 3 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 5 .and. 
+     *    map(5) .eq. 1 .and. map(6) .eq. 6) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(c,d,b,e,a,f)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 341625  
+      if (map(1) .eq. 3 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 1 .and. map(4) .eq. 6 .and. 
+     *    map(5) .eq. 2 .and. map(6) .eq. 5) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(c,d,a,f,b,e)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 253416  
+      if (map(1) .eq. 2 .and. map(2) .eq. 5 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 4 .and. 
+     *    map(5) .eq. 1 .and. map(6) .eq. 6) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(b,e,c,d,a,f)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 163425  
+      if (map(1) .eq. 1 .and. map(2) .eq. 6 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 4 .and. 
+     *    map(5) .eq. 2 .and. map(6) .eq. 5) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,f,c,d,b,e)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 153426  
+      if (map(1) .eq. 1 .and. map(2) .eq. 5 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 4 .and. 
+     *    map(5) .eq. 2 .and. map(6) .eq. 6) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,e,c,d,b,f)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 263415  
+      if (map(1) .eq. 2 .and. map(2) .eq. 6 .and.
+     *    map(3) .eq. 3 .and. map(4) .eq. 4 .and. 
+     *    map(5) .eq. 1 .and. map(6) .eq. 5) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(b,f,c,d,a,e)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c--------------------------------------------------------------------------
+c   Generic 6-dimensional transpose.
+c--------------------------------------------------------------------------
+
+      write(6,*) 'Unoptimized permutation at line#', current_line 
+
       do i = 1, 6
          do j = 1, 6
             if (yind(i) .eq. xind(j)) map(i) = j
          enddo
       enddo
-
-c--------------------------------------------------------------------------
-c   Generic 4-dimensional transpose.
-c--------------------------------------------------------------------------
 
 10101 continue
       do f = yf1, yf2

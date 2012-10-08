@@ -56,9 +56,6 @@ void F77_NAME(pardo_loadb_get_my_batch, PARDO_LOADB_GET_MY_BATCH)
 void F77_NAME(send_master_barrier_msg, SEND_MASTER_BARRIER_MSG)();
 void F77_NAME(abort_job, ABORT_JOB)();
 f_int F77_NAME(get_pardo_master, GET_PARDO_MASTER)();
-void F77_NAME(snap_msg_counters, SNAP_MSG_COUNTERS)(f_int *nget,
-                           f_int *nput, f_int *nputinc, 
-                           f_int *npardomsg);
 
 /*global variables*/
 int bsize;
@@ -159,13 +156,13 @@ void F77_NAME(release_mutex_block, RELEASE_MUTEX_BLOCK) (f_int *iblk)
    csarray[blk] = 0;
 }
 
-int nreserved_tags = 36;
+int nreserved_tags = 34;
 static int taglist[] = {3456, 3457, 2000, 9990, 9991, 9992, 9993, 9994, 9995,
                         9996, 9997, 9998, 9999, 2237, 2238, 2239, 4444, 4445,
                         3336, 3337,
                         3338, 3335, 3341, 3342, 3346,
                         3347, 3348, 3349, 3350,
-                        4446, 4447, 4449, 4450, 4451, 9988, 9989};
+                        4446, 4447, 4449, 4450, 4451};
 int next_tag = 0;
 int tag_limit = 0;
 int tag_increment;
@@ -328,28 +325,6 @@ void ProcessPardoMsg(struct pardo_msginfo *info);
 
 int nactive;
 int nactive_pardo;
-
-void F77_NAME(snap_msg_counters, SNAP_MSG_COUNTERS)(f_int *nget,
-                      f_int *nput, f_int *nputinc, f_int *npardomsg)
-{
-   int get_count = 0;
-   int put_count = 0;
-   int putinc_count = 0;
-   int i;
-
-   for (i = 0; i < nactive; i++)
-   {
-      if (info[i].msgtype == msggett) get_count++;
-      if (info[i].msgtype == msgdata) putinc_count++;
-      if (info[i].msgtype == msg_copy_data) put_count++;
-   }
-   
-   *nget = get_count;
-   *nput = put_count;
-   *nputinc = putinc_count;
-
-   *npardomsg = nactive_pardo;
-}
 
 void init_thread_server()
 {

@@ -41,5 +41,8 @@ C  in the file COPYRIGHT.
 #else
       mpi_io_support = .true.
 #endif
+
+c     TURM MPIIO OFF 3/6/2012 VFL 
+      mpi_io_support = .false.
       return
       end

@@ -136,6 +136,8 @@ C
             WRITE(LUOUT,113)
 113         FORMAT(T3,'@CONVHESS: Write Cartesians FCMINT file')
             WRITE(50,'((3(E18.12,1X)))')((HC(I,J),J=1,NX),I=1,NX)
+c 3/04/2012 VFL            WRITE(*,*) "NX: ",NX
+c 3/04/2010 VFL            WRITE(*,'((3(E18.12,1X)))')((HC(I,J),J=1,NX),I=1,NX)
          ENDIF
           CLOSE(UNIT=50,STATUS='KEEP')
       ENDIF

@@ -12,8 +12,6 @@ c------------------------------------------------------------------------
        integer status_set_request_tag
        integer timer_data_request_tag
        integer timer_desc_request_tag
-       integer counter_data_request_tag
-       integer counter_desc_request_tag
        integer integral_worker_identity_tag
 
 
@@ -27,8 +25,6 @@ c------------------------------------------------------------------------
        parameter (worker_event_tag       = 9992)
        parameter (manager_event_tag      = 9991)
        parameter (timer_desc_request_tag = 9990)
-       parameter (counter_data_request_tag = 9989)
-       parameter (counter_desc_request_tag = 9988)
 
 c--------------------------------------------------------------------------
 c   Worker-targeted events.

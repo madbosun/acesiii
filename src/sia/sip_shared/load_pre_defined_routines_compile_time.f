@@ -45,7 +45,7 @@ C  in the file COPYRIGHT.
      *                       0)
       dummy = load_user_sub('list_to_blocks' // char(0),
      *                       0)
-c      dummy = load_user_sub('fmult' // char(0), 0)
+      dummy = load_user_sub('fmult' // char(0), 0)
       dummy = load_user_sub('der_int_setup' // char(0), 0)
       dummy = load_user_sub('compute_derivative_integrals'//char(0), 
      *                       0)
@@ -89,7 +89,19 @@ c      dummy = load_user_sub('fmult' // char(0), 0)
      *                       0)
       dummy = load_user_sub('read_grad'//char(0), 0)
       dummy = load_user_sub('udenominator'//char(0), 0)
-c      dummy = load_user_sub('set_index'//char(0), 0)
+      dummy = load_user_sub('set_index'//char(0), 0)
+      dummy = load_user_sub('remove_single'//char(0), 0)
+      dummy = load_user_sub('remove_double'//char(0), 0)
+      dummy = load_user_sub('remove_single_double'//char(0), 0)
+      dummy = load_user_sub('remove_ssss'//char(0), 0)
+      dummy = load_user_sub('remove_dddd'//char(0), 0)
+      dummy = load_user_sub('remove_xsxs'//char(0), 0)
+      dummy = load_user_sub('remove_xxss'//char(0), 0)
+      dummy = load_user_sub('remove_xdxs'//char(0), 0)
+      dummy = load_user_sub('remove_xsxd'//char(0), 0)
+      dummy = load_user_sub('remove_xxsd'//char(0), 0)
+      dummy = load_user_sub('remove_xdxd'//char(0), 0)
+      dummy = load_user_sub('remove_xxdd'//char(0), 0)
       dummy = load_user_sub('remove_xs'//char(0), 0)
       dummy = load_user_sub('remove_xd'//char(0), 0)
       dummy = load_user_sub('remove_ds'//char(0), 0)
@@ -100,9 +112,12 @@ c      dummy = load_user_sub('set_index'//char(0), 0)
       dummy = load_user_sub('remove_sd'//char(0), 0)
       dummy = load_user_sub('remove_sx'//char(0), 0)
       dummy = load_user_sub('remove_dx'//char(0), 0)
+      dummy = load_user_sub('copy_ab'//char(0), 0)
+      dummy = load_user_sub('copy_ba'//char(0), 0)
       dummy = load_user_sub('copy_ff'//char(0), 0)
+      dummy = load_user_sub('open_amp'//char(0), 0)
       dummy = load_user_sub('dump_amp'//char(0), 0)
-c      dummy = load_user_sub('comp_ovl3c'//char(0), 0)
+      dummy = load_user_sub('comp_ovl3c'//char(0), 0)
       dummy = load_user_sub('check_dconf'//char(0), 0)
       dummy = load_user_sub('dropmo_expand_basis'//char(0), 0)
       dummy = load_user_sub('square_root'//char(0), 0)
@@ -141,15 +156,21 @@ c      dummy = load_user_sub('comp_ovl3c'//char(0), 0)
       dummy = load_user_sub('place_one_dea_7'//char(0), 0) 
       dummy = load_user_sub('place_one_dea_8'//char(0), 0) 
       dummy = load_user_sub('eomroot_print'//char(0), 0) 
-c      dummy = load_user_sub('smooth'//char(0), 0)
-c      dummy = load_user_sub('smooth4'//char(0), 0)
+      dummy = load_user_sub('eomroot_print_new'//char(0), 0) 
+      dummy = load_user_sub('smooth'//char(0), 0)
+      dummy = load_user_sub('smooth4'//char(0), 0)
       dummy = load_user_sub('eig_nonsymm'//char(0), 0)
       dummy = load_user_sub('apply_den2'//char(0), 0)
       dummy = load_user_sub('apply_den4'//char(0), 0)
       dummy = load_user_sub('apply_den4_nodiag'//char(0), 0)
       dummy = load_user_sub('energy_tdenominator'//char(0), 0)
 
+      dummy = load_user_sub('compute_aaaa_batch'//char(0), 0)
+      dummy = load_user_sub('compute_aaab_batch'//char(0), 0)
       dummy = load_user_sub('compute_aabb_batch'//char(0), 0)
+      dummy = load_user_sub('compute_aabc_batch'//char(0), 0)
+      dummy = load_user_sub('compute_abab_batch'//char(0), 0)
+      dummy = load_user_sub('compute_abac_batch'//char(0), 0)
       dummy = load_user_sub('compute_abcd_batch'//char(0), 0)
       dummy = load_user_sub('compute_no4c_batch'//char(0), 0)
       dummy = load_user_sub('remove_atom_rud1'//char(0), 0)
@@ -178,20 +199,29 @@ C
 C
 C             ...Watson: XYZ moment integrals
 C
+      dummy = load_user_sub('return_ovl'//char(0), 0)
+      dummy = load_user_sub('return_derv_xyz'//char(0), 0)
+      dummy = load_user_sub('dipole_moment'//char(0), 0)
       dummy = load_user_sub('second_moment'//char(0), 0)
+      dummy = load_user_sub('energy_ty_denominator'//char(0), 0)
+      dummy = load_user_sub('reorder_energy'//char(0), 0)
+      dummy = load_user_sub('return_1st_mom'//char(0), 0)
+      dummy = load_user_sub('return_2nd_mom'//char(0), 0)
+
       dummy = load_user_sub('nuc_dipole_moment'//char(0), 0)
+      dummy = load_user_sub('nuc_dipole_derivative'//char(0), 0)
 
       dummy = load_user_sub('return_x'//char(0), 0)
       dummy = load_user_sub('return_y'//char(0), 0)
       dummy = load_user_sub('return_z'//char(0), 0)
 
-c      dummy = load_user_sub('return_xx'//char(0), 0)
-c      dummy = load_user_sub('return_yy'//char(0), 0)
-c      dummy = load_user_sub('return_zz'//char(0), 0)
-c
-c      dummy = load_user_sub('return_xy'//char(0), 0)
-c      dummy = load_user_sub('return_xz'//char(0), 0)
-c      dummy = load_user_sub('return_yz'//char(0), 0)
+      dummy = load_user_sub('return_xx'//char(0), 0)
+      dummy = load_user_sub('return_yy'//char(0), 0)
+      dummy = load_user_sub('return_zz'//char(0), 0)
+
+      dummy = load_user_sub('return_xy'//char(0), 0)
+      dummy = load_user_sub('return_xz'//char(0), 0)
+      dummy = load_user_sub('return_yz'//char(0), 0)
 
       dummy = load_user_sub('print_eom_dens_info'//char(0), 0)
 
@@ -221,17 +251,17 @@ c --------------------------------------------------------------------
       dummy = load_user_sub('form_iad'//char(0), 0)
       dummy = load_user_sub('form_ibd'//char(0), 0)
 
-c      dummy = load_user_sub('set_itol'//char(0), 0)
-c      dummy = load_user_sub('fassign'//char(0), 0)
+      dummy = load_user_sub('set_itol'//char(0), 0)
+      dummy = load_user_sub('fassign'//char(0), 0)
 c
 c --------------------------------------------------------------------
 c VFL Instructions needed to perform 'super' T calculations
 c --------------------------------------------------------------------
 c
-c      dummy = load_user_sub('set_t3blocks_a'//char(0), 0)
-c      dummy = load_user_sub('set_t3blocks_i'//char(0), 0)
-c      dummy = load_user_sub('compt3_a'//char(0), 0)
-c      dummy = load_user_sub('compt3_i'//char(0), 0)
+      dummy = load_user_sub('set_t3blocks_a'//char(0), 0)
+      dummy = load_user_sub('set_t3blocks_i'//char(0), 0)
+      dummy = load_user_sub('compt3_a'//char(0), 0)
+      dummy = load_user_sub('compt3_i'//char(0), 0)
       dummy = load_user_sub('prefetch_on'//char(0), 0)
       dummy = load_user_sub('prefetch_off'//char(0), 0)
 c
@@ -241,11 +271,18 @@ c --------------------------------------------------------------------
 c
       dummy = load_user_sub('scf_atom'//char(0), 0) 
 c
-      dummy = load_user_sub('return_1st_mom'//char(0), 0)
-      dummy = load_user_sub('return_2nd_mom'//char(0), 0)
-      dummy = load_user_sub('eomroot_print_new'//char(0), 0)
-      dummy = load_user_sub('energy_ty_denominator'//char(0), 0)
-      dummy = load_user_sub('reorder_energy'//char(0), 0)
-
+c -------------------------------------------------------------------- 
+c VFL Instruction needed for printing, FNO, ect.. updated FEB. 29 2012  
+c -------------------------------------------------------------------- 
+c
+      dummy = load_user_sub('print_rel_info'//char(0), 0)
+      dummy = load_user_sub('temp_x'//char(0), 0)
+      dummy = load_user_sub('corder'//char(0), 0)
+      dummy = load_user_sub('form_fno'//char(0), 0)
+      dummy = load_user_sub('form_fnob'//char(0), 0)
+      dummy = load_user_sub('maxamp_print'//char(0), 0)
+      dummy = load_user_sub('form_fock_rohf'//char(0), 0)
+c
+c
       return
       end

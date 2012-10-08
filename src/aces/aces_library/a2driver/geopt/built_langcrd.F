@@ -47,6 +47,9 @@ C
           Write(6, "(a)") "Entering the special linear angle block"
 #endif
 C
+      DISTBA = DIST(CARTCOORD(3*ICON1 - 2), CARTCOORD(3*ICON2 - 2))
+      DISTBC = DIST(CARTCOORD(3*ICON3 - 2), CARTCOORD(3*ICON2 - 2))
+ 
       CALL VEC(CARTCOORD(3*ICON2 - 2), CARTCOORD(3*ICON1 - 2), 
      &         VECBA, 1)
       CALL VEC(CARTCOORD(3*ICON2 - 2), CARTCOORD(3*ICON3 - 2), 
@@ -54,44 +57,10 @@ C
       CALL VEC(CARTCOORD(3*ICON1 - 2), CARTCOORD(3*ICON3 - 2), 
      &         VECAC, 1)     
 C
-      DISTBA = DSQRT(DABS(XDOT(3, VECBA, 1, VECBA, 1))) 
-      DISTBC = DSQRT(DABS(XDOT(3, VECBC, 1, VECBC, 1)))
-C
       CALL NORMAL(VECBA, 3)
       CALL NORMAL(VECBC, 3)
-      CALL CROSS(VECBC, VECBA, VECN2AC, 0)
-C
-      LEN_N2AC = DSQRT(DABS(XDOT(3, VECN2AC, 1, VECN2AC, 1)))
-      IF (LEN_N2AC .LE. 1.0D-8) THEN
-          VECN2AC(1) =  VECBC(2) - VECBC(3)
-          VECN2AC(2) = -VECBC(1) + VECBC(3)
-          VECN2AC(3) = -VECBC(1) - VECBC(2)
-       ENDIF
-C
-#ifdef _DEBUG_LVL0
-          Write(6, *)
-          Write(6, *) "The unit vectors"
-          Write(6, "(a, 3F10.4)") "VECN2AC", (VECN2AC(I), I=1,3)
-#endif
-C
-      LEN_N2AC = DSQRT(DABS(XDOT(3, VECN2AC, 1, VECN2AC, 1)))
-      IF (LEN_N2AC .LE. 1.0D-8) THEN
-          VECN2AC(1) =  VECBC(2) - VECBC(3)
-          VECN2AC(2) = -VECBC(1) - VECBC(3)
-          VECN2AC(3) =  VECBC(1) + VECBC(2)
-      ENDIF
-C
-#ifdef _DEBUG_LVL0
-          Write(6, *)
-          Write(6, *) "The unit vectors"
-          Write(6, "(a, 3F10.4)") "VECN2AC", (VECN2AC(I), I=1,3)
-#endif
-C
+      CALL CROSS(VECBA, VECBC, VECN2AC, 0)
       CALL NORMAL(VECN2AC, 3)
-      CALL CROSS(VECBC, VECN2AC, VECW, 1)
-      DO IVEC = 1, 3
-         VECN2AC(IVEC) = VECW(IVEC)
-      ENDDO 
 
 #ifdef _DEBUG_LVL0
           Write(6, *)
@@ -99,8 +68,9 @@ C
           Write(6, "(a, 3F10.4)") "VECN2AC", (VECN2AC(I), I=1,3)
 #endif
 C
-      CALL CROSS(VECBC, VECN2AC, VECBN2A, 1)
-      CALL CROSS(VECN2AC, VECBA, VECBN2B, 1)
+      CALL CROSS(VECBC, VECN2AC, VECW, 1)
+      CALL CROSS(VECBC, VECW, VECBN2A, 1)
+      CALL CROSS(VECW, VECBA, VECBN2B, 1)
 C
 #ifdef _DEBUG_LVL0
           Write(6, *)
@@ -111,18 +81,20 @@ C
 #endif
 C
       DO IXYZ = 1, 3
-         BMATRX(IANGS, (3*ICON1 - 3) + IXYZ) =
-     &                                 VECBN2A(IXYZ)/DISTBC
          BMATRX(IANGS, (3*ICON3 - 3) + IXYZ) =
+     &                                 VECBN2A(IXYZ)/DISTBC
+         BMATRX(IANGS, (3*ICON2 - 3) + IXYZ) =
      &                               - VECBN2A(IXYZ)/DISTBC
      &                               - VECBN2B(IXYZ)/DISTBA
-          BMATRX(IANGS, (3*ICON2 - 3) + IXYZ) =
+         BMATRX(IANGS, (3*ICON1 - 3) + IXYZ) =
      &                                 VECBN2B(IXYZ)/DISTBA
       ENDDO
 C
 C Assign the perpendicular bond angle
 C
-      ANGL = ZERO
+
+      DINVPI = (ATAN(DFLOAT(1))*DFLOAT(4))/180.0D0
+      ANGL = 180.0D0*DINVPI
 
 #ifdef _USE_OLD
       IAXIX = 0

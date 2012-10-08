@@ -78,6 +78,7 @@ c---------------------------------------------------------------------------
       double precision alpha_pack(max_dim_coeff), 
      *                 pcoeff_pack(max_dim_coeff)
       integer*8 arg64(25)
+      integer n_max 
 
       common /Imax_com/sz_max(max_shells,max_shells), delta 
       double precision sz_max, delta
@@ -88,6 +89,8 @@ c---------------------------------------------------------------------------
 
       save me,alpha_pack, pcoeff_pack, ccbeg_pack, ccend_pack,
      *     ccbeg_pack64, ccend_pack64
+
+      open(66,file='summary.out') 
 
 c     call mpi_comm_rank(mpi_comm_world, me, ierr)
 
@@ -148,12 +151,14 @@ c-----------------------------------------------------------------------
                      n_basis = n_basis + 1 
                      map(n_basis) = n 
                      umap(n) = n_basis  
+                     if (n .gt. n_max) n_max = n 
                   enddo 
                else 
                   DO n = end_nfps(m-1) + 1, end_nfps(m) 
                      n_basis = n_basis + 1 
                      map(n_basis) = n 
                      umap(n) = n_basis  
+                     if (n .gt. n_max) n_max = n 
                   enddo 
                endif 
 
@@ -163,8 +168,21 @@ c-----------------------------------------------------------------------
 
          enddo 
 
+         if ((n_max .lt. nc1) .or. (n_max .gt. nc2)) then 
+           write(66,*) ' UMapping of atom dens wrong:' 
+           write(66,*) ' Correct range :', nc1, nc2, 'Computed range:', 
+     *                 '1', n_max  
+         endif 
+
+         if ((n_basis .lt. nc1) .or. (n_basis .gt. nc2)) then 
+           write(66,*) ' Mapping of atom dens wrong:' 
+           write(66,*) ' Correct range :', nc1, nc2, 'Computed range:', 
+     *                 '1', nbasis   
+         endif 
+
+c        write(66,*) ' Mapping' 
 c        do n = nc1, nc2 
-c           write(6,*) 'n umap(n)', n, umap(n)  
+c           write(66,*) 'n umap(n)', n, umap(n)  
 c        enddo 
 c        do m = m1, m2 
 c           write(6,*) ' Mth shell:', m, end_anfps(m) 
@@ -202,7 +220,7 @@ c---------------------------------------------------------------------------
       integer m1, m2, n1, n2, r1, r2, s1, s2
       integer i, j, n, m, r, s, l, mn, rs  
       integer a,b,c,d
-      integer iatom, n_basis  
+      integer iatom, n_basis, n_basis_org   
       double precision watom 
 
       integer num_to_do, nsend
@@ -257,6 +275,7 @@ c---------------------------------------------------------------------------
       integer doit, itemp, p, p1  
 
       integer nocc_a, nocc_b 
+      integer nocc_a_org, nocc_b_org 
       integer iter, max_iter 
 
       integer map(nc1:nc2) 
@@ -337,7 +356,8 @@ c           h0(umap(m),umap(n))   = nai(m,n) + kin(m,n)
       enddo  
       
       if (itemp .ne. n_basis**2) then 
-         write(6,*) ' Something wrong with umap ', itemp, n_basis 
+         write(6,*) ' Something possibly wrong with umap ', 
+     *                itemp, n_basis 
          call abort_job()
       endif 
 
@@ -403,6 +423,8 @@ c Copy the HF Density into the old Density.
 c-----------------------------------------------------------------------
 
       call hfdensity_copy(HFD_A,HFD_B,HFDOLD_A,HFDOLD_B,n_basis)  
+
+c     go to 100 
 
 c-----------------------------------------------------------------------
 c Start the SCF iterations  
@@ -603,7 +625,7 @@ c-----------------------------------------------------------------------
 c       Transpose the new Fock Matrix   
 c-----------------------------------------------------------------------
 
-        call fock_transpose(Fa,FB,Qxx,FTa,FTb,n_basis) 
+        call fock_transpose(FA,FB,Qxx,FTa,FTb,n_basis) 
 
 c-----------------------------------------------------------------------
 c       Diagonalize the new Transposed Fock Matrix   
@@ -677,7 +699,7 @@ c-----------------------------------------------------------------------
 
       do n = 1, nbasis
       do m = 1, nbasis
-         if ((map(m) .ne. 0) .and. (map(n) .ne. 0)) then 
+         if ((map(m) .ne. 0) .and. (map(n) .ne. 0)) then  
          Fina(map(m),map(n)) = HFD_a(m,n)  
          Finb(map(m),map(n)) = HFD_b(m,n)   
          endif 
@@ -921,7 +943,7 @@ c-----------------------------------------------------------------------
       enddo  
 
       etotal = 0.5d0*(ea + eb) 
-c      write(6,*) ' Total SCF energy(-NN) = ', etotal 
+c     write(6,*) ' Total SCF energy(-NN) = ', etotal 
 
       return 
       end 

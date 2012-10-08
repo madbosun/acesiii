@@ -77,6 +77,34 @@ c--------------------------------------------------------------------------
          enddo ! i
          enddo ! j
       endif
+
+9     FORMAT(5x,'Final Hessian data: Also found in the FCMINT file') 
+      if (write_hess) then
+         write(66,*) ' '
+         write(66,9) 
+
+         do i = 1, Ncenters
+         do j = 1, Ncenters
+
+            write(66,*) ' ATOM A', i, ' ATOM B', j
+            write(66,*) ' '
+
+            write(66,33) hess((j-1)*3+1,(i-1)*3+1),
+     *                   hess((j-1)*3+2,(i-1)*3+1),
+     *                   hess((j-1)*3+3,(i-1)*3+1)
+
+            write(66,33) hess((j-1)*3+1,(i-1)*3+2),
+     *                   hess((j-1)*3+2,(i-1)*3+2),
+     *                   hess((j-1)*3+3,(i-1)*3+2)
+
+            write(66,33) hess((j-1)*3+1,(i-1)*3+3),
+     *                   hess((j-1)*3+2,(i-1)*3+3),
+     *                   hess((j-1)*3+3,(i-1)*3+3)
+
+         enddo ! i
+         enddo ! j
+      endif
+
 33    format(3F16.8)
 
 c--------------------------------------------------------------------------

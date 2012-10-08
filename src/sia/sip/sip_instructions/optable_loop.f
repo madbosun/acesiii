@@ -63,7 +63,6 @@ C  in the file COPYRIGHT.
       integer icount, timer_count 
 
       integer iseg, jseg
-      integer nput, nget, nputinc, npardomsg
 
       double precision blk_send_time
       double precision timeslice, t1, t2
@@ -274,20 +273,8 @@ c                  call c_flush_stdout()
      *                flopcount, comm, comm_timer, 
      *                instruction_timer)
              if (do_timer) then
-                if (optable(c_opcode,iop) .ne. pardo_op) then
-                   call update_timer(instruction_timer)
-                   call snap_msg_counters(nget, nput, nputinc,
-     *                                    npardomsg)
-                   call increment_counter(optable(c_get_counter,iop),
-     *                                    nget) 
-                   call increment_counter(optable(c_put_counter,iop),
-     *                                    nput) 
-                   call increment_counter(optable(c_putinc_counter,iop),
-     *                                    nputinc) 
-                   call increment_counter(optable(c_pardomsg_counter,
-     *                                    iop),
-     *                                    npardomsg) 
-                endif
+                if (optable(c_opcode,iop) .ne. pardo_op)
+     *             call update_timer(instruction_timer)
              endif 
   900    continue
          iop = iop + 1 

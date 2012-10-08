@@ -132,13 +132,14 @@ c   o detect dangerous point groups and avoid them like hell
          E = 0.d0
       END IF
 
-      FIRST_PASS = ( (PASS1.EQ.0) .OR. (GRAD_EXIST.AND.GMTRYOPT) )
-#ifdef _DEBUG_LVL0
+CSSS      FIRST_PASS = ( (PASS1.EQ.0) .OR. (GRAD_EXIST.AND.GMTRYOPT) )
+      FIRST_PASS = (PASS1.EQ.0)
+C#ifdef _DEBUG_LVL0
       Print*, "Geo opt flag set?, vlaue of pass1, gradient exist",
      &        "geometry optimization?, energy only?:"
       Print*, IFLAGS2(h_IFLAGS2_geom_opt), PASS1, GRAD_EXIST, GMTRYOPT, 
      &        ENERONLY
-#endif 
+C#endif 
       IF (FIRST_PASS) THEN
 
 c      o zero icore so we can use it to initialize some records

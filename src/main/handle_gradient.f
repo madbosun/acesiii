@@ -21,7 +21,9 @@ C  in the file COPYRIGHT.
       integer ns
       integer iatom, jatom, jcomp, icomp
       integer i, j, xx, yy, zz
+      integer igrad1, igrad2, igrad3 
       double precision diff, avg, z
+      logical do_summary_print 
 
         do i = 1, 3*Ncenters 
            unique(i) = 0 
@@ -103,6 +105,7 @@ c--------------------------------------------------------------------------
 c   Write out symmetrized gradient data 
 c--------------------------------------------------------------------------
 
+        do_summary_print = .false. 
         write(6,*) ' ' 
         write(6,*) ' Symmetrized gradient information ' 
         do i = 1, Ncenters 
@@ -112,7 +115,42 @@ c--------------------------------------------------------------------------
            write(6,*) i, gradient_data(xx),  
      &                   gradient_data(yy),  
      &                   gradient_data(zz)  
+           if ((dabs(gradient_data(xx)) .gt. 0.0) .or.  
+     *         (dabs(gradient_data(yy)) .gt. 0.0) .or.  
+     *         (dabs(gradient_data(zz)) .gt. 0.0)) 
+     *         do_summary_print = .true.    
         enddo ! i 
+
+
+      if (do_summary_print) then ! .eq. .true.) then 
+      write(66,*) ' '
+      write(66,10)
+      write(66,11)
+      write(66,10)
+      write(66,12)
+      write(66,10)
+      do iatom = 1, ncenters
+
+c-----------------------------------------------------------------------------
+c   Print the gradient component  
+c-----------------------------------------------------------------------------
+
+            igrad1 = (iatom-1)*3 + 1
+            igrad2 = (iatom-1)*3 + 2
+            igrad3 = (iatom-1)*3 + 3
+            write(66,100) iatom, gradient_data(igrad1),
+     *                   gradient_data(igrad2), gradient_data(igrad3)
+
+      enddo
+      write(66,10)
+      write(66,*) ' '
+      endif 
+
+10    format(2x,60('-'))
+11    format(5x,"FINAL GRADIENT INFORMATION IN CARTESIAN COORDINATES")
+12    format(10x,"Center",10x,"X",12x,"Y",14x,"Z")
+100   Format(3x,I10,5x,3F14.8)
+
 
       return
       end

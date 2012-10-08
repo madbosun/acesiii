@@ -34,7 +34,7 @@ C
       PARAMETER(THRESHOLD = 5.0D00, EPSILON = 1.0D-10)
 C
       INTEGER TOTREDNCO, TOTNOFBND, TOTNOFANG, TOTNOFDIH,
-     &        CONNECTED_ATOMS
+     &        FRAGSCR
       CHARACTER*4 INTLABEL(MAXREDUNCO)
 C
 C The following arrays need to be managed dynamically:
@@ -53,9 +53,9 @@ C             used, but needs in the future).
      &          IATOMICNMBER(MXATMS), SMOFCOVRADI(NRATMS, NRATMS),
      &          IBNDTO(MXATMS*MXATMS), NCONPRCNTR(MXATMS),
      &          IREDUNCO(4, MAXREDUNCO), BMATRX(9*MXATMS*MXATMS),
-     &          GMATRX(9*MXATMS*MXATMS), REDUNCO(3*MXATMS),
+     &          GMATRX(9*MXATMS*MXATMS), REDUNCO(MAXREDUNCO),
      &          MARK_FRAGMENTS(NRATMS, NRATMS),
-     &          LENGTH_FRAGMENTS(MXATMS),CONNECTED_ATOMS(MXATMS)
+     &          LENGTH_FRAGMENTS(MXATMS),FRAGSCR(MXATMS*MXATMS)
       DIMENSION EIGVECTORS(MAXREDUNCO, MAXREDUNCO),
      &          BTGMIN(3*NRATMS,*),BLNGT_IJFRGS(MXATMS)
 #include "ric_heap.com"
@@ -75,7 +75,7 @@ C
       CALL ASIGN_CNTVTES(CARTCOORD, BNDLENTHS, IATOMICNMBER, 
      &                   SMOFCOVRADI, NCONPRCNTR, IBNDTO, MAXCNTVS,
      &                   NRATMS, MARK_FRAGMENTS, LENGTH_FRAGMENTS,
-     &                   CONNECTED_ATOMS, BLNGT_IJFRGS)
+     &                   FRAGSCR, BLNGT_IJFRGS)
 C 
 C Assign bond length Coordinates.
 C

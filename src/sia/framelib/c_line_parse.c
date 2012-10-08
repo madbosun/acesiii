@@ -42,7 +42,7 @@ void F77_NAME(c_line_parse, C_LINE_PARSE)
           {
              case 1:   sscanf(&line[i], "%d", &ival);  *f_ival = ival; /* integer */
              case 2:   sscanf(&line[i], "%lf", rval);  /* double */
-             case 3:   strcpy(cval, &line[i]);         /* character */
+             case 3:   strcpy(cval, &line[i]); cval[strlen(cval)]=''; /* character */
           } 
        } 
 }

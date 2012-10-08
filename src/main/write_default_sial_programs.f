@@ -14,7 +14,7 @@ C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
       subroutine write_default_sial_programs(calc,dropmo,ref,geom_opt,
      *                                       vib, excite, instab, props,
-     *                                       grad_calc)
+     *                                       grad_calc, jobflow)
 c-------------------------------------------------------------------------
 c   Writes the SIAL_PROGRAM parameters for a default set of SIAL programs
 c   determined by the parameters calc, dropmo, ref, geom_opt, and vib.

@@ -81,8 +81,9 @@ c   o fill out length and offset vectors for image()
          I = I+3
       END DO
 
-c   o loop over irreps
-      IPOSABS=1
+c   o loop over irreps (setting IUSE=0 is important, 05/2012, Ajith Perera)
+      IPOSABS=1 
+      IUSE   =0
       DO 10 IRREP=1,NIRREP
          NVIBTOT=NVIBSYM(IRREP)
 

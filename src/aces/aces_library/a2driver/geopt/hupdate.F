@@ -80,8 +80,11 @@ C
 #ifdef _DEBUG_LVLM1
          Print*, "The BFGS update check"
          Write(6,*) (V(I), I =1, NXM6)
+         Write(6,*)
          Write(6,*) (SCRATCH(I), I = 1, NXM6)
+         Write(6,*)
          Write(6,*) (STEP(I), I= 1, NXM6)
+         Write(6,*)
          CALL OUTPUT(H, 1, NXM6, 1, NXM6, NXM6,NXM6, 1 )
          Write(6,*)
 #endif

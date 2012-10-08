@@ -26,9 +26,6 @@ C     short.  Puts '*' in last position of ITOA to indicate overlow.
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
 C $Log: itoa.f,v $
-C Revision 1.4.14.1  2011/10/10 04:00:28  bhoj
-C *** empty log message ***
-C
 C Revision 1.4  2010/10/07 14:33:58  ponton
 C Add symcor changes, fix bugs in optimization code, change numerical lib calls to use proper routines
 C

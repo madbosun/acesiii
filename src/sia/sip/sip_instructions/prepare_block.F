@@ -29,7 +29,6 @@ c---------------------------------------------------------------------------
       include 'parallel_info.h'
       include 'server_barrier_data.h'
       include 'server_monitor.h'
-      include 'timerz.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -212,13 +211,6 @@ c----------------------------------------------------------------------------
       call mpi_isend(x(indblk), blocksize, mpi_double_precision,
      *                 mgr, tag,
      *                 mpi_comm_world, request, ierr) 
-      if (do_timer) then
-         if (op(c_opcode) .eq. prepare_op) then
-            call increment_counter(op(c_prepare_counter), 1) 
-         else 
-            call increment_counter(op(c_preparesum_counter), 1) 
-         endif
-      endif
 
       call set_block_request(op1, blk, blkndx, request)
       if (request .ne. MPI_REQUEST_NULL) 

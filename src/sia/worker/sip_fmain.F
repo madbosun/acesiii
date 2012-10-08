@@ -345,8 +345,11 @@ c--------------------------------------------------------------------------
       if (ierr .ne. 0) then
          print *,'Task ',me,' mem_alloc error in sip_fmain_init ',
      *        nblkmgr
+         write(6,11) nblkmgr  
          call abort_job()
       endif
+11    FORMAT('Task ',I4,' mem_alloc error in sip_fmain_init ',
+     *        I8) 
 
       i8size = nblkmgr
       i8size = i8size * bytes_per_double
@@ -423,11 +426,19 @@ c--------------------------------------------------------------------------
       ierr_return = ierr
 
       if (my_company_rank .eq. 0 .and. ierr .ne. 0) then
+
          print *,'DRYRUN ERROR: Step will abort, ',
      *       'cannot fit in memory'
          print *,'This step requires a minimum of ',
      *      ncompany_workers_min,
      *      ' workers along with ',niocompany,' servers to run.'
+
+         write(66,*) 'DRYRUN ERROR: Step will abort, ',
+     *       'cannot fit in memory'
+         write(66,*) 'This step requires a minimum of ',
+     *      ncompany_workers_min,
+     *      ' workers along with ',niocompany,' servers to run.'
+
          return
       endif
 

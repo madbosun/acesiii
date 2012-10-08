@@ -57,20 +57,7 @@ C
       CALL DSCAL(3, -1.0D0, VECCD, 1)
       CALL CROSS(VECBC, VECCD, VECBCD, 1)
       DANG   = (ANGLE(VECABC, VECBCD, 3))*DINVPI
-#ifdef _DEBUG_LVLM1
-      Print*, "The vectors making the dihedral angle"
-      Print*,  (CARTCOORD(3*ICON1 - 2 + I), I=0, 2)
-      Print*,  (CARTCOORD(3*ICON2 - 2 + I), I=0, 2)
-      Print*,  (CARTCOORD(3*ICON3 - 2 + I), I=0, 2)
-      Print*,  (CARTCOORD(3*ICON4 - 2 + I), I=0, 2)
-      Print*, "The vec. BC: ", (VECBC(I), I=1, 3)
-      Print*, "The vec. AB: ", (VECAB(I), I=1, 3)
-      Print*, "The vec. CB: ", (VECCB(I), I=1, 3)
-      Print*, "The vec. CD: ", (VECCD(I), I=1, 3)
-      Print*, "The angle:", DANG/DINVPI
-#endif
       
-cSSS      WRITE(6,*) DANG/DINVPI
 C
 C Retain the vector DC for continuation. 
 C
@@ -92,6 +79,27 @@ C
 C
       DABC = DDOT(3, VECABC, 1, VECABC, 1)
       DBCD = DDOT(3, VECBCD, 1, VECBCD, 1)
+C
+C--- Obtainig the sign of the dihedral angle:
+C
+      SENSE = DDOT(3, VECAB, 1, VECBCD, 1)
+
+      IF (SENSE .GT. 0.0D0) DANG = -DANG
+C
+#ifdef _DEBUG_LVLM2
+      Print*, "The vectors making the dihedral angle"
+      Print*,  (CARTCOORD(3*ICON1 - 2 + I), I=0, 2)
+      Print*,  (CARTCOORD(3*ICON2 - 2 + I), I=0, 2)
+      Print*,  (CARTCOORD(3*ICON3 - 2 + I), I=0, 2)
+      Print*,  (CARTCOORD(3*ICON4 - 2 + I), I=0, 2)
+      Print*, "The vec. BC: ", (VECBC(I), I=1, 3)
+      Print*, "The vec. AB: ", (VECAB(I), I=1, 3)
+      Print*, "The vec. CB: ", (VECCB(I), I=1, 3)
+      Print*, "The vec. CD: ", (-VECCD(I), I=1, 3)
+      Print*, "The vec. ABC:", (VECABC(I), I=1,3)
+      Print*, "The vec. BCD:", (VECBCD(I), I=1,3)
+      Write(6,"(a,F10.5)") "The dihedral angle", DANG/DINVPI
+#endif
 
       IF (DABC .GT. 1.0D-16 .AND. DBCD .GT. 1.0D-16) THEN
 
