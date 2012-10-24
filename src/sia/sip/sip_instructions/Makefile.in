@@ -1,13 +1,12 @@
 include ../../../../GNUmakefile.chssi
 
-CUDAPATH = @CUDAPATH@
 .SUFFIXES: .cu
 
 #Compilers
 FC=@FC@
 CC=@CC@
 CPP=@CXX@
-NVCC=$(CUDAPATH)/bin/nvcc
+NVCC=@NVCC@
 SERIAL_CPP=@SERIAL_CPP@
 
 #Compiler flags
@@ -24,7 +23,7 @@ LIB_DIRS= @ACESFLAGS@
 
 SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
 
-INCLUDE_DIRS := -I$(CUDAPATH)/include -I../../include -I../include -I../../../aces/aces_library/a2driver/aces2/include $(INCLUDE_DIRS)
+INCLUDE_DIRS := -I../../include -I../include -I../../../aces/aces_library/a2driver/aces2/include $(INCLUDE_DIRS)
 LIB_DIRS:= -L../../../../lib $(LIB_DIRS)
 
 SIP_LIB=../../../../lib/libsip2.a

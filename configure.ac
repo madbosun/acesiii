@@ -24,15 +24,13 @@ AC_SUBST(ACESFLAGS)
 AC_SUBST(MKLLIBS)
 AC_SUBST(MKLFLAGS)
 AC_SUBST(SERIAL_CPP)
-AC_SUBST(CUDAPATH)
+AC_SUBST(NVCC)
 
 #This specifies the default C++ compiler in case no other compiler is found
 SERIAL_CPP="g++"
 
-#Settings for NVIDIA CUDA compiler and libraries
-if test x$CUDAPATH = x; then
-   AC_MSG_ERROR([Please specify the CUDA install path in variable CUDAPATH])
-fi
+#This specifies the NVIDIA Cuda compiler
+NVCC="nvcc"
 
 #Settings for Intel MKL libraries on linux machine
 AC_ARG_ENABLE([mkl],

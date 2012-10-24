@@ -34,8 +34,10 @@ the configure script.
      :- with Intel MKL installed:
 
 ./configure --enable-mkl \
-   MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lmkl_sequential -lmkl_core  -lmkl_def -lmkl_p4n -lmkl_mc" \
-   MKLFLAGS="-L/opt/intel/mkl/11.1.064/lib/em64t/ -L/opt/intel/fce/10.1.015/lib" \
+   MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack \
+            -lmkl_def -lmkl_p4n -lmkl_mc" \
+   MKLFLAGS="-L/opt/intel/mkl/11.1.064/lib/em64t/ \
+             -L/opt/intel/fce/11.1.064/lib/intel64/" \
    FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2" \
    CFLAGS="-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX" \
    CXXFLAGS="-DMPIF2C -DC_SUFFIX -DCB_SUFFIX"

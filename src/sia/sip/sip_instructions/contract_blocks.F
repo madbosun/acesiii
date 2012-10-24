@@ -50,7 +50,7 @@ c--------------------------------------------------------------------------
 
       integer n1, n2, ny
       integer nw, iseg, range1, range2
-      integer*8 iy, ix1, ix2, daddr
+      integer*8 iy, ix1, ix2, daddr, ii 
       integer*8 get_block_index, get_index_from_base
       integer ystack, x1stack, x2stack
       integer i, j, k
@@ -77,7 +77,9 @@ c--------------------------------------------------------------------------
      *        x2a(mx_array_index), x2b(mx_array_index)
       integer nya(mx_array_index), nyb(mx_array_index), 
      *        nx1a(mx_array_index), nx1b(mx_array_index), 
-     *        nx2a(mx_array_index), nx2b(mx_array_index)
+     *        nx2a(mx_array_index), nx2b(mx_array_index),
+     *        nyg(mx_array_index), nx1g(mx_array_index),
+     *        nx2g(mx_array_index)
 
       integer handle1, handle2, handle3, istat
       integer allocate_scratch_block
@@ -102,7 +104,7 @@ c   Allocate 3 scratch blocks for the 2-index contraction routines.
 c------------------------------------------------------------------------
          if(gpu_enabled) then
            call cwork_gpu_alloc()
-         else 
+         endif
            istat = allocate_scratch_block(scr, iscr1, handle1,
      *                             array_table, narray_table,
      *                             index_table, nindex_table, 
@@ -130,7 +132,6 @@ c------------------------------------------------------------------------
               call abort_job()
            endif
          endif
-      endif
 
 c      print *,'CONTRACT_BLOCKS: x1 = ',x1handle,' x1_block = ',x1_block,
 c     *        ' x2 = ',x2handle,' x2_block = ',x2_block,' y = ',yhandle,
@@ -316,16 +317,17 @@ c      print *,'indx1: ',(indx1(j),j=1,n1)
 c      print *,'indx2: ',(indx2(j),j=1,n2)
 c      print *,'cind: ',(cind(j),j=1,ncind)
 
-      if(gpu_enabled) then
-        do i = 1, mx_array_index
-           nya(i) = nyb(i) - nya(i)
-           nx1a(i) = nx1b(i) - nx1a(i)
-           nx2a(i) = nx2b(i) - nx2a(i)
-        enddo
 
-        call cwork_gpu( y(iy), ny,  nya, indy,
-     *               x1(ix1), n1, nx1a, indx1,
-     *               x2(ix2), n2, nx2a, indx2)
+      if((gpu_enabled) .and. (ytype .ne. scalar_value) .and.
+     *    (ytype .ne. static_array) .and.
+     *    (x1_type .ne. static_array) .and.
+     *    (x2_type .ne. static_array)) then
+              
+ 
+        call cwork_gpu(y(iy), ny, nya(1), nyb(1), indy(1),
+     *            x1(ix1), n1, nx1a(1), nx1b(1), indx1(1),
+     *            x2(ix2), n2, nx2a(1), nx2b(1), indx2(1))
+      
       else
 
 c----------------------------------------------------------------------------
@@ -345,6 +347,7 @@ c----------------------------------------------------------------------------
      *          and(tracelevel,contraction_trace) .ne. 0) 
      *          print *,'cwork2422 at instruction ',current_line
 
+c            print *,'cwork2422'
             call cwork2422(y(iy), nya(1), nyb(1), nya(2), nyb(2),
      *                     ya(1), yb(1), ya(2), yb(2),
      *                     indy(1), indy(2), x1(ix1), 
@@ -375,11 +378,13 @@ c---------------------------------------------------------------------------
      *                     x1a(1), x1b(1), x1a(2), x1b(2),
      *                     indx1(1), indx1(2),
      *                     scr(iscr1), scr(iscr2), flopcount)
+c            print *,'cwork2422'
          else if (n1 .eq. 2 .and. n2 .eq. 2 .and. ncind .eq. 1) then
             if (trace .and.
      *          and(tracelevel, contraction_trace) .ne. 0) 
      *          print *,'cwork2221 at instruction ',current_line,
      *          ' iseq ',iseq
+c            print *,'cwork2221'
             if (iseq .eq. 1) then
                call cwork2221(y(iy), nya(1),nyb(1), nya(2),nyb(2),
      *              ya(1),yb(1), ya(2),yb(2),
@@ -406,6 +411,7 @@ c---------------------------------------------------------------------------
             if (trace .and.
      *          and(tracelevel, contraction_trace) .ne. 0)
      *          print *,'cwork2443 at instruction ',current_line
+c            print *,'cwork2443'
             call cwork2443(y(iy),nya(1),nyb(1),nya(2),nyb(2),
      *                     ya(1),yb(1),ya(2),yb(2),indy(1), indy(2),
      *                     x1(ix1),nx1a(1),nx1b(1),nx1a(2),nx1b(2),
@@ -420,6 +426,7 @@ c---------------------------------------------------------------------------
 
          else if (n1 .eq. 6 .and. n2 .eq. 4 .and. ncind .eq. 4) then
 c           return 
+c            print *,'cwork2644'
             call cwork2644(y(iy),nya(1),nyb(1),nya(2),nyb(2),
      *                     ya(1),yb(1),ya(2),yb(2),indy(1), indy(2),
 
@@ -445,7 +452,7 @@ c           return
          endif
       else if (ny .eq. 1) then
          if ((n1 .eq. 3) .and. (n2 .eq. 2)) then
-
+c            print *,'cwork1322'
             call cwork1322(y(iy), nya(1), nyb(1), ya(1), yb(1),
      *                     indy(1), x1(ix1),
      *                     nx1a(1),nx1b(1),nx1a(2),nx1b(2),
@@ -460,6 +467,7 @@ c           return
          endif
       else if (ny .eq. 3) then
          if ((n1 .eq. 3) .and. (n2 .eq. 2) .and. (ncind .eq. 1)) then
+c            print *,'cwork3321'
             call cwork3321(y(iy),nya(1),nyb(1), nya(2),nyb(2),
      *              nya(3),nyb(3),  
      *              ya(1),yb(1),ya(2),yb(2),ya(3),yb(3),
@@ -476,6 +484,7 @@ c           return
       else if (ny .eq. 4) then
 
          if ((n1 .eq. 3) .and. (n2 .eq. 3) .and. (ncind .eq. 1)) then
+c           print *,'cwork4331'
             call cwork4331(y(iy),nya(1),nyb(1), nya(2),nyb(2),
      *              nya(3),nyb(3),nya(4),nyb(4),  
      *              ya(1),yb(1),ya(2),yb(2),ya(3),yb(3),ya(4),yb(4),
@@ -491,6 +500,7 @@ c           return
 
          elseif (n1 .eq. 6 .and. n2 .eq. 4 .and. ncind .eq. 3) then
 c           return 
+c           print *,'cwork4643'
             call cwork4643(y(iy),nya(1),nyb(1), nya(2),nyb(2),
      *              nya(3),nyb(3),nya(4),nyb(4), 
      *              ya(1),yb(1), ya(2),yb(2),ya(3),yb(3),
@@ -515,6 +525,7 @@ c           return
 
          elseif (n1 .eq. 6 .and. n2 .eq. 2 .and. ncind .eq. 2) then
 c           return 
+c            print *,'cwork4622'
             call cwork4622(y(iy),nya(1),nyb(1), nya(2),nyb(2),
      *              nya(3),nyb(3),nya(4),nyb(4), 
      *              ya(1),yb(1), ya(2),yb(2),ya(3),yb(3),
@@ -547,7 +558,7 @@ c-------------------------------------------------------------------------
 c VFL 
 c Make sure that the first index of  x2 is contracted.  
 
-
+c             print *,'cwork4421'
             call cwork4421(y(iy),nya(1),nyb(1), nya(2),nyb(2),
      *              nya(3),nyb(3),nya(4),nyb(4), 
      *              ya(1),yb(1), ya(2),yb(2),ya(3),yb(3),
@@ -566,7 +577,7 @@ c VFL
             if (trace .and. 
      *          and(tracelevel, contraction_trace) .ne. 0) 
      *         print *,'cwork4421 at instruction ',current_line
-
+c            print *,'cwork4421'
             call cwork4421(y(iy),nya(1),nyb(1), nya(2),nyb(2),
      *              nya(3),nyb(3),nya(4),nyb(4), 
      *              ya(1),yb(1), ya(2),yb(2),ya(3),yb(3),
@@ -590,6 +601,7 @@ c   The new cwork4442 always assumes the 1st index of "y" shows up in the
 c   first operand array.  Therefore we must call it with the proper 
 c   sequence of operands.
 c--------------------------------------------------------------------------
+c            print *,'cwork4442'
 
             if (iseq .eq. 1) then
                call cwork4442(y(iy),nya(1),nyb(1), nya(2),nyb(2),
@@ -839,6 +851,7 @@ c--------------------------------------------------------------------------
      *           'indices, or be a scalar.'
          call abort_job()
       endif
+
       endif
 
       return

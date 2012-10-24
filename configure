@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS FC FCFLAGS LDFLAGS ac_ct_FC EXEEXT OBJEXT CC CFLAGS CPPFLAGS ac_ct_CC CXX CXXFLAGS ac_ct_CXX SIAL_COMPILER_LIBS ACESLIBS ACESFLAGS MKLLIBS MKLFLAGS SERIAL_CPP CUDAPATH CPP EGREP LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS FC FCFLAGS LDFLAGS ac_ct_FC EXEEXT OBJEXT CC CFLAGS CPPFLAGS ac_ct_CC CXX CXXFLAGS ac_ct_CXX SIAL_COMPILER_LIBS ACESLIBS ACESFLAGS MKLLIBS MKLFLAGS SERIAL_CPP NVCC CPP EGREP LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -2633,12 +2633,8 @@ fi
 #This specifies the default C++ compiler in case no other compiler is found
 SERIAL_CPP="g++"
 
-#Settings for NVIDIA CUDA compiler and libraries
-if test x$CUDAPATH = x; then
-   { { echo "$as_me:$LINENO: error: Please specify the CUDA install path in variable CUDAPATH" >&5
-echo "$as_me: error: Please specify the CUDA install path in variable CUDAPATH" >&2;}
-   { (exit 1); exit 1; }; }
-fi
+#This specifies the NVIDIA Cuda compiler
+NVCC="nvcc"
 
 #Settings for Intel MKL libraries on linux machine
 # Check whether --enable-mkl or --disable-mkl was given.
@@ -4057,7 +4053,7 @@ s,@ACESFLAGS@,$ACESFLAGS,;t t
 s,@MKLLIBS@,$MKLLIBS,;t t
 s,@MKLFLAGS@,$MKLFLAGS,;t t
 s,@SERIAL_CPP@,$SERIAL_CPP,;t t
-s,@CUDAPATH@,$CUDAPATH,;t t
+s,@NVCC@,$NVCC,;t t
 s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
