@@ -53,4 +53,20 @@ the configure script.
    SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2 -lpgf90 -lpghpf_mpi -lmpichf90 -lpghpf -lpghpf2 -lpgftnrtl -lrt" \
    CC="cc" FC="ftn" CXX="CC"
 
+  o  Script for UF HPC Center.  Provided by Nakul on 10/24/2012.  The changes seem to be required after system update
+
+./configure --enable-mkl    MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential \
+-lmkl_core -lmkl_lapack -lmkl_sequential -lmkl_core  -lmkl_def \
+-lmkl_p4n -lmkl_mc" \
+MKLFLAGS="-L/opt/intel/composerxe/mkl/lib/intel64 \
+-L/opt/intel/composerxe/lib/intel64"    FCFLAGS="-D__fortran \
+-D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2"    CFLAGS="-DMPIF2C \
+-DC_SUFFIX  -DCB_SUFFIX" ./configure --enable-mkl \
+MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack \
+-lmkl_sequential -lmkl_core  -lmkl_def -lmkl_p4n -lmkl_mc" \
+FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2" \
+   CFLAGS="-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX" 
+
+
+
 
