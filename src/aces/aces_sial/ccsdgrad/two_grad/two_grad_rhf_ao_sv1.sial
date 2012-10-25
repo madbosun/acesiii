@@ -4400,6 +4400,8 @@
 
       CALL DMAIN 
       execute sip_barrier 
+      etemp = 14.0 
+      execute print_rel_info etemp ca 
 #
                     ENDSIAL TWO_GRAD_V2_CO   
 #

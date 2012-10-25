@@ -953,13 +953,6 @@ c------------------------------------------------------------------------
 
       do i = 1, noptable
          optable(c_instr_timer,i) = 0
-         optable(c_get_counter,i) = 0
-         optable(c_put_counter,i) = 0
-         optable(c_putinc_counter,i) = 0
-         optable(c_prepare_counter,i) = 0
-         optable(c_preparesum_counter,i) = 0
-         optable(c_request_counter,i) = 0
-         optable(c_pardomsg_counter,i) = 0
       enddo
 
       stat_key = 0
@@ -1015,29 +1008,7 @@ c-------------------------------------------------------------------------
                timerdesc = ' '
                write (timerdesc,9000) optable(c_lineno,i),opdesc
                call register_timer(timerdesc, elapsed_time_timer, key)
-               timerdesc = ' '
                optable(c_instr_timer,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'GET'
-               call register_counter(timerdesc, key)
-               optable(c_get_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PUT'
-               call register_counter(timerdesc, key)
-               optable(c_put_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PUTINC'
-               call register_counter(timerdesc, key)
-               optable(c_putinc_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PREPARE'
-               call register_counter(timerdesc, key)
-               optable(c_prepare_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PREPSUM'
-               call register_counter(timerdesc, key)
-               optable(c_preparesum_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'REQUEST'
-               call register_counter(timerdesc, key)
-               optable(c_request_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PARDOMSG'
-               call register_counter(timerdesc, key)
-               optable(c_pardomsg_counter,i) = key
             endif
          endif
       enddo
@@ -1080,7 +1051,6 @@ c      endif
  9100 format('Proc call at line ',i6)
  9200 format('Pardo at line ',i6)
  9300 format('Blkwait for pardo ',i6)
- 9400 format('Line',i8,': ',a8)
       return
       end
 

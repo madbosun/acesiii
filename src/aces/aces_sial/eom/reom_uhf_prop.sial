@@ -31804,6 +31804,10 @@
 #
       proot = iroot - 1 
       execute print_scalar proot  
+
+      etemp = 100 
+      etemp += proot 
+      execute print_rel_info etemp ca 
 #
       DO i
       DO a
@@ -31813,6 +31817,10 @@
       ENDDO a
       ENDDO i
 
+      etemp = 200 
+      etemp += proot 
+      execute print_rel_info etemp ca 
+
       DO j
       DO b
          GET  VCE1B (b,j)
@@ -31820,6 +31828,10 @@
          EXECUTE  C1B_PRINT  tbj  amplthresh
       ENDDO b
       ENDDO j
+
+      etemp = 300 
+      etemp += proot 
+      execute print_rel_info etemp ca 
 
       DO a
       DO i
@@ -31833,6 +31845,10 @@
       ENDDO i
       ENDDO a
 
+      etemp = 400 
+      etemp += proot 
+      execute print_rel_info etemp ca 
+
       DO b
       DO j
       DO b1
@@ -31844,6 +31860,10 @@
       ENDDO b1
       ENDDO j
       ENDDO b
+
+      etemp = 500 
+      etemp += proot 
+      execute print_rel_info etemp ca 
 
       DO a
       DO i
@@ -32443,7 +32463,7 @@
 #
 # Print out initial guess 
 # ----------------------- 
-       call PRINT_INITIAL
+      #VFL REMOVED  call PRINT_INITIAL
 #
 # Initialize some arrays 
 # ---------------------- 

@@ -31132,7 +31132,7 @@
       GROUNDSTATE  = ONE
       CALL  COMPUTE_DENSITY
       CALL  BACK_TRANS_COMP_DIP
-      CALL  PRINT_OUT_PIECES
+     #VFL REMOVED  CALL  PRINT_OUT_PIECES
 
       DIP_GRD_X  = DIP_MOM_X
       DIP_GRD_Y  = DIP_MOM_Y
@@ -31352,7 +31352,7 @@
      PROC AMPL_PRINT
 #    ---------------
 #
-      amplthresh=0.1
+      amplthresh=0.05
       allocate lai(*,*)
       allocate lbj(*,*)
 #
@@ -31366,6 +31366,10 @@
 #
       proot = iroot - 1 
       execute print_scalar proot  
+
+      etemp  = 100.0 
+      etemp += proot  
+      execute print_rel_info etemp ca 
 #
       DO i
       DO a
@@ -31374,6 +31378,10 @@
          EXECUTE  C1_PRINT  tai  amplthresh
       ENDDO a
       ENDDO i
+
+      etemp  = 300.0 
+      etemp += proot  
+      execute print_rel_info etemp ca 
 
       DO a
       DO i
@@ -31386,6 +31394,10 @@
       ENDDO a1
       ENDDO i
       ENDDO a
+
+      etemp  = 500.0 
+      etemp += proot  
+      execute print_rel_info etemp ca 
 
       DO a
       DO i
@@ -31558,7 +31570,7 @@
 #
 # Print out initial guess 
 # ----------------------- 
-       call PRINT_INITIAL
+      #VFL REMOVED call PRINT_INITIAL
 #
 # Initialize some arrays 
 # ---------------------- 

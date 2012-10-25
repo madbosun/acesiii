@@ -128,6 +128,8 @@
 # Declare scalars 
 # --------------- 
 #
+      scalar eleven  
+#
       PROC WHFDENS
 #     ------------
 #
@@ -649,6 +651,8 @@
 #
       CALL D2TRANS
       execute sip_barrier 
+      eleven = 11.0 
+     #execute print_rel_info eleven ca # pinf 
 #
                            ENDSIAL SCFGRAD       
 #

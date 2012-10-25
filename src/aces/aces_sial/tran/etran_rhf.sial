@@ -651,7 +651,6 @@
 #
      execute server_barrier 
      CALL READ_CIS 
-     execute load_balance_off
      CALL TRAN_UHF 
      execute server_barrier 
      destroy Vxaai

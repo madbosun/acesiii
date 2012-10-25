@@ -4044,10 +4044,6 @@
             t25aaai(a,a1,a2,k1) = 0.0
       ENDDO k1 
       ENDPARDO a2, a1, a
-#     
-      PARDO a2, a1, a 
-      where a  <= a1 
-      where a1 <= a2 
 #
 # Loop over the occupied combinations 
 # ----------------------------------- 
@@ -4088,6 +4084,10 @@
     
          IF whichj >= whichi 
          IF kstart >= whichj   
+#     
+      PARDO a2, a1, a 
+      where a  <= a1 
+      where a1 <= a2 
 #
 # Allocate the partial amplitude array 
 # ------------------------------------ 
@@ -4153,17 +4153,18 @@
 #
             deallocate Xaaaiii(a,a1,a2,k1,ii,jj) 
 #
+      ENDPARDO a2, a1, a 
+      execute server_barrier 
+#
+# ----------------------------------------------------------  
+# End Virtual symetry combination XX.  
+# ----------------------------------------------------------  
+#
       endif 
       endif 
       endif 
       endif 
       ENDDO NT 
-#
-      ENDPARDO a2, a1, a 
-#
-# ----------------------------------------------------------  
-# End Virtual symetry combination XX.  
-# ----------------------------------------------------------  
 #
       ENDPROC OSEG_TRIP 
 #     ----------------- 

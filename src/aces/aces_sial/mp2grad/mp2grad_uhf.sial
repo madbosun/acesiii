@@ -23,7 +23,11 @@
 # Declare indeces 
 # --------------- 
 #
-      index kiter    = 1, 100   
+      index kiter    = 1, cc_iter    
+      index jiter    = 1, cc_iter
+      index   kptr1  = 1, 2
+      index   kptr2  = 1, 2
+      index   kone   = 1, 1
 #
       aoindex mu     = 1, norb
       aoindex nu     = 1, norb
@@ -312,6 +316,17 @@
       temp dx4(mu,nu,lambda,sigma)
       temp dy4(mu,nu,lambda,sigma)
       temp dz4(mu,nu,lambda,sigma)
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      scalar one
+      scalar two
+      scalar five
+      scalar six
+      scalar seven
+      scalar eleven 
+      scalar ncount1
+      scalar ncount2
+
 #
 # Declare Local arrays 
 # -------------------- 
@@ -593,13 +608,13 @@
      ENDPARDO a, b, i, j
      execute sip_barrier
      collective ecorraa += esumaa
-     execute print_scalar ecorraa
+    #execute print_scalar ecorraa
 #
      collective ecorrbb += esumbb
-     execute print_scalar ecorrbb
+    #execute print_scalar ecorrbb
 #
      collective ecorrab += esumab
-     execute print_scalar ecorrab
+    #execute print_scalar ecorrab
 #
      mp2_energy  = ecorraa
      mp2_energy += ecorrbb
@@ -608,7 +623,7 @@
 #
       totenerg  = mp2_energy 
       totenerg += scfeneg
-      execute print_scalar totenerg 
+    # execute print_scalar totenerg 
 #
      ENDPROC ENERGY 
 #
@@ -3482,8 +3497,8 @@
 #
      c1 = Tb11
      c2 = Tb22
-     execute print_scalar c1
-     execute print_scalar c2
+    #execute print_scalar c1
+    #execute print_scalar c2
      execute server_barrier
      execute sip_barrier
 #
@@ -3688,9 +3703,9 @@
      c1 = Tb11
      c2 = Tb22
      c3 = Tb33
-     execute print_scalar c1
-     execute print_scalar c2
-     execute print_scalar c3
+    #execute print_scalar c1
+    #execute print_scalar c2
+    #execute print_scalar c3
      execute server_barrier
      execute sip_barrier
 #
@@ -3949,10 +3964,10 @@
      c2 = Tb22
      c3 = Tb33
      c4 = Tb44
-     execute print_scalar c1
-     execute print_scalar c2
-     execute print_scalar c3
-     execute print_scalar c4
+    #execute print_scalar c1
+    #execute print_scalar c2
+    #execute print_scalar c3
+    #execute print_scalar c4
      execute server_barrier
      execute sip_barrier
 #
@@ -4270,11 +4285,11 @@
      c3 = Tb33
      c4 = Tb44
      c5 = Tb55
-     execute print_scalar c1
-     execute print_scalar c2
-     execute print_scalar c3
-     execute print_scalar c4
-     execute print_scalar c5
+    #execute print_scalar c1
+    #execute print_scalar c2
+    #execute print_scalar c3
+    #execute print_scalar c4
+    #execute print_scalar c5
      execute sip_barrier
 #
 #    Done computing the c-vector.
@@ -4526,6 +4541,11 @@
 # ------------------- 
 #
       execute sip_barrier 
+      one = 1.0 
+      two = 2.0 
+      six = 6.0 
+      seven = 7.0 
+      eleven = 11.0 
       CALL TRAN_UHF 
       allocate La(*,*) 
       allocate Lb(*,*) 
@@ -4573,6 +4593,39 @@
       CREATE DHFb     
       CREATE DHF     
       execute sip_barrier 
+#
+      do kiter
+      do kptr1
+         etemp = 0.0
+         pinf(kiter,kptr1)  = etemp
+      enddo kptr1
+      enddo kiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == two
+               etemp              = mp2_energy  
+               etemp             += scfeneg
+               tpinf(jiter,kptr1) = etemp
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == one
+               tpinf(jiter,kptr1) = mp2_energy  
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        execute print_rel_info six pinf
 #
 #     Compute the HF contribution to the weighted density matrix 
 #     ---------------------------------------------------------- 
@@ -6018,6 +6071,8 @@
 #
 # Calculate the mp2 energy and write to JOBARC 
 # --------------------------------------------
+#
+      execute print_rel_info eleven pinf
 #
      #CALL ENERGY 
      #execute sip_barrier

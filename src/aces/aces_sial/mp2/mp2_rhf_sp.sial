@@ -16,6 +16,12 @@
 #
 # Make index definitions 
 #
+      index kiter    = 1, cc_iter
+      index jiter    = 1, cc_iter
+      index   kptr1  = 1, 2
+      index   kptr2  = 1, 2
+      index   kone   = 1, 1
+#
       aoindex mu     = 1, norb 
       aoindex nu     = 1, norb 
       aoindex lambda = 1, norb 
@@ -89,6 +95,15 @@
 # 
       temp AOINT(mu,nu,lambda,sigma)
       temp BOINT(mu,nu,lambda,sigma)
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      scalar one
+      scalar two
+      scalar five
+      scalar six
+      scalar seven
+      scalar ncount1
+      scalar ncount2
 #
 # Declare Scalars 
 #
@@ -275,11 +290,49 @@
      collective ecorraa += esumaa  
      execute sip_barrier
 
-     execute print_scalar ecorraa 
+    #execute print_scalar ecorraa 
 #
      mp2_energy  = ecorraa 
      totenerg   = mp2_energy + scfeneg
-     execute print_scalar mp2_energy  
+    #execute print_scalar mp2_energy  
+
+     one = 1.0 
+     two = 2.0 
+     six = 6.0 
+
+      do kiter
+      do kptr1
+         etemp = 0.0
+         pinf(kiter,kptr1)  = etemp
+      enddo kptr1
+      enddo kiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == two
+               etemp              = ecorraa
+               etemp             += scfeneg
+               tpinf(jiter,kptr1) = etemp
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == one
+               tpinf(jiter,kptr1) = ecorraa
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        execute print_rel_info six pinf
+
 # 
 #    ------------------------------------------------------------------------ 
 # 
