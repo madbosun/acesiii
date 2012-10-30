@@ -29,6 +29,7 @@ c--------------------------------------------------------------------------
       include 'parallel_info.h'
       include 'machine_types.h'
       include 'saved_data.h'
+      include 'dbugcom.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -323,7 +324,10 @@ c      print *,'cind: ',(cind(j),j=1,ncind)
      *    (x1_type .ne. static_array) .and.
      *    (x2_type .ne. static_array)) then
               
- 
+        if (dbg) 
+     *       print *,me, 'using GPU for contraction at line ', 
+     *                    current_line
+
         call cwork_gpu(y(iy), ny, nya(1), nyb(1), indy(1),
      *            x1(ix1), n1, nx1a(1), nx1b(1), indx1(1),
      *            x2(ix2), n2, nx2a(1), nx2b(1), indx2(1))
