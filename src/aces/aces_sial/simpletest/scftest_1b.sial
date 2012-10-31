@@ -1,0 +1,34 @@
+      SIAL TEST_1b    
+
+      aoindex m = 1, norb 
+      aoindex n = 1, norb 
+      aoindex l = 1, norb 
+      aoindex s = 1, norb 
+
+      temp aoint(m,n,l,s) 
+      temp txx(m,n) 
+      temp t1xx(m,n) 
+      distributed LD(m,n) 
+
+      execute load_balance_off 
+      create LD 
+      execute sip_barrier 
+
+      PARDO m, n 
+
+            DO l   
+            DO s  
+
+              #compute_integrals aoint(m,n,l,s) 
+               aoint(m,n,l,s)  = 2.0  
+               t1xx(l,s)       = 1.0 
+               txx(m,n)        = aoint(m,n,l,s)*t1xx(l,s) 
+
+               PUT LD(m,n)    += txx(m,n) 
+
+            ENDDO s  
+            ENDDO l   
+      ENDPARDO m, n   
+      execute sip_barrier 
+
+      ENDSIAL TEST_1b    

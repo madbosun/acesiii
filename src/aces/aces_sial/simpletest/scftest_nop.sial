@@ -1,0 +1,24 @@
+      SIAL TEST_NOOP
+
+      aoindex m = 1, norb  
+      aoindex n = 1, norb  
+      aoindex l = 1, norb  
+      aoindex s = 1, norb  
+
+      temp aoint(m,n,l,s) 
+      temp txx(m,n) 
+      temp t1xx(m,n) 
+      local LD(m,n) 
+
+      execute load_balance_off 
+      allocate LD(*,*) 
+
+      PARDO m, n 
+
+            LD(m,n) = 0.0 
+       
+      ENDPARDO m, n   
+
+      execute sip_barrier
+
+      ENDSIAL TEST_NOOP
