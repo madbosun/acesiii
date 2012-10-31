@@ -41,6 +41,7 @@ C  in the file COPYRIGHT.
       include 'parallel_info.h'
       include 'machine_types.h'
       include 'sip_tables.h'
+      include 'timerz.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -103,19 +104,29 @@ c--------------------------------------------------------------------------
 c   Clear the request on the send and recv.
 c--------------------------------------------------------------------------
 
+c      call timer_start (timer_ovrhead)
+      call timer_start (pardo_tserver_timer)   
   100 continue
+
       call mpi_test(request,  flag1, status, ierr)
       if (.not. flag1) then
          call exec_thread_server(0)
          go to 100
       endif
+c      call update_timer (pardo_tserver_timer)
+c      call update_timer (timer_ovrhead)
 
+c      call timer_start (timer_ovrhead)
+c      call timer_start (pardo_tserver_timer)   
   200 continue
+
       call mpi_test(request2, flag2, status, ierr)
       if (.not. flag2) then
          call exec_thread_server(0)
          go to 200
       endif
+      call update_timer (pardo_tserver_timer)
+c      call update_timer (timer_ovrhead)
 
       next_batch = batch_data(1) 
       last_batch = batch_data(2)

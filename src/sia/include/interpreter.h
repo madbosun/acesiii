@@ -20,6 +20,11 @@ c--------------------------------------------------------------------------
       integer c_ind4
       integer c_user_sub
       integer c_instr_timer
+c      integer c_instr_blk_timer
+c      integer c_instr_mpi_timer
+c      integer c_instr_times_timer
+c      integer c_pardo_ovrhead_timer
+c      integer c_pardo_act_timer
       integer c_opblock
       integer c_opblkndx
       integer c_oploop
@@ -31,6 +36,7 @@ c--------------------------------------------------------------------------
       integer c_pardo_next_batch_start
       integer c_pardo_signal
       integer c_server_stat_key
+      integer c_pardo_tserver_timer
       parameter (c_opcode = 1)
       parameter (c_op1_array = 2)
       parameter (c_op2_array = 3)
@@ -41,6 +47,10 @@ c--------------------------------------------------------------------------
       parameter (c_ind4   = 8)
       parameter (c_user_sub      = c_ind1+mx_array_index)
       parameter (c_instr_timer   = c_user_sub+1)
+c      parameter (c_instr_blk_timer = c_instr_timer+1)
+c      parameter (c_instr_mpi_timer = c_instr_blk_timer+1)
+c      parameter (c_instr_times_timer = c_instr_mpi_timer+1)
+c      parameter (c_opblkndx      = c_instr_mpi_timer+1)
       parameter (c_opblkndx      = c_instr_timer+1)
       parameter (c_opblock       = c_opblkndx+1)
       parameter (c_oploop        = c_opblock+1)
@@ -52,8 +62,12 @@ c--------------------------------------------------------------------------
       parameter (c_pardo_signal  = c_pardo_max_batch+1)
       parameter (c_server_stat_key = c_pardo_signal+1)
       parameter (c_lineno        = c_server_stat_key+1)
+c      parameter (c_pardo_tserver_timer = c_lineno+1)
+c      parameter (c_pardo_ovrhead_timer = c_pardo_tserver_timer+1)
+c      parameter (c_pardo_act_timer = c_pardo_ovrhead_timer+1)
 
       integer loptable_entry
+c      parameter (loptable_entry = c_pardo_act_timer)
       parameter (loptable_entry = c_lineno)
 
 c--------------------------------------------------------------------------

@@ -34,10 +34,8 @@ the configure script.
      :- with Intel MKL installed:
 
 ./configure --enable-mkl \
-   MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack \
-            -lmkl_def -lmkl_p4n -lmkl_mc" \
-   MKLFLAGS="-L/opt/intel/mkl/11.1.064/lib/em64t/ \
-             -L/opt/intel/fce/11.1.064/lib/intel64/" \
+   MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lmkl_sequential -lmkl_core  -lmkl_def -lmkl_p4n -lmkl_mc" \
+   MKLFLAGS="-L/opt/intel/mkl/11.1.064/lib/em64t/ -L/opt/intel/fce/10.1.015/lib" \
    FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2" \
    CFLAGS="-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX" \
    CXXFLAGS="-DMPIF2C -DC_SUFFIX -DCB_SUFFIX"
@@ -54,5 +52,35 @@ the configure script.
    CXXFLAGS="-Mcache_align -D_PORTGRP -DC_SUFFIX -DCB_SUFFIX -DXT3 -DMPI2 -DNO_MPI_IO" \
    SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2 -lpgf90 -lpghpf_mpi -lmpichf90 -lpghpf -lpghpf2 -lpgftnrtl -lrt" \
    CC="cc" FC="ftn" CXX="CC"
+
+  o  Script for UF HPC Center.  Provided by Nakul on 10/24/2012.  The changes seem to be required after system update
+
+./configure --enable-mkl    MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential \
+-lmkl_core -lmkl_lapack -lmkl_sequential -lmkl_core  -lmkl_def \
+-lmkl_p4n -lmkl_mc" \
+MKLFLAGS="-L/opt/intel/composerxe/mkl/lib/intel64 \
+-L/opt/intel/composerxe/lib/intel64"    FCFLAGS="-D__fortran \
+-D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2"    CFLAGS="-DMPIF2C \
+-DC_SUFFIX  -DCB_SUFFIX" ./configure --enable-mkl \
+MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack \
+-lmkl_sequential -lmkl_core  -lmkl_def -lmkl_p4n -lmkl_mc" \
+FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2" \
+   CFLAGS="-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX" 
+
+
+    To run this version of ACESIII (New Structure with changes in 307 and GPU enabled contractions) on the UFHPC,
+    do:
+        module load intel
+        module load mkl
+        module load openmpi
+        module load cuda
+    run configure with these arguments:
+        ./configure --enable-mkl  --enable-gpu  \
+        MKLLIBS="-Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -Wl,--end-group"  \
+        MKLFLAGS="-L."    \
+        FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2"  \
+        CFLAGS="-DMPIF2C -DC_SUFFIX -O2  -DCB_SUFFIX"  \
+        CXXFLAGS="-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -O2"  \
+        CUDAPATH="/opt/cuda"
 
 

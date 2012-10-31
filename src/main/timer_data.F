@@ -32,7 +32,8 @@ c---------------------------------------------------------------------------
 
       integer io_company_id
       character*(*) siofile
-
+      
+      integer pst_get_company
       integer i, j, nprocs_save, ierr
       integer*8 irecv
       integer*8 itimer, itstat, idesc, idesc_scr
@@ -157,14 +158,16 @@ c--------------------------------------------------------------------------
      *                  mpi_integer, (i-1),
      *                  timer_desc_request_tag, mpi_comm_world,
      *                  status_mpi, ierr)
-
-            call sum_timer_data(timer_stats(itstat), 
+            
+            if (pst_get_company(i-1) .ne. io_company_id) then  
+                     call sum_timer_data(timer_stats(itstat), 
      *                          timer_stats(itstat+3*max_timers),
      *                          timer_descs(idesc),             
      *                          timer_descs(idesc+nints),
      *                          timer_stats(itimer_avg),
      *                          timer_stats(itimer_sd), max_timers,
      *                          max_timer_desc_len, .false.) 
+           endif
          endif
       enddo
 
@@ -232,7 +235,7 @@ c------------------------------------------------------------------------
 c   Sum in the data.
 c------------------------------------------------------------------------
    
-               if (instance(i) .ne. 0.d0) then
+               if (instance(i) .gt. -1.d0) then
                   sumdata(i,1) = sumdata(i,1) + instance(i)
                   sumdata(i,2) = max(sumdata(i,2), instance(i))
                   sumdata(i,3) = min(sumdata(i,3), instance(i))

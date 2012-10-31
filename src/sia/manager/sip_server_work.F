@@ -522,7 +522,7 @@ c------------------------------------------------------------------------
 
                if (do_stats .and. stat_key .gt. 0)
      *                trestore = mpi_wtime()
-c               print *,'RESTORE block ',iblock
+c               print *,'RESTORE block restore cause',iblock
                call f_restoreram(server_unit(ifile), diskloc, 
      *                           server_blocksizes(ifile),
      *                           x(indblk), size)

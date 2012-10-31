@@ -66,23 +66,60 @@ c-----------------------------------------------------------------------------
 c   Print the server report.
 c-----------------------------------------------------------------------------
 
+c      print *,'              SERVER PERFORMANCE STATISTICS'
+c      print *,'              ------ ----------- ----------' 
+c
+c      print *,'Pardo      Prepares   Preparesums   Requests  Prequests'
+c      do i = 1, mx_stat_keys
+c         if (sstat_nprep(i) .gt. 0 .or. 
+c     *       sstat_nprepsum(i) .gt. 0 .or.
+c     *       sstat_nreq(i) .gt. 0 .or.
+c     *       sstat_npreq(i) .gt. 0) then
+c            print 9000,lineno(i), sstat_nprep(i),sstat_nprepsum(i),
+c     *                            sstat_nreq(i), sstat_npreq(i) 
+c         endif
+c      enddo
+c
+c      call c_flush_stdout()
+c
+c 9000 format(1x,i6,4(4x,i8)) 
+
       print *,'              SERVER PERFORMANCE STATISTICS'
       print *,'              ------ ----------- ----------' 
 
-      print *,'Pardo      Prepares   Preparesums   Requests  Prequests'
+      print *,'Pardo     PREP   PREPSUM   REQ   PREQ    REST    BACKUP'
       do i = 1, mx_stat_keys
          if (sstat_nprep(i) .gt. 0 .or. 
      *       sstat_nprepsum(i) .gt. 0 .or.
      *       sstat_nreq(i) .gt. 0 .or.
      *       sstat_npreq(i) .gt. 0) then
             print 9000,lineno(i), sstat_nprep(i),sstat_nprepsum(i),
-     *                            sstat_nreq(i), sstat_npreq(i) 
+     *                            sstat_nreq(i), sstat_npreq(i),
+     *                            sstat_nrestore(i), sstat_nbackup(i)
          endif
       enddo
 
-      call c_flush_stdout()
 
- 9000 format(1x,i6,4(4x,i8)) 
+      print *,'              SERVER PERFORMANCE STATISTICS'
+      print *,'              ------ ----------- ----------' 
+
+      print *,'Pardo        PREP      PREPSUM         REQ',
+     *        '        PREQ        REST      BACKUP'
+      do i = 1, mx_stat_keys
+         if (sstat_tprep(i) .gt. 0 .or. 
+     *       sstat_tprepsum(i) .gt. 0 .or.
+     *       sstat_treq(i) .gt. 0 .or.
+     *       sstat_tpreq(i) .gt. 0) then
+            print 9001,lineno(i), sstat_tprep(i),sstat_tprepsum(i),
+     *                            sstat_treq(i), sstat_tpreq(i),
+     *                            sstat_trestore(i), sstat_tbackup(i)
+         endif
+      enddo
+
+
+      call c_flush_stdout()
+ 9000 format(1x,i6,6(4x,i10)) 
+ 9001 format(1x,i6,6(1x,f20.6))
       return
       end
 

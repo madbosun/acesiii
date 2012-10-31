@@ -78,6 +78,7 @@ c-------------------------------------------------------------------------
             niocompany = 0
             msg(1) = sip_server_checkpoint_signal
             msg(2) = array
+            msg(3) = 0
             msg(4) = current_line   ! in the "tag" field of the msg.
             do i = 1, nprocs
                if (pst_get_company(i-1) .eq. io_company_id) then

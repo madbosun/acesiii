@@ -41,8 +41,16 @@ c---------------------------------------------------------------------------
       if (request .eq. MPI_REQUEST_NULL) return
 
       call update_timer(instruction_timer)
+      call pause_timer(current_instr_unit_timer)
       call timer_start(comm_timer)
       call timer_start(pardo_block_wait_timer)
+
+      call update_timer(pardo_act_timer)
+      call timer_start(pardo_tserver_timer)
+c      call timer_start (timer_ovrhead)
+      call timer_start (current_instr_mpi_timer)
+      call timer_start (current_instr_blk_timer)
+      call timer_start (current_instr_mpino_timer)
 
   100 continue
       call mpi_test(request, flag, status, ierr)
@@ -50,10 +58,17 @@ c---------------------------------------------------------------------------
          call exec_thread_server(0)
          go to 100
       endif 
-      
+     
+      call update_timer (current_instr_mpino_timer)
+      call update_timer (current_instr_blk_timer)
+      call update_timer (current_instr_mpi_timer)
+c      call update_timer (timer_ovrhead)
       call update_timer(comm_timer)
       call update_timer(pardo_block_wait_timer)
       call timer_start(instruction_timer)
+      call resume_timer(current_instr_unit_timer)
+      call timer_start(pardo_act_timer)
+      call update_timer(pardo_tserver_timer)
 
 c--------------------------------------------------------------------------
 c   Set flags properly on the block we just waited for.
