@@ -67,7 +67,6 @@ MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack \
 FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2" \
    CFLAGS="-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX" 
 
-
     To run this version of ACESIII (New Structure with changes in 307 and GPU enabled contractions) on the UFHPC,
     do:
         module load intel

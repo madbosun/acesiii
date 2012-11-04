@@ -1,0 +1,31 @@
+
+c This routine transposes the first two indices of an unpacked super-matrix dA.
+c Observe:
+c
+c    dA(pq,*) -> dA(qp,*)
+c
+c The functionality of this routine has been replaced by transp_dist and is
+c kept for compatibility only.
+
+c INPUT
+c int irp_pq   : irrep of dA bra (pq pairs)
+c int pop_p(*) : p population vector (orbitals per irrep)
+c int pop_q(*) : q population vector (orbitals per irrep)
+c int max_pq   : [OBSOLETE]
+c int nCols    : distributions in dA (number of columns)
+c double dScr1(*) : [OBSOLETE]
+c double dScr2(*) : [OBSOLETE]
+c int iScr(*)     : [OBSOLETE]
+
+c INPUT/OUTPUT
+c double dA(*) : array whose rows are to be transposed
+
+      subroutine symtr3(irp_pq,pop_p,pop_q,max_pq,nCols,dA,
+     &                  dScr1,dScr2,iScr)
+      implicit none
+      integer irp_pq, pop_p(*), pop_q(*), max_pq, nCols, iScr(*)
+      double precision dA(*), dScr1(*), dScr2(*)
+      call transp_dist(dA,pop_p,pop_q,irp_pq,nCols,.false.)
+      return
+      end
+

@@ -1,0 +1,33 @@
+#ifndef _ECP_PAR_
+#define _ECP_PAR_
+
+#include "mxatms.par"
+#include "baslims.par"
+C
+C Basic parameters: Maxang set to 7 (i functions) and Maxproj set
+C 5 (up to h functions in projection space).
+
+      Parameter(Maxang=7, Maxproj=6, Lmxecp=7, Mxecpprim=Mxprim*Mxatms)
+     &        
+
+      Parameter(Maxangpwr=(Maxang+1)**2,Lmnpwr=(((Maxang*(Maxang+2)*
+     &         (Maxang+4))/3)*(Maxang+3)+(Maxang+2)**2*(Maxang+4))/16)
+
+      Parameter(Lmnmax=(Maxang+1)*(Maxang+2)*(Maxang+3)/6,
+     &          Lmnmaxg=(Maxang+1)*(9+5*Maxang+Maxang*Maxang)/3)
+
+      Parameter(ndi4=550,ndi13=350,ndico=10,ndi14=120,Ndilmx=Maxang,
+     &          Ndico2=ndico*Ndico,Maxang2=((Maxang+1)**2)*
+     &          ((Maxang+2)**2)/4)
+C
+      Parameter(Maxints_4shell=Ndico2*Maxang2)
+C
+C In principle Maxmem only need to be (2*Maxang+1)**2. So, the 
+C current setting is very generous. 
+
+      Parameter(Maxmem = 50000)
+   
+      Parameter(Rint_cutoff = 25.32838, Eps1 = 1.0D-15, Tol=46.0561)
+C46.0561)
+#endif /* _ECP_PAR_ */
+

@@ -1,0 +1,52 @@
+      SUBROUTINE IDERIV(QCS,TMP,DIDQ,NX)
+C
+C THIS ROUTINE DETERMINES THE FIRST DERIVATIVES OF THE INERTIA
+C TENSOR ELEMENTS WITH RESPECT TO THE NORMAL COORDINATES
+C
+CEND
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      LOGICAL PRINT
+      DIMENSION QCS(NX,NX),DIDQ(3,3,NX)
+      DIMENSION TMP(NX),TENSORP(3,3),TENSORM(3,3)
+      DIMENSION TENSORR(3,3)
+C
+#include "mxatms.par"
+#include "coord.com"
+C
+      COMMON/MACHSP/IINTLN,IFLTLN,IINTFP,IALONE,IBITWD
+      common /linear/ ilinear
+      COMMON/FLAGS/IFLAGS(100),IFLAGS2(500)
+C
+      PRINT=IFLAGS(1).GT.0
+C
+      fact=0.001d0
+      fact2=fact*fact
+      CALL GETREC(20,'JOBARC','NORMCORD',IINTFP*NX*NX,QCS)
+C
+C LOOP OVER NORMAL COORDINATES TO GET LINEAR AND DIAGONAL
+C QUADRATIC COEFFICIENTS
+C
+      CALL SCOPY(NX,XYZ,1,TMP,1)
+      CALL INERTIA(TENSORR)
+      CALL PUTREC(20,'JOBARC','I4CDCALC',IINTFP*9,TENSORR)
+      DO 100 ICOORD=7-ilinear,NX
+       CALL SCOPY(NX,XYZ,1,TMP,1)
+       CALL SAXPY(NX,FACT,QCS(1,ICOORD),1,TMP,1)
+       CALL INERTIA(TENSORP)
+       CALL SAXPY(NX,-2.0D0*FACT,QCS(1,ICOORD),1,TMP,1)
+       CALL INERTIA(TENSORM)
+       DO 101 I=1,3
+       DIDQ(I,I,ICOORD)=0.5D0*(TENSORP(I,I)-TENSORM(I,I))/FACT
+101    CONTINUE 
+
+       call saxpy(9,-1.0d0,tensorm,1,tensorp,1)
+       call sscal(9,0.5d0/fact,tensorp,1)
+       call scopy(9,tensorp,1,didq(1,1,icoord),1)
+       if(print)then
+        write(6,*)' derivatives of inertia tensor for mode ',icoord
+        write(6,'((3f20.10))')((didq(i,j,icoord),j=1,3),i=1,3)
+       endif
+100   CONTINUE
+C
+      RETURN
+      END

@@ -1,0 +1,7 @@
+      SUBROUTINE SCDOT(X,V,N)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION V(N)
+      DO 10 I=1,N
+10    V(I)=V(I)*X
+      RETURN
+      END

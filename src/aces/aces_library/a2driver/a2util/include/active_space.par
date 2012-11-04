@@ -1,0 +1,7 @@
+#ifndef _ACTIVE_SPACE_PAR_
+#define _ACTIVE_SPACE_PAR_
+
+      PARAMETER (MAX_ACT_SPACE = 100)
+
+#endif /* _ACTIVE_SPACE_PAR_ */
+

@@ -1,0 +1,31 @@
+
+C THIS SUBROUTINE LOCATES THE FIRST OCCURANCE OF A CHARACTER*(*) STRING
+C IN A CHARACTER*(*) VECTOR.
+C
+C INPUT: 
+C    LENGTH - THE LENGTH OF THE VECTOR (# OF ELEMENTS)
+C         Z - THE VECTOR TO BE SEARCHED.
+C       INC - THE STRIDE LENGTH THROUGH THE VECTOR
+C    TARGET - THE CHARACTER STRING WHICH IS TO BE LOCATED.
+C
+C THIS ROUTINE IS USED BY PUTREC AND GETREC BUT MAY BE USEFUL FOR OTHER
+C PURPOSES.
+C
+C NOTE THAT IF LEN( Z(1) ) .NE. LEN(TARGET) THEY WILL NEVER MATCH!
+
+      INTEGER FUNCTION LOCCHR(LENGTH,Z,INC,TARGET)
+      IMPLICIT INTEGER (A-Z)
+      CHARACTER*(*) Z(LENGTH)
+      CHARACTER*(*) TARGET
+#ifdef _STRINGENT_CHECK
+      double precision dtmp, dsqrt, dfloat
+      if (length.lt.0) dtmp = dsqrt(dfloat(length))
+      if (length.eq.0) dtmp = 1/length
+      if (inc.lt.0) dtmp = dsqrt(dfloat(inc))
+      if (inc.eq.0) dtmp = 1/inc
+#endif /* _STRINGENT_CHECK */
+      DO LOCCHR = 1, LENGTH, INC
+         IF (Z(LOCCHR).EQ.TARGET) RETURN
+      END DO
+      RETURN
+      END

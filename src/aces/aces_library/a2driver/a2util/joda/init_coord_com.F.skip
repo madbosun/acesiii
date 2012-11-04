@@ -1,0 +1,17 @@
+     SUBROUTINE INIT_COORD_COM(NATOMS)
+
+     IMPLICIT NONE
+     INTEGER NATOMS
+C
+#include "mxatms.par"
+#include "coord.com"
+C
+     Call quick_get_natoms((natoms)
+C
+     MXATMS     = NATOMS
+     MAXREDUNCO = 3*NATOMS
+     MAXCNTVS   = 10
+
+     RETURN
+     END
+
