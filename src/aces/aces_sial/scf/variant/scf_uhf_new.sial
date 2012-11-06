@@ -9496,6 +9496,11 @@
          DELETE CBT_a 
          DELETE CBT_b 
 #
+         if kiter >= scf_iter
+            etemp = -1.0
+            execute print_rel_info etemp pinf
+         endif
+#
       ENDDO kiter 
 #
 #     Release unneeded memory blocks.

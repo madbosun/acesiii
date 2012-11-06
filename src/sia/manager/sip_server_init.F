@@ -49,6 +49,9 @@ c---------------------------------------------------------------------------
       integer server_table(1)
       integer*8 indtable, get_index_from_base
       integer nwtable, ndouble, nbtable, ierr
+      integer pst_get_company_comm
+      integer comm
+
 #ifdef ALTIX
       pointer (iptr, server_table)
 #endif
@@ -140,6 +143,24 @@ c---------------------------------------------------------------------------
          print *,'Backup threshold ',dirty_threshold,
      *         ' max_backup ',max_backup
       endif
+
+
+
+c----------------------------------------------------------------------------
+c   Print Server Info
+c----------------------------------------------------------------------------
+
+         comm = pst_get_company_comm(me)
+         call mpi_comm_size(comm, my_company_size, ierr)
+         call mpi_comm_rank(comm, my_company_rank, ierr)
+
+         if (my_company_rank .eq. 0) then
+            print *,'Servers were initialized with ', nserver_memblocks,
+     *          ' blocks of ',blocksize,' words each.'
+         endif    
+
+      
+
 
 c----------------------------------------------------------------------------
 c   Open the server's scratch files.

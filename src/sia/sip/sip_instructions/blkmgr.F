@@ -2682,6 +2682,7 @@ c---------------------------------------------------------------------------
       include 'mpif.h'
       include 'parallel_info.h'
       include 'trace.h'
+      include 'timerz.h'
 
       integer narray_table
       integer array_table(larray_table_entry, narray_table)
@@ -2721,7 +2722,27 @@ c--------------------------------------------------------------------------
                 call put_blk_header(MPI_REQUEST_NULL, 
      *                      i,c_block_request)
              else 
-                call exec_thread_server(0)
+                if (pardo_act_timer .ne. 0) then
+                   call update_timer(pardo_act_timer)
+                   call timer_start(pardo_tserver_timer)
+                endif
+
+c               call timer_start(timer_ovrhead)
+               call update_timer(current_instr_timer)  
+               call pause_timer(current_instr_unit_timer)
+               call timer_start(current_instr_mpi_timer)
+               call timer_start (current_instr_mpino_timer)
+               call exec_thread_server(0)
+               call update_timer (current_instr_mpino_timer)
+               call update_timer(current_instr_mpi_timer)
+               call resume_timer(current_instr_unit_timer)
+               call timer_start(current_instr_timer)
+c               call update_timer(timer_ovrhead)
+c                call exec_thread_server(0)
+                if (pardo_act_timer .ne. 0) then
+                   call update_timer(pardo_tserver_timer)
+                   call timer_start(pardo_act_timer)
+                endif
                 go to 200
              endif
 
@@ -3013,6 +3034,7 @@ c-------------------------------------------------------------------------
       include 'trace.h'
       include 'mpif.h'
       include 'parallel_info.h'
+      include 'timerz.h'
 
       integer array, array_block, size, ierr
       integer narray_table
@@ -3024,6 +3046,9 @@ c-------------------------------------------------------------------------
       integer k, max_iterations, kscrub, scrub_iterations
       integer blkndx
       integer stack, istack
+
+      call timer_start(current_instr_allocate_timer)
+      call update_timer(current_instr_timer)
 
       allocate_block = -1
       max_iterations = 600000   
@@ -3071,7 +3096,28 @@ c   Try to scrub a block from the current stack.
 c---------------------------------------------------------------------------
 
             do kscrub = 1, scrub_iterations
-               call exec_thread_server(0)  
+                if (pardo_act_timer .ne. 0) then
+                   call update_timer(pardo_act_timer)
+                   call timer_start(pardo_tserver_timer)
+                endif
+
+c               call timer_start(timer_ovrhead)
+c               call update_timer(current_instr_timer)  
+               call pause_timer(current_instr_unit_timer)
+               call timer_start(current_instr_mpi_timer)
+               call timer_start (current_instr_mpino_timer)
+               call exec_thread_server(0)
+               call update_timer (current_instr_mpino_timer)
+               call update_timer(current_instr_mpi_timer)
+               call resume_timer(current_instr_unit_timer)
+c               call timer_start(current_instr_timer)
+c               call update_timer(timer_ovrhead)  
+c               call exec_thread_server(0)  
+                if (pardo_act_timer .ne. 0) then
+                   call update_timer(pardo_tserver_timer)
+                   call timer_start(pardo_act_timer)
+                endif
+
                call scrub_from_stack(stack, array_table,
      *                     narray_table, index_table, nindex_table,
      *                     block_map_table, ierr)
@@ -3114,10 +3160,32 @@ c--------------------------------------------------------------------------
 
             call set_block_id(array, array_block, stack, i)
             call put_blk_in_use(i)
+            call update_timer(current_instr_allocate_timer)
+            call timer_start(current_instr_timer)
             return 
          else
             if (comm_list_head .ne. 0) then
+                if (pardo_act_timer .ne. 0) then
+                   call update_timer(pardo_act_timer)
+                   call timer_start(pardo_tserver_timer)
+                endif
+               
+c               call timer_start(timer_ovrhead)
+c               call update_timer(current_instr_timer)  
+               call pause_timer(current_instr_unit_timer)
+               call timer_start(current_instr_mpi_timer)
+               call timer_start (current_instr_mpino_timer)
                call exec_thread_server(0)
+               call update_timer (current_instr_mpino_timer)
+               call update_timer(current_instr_mpi_timer)
+               call resume_timer(current_instr_unit_timer)
+c               call timer_start(current_instr_timer)
+c               call update_timer(timer_ovrhead)  
+                if (pardo_act_timer .ne. 0) then
+                   call update_timer(pardo_tserver_timer)
+                   call timer_start(pardo_act_timer)
+                endif
+
                call scrub_blocks(size, .false., array_table,
      *                   narray_table, index_table, nindex_table,
      *                   block_map_table, ierr)  
@@ -3136,7 +3204,28 @@ c     *             array,array_block,' k, ierr ',k, ierr
             endif
 
             if (ierr .ne. 0) then
-               call exec_thread_server(0)   ! do one pass of thread server.
+                if (pardo_act_timer .ne. 0) then
+                   call update_timer(pardo_act_timer)
+                   call timer_start(pardo_tserver_timer)
+                endif
+
+c               call timer_start(timer_ovrhead)
+c               call update_timer(current_instr_timer)  
+               call pause_timer(current_instr_unit_timer)
+               call timer_start(current_instr_mpi_timer)
+               call timer_start (current_instr_mpino_timer)
+               call exec_thread_server(0)
+               call update_timer (current_instr_mpino_timer)
+               call update_timer(current_instr_mpi_timer)
+               call resume_timer(current_instr_unit_timer)
+c               call timer_start(current_instr_timer)
+c               call update_timer(timer_ovrhead)  
+c               call exec_thread_server(0)   ! do one pass of thread server.
+                if (pardo_act_timer .ne. 0) then
+                   call update_timer(pardo_tserver_timer)
+                   call timer_start(pardo_act_timer)
+                endif
+
             endif
          endif
       enddo
@@ -3148,6 +3237,8 @@ c     *             array,array_block,' k, ierr ',k, ierr
       call dump_block_ids()
       call abort_job()
 
+      call update_timer(current_instr_allocate_timer)
+      call timer_start(current_instr_timer)
       return
       end
 
@@ -3171,6 +3262,7 @@ c-------------------------------------------------------------------------
       include 'trace.h'
       include 'mpif.h'
       include 'parallel_info.h'
+      include 'timerz.h'
 
       integer array, array_block, size, ierr
       integer narray_table
@@ -3183,6 +3275,9 @@ c-------------------------------------------------------------------------
       integer blkndx
       integer stack, istack
 
+      call timer_start(current_instr_allocate_timer)
+      call update_timer(current_instr_timer)
+      
       allocate_block_light = -1
 
       if (array_block .lt. 1) then
@@ -3224,7 +3319,26 @@ c---------------------------------------------------------------------------
 c   Try to scrub a block from the current stack.
 c---------------------------------------------------------------------------
 
-          call exec_thread_server(0)  
+          if (pardo_act_timer .ne. 0) then
+             call update_timer(pardo_act_timer)
+             call timer_start(pardo_tserver_timer)
+          endif
+
+c               call timer_start(timer_ovrhead)
+c               call update_timer(current_instr_timer)  
+               call pause_timer(current_instr_unit_timer)
+               call timer_start(current_instr_mpi_timer)
+               call timer_start (current_instr_mpino_timer)
+               call exec_thread_server(0)
+               call update_timer (current_instr_mpino_timer)
+               call update_timer(current_instr_mpi_timer)
+               call resume_timer(current_instr_unit_timer)
+c               call timer_start(current_instr_timer)
+          if (pardo_act_timer .ne. 0) then
+             call update_timer(pardo_tserver_timer)
+             call timer_start(pardo_act_timer)
+          endif
+
           call scrub_from_stack(stack, array_table,
      *                     narray_table, index_table, nindex_table,
      *                     block_map_table, ierr)
@@ -3245,6 +3359,8 @@ c---------------------------------------------------------------------------
 
       allocate_block_light = -1
 c      print *,'TASK ',me,' ALLOC_LIGHT RETURN -1'
+      call timer_start(current_instr_timer)
+      call update_timer(current_instr_allocate_timer)
       return
             
   200 continue 
@@ -3270,6 +3386,8 @@ c--------------------------------------------------------------------------
       call set_block_id(array, array_block, stack, i)
       call put_blk_in_use(i)
 c      print *,'TASK ',me,' ALLOC LIGHT SUCCEEDED: RETURN ',i  
+      call timer_start(current_instr_timer)
+      call update_timer(current_instr_allocate_timer)
       return 
       end
 

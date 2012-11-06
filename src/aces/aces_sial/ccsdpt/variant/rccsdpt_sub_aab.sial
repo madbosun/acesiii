@@ -1772,7 +1772,7 @@
 #
 #              Compute singles 
 #              --------------- 
-               ######VFLCALL COMP_E5XS   
+               CALL COMP_E5XS   
                tssxx(aa1,ii1,bb2,jj2)= 0.0 
                tss(aa,ii)            = 0.0 
                tssxx(aa1,ii,bb2,jj2) = 0.0 

@@ -169,6 +169,10 @@ c   Send restart messages to each server.
 c--------------------------------------------------------------------------
 
          niocompany = 0
+         
+         do i = 1, 4
+             msg(i) = 0
+         enddo
          msg(1) = sip_server_restart_signal
          do i = 1, nprocs
             if (pst_get_company(i-1) .eq. io_company_id) then

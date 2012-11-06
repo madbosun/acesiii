@@ -26,6 +26,10 @@
 # --------------- 
 #
       index kiter    = 1, cc_iter  
+      index jiter    = 1, cc_iter
+      index   kptr1  = 1, 2
+      index   kptr2  = 1, 2
+      index   kone   = 1, 1
 #
       aoindex mu     = 1, norb
       aoindex nu     = 1, norb
@@ -430,6 +434,18 @@
 # --------------------- 
 #
       temp AOINT(mu,nu,lambda,sigma) 
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      scalar one
+      scalar two
+      scalar five
+      scalar six
+      scalar seven
+      scalar eight
+      scalar nine
+      scalar ten
+      scalar ncount1
+      scalar ncount2
 #
 # ---------------------------------------
 #
@@ -5524,7 +5540,7 @@
      execute server_barrier 
      collective ecorraa += esum
      execute sip_barrier 
-     execute print_scalar ecorraa
+    #execute print_scalar ecorraa
 #
      esum    = 0.0
      ecorrbb = 0.0
@@ -5555,7 +5571,7 @@
      execute server_barrier 
      collective ecorrbb += esum
      execute sip_barrier 
-     execute print_scalar ecorrbb
+    #execute print_scalar ecorrbb
 #
      ecorrab = 0.0
      esum    = 0.0
@@ -5577,12 +5593,12 @@
      execute server_barrier 
      collective ecorrab += esum
      execute sip_barrier 
-     execute print_scalar ecorrab
+    #execute print_scalar ecorrab
 #
      ecorrT  = ecorraa
      ecorrT += ecorrbb
      ecorrT += ecorrab
-     execute print_scalar ecorrT 
+    #execute print_scalar ecorrT 
 #
 #    ------------------------------------------------------------------------
 #
@@ -5638,17 +5654,41 @@
      execute server_barrier 
 
      collective ecorraa += esuma
-     execute print_scalar ecorraa
+    #execute print_scalar ecorraa
 
      collective ecorrbb += esumb
-     execute print_scalar ecorrbb
+    #execute print_scalar ecorrbb
 
      collective ecorrab += esumab
-     execute print_scalar ecorrab
+    #execute print_scalar ecorrab
 #
      ecorrT  = ecorraa + ecorrbb
      ecorrT += ecorrab
-     execute print_scalar ecorrT 
+    #execute print_scalar ecorrT 
+
+     if kiter > 0
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == one
+               tpinf(kiter,kptr1) = ecorrT
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == two
+               etemp = ecorrT
+               etemp+= scfeneg
+               tpinf(kiter,kptr1) = etemp
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+         execute print_rel_info eight pinf
+      endif
 #
 #    ------------------------------------------------------------------------
 #
@@ -7244,8 +7284,8 @@
 #
      c1 = Tb11 
      c2 = Tb22 
-     execute print_scalar c1 
-     execute print_scalar c2 
+    #execute print_scalar c1 
+    #execute print_scalar c2 
      execute server_barrier 
      execute sip_barrier 
 #
@@ -7700,9 +7740,9 @@
      c1 = Tb11 
      c2 = Tb22 
      c3 = Tb33 
-     execute print_scalar c1 
-     execute print_scalar c2 
-     execute print_scalar c3 
+    #execute print_scalar c1 
+    #execute print_scalar c2 
+    #execute print_scalar c3 
      execute server_barrier 
      execute sip_barrier 
 #
@@ -8290,10 +8330,10 @@
      c2 = Tb22 
      c3 = Tb33 
      c4 = Tb44 
-     execute print_scalar c1 
-     execute print_scalar c2 
-     execute print_scalar c3 
-     execute print_scalar c4 
+    #execute print_scalar c1 
+    #execute print_scalar c2 
+    #execute print_scalar c3 
+    #execute print_scalar c4 
      execute server_barrier 
      execute sip_barrier 
 #
@@ -9031,11 +9071,11 @@
      c3 = Tb33 
      c4 = Tb44 
      c5 = Tb55 
-     execute print_scalar c1 
-     execute print_scalar c2 
-     execute print_scalar c3 
-     execute print_scalar c4 
-     execute print_scalar c5 
+    #execute print_scalar c1 
+    #execute print_scalar c2 
+    #execute print_scalar c3 
+    #execute print_scalar c4 
+    #execute print_scalar c5 
      execute server_barrier 
      execute sip_barrier 
 #
@@ -9468,6 +9508,14 @@
 # 
       PROC LMAIN 
 #     ---------- 
+      one = 1.0
+      two = 2.0
+      five  = 5.0
+      six   = 6.0
+      seven = 7.0
+      eight = 8.0
+      nine = 9.0
+      ten = 10.0
 #
 # Create one-particle intermediate arrays 
 # --------------------------------------- 
@@ -9513,6 +9561,46 @@
       CALL LOLDENERGY
       execute server_barrier 
       eold = ecorrT 
+
+      do kiter
+      do kptr1
+         etemp = 0.0
+         pinf(kiter,kptr1)  = etemp
+      enddo kptr1
+      enddo kiter
+            
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == two           
+               etemp              = ecorrT
+               etemp             += scfeneg
+               tpinf(jiter,kptr1) = etemp
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter 
+            
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == one
+               tpinf(jiter,kptr1) = ecorrT
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        execute print_rel_info nine pinf
+
+      do kiter
+      do kptr1
+         etemp = 0.0
+         pinf(kiter,kptr1)  = etemp
+      enddo kptr1
+      enddo kiter
 #
       DO kiter 
 #
@@ -9649,6 +9737,7 @@
 #     ------------------------- 
 #
       CALL LMAIN 
+      execute print_rel_info ten pinf 
 #
 # Write amplitudes to file
 # ------------------------

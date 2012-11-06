@@ -41,7 +41,10 @@ c---------------------------------------------------------------------------
          tdesc(i) = ' '
          timers(i) = 0.
          tmark(i) = -1.
-         timer_type(i) = 2
+         timer_type(i) = -1
+         timer_times(i) = 0.
+         interim_timers(i) = 0.
+         interim_start_timers(i) = -1.
       enddo
       return
       end
@@ -70,12 +73,17 @@ c---------------------------------------------------------------------------
 
       if (first_timer) then
          first_timer = .false.
+         
+         current_last_timer = 1
 
          do i = 1, max_timers
             tdesc(i) = ' '
             timers(i) = 0.
             tmark(i) = -1.
-            timer_type(i) = 2
+            timer_type(i) = -1.
+            timer_times(i) = 0.
+            interim_timers(i) = 0.
+            interim_start_timers(i) = -1.
          enddo
       endif
 
@@ -84,7 +92,9 @@ c   Validate timer type.
 c------------------------------------------------------------------------
 
       if (type .ne. cpu_timer .and.
-     *    type .ne. elapsed_time_timer) then
+     *    type .ne. elapsed_time_timer .and.
+     *    type .ne. times_exec_timer .and. 
+     *    type .ne. average_unit_timer) then
          print *,'Error: register_timer called with invalid timer type',
      *      ' for ',desc,'.  Type = ',type
          call abort_job()
@@ -114,24 +124,49 @@ c------------------------------------------------------------------------
 c   Check to see if timer has already been registered.
 c------------------------------------------------------------------------
 
-      do i = 1, max_timers
-         if (tdesc(i)(1:desc_len) .eq. desc(1:desc_len) .and.
-     *       type .eq. timer_type(i)) then
-            key = i   ! duplicate of a previously registered timer.
-            return
-         endif 
-      enddo
+c      do i = 1, max_timers
+c         if (tdesc(i)(1:desc_len) .eq. desc(1:desc_len) .and.
+c     *       type .eq. timer_type(i)) then
+c            key = i   ! duplicate of a previously registered timer.
+cc            print *,'timer with desc ', desc,' was registered again'
+c            return
+c         endif 
+c      enddo
 
-      do i = 1, max_timers
-         if (tdesc(i)(1:1) .eq. ' ') then
-            tdesc(i)  = desc(1:desc_len)
-            timers(i) = 0.
-            tmark(i)  = -1.
-	    timer_type(i) = type
-	    key = i 
-            return
-         endif
-      enddo
+c      do i = 1, max_timers
+c         if (tdesc(i)(1:1) .eq. ' ') then
+c            tdesc(i)  = desc(1:desc_len)
+c            timers(i) = 0.
+c            tmark(i)  = -1.
+c            timer_type(i) = type
+c            timer_times(i) = 0
+c            interim_timers(i) = 0.
+c            interim_start_timers(i) = -1.
+c            if (type .eq. average_unit_timer) timers(i) = -2;
+c            key = i 
+c            return
+c         endif
+c      enddo
+
+c------------------------------------------------------------------------
+c               Duplicate timers allowed  - Nakul                        
+c------------------------------------------------------------------------
+
+      if (current_last_timer .lt. max_timers-1) then
+          i = current_last_timer
+          tdesc(i)  = desc(1:desc_len)
+          timers(i) = 0.
+          tmark(i)  = -1.
+          timer_type(i) = type
+          timer_times(i) = 0
+          interim_timers(i) = 0.
+          interim_start_timers(i) = -1.
+          if (type .eq. average_unit_timer) timers(i) = -2;
+          key = i 
+          current_last_timer = key + 1
+          return
+      endif
+
 
       call mpi_comm_rank(mpi_comm_world, me, ierr)
       print *,'Error: Too many timers are already in service.'
@@ -190,6 +225,11 @@ c            call c_rutimes(utime_sec, utime_usec, stime_sec,
 c     *                     stime_usec)
 c            tmark(key) = 1.d-6*(utime_usec + stime_usec) + 
 c     *                         (utime_sec + stime_sec)
+         else if (my_type .eq. times_exec_timer) then
+             tmark(key) = 1.
+         else if (my_type .eq. average_unit_timer) then
+             if (timer_times(key) .eq. 0.) timers(key) = 0.
+             tmark(key) = mpi_wtime()
          else 
             print *,'Error: Invalid timer type: key = ',key,
      *             ' type = ',timer_type(key)
@@ -203,6 +243,98 @@ c     *                         (utime_sec + stime_sec)
 
       return
       end
+
+
+      subroutine pause_timer(key)
+
+c----------------------------------------------------------------------------
+c   pauses average_unit_timer
+c----------------------------------------------------------------------------
+
+      implicit none
+      include 'mpif.h'
+      include 'timerz.h'
+      include 'parallel_info.h'
+      include 'trace.h'
+      integer key, ierr
+      
+      if (.not. do_timer) return
+
+      if (key .eq. 0) return
+
+      if (key .lt. 1 .or. key .gt. max_timers) then
+         call mpi_comm_rank(mpi_comm_world, me, ierr)
+         print *,'Error: Process ',me,' attempted to update timer ',
+     *           key,'.'
+         call mpi_abort(mpi_comm_world, 1, ierr)
+      endif
+
+      if (timer_type(key) .ne. average_unit_timer) then
+         call mpi_comm_rank(mpi_comm_world, me, ierr)
+         print *,'Error: Worker ',me,' tried to pause non avg timer',
+     *           key,'.'
+         call mpi_abort(mpi_comm_world, 1, ierr)
+
+      endif
+    
+      if (interim_start_timers(key) .ne. -1) then
+         call mpi_comm_rank(mpi_comm_world, me, ierr)
+         print *,'Error: Worker ',me,' paused non existant timer',
+     *           key,'.'
+         call mpi_abort(mpi_comm_world, 1, ierr)
+      endif
+
+      interim_start_timers(key) = mpi_wtime()
+
+      end
+
+
+      subroutine resume_timer(key)
+
+c----------------------------------------------------------------------------
+c   resumes average_unit_timer
+c----------------------------------------------------------------------------
+
+      implicit none
+      include 'mpif.h'
+      include 'timerz.h'
+      include 'parallel_info.h'
+      include 'trace.h'
+      integer key, ierr
+      if (.not. do_timer) return
+
+      if (key .eq. 0) return
+
+      if (key .lt. 1 .or. key .gt. max_timers) then
+         call mpi_comm_rank(mpi_comm_world, me, ierr)
+         print *,'Error: Process ',me,' attempted to update timer ',
+     *           key,'.'
+         call mpi_abort(mpi_comm_world, 1, ierr)
+      endif
+
+      if (timer_type(key) .ne. average_unit_timer) then
+         call mpi_comm_rank(mpi_comm_world, me, ierr)
+         print *,'Error: Worker ',me,' tried to pause non avg timer',
+     *           key,'.'
+         call mpi_abort(mpi_comm_world, 1, ierr)
+
+      endif
+    
+      if (interim_timers(key) .eq. -1) then
+         call mpi_comm_rank(mpi_comm_world, me, ierr)
+         print *,'Error: Worker ',me,' resumed non existant timer',
+     *           key,'.'
+         call mpi_abort(mpi_comm_world, 1, ierr)
+      endif
+    
+      interim_timers(key) = interim_timers(key) + mpi_wtime() - 
+     *                              interim_start_timers(key) 
+      interim_start_timers(key) = -1
+    
+      end
+
+
+
 
       subroutine update_timer(key)
 c----------------------------------------------------------------------------
@@ -237,14 +369,23 @@ c-----------------------------------------------------------------------------
 
          if (timer_type(key) .eq. elapsed_time_timer) then
             time_val       = mpi_wtime() - tmark(key)
+            timers(key)    = timers(key) + time_val
          else if (timer_type(key) .eq. cpu_timer) then
 c             call c_rutimes(utime_sec,utime_usec,stime_sec,
 c     *                      stime_usec)
 c             time_val = 1.d-6*(utime_usec+stime_usec) + 
 c     *                        (utime_sec+stime_sec) - tmark(key)
+         else if (timer_type(key) .eq. times_exec_timer) then 
+            time_val = 1;
+            timers(key)    = timers(key) + time_val
+         else if (timer_type(key) .eq. average_unit_timer) then
+            time_val = mpi_wtime() - tmark(key) - interim_timers(key)
+            timers(key) = timers(key) * timer_times(key) + time_val
+            timer_times(key) = timer_times(key) + 1
+            timers(key) = timers(key) / timer_times(key)
+            interim_timers(key) = 0.
          endif
 
-         timers(key)    = timers(key) + time_val
          tmark(key)  = -1.   ! turn off the timer.
       endif
 
@@ -318,7 +459,7 @@ c-------------------------------------------------------------------------
       character*256 aces_source_dir
       character*120 srcline, token
       character*256 srcfile, sialfile
-      character*40  pardo_desc, blkwait_desc, timerdesc
+      character*40  pardo_desc, blkwait_desc, timerdesc, overhead_desc
       character*60 line_fmt
 
       integer n
@@ -370,6 +511,13 @@ c---------------------------------------------------------------------------
       print *,'---------- Summary of Timer Statistics ----------'
       print *,' '
 
+
+c---------------------------------------------------------------------------
+c   Print out time for optable_loop processing - Nakul
+c---------------------------------------------------------------------------
+
+c      print *,"time spent in processing optable :", timer_optl
+
 c--------------------------------------------------------------------------
 c   Calculate and print average and standard dev. of all timers.
 c--------------------------------------------------------------------------
@@ -394,7 +542,7 @@ c--------------------------------------------------------------------------
             if (timer_data(i,3) .eq. 1.d10)    ! remove init value for min
      *          timer_data(i,3) = 0.d0
        
-            if (avg .gt. 0.0005) 
+            if (avg .gt. 0.0) 
      *         print 200,descs(i)(1:25), avg, sdev, 
      *             timer_data(i,3), timer_data(i,2) 
          endif
@@ -419,6 +567,8 @@ c-----------------------------------------------------------------------
       n = str_trimlen(srcfile)
       print *,'------ Timer statistics for SIAL file ',srcfile(1:n),
      *        '------'
+
+
 
 c-------------------------------------------------------------------------
 c   Open the source file 
@@ -497,6 +647,10 @@ c-------------------------------------------------------------------------
          write (pardo_desc,9300) lineno
          blkwait_desc = ' '
          write (blkwait_desc,9400) lineno
+
+c         overhead_desc = ' '
+c         write (overhead_desc,9450) lineno
+
       else
          timerdesc = ' ' 
          write (timerdesc,9500) lineno
@@ -651,6 +805,26 @@ c---------------------------------------------------------------------------
          endif
       enddo
 
+      timerdesc = ' '
+      write (timerdesc, 9760)
+      do i = 1,max_timers
+          if (descs(i) .eq. timerdesc) then
+              if (contrib(i) .le. 1) then
+                  avg = timer_data(i,1)
+                  sdev = 0.d0
+              else 
+                 avg = timer_data(i,1)/contrib(i)
+                 sdev = calc_sdev(sumsq(i), timer_data(i,1), contrib(i))
+              endif
+            if (timer_data(i,3) .eq. 1.d10)    ! remove init value for min
+     *          timer_data(i,3) = 0.d0
+       
+            if (avg .gt. 0.0) 
+     *         print 200,descs(i)(1:25), avg, sdev, 
+     *             timer_data(i,3), timer_data(i,2) 
+         endif
+      enddo
+
 c---------------------------------------------------------------------------
 c   Make one last pass to print block wait time.
 c---------------------------------------------------------------------------
@@ -669,14 +843,15 @@ c---------------------------------------------------------------------------
             go to 2500
          endif
       enddo
+
  2500 continue
 
       print *,'Average block wait time: ',avg  
       print *,'------------------------------------------------------'
       return
 
-  100 format(1x,a25,5(1x,f12.3))
-  200 format(1x,a25,1x,f12.3,1x,f12.3,7x,f8.3,3x,f8.3)
+  100 format(1x,a25,5(1x,f18.6))
+  200 format(1x,a25,1x,f18.6,1x,f18.6,7x,f18.6,3x,f18.6)
   300 format(1x,'Rank               ',9(9x,i4))
   400 format(32x,'Average    Standard deviation',
      *       '  Min. time   Max. time')
@@ -687,112 +862,20 @@ c---------------------------------------------------------------------------
  9000 format('(48x,''| '',i6,'': '',a',i3,')')
  9050 format('(48x,''| '',i6,'': '',a',i2,')')
  9060 format('(48x,''| '',i6,'': '',a',i1,')')
- 9200 format('*** PARDO LOOP: time ',f12.5,' Block wait time ',f12.5,
+ 9200 format('*** PARDO LOOP: time ',f18.6,' Block wait time ',f18.6,
      *       ' Num. procs ',i5,' Loop efficiency ',f7.3,'% ***')
- 9300 format('Pardo at line ',i6)
- 9400 format('Blkwait for pardo ',i6)
+ 9300 format('Pardo at line ',i10)
+ 9400 format('Blkwait for pardo ',i10)
+c 9450 format('Ovrhead for pardo ',i10)
  9500 format('Line',i6)
  9600 format('(4(1x,f11.5),''| '',i6,'': '',a',i3,')')
  9650 format('(4(1x,f11.5),''| '',i6,'': '',a',i2,')')
  9660 format('(4(1x,f11.5),''| '',i6,'': '',a',i1,')')
  9700 format('Proc call at line ',i6) 
+ 9760 format('Optable time ') 
  9750 format(57x,'Average',6x,'Min. time',5x,'Max. time',4x,
      *         'Std. Dev.')
- 9800 format('CALL ',a32,' at line ',i6,': ',4(f12.5,1x))
-      end
-
-      subroutine counter_report(descs, counter_data, contrib,
-     *                        sumsq, nprocs)
-c-------------------------------------------------------------------------
-c   Called by the master to produce a report of the accumulated timer
-c   data collected from each integral worker.
-c-------------------------------------------------------------------------
-
-      implicit none
-      include 'timerz.h'
-
-      integer ranks_per_line
-      parameter (ranks_per_line = 4)
-
-      integer i, j, k, l, ndx, lndx, nprocs
-      integer nline, nworker
-      integer ntimers
-      double precision counter_data(max_counters,3)
-      double precision contrib(max_counters)
-      double precision sumsq(max_counters)
-      
-      character*(max_counter_desc_len) descs(*)
-      character*256 aces_source_dir
-      character*120 srcline, token
-      character*256 srcfile, sialfile
-      character*40  counterdesc
-      character*60 line_fmt
-
-      integer n
-      integer lineno, lenval, ierr
-      integer str_trimlen
-      integer ndesc, nxtcall, ncalls
- 
-      integer ranks(ranks_per_line)
-      double precision data(ranks_per_line)
-      double precision sum, avg, sdev
-      double precision temp
-      double precision calc_sdev
-      
-      logical source_level_analysis 
-
-c---------------------------------------------------------------------------
-c   Build a table of all the unique counter descriptions.
-c---------------------------------------------------------------------------
-
-      print *,'Entry to counter_report'
-      if (.not. do_timer) return   ! nothing to do.
-
-c---------------------------------------------------------------------------
-c   Print individual worker's statistics.
-c---------------------------------------------------------------------------
-
-      print *,'---------- Summary of Counter Statistics ----------'
-      print *,' '
-
-c--------------------------------------------------------------------------
-c   Calculate and print average and standard dev. of all counters.
-c--------------------------------------------------------------------------
-
-       print 400
-       print 500
-       call c_flush_stdout()
-      do i = 1, max_counters
-         avg  = counter_data(i,1) 
-         sdev = 0.
-
-         if (descs(i)(1:1) .ne. ' ' .and.
-     *       descs(i)(1:1) .ne. char(0)) then
-            if (contrib(i) .le. 1.) then
-               avg = counter_data(i,1)
-               sdev = 0.d0
-            else  
-               avg = counter_data(i,1)/contrib(i)
-               sdev = calc_sdev(sumsq(i), counter_data(i,1), contrib(i))
-            endif
-
-            if (counter_data(i,3) .eq. 1.d10)    ! remove init value for min
-     *          counter_data(i,3) = 0.d0
-       
-            if (avg .gt. .0005) 
-     *          print 200,descs(i)(1:25), avg, sdev, 
-     *             counter_data(i,3), counter_data(i,2) 
-         endif
-      enddo
-      return
-
-  100 format(1x,a25,5(1x,f12.3))
-  200 format(1x,a25,1x,f12.3,1x,f12.3,7x,f8.3,3x,f8.3)
-  300 format(1x,'Rank               ',9(9x,i4))
-  400 format(32x,'Average    Standard deviation',
-     *       '  Min. Val   Max. Val')
-  500 format(25x,'-------------   ------------------',
-     *       '   --------   --------')
+ 9800 format('CALL ',a32,' at line ',i6,': ',4(f18.6,1x))
       end
 
       subroutine print_timers()
@@ -853,86 +936,4 @@ c------------------------------------------------------------------------
       dnom = contrib * (contrib - 1.d0)
       calc_sdev = dsqrt(temp / dnom ) 
       return 
-      end
-
-      subroutine init_counters()
-c---------------------------------------------------------------------------
-c   Initialize the message counters.
-c---------------------------------------------------------------------------
-      implicit none
-      include 'timerz.h'
-      integer i
-
-      do i = 1, max_counters
-         counter_desc(i) = ' '
-         counters(i)     = 0
-      enddo
-
-      return
-      end
-
-      subroutine register_counter(descriptor, key)
-c---------------------------------------------------------------------------
-c   Sets up a new message counter with the descriptor "descriptor", 
-c   returns "key", which is used to reference the counter in subsequent 
-c   calls.
-c---------------------------------------------------------------------------
-      implicit none
-      include 'timerz.h'
-
-      character*(*) descriptor
-      integer key
-
-      integer i, m, n
-      integer str_trimlen
-
-c---------------------------------------------------------------------------
-c   Search for a descriptor matching the argument.
-c----------------------------------------------------------------------------
-
-      n = str_trimlen(descriptor)
-      do i = 1, max_counters
-         m = str_trimlen(counter_desc(i))
-         if (m .eq. n .and. 
-     *       descriptor(1:n) .eq. counter_desc(i)(1:n)) then 
-            
-c---------------------------------------------------------------------------
-c   Entry has a previous match.  
-c---------------------------------------------------------------------------
-
-             key = i
-             return
-         endif  
-
-         if (m .eq. 0) then
-   
-c----------------------------------------------------------------------------
-c   We are past all existing entries.  Add a new descriptor.
-c----------------------------------------------------------------------------
-
-            key = i
-            counter_desc(i) = descriptor
-            return 
-         endif 
-      enddo
-
-      print *,'No room for more message counters.'
-      call abort_job()
-
-      return
-      end 
-
-      subroutine increment_counter(key, increment)
-c-------------------------------------------------------------------------
-c   Increments the counter defined by "key".  
-c-------------------------------------------------------------------------
-      include 'timerz.h'
-      integer key, increment
-
-      if (key .gt. 0 .and.
-     *    key .le. max_counters) then
-         counters(key) = counters(key) + increment
-      endif
-
-      return
       end

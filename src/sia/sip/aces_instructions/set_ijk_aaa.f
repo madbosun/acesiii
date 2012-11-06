@@ -69,7 +69,7 @@ c------------------------------------------------------------------------
 
 c     maxi  = 8 ! HARD CODED VFL 
       maxi = sip_sub_occ_segsize
-      write(6,*) ' MAXI IN SET_IJK_AAA = ', maxi
+c     write(6,*) ' MAXI IN SET_IJK_AAA = ', maxi
  
 c-----------------------------------------------------------------------
 c Determine the index 

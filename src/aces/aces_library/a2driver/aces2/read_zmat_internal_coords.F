@@ -127,6 +127,10 @@ c   o count the number of elements
             write(*,*) '@READ_ZMAT: The number of atoms has ',
      &                 'exceeded the maximum allowed of ',mxatms
             write(*,*)
+            write(66,*)
+            write(66,*) '@READ_ZMAT: The number of atoms has ',
+     &                 'exceeded the maximum allowed of ',mxatms
+            write(66,*)
             call errex
          end if
       end do

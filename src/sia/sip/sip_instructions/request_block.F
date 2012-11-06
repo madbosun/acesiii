@@ -25,7 +25,6 @@ C  in the file COPYRIGHT.
       include 'trace.h'
       include 'parallel_info.h'
       include 'server_barrier_data.h'
-      include 'timerz.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -232,9 +231,6 @@ c-------------------------------------------------------------------------
       call mpi_irecv(x(indblk), blocksize, mpi_double_precision,
      *               mgr, tag, mpi_comm_world,
      *               request, ierr)
-      if (do_timer)
-     *   call increment_counter(op(c_request_counter), 1)
-
       call set_block_request(handle, blk, blkndx, request)
       if (request .ne. MPI_REQUEST_NULL) then
          call set_block_request_outstanding_flag(handle, blk, blkndx)

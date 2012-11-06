@@ -10880,6 +10880,8 @@
       execute server_barrier
 #
       CALL DMAIN 
+      etemp = 13.0
+      execute print_rel_info etemp ca 
 #
 # Write amplitudes to file
 # ------------------------

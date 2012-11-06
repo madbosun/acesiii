@@ -107,6 +107,8 @@
       index kindex19 =1, 19
       index jindex20 =1, 20
       index kindex20 =1, 20
+
+      index jindex28 = 1, 1 
       index j20 =1, 20
       index k20 =1, 20
       index j21 =1, 21
@@ -169,6 +171,10 @@
       temp atemp20(jindex20,kindex20)
 #
       local L1ai(a,i) 
+      static pinf(kindex12,jindex28) 
+      temp tpinf(kindex12,jindex28) 
+      scalar rank 
+      scalar eroot 
 
       scalar six 
       scalar kcount
@@ -25280,7 +25286,7 @@
        execute print_scalar root11
        execute print_scalar root12
 #
-       evfev = 27.2113957
+       evfev = 27.21138505 
        root1*=evfev
        root2*=evfev
        root3*=evfev
@@ -25306,6 +25312,55 @@
        execute print_scalar root10
        execute print_scalar root11
        execute print_scalar root12
+
+       execute get_my_rank rank
+       if rank == 0.0
+          DO kindex12  
+          DO jindex28   
+             eroot = 0.0 
+             if kindex12 == 1 
+                eroot = root1 
+             endif 
+             if kindex12 == 2 
+                eroot = root2 
+             endif 
+             if kindex12 == 3 
+                eroot = root3 
+             endif 
+             if kindex12 == 4 
+                eroot = root4 
+             endif 
+             if kindex12 == 5 
+                eroot = root5 
+             endif 
+             if kindex12 == 6 
+                eroot = root6 
+             endif 
+             if kindex12 == 7 
+                eroot = root7 
+             endif 
+             if kindex12 == 8 
+                eroot = root8 
+             endif 
+             if kindex12 == 9 
+                eroot = root9 
+             endif 
+             if kindex12 == 10 
+                eroot = root10 
+             endif 
+             if kindex12 == 11 
+                eroot = root11 
+             endif 
+             if kindex12 == 12 
+                eroot = root12 
+             endif 
+                tpinf(kindex12,jindex28) = eroot  
+                 pinf(kindex12,jindex28) = tpinf(kindex12,jindex28)  
+          ENDDO jindex28   
+          ENDDO kindex12 
+             etemp = 28.0 
+             execute print_rel_info etemp pinf  
+       endif 
 #
        call SORT_VEC
 #
@@ -25313,7 +25368,7 @@
        EXECUTE SERVER_BARRIER
 #
        Call NORM_VEC
-#
+
        call WRITEOUT
 #
        delete VEV

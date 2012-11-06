@@ -123,27 +123,31 @@ c---------------------------------------------------------------------------
       include 'interpreter.h'
       include 'int_gen_parms.h'
       include 'parallel_info.h'
-      integer i,j,n
+      integer i,j,n, ieom_roots, amax  
       double precision rootmat(n,1),resdmat(n,1)
       double precision root,resd
+      ieom_roots = eom_roots
+      amax = max(ieom_roots,6)
 
       if (me .eq. 0)then
 
-      write(6,*) ' '
-      write(6,'(1x,57("-"))')
-      write(6,*) '                      EOM-CCSD energies '
-      write(6,99) 'root','Hartree','eV','residuum'
-      write(6,'(1x,57("-"))') 
+      write(66,*) ' '
+      write(66,'(1x,57("-"))')
+      write(66,*) '                      EOM-CCSD energies '
+      write(66,99) 'root','Hartree','eV','residuum'
+      write(66,'(1x,57("-"))') 
 c
       do i = 1, n
-         root = rootmat (i,1)
-         resd = resdmat (i,1)
-         write(6,100) i, root, root*27.2113957, resd
+         if (i .le. amax) then  
+            root = rootmat (i,1)
+            resd = resdmat (i,1)
+            write(66,100) i, root, root*27.21138505, resd
+         endif 
       enddo
 
-      write(6,*) ' '
-      write(6,'(1x,57("-"))')
-      write(6,'(1x,57("-"))') 
+      write(66,*) ' '
+      write(66,'(1x,57("-"))')
+      write(66,'(1x,57("-"))') 
       write(6,*) ' '
 c
       endif

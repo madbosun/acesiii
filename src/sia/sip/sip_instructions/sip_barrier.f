@@ -66,6 +66,9 @@ c---------------------------------------------------------------------------
 c   Send a barrier message to the master.
 c---------------------------------------------------------------------------
 
+         do i = 1, 5
+             msg(i) = 0
+         enddo
          msg(1) = -7   ! barrier signal is -7, send with tag 3456.
          call mpi_isend(msg, 5, MPI_INTEGER, bmaster,
      *                  3456, company_comm, request, ierr)

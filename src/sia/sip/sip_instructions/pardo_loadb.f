@@ -61,6 +61,8 @@ c---------------------------------------------------------------------------
       save ind, nind, next_batch
       save bseg, eseg, seg
 
+
+
       if (iop .gt. noptable) then
 	print *,'PARDO_LOOP: Called with iop = ',iop,' noptable = ',
      *           noptable
@@ -138,8 +140,13 @@ c   Get the current pardo timer keys out of the optable.
 c--------------------------------------------------------------------------
 
             call unpack_pardo_timer(optable(c_instr_timer,iop),
-     *                      pardo_timer, pardo_block_wait_timer) 
+     *                      pardo_timer, pardo_block_wait_timer)
+
+c            print *, "pardo_timer =", pardo_timer, 
+c     *               "pardo_block_wait_timer =", pardo_block_wait_timer
+
             call timer_start(pardo_timer)
+            
 
 c----------------------------------------------------------------------------
 c   Get the WHERE conditionals for the current loop.
@@ -169,14 +176,19 @@ c--------------------------------------------------------------------------
          if (optable(c_pardo_batch,iop) .ge. 0) 
      *      optable(c_pardo_batch,iop) = optable(c_pardo_batch,iop)+1  
 
+         call timer_start (pardo_ovrhead_timer)
+
          if (next_batch .gt. last_batch .or.
      *       next_batch .eq. 0) then
             if (my_company_rank .eq. pardo_master) then
                call pardo_loadb_update_batch(iop, optable, index_table, 
      *                segment_table, nsegment_table,
      *                next_batch, last_batch)
-
+c               call timer_start (timer_ovrhead)
+               call timer_start (pardo_tserver_timer)
                call exec_thread_server(0) 
+               call update_timer (pardo_tserver_timer)
+c               call update_timer (timer_ovrhead)
                if (next_batch .le. 0) optable(c_oploop,iop) = 0
             else
                call f_acquire_pardo_lock(my_lock)
@@ -191,6 +203,8 @@ c--------------------------------------------------------------------------
             endif   
          endif
 
+         call update_timer (pardo_ovrhead_timer)
+
          if (my_company_rank .eq. pardo_master) 
      *           call f_release_pardo_lock(my_lock)
 
@@ -201,6 +215,7 @@ c---------------------------------------------------------------------------
          if (next_batch .le. 0) then
             last_batch_processed = next_batch
             iop = end_op                ! point instruction counter to endpardo
+
             return                      ! Next instruction will be the endpardo
          endif
 
@@ -248,6 +263,7 @@ c----------------------------------------------------------------------------
       endif   ! pardo_op
 
       if (opcode .eq. endpardo_op) then
+
 c         print *,'Task ',me,' Endpardo at line ',current_line
 c         call c_flush_stdout()
          call unset_prefetch_context()
@@ -298,6 +314,7 @@ c-------------------------------------------------------------------------
             endif
          enddo
 
+
 c-------------------------------------------------------------------------
 c   ENDPARDO operation.
 c   Check for loop termination.
@@ -305,6 +322,7 @@ c-------------------------------------------------------------------------
 
          if (next_batch .lt. 0) then 
             optable(c_pardo_batch,iop) = -1
+
             call update_timer(pardo_timer)
 
 c            print *,'Task ',me,' ENDPARDO loop termination'
@@ -352,6 +370,7 @@ c--------------------------------------------------------------------------
          endif 
 
       endif   ! endpardo_op
+
 
       return
       end

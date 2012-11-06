@@ -78,7 +78,7 @@
 
             tatom(katom,jatom) = atom(katom,jatom) 
             execute return_sval tatom etemp   
-            execute print_scalar etemp 
+           #execute print_scalar etemp 
             execute scf_atom etemp 
  
          ENDIF # katom == jatom  
@@ -112,6 +112,9 @@
       DO mu  
       DO nu 
             txx(mu,nu) = Fockrohf_a(mu,nu) 
+            IF Natoms <= 3 
+               txx(mu,nu) = 0.0 
+            ENDIF 
             PUT DA(mu,nu) += txx(mu,nu) 
       ENDDO nu 
       ENDDO mu  
@@ -120,6 +123,9 @@
       DO mu  
       DO nu 
             txx(mu,nu) = Fockrohf_b(mu,nu) 
+            IF Natoms <= 3 
+               txx(mu,nu) = 0.0 
+            ENDIF 
             PUT DB(mu,nu) += txx(mu,nu) 
       ENDDO nu 
       ENDDO mu  
@@ -135,7 +141,7 @@
       execute sip_barrier
       execute blocks_to_list Da
       execute blocks_to_list Db
-      execute blocks_to_list Nai_d  
+     #execute blocks_to_list Nai_d  
       execute write_blocks_to_list
       execute sip_barrier
 #

@@ -262,6 +262,7 @@
       SCALAR  LRNORM
       SCALAR  root_thresh
       SCALAR  iroot
+      SCALAR  proot
       SCALAR  imomcount
       SCALAR  rootcount
       SCALAR  ncount
@@ -780,43 +781,86 @@
 
       EXECUTE  PRINT_SCALAR  ZERO
 
-      PARDO a, i
+      proot = iroot 
+      etemp  = 100.0
+      etemp += proot
+      execute print_rel_info etemp ca
+
+      DO a 
+      DO i
          GET R1A(a,i)
          lia(i,a)=R1A(a,i)
          EXECUTE c1_print lia AMPLTHRESH
-      ENDPARDO a, i
+      ENDDO i
+      ENDDO a 
 
       EXECUTE  PRINT_SCALAR  ZERO
 
-      PARDO b, j
+      etemp  = 200.0
+      etemp += proot
+      execute print_rel_info etemp ca
+
+      DO b 
+      DO j
          GET R1B(b,j)
          ljb(j,b)=R1B(b,j)
          EXECUTE c1b_print ljb AMPLTHRESH
-      ENDPARDO b, j
+      ENDDO j
+      ENDDO b 
 
       EXECUTE  PRINT_SCALAR  ZERO
 
-      PARDO a, i, a1, i1
+      etemp  = 300.0
+      etemp += proot
+      execute print_rel_info etemp ca
+
+      DO a 
+      DO i 
+      DO a1  
+      DO i1  
          REQUEST R2AA(a,i,a1,i1) i1
          tiaia(i,a,i1,a1)=R2AA(a,i,a1,i1)
          EXECUTE c2aa_print tiaia AMPLTHRESH
-      ENDPARDO a, i, a1, i1
+      ENDDO i1  
+      ENDDO a1  
+      ENDDO i  
+      ENDDO a  
 
       EXECUTE  PRINT_SCALAR  ZERO
 
-      PARDO b, j, b1, j1
+      etemp  = 400.0
+      etemp += proot
+      execute print_rel_info etemp ca
+
+      DO b 
+      DO j 
+      DO b1 
+      DO j1
          REQUEST R2BB(b,j,b1,j1) j1
          tjbjb(j,b,j1,b1)=R2BB(b,j,b1,j1)
          EXECUTE c2bb_print tjbjb AMPLTHRESH
-      ENDPARDO b, j, b1, j1
+      ENDDO j1  
+      ENDDO b1  
+      ENDDO j
+      ENDDO b
 
       EXECUTE  PRINT_SCALAR  ZERO
 
-      PARDO a, i, b, j
+      etemp  = 500.0
+      etemp += proot
+      execute print_rel_info etemp ca
+
+      DO a 
+      DO i 
+      DO b 
+      DO j 
          REQUEST R2AB(a,i,b,j) j
          tiajb(i,a,j,b)=R2AB(a,i,b,j)
          EXECUTE c2ab_print tiajb AMPLTHRESH
-      ENDPARDO a, i, b, j
+      ENDDO j
+      ENDDO b
+      ENDDO i
+      ENDDO a
 
       EXECUTE  PRINT_SCALAR  ZERO
 #
@@ -826,40 +870,40 @@
 #
       EXECUTE  PRINT_SCALAR  ZERO
 
-      PARDO a, i
-         GET A1A(i,a)
-         lia(i,a)=A1A(i,a)
-         EXECUTE c1_print lia AMPLTHRESH
-      ENDPARDO a, i
-      EXECUTE  SIP_BARRIER
+#     PARDO a, i
+#        GET A1A(i,a)
+#        lia(i,a)=A1A(i,a)
+#        EXECUTE c1_print lia AMPLTHRESH
+#     ENDPARDO a, i
+#     EXECUTE  SIP_BARRIER
 
-      PARDO b, j
-         GET A1B(j,b)
-         ljb(j,b)=A1B(j,b)
-         EXECUTE c1b_print ljb AMPLTHRESH
-      ENDPARDO b, j
-      EXECUTE  SIP_BARRIER
+#     PARDO b, j
+#        GET A1B(j,b)
+#        ljb(j,b)=A1B(j,b)
+#        EXECUTE c1b_print ljb AMPLTHRESH
+#     ENDPARDO b, j
+#     EXECUTE  SIP_BARRIER
 
-      PARDO a, i, a1, i1
-         REQUEST A2AA(i,a,i1,a1) a1
-         tiaia(i,a,i1,a1)=A2AA(i,a,i1,a1)
-         EXECUTE c2aa_print tiaia AMPLTHRESH
-      ENDPARDO a, i, a1, i1
-      EXECUTE  SERVER_BARRIER
+#     PARDO a, i, a1, i1
+#        REQUEST A2AA(i,a,i1,a1) a1
+#        tiaia(i,a,i1,a1)=A2AA(i,a,i1,a1)
+#        EXECUTE c2aa_print tiaia AMPLTHRESH
+#     ENDPARDO a, i, a1, i1
+#     EXECUTE  SERVER_BARRIER
 
-      PARDO b, j, b1, j1
-         REQUEST A2BB(j,b,j1,b1) b1
-         tjbjb(j,b,j1,b1)=A2BB(j,b,j1,b1)
-         EXECUTE c2bb_print tjbjb AMPLTHRESH
-      ENDPARDO b, j, b1, j1
-      EXECUTE  SERVER_BARRIER
+#     PARDO b, j, b1, j1
+#        REQUEST A2BB(j,b,j1,b1) b1
+#        tjbjb(j,b,j1,b1)=A2BB(j,b,j1,b1)
+#        EXECUTE c2bb_print tjbjb AMPLTHRESH
+#     ENDPARDO b, j, b1, j1
+#     EXECUTE  SERVER_BARRIER
 
-      PARDO a, i, b, j
-         REQUEST A2AB(i,a,j,b) b
-         tiajb(i,a,j,b)=A2AB(i,a,j,b)
-         EXECUTE c2ab_print tiajb AMPLTHRESH
-      ENDPARDO a, i, b, j
-      EXECUTE  SERVER_BARRIER
+#     PARDO a, i, b, j
+#        REQUEST A2AB(i,a,j,b) b
+#        tiajb(i,a,j,b)=A2AB(i,a,j,b)
+#        EXECUTE c2ab_print tiajb AMPLTHRESH
+#     ENDPARDO a, i, b, j
+#     EXECUTE  SERVER_BARRIER
 
       DEALLOCATE lia(*,*)
       DEALLOCATE ljb(*,*)

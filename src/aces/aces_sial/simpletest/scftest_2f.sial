@@ -1,0 +1,46 @@
+      SIAL TEST_2a    
+
+      aoindex m = 1, norb 
+      aoindex n = 1, norb 
+      aoindex l = 1, norb 
+      aoindex s = 1, norb 
+
+      served aoint(m,n,l,s) 
+      temp txxxx(m,n,l,s) 
+      temp txx(m,n) 
+      temp t1xx(m,n) 
+      local LD(m,n) 
+
+      execute load_balance_off 
+      allocate LD(*,*) 
+      PARDO m, n, l, s 
+            txxxx(m,n,l,s) = 2.0 
+            PREPARE aoint(m,n,l,s) = txxxx(m,n,l,s) 
+            txxxx(m,n,l,s) = 3.0
+      ENDPARDO m, n, l, s 
+      execute server_barrier 
+      PARDO m, n, l, s 
+            txxxx(m,n,l,s) = 2.0 
+            PREPARE aoint(m,n,l,s) += txxxx(m,n,l,s) 
+            txxxx(m,n,l,s) = 3.0
+      ENDPARDO m, n, l, s 
+      execute server_barrier 
+      PARDO m, n 
+
+            LD(m,n) = 0.0 
+       
+            DO l   
+            DO s  
+
+               REQUEST           aoint(m,n,l,s) m 
+               t1xx(l,s)       = 1.0 
+               txx(m,n)        = aoint(m,n,l,s)*t1xx(l,s) 
+
+               LD(m,n)        += txx(m,n) 
+
+            ENDDO s  
+            ENDDO l   
+      ENDPARDO m, n   
+      execute server_barrier 
+
+      ENDSIAL TEST_2a    

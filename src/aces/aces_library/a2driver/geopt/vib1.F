@@ -23,6 +23,8 @@ C
 #include "fnamelen.par"
 C TOLERANCE FOR DEGENERACY OF EIGENVALUES.
       PARAMETER (DEGTLX = 1.D-6)
+      INTEGER*8 NIMAGD, NRXD
+      INTEGER II 
       CHARACTER*1 XYZ(3),FLAG(3*MXATMS)
       CHARACTER*11 TYPE(3*MXATMS)
       CHARACTER*4 IRREP(3*MXATMS)
@@ -106,6 +108,7 @@ C RELAX FURTHER IF IT IS SINGLE-SIDED.
 C
       IF(IVIB.GE.2.AND.IGRDFD.EQ.1)DEGTOL=DEGTOL*10.D0
       istop=0
+      WRITE(*,*) 'NRX in VIB1:', NRX ! Watson debug
       IF(MOD(NRX,3).NE.0)THEN
        WRITE(6,8701)
  8701 FORMAT(T3,'@VIB1-F, Something very wrong with passed parameters.')
@@ -140,8 +143,8 @@ C
       ENDIF
 C
 C MASS-WEIGHT HESSIAN MATRIX
-      Write(6,*) "Before mass"
-      call output(h, 1, nrx, 1, nrx, nrx, nrx, 1)
+c 3.04/2010 VFL  Write(6,*) "Before mass"
+c 3/04/2012 VFL  call output(h, 1, nrx, 1, nrx, nrx, nrx, 1)
 C
       DO 15 I=1,NRX
       DO 15 J=1,NRX
@@ -152,8 +155,8 @@ C
        H(I,J)=H(I,J)/FACT
       ENDIF
    15 CONTINUE
-      Write(6,*) "The Hess in vib1"
-      call output(h, 1, nrx, 1, nrx, nrx, nrx, 1)
+c 3/04/2012 VFL      Write(6,*) "The Hess in vib1"
+c 3/04/2012 VFL      call output(h, 1, nrx, 1, nrx, nrx, nrx, 1)
 C
 C WRITE OUT FCM TO SCRATCH FILE IN CASE IT IS NEEDED LATER.
 C
@@ -256,8 +259,9 @@ C TRANSLATIONS FIRST.  ALWAYS THREE OF THESE.
 C
        CALL PIKSR2(NRX,ECKART(NRX+1),NORD(NRX+1))
        DO 5703 I=0,2
-       J=NORD(2*NRX-I)
-       TYPE(J)='TRANSLATION'
+         II = NORD(2*NRX-I) 
+c      TYPE(NORD(2*NRX-I))='TRANSLATION'
+       TYPE(II)='TRANSLATION'
  5703  CONTINUE
 C
 C CHECK INERTIA TENSOR FOR ZERO ELEMENT, MEANING MOLECULE IS LINEAR.
@@ -281,8 +285,9 @@ C NOW ASSIGN ROTATIONAL MODES.
 C
        CALL PIKSR2(NRX,ECKART,NORD)
        DO 5706 I=0,2-ILINER
-       J=NORD(NRX-I)
-       TYPE(J)=' ROTATION '
+       II = NORD(NRX-I) 
+       TYPE(II)=' ROTATION '
+c      TYPE(NORD(NRX-I))=' ROTATION '
  5706  CONTINUE
 C
 C PUT EIGENVECTORS BACK INTO SQRT(MASS)*DISTANCE DIMENSION
@@ -1105,7 +1110,13 @@ C
       CLOSE(UNIT=79,STATUS='DELETE')
       OPEN(UNIT=79,FILE='FRQARC',FORM='UNFORMATTED',STATUS='NEW')
  6666 LABEL='***FRQC***'
-      WRITE(79)LABEL,FPGRP,NRX,NIMAG,ZMASS,ZIX,ZIY,ZIZ,
+C
+C The integer*8 NRXD and NIMAGD is introduced to maintain the compatibility
+C 64-bit integer ACESII/a2proc, 12/10, Ajith Perera. 
+C
+      NRXD   = NRX
+      NIMAGD = NIMAG
+      WRITE(79)LABEL,FPGRP,NRXD,NIMAGD,ZMASS,ZIX,ZIY,ZIZ,
      &(SCRATCH(J),J=1,IX)
       CLOSE(UNIT=79,STATUS='KEEP')
 C
@@ -1183,7 +1194,9 @@ c     (Obviously we cannot use this matrix afterward.)
          h(i,1) = h(i,i)
       end do
       call dputrec(20,'JOBARC','FORCECON',NRX,h)
+
       WRITE(LUOUT,9901)
+      WRITE(66,9901)
 9901  FORMAT(T3,' Vibrational frequencies after rotational projection ',
      &' of ',/,T3,' Cartesian force constants: ')
       FACT=5.14048D03
@@ -1198,17 +1211,13 @@ c     (Obviously we cannot use this matrix afterward.)
        ZPE=ZPE+H(I,I)
       ENDIF
       WRITE(LUOUT,9903)I,H(I,I),FLAG(I)
+      WRITE(66,9903)I,H(I,I),FLAG(I)
 9903  FORMAT(T10,I4,T25,F10.4,A1)
 9902  CONTINUE
       WRITE(LUOUT,9904)HALF*ZPE*FACT01
-C
-C   Watson: stanton's stat thermo program
-C
-      CALL  STAT_THERMO_MAIN ()
-C
-C   Watson: Done
-C
+      WRITE(66,9904)HALF*ZPE*FACT01
 9904  FORMAT(T3,'Zero-point vibrational energy = ',F9.4,' kcal/mole.')
+
       ISTOP=100
       CLOSE(UNIT=78,STATUS='DELETE')
       CLOSE(UNIT=56,STATUS='KEEP')

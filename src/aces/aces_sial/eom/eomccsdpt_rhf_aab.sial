@@ -1881,7 +1881,7 @@
                      if jjcount <= jend
 #
                         taaaiii(a,a1,b,k1,ii,jj) = xaaaiii(a,a1,b,k1,ii,jj)
-                        execute  energy_tdenominator  taaaiii  omega  
+                        execute  energy_ty_denominator  taaaiii  omega  
 
                         tpppp(a,a1,b,k1)  = taaaiii(a,a1,b,k1,ii,jj) 
                         t1pppp(a,a1,b,k1) = xaaaiii(a,a1,b,k1,ii,jj) 
@@ -2423,10 +2423,6 @@
       ENDDO k1 
       ENDPARDO a2, a1, a
 #     
-#
-      PARDO a1, a, b 
-      where a  <= a1 
-#
 # Loop over the occupied combinations 
 # ----------------------------------- 
 #
@@ -2463,6 +2459,9 @@
          endif  
          if ncount <= xtemp1  
          IF whichj >= whichi   
+#
+      PARDO a1, a, b 
+      where a  <= a1 
 #
 # Allocate the partial amplitude array 
 # ------------------------------------ 
@@ -2526,15 +2525,16 @@
 #
             deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
 #
-      endif 
-      endif 
-      ENDDO NT 
-#
       ENDPARDO a1, a, b 
+      execute server_barrier 
 #                                                           
 # ----------------------------------------------------------
 # End Virtual symetry combination one.                      
 # ----------------------------------------------------------
+#
+      endif 
+      endif 
+      ENDDO NT 
 #
      ENDPROC OSEG_TRIP1 
 #    -------------------  

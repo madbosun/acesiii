@@ -20,6 +20,10 @@
 # --------------- 
 #
       index kiter    = 1, cc_iter   
+      index jiter    = 1, cc_iter
+      index   kptr1  = 1, 2
+      index   kptr2  = 1, 2
+      index   kone   = 1, 1
 #
       aoindex mu     = 1, norb 
       aoindex nu     = 1, norb
@@ -335,6 +339,15 @@
 # --------------------- 
 #
       temp AOINT(mu,nu,lambda,sigma) 
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      scalar ncount1
+      scalar ncount2
+      scalar one
+      scalar two
+      scalar five
+      scalar six
+      scalar seven
 #
 # Arrays needed for AOLADDER contribution
 # ---------------------------------------
@@ -2202,11 +2215,36 @@
      execute sip_barrier 
 #
      collective ecorrab += esumab
-     execute print_scalar ecorrab 
+    #execute print_scalar ecorrab 
 #
     #ecorrT  = ecorraa + ecorrbb
      ecorrT = ecorrab 
-     execute print_scalar ecorrT  
+    #execute print_scalar ecorrT  
+
+     if kiter > 0
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == one
+               tpinf(kiter,kptr1) = ecorrab
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == two
+               etemp = ecorrab
+               etemp+= scfeneg
+               tpinf(kiter,kptr1) = etemp
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+         execute print_rel_info five pinf
+      endif
+
 # 
 #    ------------------------------------------------------------------------ 
 # 
@@ -2793,8 +2831,8 @@
      c1 = Tb11 
      c2 = Tb22 
      execute server_barrier 
-     execute print_scalar c1 
-     execute print_scalar c2 
+    #execute print_scalar c1 
+    #execute print_scalar c2 
 #
 #    Done computing the c-vector. 
 #    ---------------------------- 
@@ -3059,9 +3097,9 @@
      c2 = Tb22 
      c3 = Tb33 
      execute server_barrier 
-     execute print_scalar c1 
-     execute print_scalar c2 
-     execute print_scalar c3 
+    #execute print_scalar c1 
+    #execute print_scalar c2 
+    #execute print_scalar c3 
 #
 #    Done computing the c-vector. 
 #    ---------------------------- 
@@ -3404,10 +3442,10 @@
      c2 = Tb22 
      c3 = Tb33 
      c4 = Tb44 
-     execute print_scalar c1 
-     execute print_scalar c2 
-     execute print_scalar c3 
-     execute print_scalar c4 
+    #execute print_scalar c1 
+    #execute print_scalar c2 
+    #execute print_scalar c3 
+    #execute print_scalar c4 
      execute server_barrier 
 #
 #    Done computing the c-vector. 
@@ -3843,11 +3881,11 @@
      c3 = Tb33 
      c4 = Tb44 
      c5 = Tb55 
-     execute print_scalar c1 
-     execute print_scalar c2 
-     execute print_scalar c3 
-     execute print_scalar c4 
-     execute print_scalar c5 
+    #execute print_scalar c1 
+    #execute print_scalar c2 
+    #execute print_scalar c3 
+    #execute print_scalar c4 
+    #execute print_scalar c5 
      execute server_barrier 
 #
 #    Done computing the c-vector. 
@@ -4104,6 +4142,11 @@
 # ------------------ 
 #
       ecrit = cc_conv  
+      one = 1.0
+      two = 2.0
+      five  = 5.0
+      six   = 6.0
+      seven = 7.0
 #
 # Read transformed integrals from lists 
 # ------------------------------------- 
@@ -4148,6 +4191,46 @@
 # Calculate the second-order energy 
 # --------------------------------- 
       CALL ENERGY_NEW 
+
+      do kiter
+      do kptr1
+         etemp = 0.0
+         pinf(kiter,kptr1)  = etemp
+      enddo kptr1
+      enddo kiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == two
+               etemp              = ecorrab
+               etemp             += scfeneg
+               tpinf(jiter,kptr1) = etemp
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == one
+               tpinf(jiter,kptr1) = ecorrab
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        execute print_rel_info six pinf
+
+      do kiter
+      do kptr1
+         etemp = 0.0
+         pinf(kiter,kptr1)  = etemp
+      enddo kptr1
+      enddo kiter
 #
 # Start iterations
 # ---------------- 
@@ -4304,16 +4387,39 @@
       execute sip_barrier 
       totenerg  = ecorrT  
       totenerg += scfeneg  
-      execute print_scalar totenerg  
+     #execute print_scalar totenerg  
+      execute print_rel_info seven pinf 
 #
 # Write amplitudes to file
 # ------------------------
+
+      etemp = 21.0
+      execute print_rel_info etemp pinf  
+      DO a 
+      DO b 
+      DO i  
+      DO j  
+         REQUEST T2old_ab(a,i,b,j) a 
+         execute maxamp_print T2old_ab 
+      ENDDO j  
+      ENDDO i  
+      ENDDO b  
+      ENDDO a  
+
+      etemp = 22.0
+      execute print_rel_info etemp pinf  
+      DO a 
+      DO i  
+         GET t1a_old(a,i) 
+         execute maxamp_print t1a_old 
+      ENDDO i  
+      ENDDO a  
 #
 ######CALL WRITE_2EL   
 #
       execute sip_barrier
       execute blocks_to_list                t1a_old
-     #execute blocks_to_list                T2old_aa
+      execute blocks_to_list                T2old_aa
       execute blocks_to_list                T2old_ab
       execute write_blocks_to_list
       execute sip_barrier

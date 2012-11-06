@@ -92,6 +92,8 @@ c   Send commit signals to each server.
 c--------------------------------------------------------------------------
 
          msg(1) = sip_server_commit_signal
+         msg(2) = 0
+         msg(3) = 0
          msg(4) = current_line   ! in the "tag" field of the msg.
          niocompany = 0
          do i = 1, nprocs

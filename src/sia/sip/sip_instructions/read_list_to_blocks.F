@@ -189,6 +189,9 @@ c   Send a blocks_to_list "open" message (i. e. array = 0) to each server.
 c--------------------------------------------------------------------------
 
          if (me .eq. 0) then
+            do i = 1, len_sip_server_message
+                msg(i) = 0
+            enddo
             msg(1) = sip_server_list_to_blocks
             msg(2) = 0         ! signal to open the files.
             msg(3) = 0         ! nindex
@@ -249,6 +252,9 @@ c---------------------------------------------------------------------------
 c   Send a list_to_blocks message to each server.
 c---------------------------------------------------------------------------
 
+            do i = 1, len_sip_server_message
+                msg(i) = 0
+            enddo
             msg(1) = sip_server_list_to_blocks
             msg(2) = array
             msg(3) = 0         ! nindex
@@ -332,6 +338,10 @@ c   Send servers the signal to close their files.
 c-------------------------------------------------------------------------
 
       if (me .eq. 0 .and. served_data) then
+
+        do i = 1, len_sip_server_message
+            msg(i) = 0
+        enddo
          msg(1) = sip_server_list_to_blocks 
          msg(2) = list_to_blocks_done
 

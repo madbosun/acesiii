@@ -45,6 +45,9 @@
 # --------------- 
 #
       index   kiter  = 1, scf_iter  
+      index   kptr1  = 1, 2
+      index   kptr2  = 1, 2
+      index   kone   = 1, 1
 #
       aoindex mu     = 1, norb
       aoindex nu     = 1, norb
@@ -192,6 +195,8 @@
       local LDHFb(mu,nu) 
       local LFpq_b(mu,nu) 
       local LFpq_a(mu,nu) 
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
 #
 # Arrays used in DIIS procedure 
 # ----------------------------- 
@@ -394,6 +399,7 @@
       scalar escf_b 
       scalar etemp 
       scalar esum 
+      scalar esum1
       scalar energy 
       scalar energy1 
       scalar energy2 
@@ -404,6 +410,11 @@
       scalar done 
       scalar donea 
       scalar doneb 
+      scalar one
+      scalar two
+      scalar three
+      scalar four
+      scalar ncount1 
 #
 # ---------------------------------------------------------------------------- 
 #
@@ -423,7 +434,7 @@
 #
       ENDPARDO mu, nu 
 #
-      execute print_scalar scfeneg
+     #execute print_scalar scfeneg
       ENDPROC IGUESS   
 #     -------------- 
 #
@@ -565,7 +576,7 @@
 #
       collective energy1 += esum  
       execute sip_barrier 
-      execute print_scalar energy1 
+     #execute print_scalar energy1 
 #
 #     Two-particle contribution. 
 #     -------------------------- 
@@ -629,10 +640,10 @@
 #
        collective energy2 += esum  
        execute sip_barrier 
-       execute print_scalar energy2 
+      #execute print_scalar energy2 
        energy  = energy1 
        energy += energy2 
-       execute print_scalar energy 
+      #execute print_scalar energy 
 #
        ENDPROC SCFENERGY 
 #      ----------------- 
@@ -1290,7 +1301,7 @@
        collective energy += esum 
        energy += scfeneg 
 #
-       execute print_scalar energy 
+      #execute print_scalar energy 
 #
        ENDPROC HF_ENERGY   
 #      ----------------- 
@@ -1322,7 +1333,7 @@
 #
        ENDPARDO mu, nu  
 #
-       execute print_scalar scfeneg
+      #execute print_scalar scfeneg
        ENDPROC OVER_HALF 
 #      ----------------- 
 #
@@ -3629,9 +3640,9 @@
        etemp  = c1 
        etemp += c2 
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar etemp  
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar etemp  
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -3871,10 +3882,10 @@
        etemp += c2 
        etemp += c3 
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar c3
-       execute print_scalar etemp  
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar c3
+      #execute print_scalar etemp  
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -4185,11 +4196,11 @@
        etemp += c3 
        etemp += c4 
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar c3
-       execute print_scalar c4
-       execute print_scalar etemp  
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar c3
+      #execute print_scalar c4
+      #execute print_scalar etemp  
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -4577,12 +4588,12 @@
        etemp += c4 
        etemp += c5 
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar c3
-       execute print_scalar c4
-       execute print_scalar c5
-       execute print_scalar etemp  
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar c3
+      #execute print_scalar c4
+      #execute print_scalar c5
+      #execute print_scalar etemp  
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -5050,12 +5061,12 @@
        c5 = Tb55
        c6 = Tb66  
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar c3
-       execute print_scalar c4
-       execute print_scalar c5
-       execute print_scalar c6
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar c3
+      #execute print_scalar c4
+      #execute print_scalar c5
+      #execute print_scalar c6
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -5829,14 +5840,14 @@
        etemp += c6
        etemp += c7
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar c3
-       execute print_scalar c4
-       execute print_scalar c5
-       execute print_scalar c6
-       execute print_scalar c7
-       execute print_scalar etemp  
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar c3
+      #execute print_scalar c4
+      #execute print_scalar c5
+      #execute print_scalar c6
+      #execute print_scalar c7
+      #execute print_scalar etemp  
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -6702,15 +6713,15 @@
        etemp += c7
        etemp += c8 
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar c3
-       execute print_scalar c4
-       execute print_scalar c5
-       execute print_scalar c6
-       execute print_scalar c7
-       execute print_scalar c8
-       execute print_scalar etemp  
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar c3
+      #execute print_scalar c4
+      #execute print_scalar c5
+      #execute print_scalar c6
+      #execute print_scalar c7
+      #execute print_scalar c8
+      #execute print_scalar etemp  
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -7683,16 +7694,16 @@
        etemp += c8 
        etemp += c9 
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar c3
-       execute print_scalar c4
-       execute print_scalar c5
-       execute print_scalar c6
-       execute print_scalar c7
-       execute print_scalar c8
-       execute print_scalar c9
-       execute print_scalar etemp  
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar c3
+      #execute print_scalar c4
+      #execute print_scalar c5
+      #execute print_scalar c6
+      #execute print_scalar c7
+      #execute print_scalar c8
+      #execute print_scalar c9
+      #execute print_scalar etemp  
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -8782,17 +8793,17 @@
        etemp += c9 
        etemp += c10 
 #
-       execute print_scalar c1
-       execute print_scalar c2
-       execute print_scalar c3
-       execute print_scalar c4
-       execute print_scalar c5
-       execute print_scalar c6
-       execute print_scalar c7
-       execute print_scalar c8
-       execute print_scalar c9
-       execute print_scalar c10  
-       execute print_scalar etemp  
+      #execute print_scalar c1
+      #execute print_scalar c2
+      #execute print_scalar c3
+      #execute print_scalar c4
+      #execute print_scalar c5
+      #execute print_scalar c6
+      #execute print_scalar c7
+      #execute print_scalar c8
+      #execute print_scalar c9
+      #execute print_scalar c10  
+      #execute print_scalar etemp  
        execute sip_barrier
 #
 #      Done computing the c-vector.
@@ -9164,11 +9175,16 @@
 #     ---------------------- 
 #
       ecrit  = scf_conv # Energy tolerance  
+      damp   = 0.0 
       etemp  = 1.0 
       etemp += damp  
       damp1  = 1.0/etemp         # 1/(1+damp)  
-      execute print_scalar damp 
-      execute print_scalar damp1
+     #execute print_scalar damp 
+     #execute print_scalar damp1
+      one = 1.0 
+      two = 2.0 
+      three = 3.0 
+      four = 4.0 
 #
 #     Create the one-particle arrays needed for the computation. 
 #     ---------------------------------------------------------- 
@@ -9201,6 +9217,9 @@
 #    
       create IDhfa
       create IDhfb
+      etemp = 0.0 
+      esum  = 0.0 
+      esum1 = 0.0 
       execute sip_barrier
       execute list_to_blocks IDhfa
       execute list_to_blocks IDhfb
@@ -9214,12 +9233,21 @@
             txx(mu,nu)     *= 0.5
             PUT DHFa(mu,nu) = txx(mu,nu)
             PUT DHFb(mu,nu) = txx(mu,nu)
+            etemp = txx(mu,nu)*txx(mu,nu) 
+            esum += etemp 
       ENDPARDO mu, nu
       execute sip_barrier
+      collective esum1 += esum  
       delete IDhfa
       delete IDhfb
-      CALL FOCK_MATRIX
-     #CALL IGUESS  
+
+      if esum1 > 0.001 
+         CALL FOCK_MATRIX
+      endif 
+
+      if esum1 <= 0.001 
+         CALL IGUESS  
+      endif 
 #
 #     execute sip_barrier 
 #     execute list_to_blocks Fpq_a 
@@ -9461,7 +9489,27 @@
 #
          execute sip_barrier
 #
-         execute print_scalar done 
+       # execute print_scalar done 
+
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == one
+               tpinf(kiter,kptr1) = energy
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == two
+               tpinf(kiter,kptr1) = done
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+         execute print_rel_info one pinf
+
 #
 #        Check on convergence using density difference. 
 #        ---------------------------------------------- 
@@ -9522,6 +9570,11 @@
          DELETE FTpq_b  
          DELETE CBT_a 
          DELETE CBT_b 
+#
+         if kiter >= scf_iter
+            one = -1.0
+            execute print_rel_info one pinf
+         endif
 #
       ENDDO kiter 
 #
@@ -9603,6 +9656,10 @@
       #execute blocks_to_list Fpq_b 
       #execute write_blocks_to_list
       execute sip_barrier 
+
+      execute print_rel_info two pinf
+      execute print_rel_info three Fock_a  
+      execute print_rel_info four Fock_b  
 #
       scfeneg  = energy2 
       totenerg = scfeneg

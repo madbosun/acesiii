@@ -1,4 +1,3 @@
-
 #ifndef _F_TYPES_H_
 #define _F_TYPES_H_
 
@@ -13,7 +12,7 @@
 #endif
 
 #else /* C */
-
+typedef double f_double;
 #ifdef F_64BIT
 #ifdef _IA32
 typedef long long f_int;

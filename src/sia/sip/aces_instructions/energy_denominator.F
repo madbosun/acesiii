@@ -49,7 +49,7 @@ c--------------------------------------------------------------------------
      *                    epsilon,epsilonb)    
       else
          print *,'Error in energy_denominator: Result array ',
-     *      'must have either 4 or 2 indices.'
+     *      'must have either 6, 4 or 2 indices.'
          print *,'array has ',nindex,' indices.'
          call abort_job()
       endif

@@ -320,16 +320,16 @@
                  T1xxxi(mu,nu,lambda,i)  = aoint(mu,nu,lambda,sigma)*ca(sigma,i)
                  Txxxi(mu,nu,lambda,i)  += T1xxxi(mu,nu,lambda,i)  
 #
-          ENDDO i   
+             ENDDO i   
 #
-          DO j   
+             DO j   
 #
                  T1xxxj(mu,nu,lambda,j)  = aoint(mu,nu,lambda,sigma)*cb(sigma,j)
                  Txxxj(mu,nu,lambda,j)  += T1xxxj(mu,nu,lambda,j)  
 #
-          ENDDO j   
+             ENDDO j   
 #
-        ENDDO sigma
+          ENDDO sigma
 
           DO i
              PREPARE Vxxxi(mu,nu,lambda,i)  = Txxxi(mu,nu,lambda,i)

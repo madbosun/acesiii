@@ -46,6 +46,9 @@ C  in the file COPYRIGHT.
      *        eseg(mx_array_index), max_batch, nind
       integer next_seg(mx_array_index)
       integer first_batch, last_batch, current_batch
+
+c      integer pardo_overhead_timer
+
       integer nsegm
       logical debug, prt_flag
 
@@ -62,6 +65,7 @@ C  in the file COPYRIGHT.
       endif
 
       if (iop .lt. start_op .or. iop .gt. end_op) return
+
       if (opcode .eq. pardo_op) then
 c         print *,'PARDO at line ',current_line
 
@@ -165,7 +169,11 @@ c   Unpack the current pardo timers and start the timer.
 c---------------------------------------------------------------------------
 
             call unpack_pardo_timer(optable(c_instr_timer,iop),
-     *                 pardo_timer, pardo_block_wait_timer)
+     *                  pardo_timer, pardo_block_wait_timer)
+            
+c            print *, "pardo_timer =", pardo_timer, 
+c     *               "pardo_block_wait_timer =", pardo_block_wait_timer
+
             call timer_start(pardo_timer)
 
 c---------------------------------------------------------------------------
@@ -256,12 +264,14 @@ c---------------------------------------------------------------------------
                optable(c_oploop,iop) = 0   ! reset loop init flag
                current_batch = last_batch
                iop = end_op
+    
                return
             endif   ! nsegm .gt. 0
          endif      ! pardo loop init code
       endif         ! pardo_op
 
       if (opcode .eq. endpardo_op) then
+         
          call unset_prefetch_context()
 
 c-------------------------------------------------------------------------
@@ -348,6 +358,7 @@ c   of start, end values off the stack.
 c--------------------------------------------------------------------------
 
             optable(c_oploop,start_op) = 0   ! reset loop init flag
+
             call update_timer(pardo_timer)
 
             istat = pop_do(start_op, end_op)
@@ -363,7 +374,7 @@ c--------------------------------------------------------------------------
      *          end_op .lt. 0) call abort_job()
          endif
       endif
-
+    
       return
       end
 

@@ -50,18 +50,26 @@ C
 C Do some Printing
 C
       WRITE(LUOUT, 88)STPMAG, SCALE
+      WRITE(66, 89)   
  88   FORMAT(T3,' Summary of Optimization Cycle: ',/,T3,
      &       ' The maximum unscaled ',
      &       'step is: ',F10.5,'.',/,T3,' Scale factor set to: ',
      &        F8.5,'.')
+ 89   FORMAT(T3,' Summary of Optimization Cycle ')
 C
       WRITE(LUOUT, 93)
+      WRITE(66, 93)
 93    FORMAT(T3,' Forces are in hartree/bohr and hartree/radian.',
      &       /,T3,' Parameter values are in Angstroms and degrees.')
 C
       WRITE(LUOUT, 81)
       WRITE(LuOut, 881)
       WRITE(LuOut, 81)
+C
+      WRITE(66, 81)
+      WRITE(66, 881)
+      WRITE(66, 81)
+
 881   FORMAT(T3,'Parameter',T17,'dV/dR',T33,'Step',T47,'Rold',
      &       T63,'Rnew')
 C
@@ -86,6 +94,10 @@ C
      &                   SCRATCH(NOPT+I)*CNF, ZOP*CNF,
      &                   SCRATCH(I)*CNF
 C
+         WRITE(66,    84)VARNAM(ISQUASH(NOPTI(I))), GRD(NOPTI(I)),
+     &                   SCRATCH(NOPT+I)*CNF, ZOP*CNF,
+     &                   SCRATCH(I)*CNF
+C
  15   CONTINUE
 C
  84   FORMAT(T5,A,T10,4(F15.10,1X))
@@ -101,6 +113,7 @@ C
       CALL VSTAT(RFAMAT, SCRATCH(2*NOPT + 1), NOPT)
 C
       WRITE(LUOUT,82) SCRATCH(2*NOPT + 2),SCRATCH(2*NOPT + 5)
+      WRITE(66   ,82) SCRATCH(2*NOPT + 2),SCRATCH(2*NOPT + 5)
  82   FORMAT(74('-'),/,T3,'Minimum force: ',F12.9,' / RMS force: ',
      &       F12.9)
  81   FORMAT(74('-'))
@@ -111,10 +124,13 @@ C
      &     (IBREAK .EQ. 0)                                      ) THEN
 C
          WRITE(6,1321)
+         WRITE(66,1321)
  1321    FORMAT(80('-'))
          WRITE(6,1325)10.D0**(-1*ICONTL)
+         WRITE(66,1325)10.D0**(-1*ICONTL)
  1325    FORMAT(T3,' RMS gradient is below ',E10.5,'.')
          WRITE(6,1322)
+         WRITE(66,1322)
  1322    FORMAT(T3,' Convergence criterion satisfied.  Optimization ',
      &      'completed.')
          WRITE(6,1321)
@@ -194,15 +210,20 @@ c           END DO I=1,NOPT
 
 c         o print out the Cartesian coordinate matrix (broken)
        write(6,*)
-       write(6,*) ' Summary of optimized Cartesian coordinates (Bohr) '
+       write(66,*)
+       write(6,*) ' Summary of optimized Cartesian coordinates (Angs) '
+       write(66,*) ' Summary of optimized Cartesian coordinates (Angs) '
        write(6,*)
+       write(66,*)
 C 
             CALL DGETREC(20, 'JOBARC', 'COORD_OP',3*NATOMS, Q)
 C
             IOFF=1
+            CNF=0.529177249D0
             DO I=1,NATOMS
  1000          FORMAT(T6,A,T10,F14.8,T25,F14.8,T40,F14.8)
-               WRITE(6,1000)ZSYM(I)(1:2),(Q(J),J=IOFF,IOFF+2)
+               WRITE(6,1000)ZSYM(I)(1:2),(Q(J)*CNF,J=IOFF,IOFF+2)
+               WRITE(66,1000)ZSYM(I)(1:2),(Q(J)*CNF,J=IOFF,IOFF+2)
                IOFF=IOFF+3
             END DO
 
@@ -214,6 +235,11 @@ C
             write(6,*) '  Summary of optimized internal coordinates'
             write(6,*) '  (Angstroms and degrees)'
             write(6,*) (Iflags2(h_IFLAGS2_geom_opt))
+
+            write(66,*)
+            write(66,*) '  Summary of optimized internal coordinates'
+            write(66,*) '  (Angstroms and degrees)'
+            write(66,*) (Iflags2(h_IFLAGS2_geom_opt))
 
             DO I=1,NOPT
                OPT_GEOMETRY = SCRATCH(I) - SCRATCH(NOPT+I)
@@ -240,6 +266,8 @@ c            o remove spaces
                   CNF=180.D0/DACOS(-1.D0)
                END IF
                WRITE(LuOut,184) A5, OPT_GEOMETRY*CNF
+               WRITE(66,184) A5, OPT_GEOMETRY*CNF
+            write(6,*) 
  184           FORMAT(A5,T6,'=',F17.10)
 c           end if (.not.skip)
             end if
@@ -252,17 +280,24 @@ C
 C
 c    o print out the Cartesian coordinate matrix (broken)
             write(6,*) 
+            write(66,*) 
             write(6,"(a,a)") ' Summary of optimized Cartesian',
-     &                          ' coordinates (Bohr) '
+     &                          ' coordinates (Angs) '
+            write(66,"(a,a)") ' Summary of optimized Cartesian',
+     &                          ' coordinates (Angs) '
             write(6,*) 
+            write(66,*) 
 C      
             CALL DGETREC(20, 'JOBARC', 'COORD_OP',3*NATOMS, Q)
 C           
             IOFF=1
+            CNF = 0.529177249D0
             DO I=1,NATOMS
-               WRITE(6,1000)ZSYM(I)(1:2),(Q(J),J=IOFF,IOFF+2)
+               WRITE(6,1000)ZSYM(I)(1:2),(Q(J)*cnf,J=IOFF,IOFF+2)
+               WRITE(66,1000)ZSYM(I)(1:2),(Q(J)*cnf,J=IOFF,IOFF+2)
                IOFF=IOFF+3
             END DO
+            write(6,*) 
 C
 C ENDIF (Iflags2(h_IFLAGS2_geom_opt))
 C

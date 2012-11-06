@@ -12,7 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine write_zmat_auto()
+      subroutine write_zmat_auto(jobflow)
 c-------------------------------------------------------------------------
 c   Uses information from the ZMAT file and ACES II flags to generate
 c   automatic ACES III parameters which are written to the file ZMAT.AUTO.
@@ -48,6 +48,7 @@ c-------------------------------------------------------------------------
       character*80 line, sip_line
       character*80 keyword
       character*80 auto_keyword(nauto_params)
+      character*80 jobflow  
       logical set_keyword(nauto_params)
       logical sip_written
 
@@ -270,7 +271,11 @@ c-------------------------------------------------------------------------
       if (.not. set_keyword(4)) then
          call write_default_sial_programs(calc,dropmo,ref,geom_opt,
      *                                    vib, excite, instab, props,
-     *                                    grad_calc)
+     *                                    grad_calc,jobflow)
+      else 
+         call find_jobflow(calc,dropmo,ref,geom_opt,
+     *                                    vib, excite, instab, props,
+     *                                    grad_calc,jobflow)
       endif
 
 c---------------------------------------------------------------------------

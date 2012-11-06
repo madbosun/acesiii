@@ -19,6 +19,14 @@ C  in the file COPYRIGHT.
 
       integer iii(2)
       double precision x(2)
+      integer devid
+
+      call init_gpu(devid)
+      if(devid >= 0) then
+        gpu_enabled = .true.
+      else
+        gpu_enabled = .false.
+      end if
 
       intsize = loc(iii(2)) - loc(iii(1))
       bytes_per_double = loc(x(2)) - loc(x(1))
@@ -41,5 +49,8 @@ C  in the file COPYRIGHT.
 #else
       mpi_io_support = .true.
 #endif
+
+c     TURM MPIIO OFF 3/6/2012 VFL 
+      mpi_io_support = .false.
       return
       end

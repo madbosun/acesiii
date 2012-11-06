@@ -61,7 +61,8 @@ C  in the file COPYRIGHT.
       integer nsegs, first
       integer blocksize, nbasis
       integer next, next_server, next_worker
-      integer proc_timer, target, key, key1, key2
+      integer proc_timer, target
+      integer key, key1, key2, key3, key4, key5, key6, key7, key8
 
       integer i, j, k, n
       integer nproctab
@@ -953,13 +954,6 @@ c------------------------------------------------------------------------
 
       do i = 1, noptable
          optable(c_instr_timer,i) = 0
-         optable(c_get_counter,i) = 0
-         optable(c_put_counter,i) = 0
-         optable(c_putinc_counter,i) = 0
-         optable(c_prepare_counter,i) = 0
-         optable(c_preparesum_counter,i) = 0
-         optable(c_request_counter,i) = 0
-         optable(c_pardomsg_counter,i) = 0
       enddo
 
       stat_key = 0
@@ -973,7 +967,48 @@ c------------------------------------------------------------------------
             write (timerdesc,9300) optable(c_lineno,i)
             call register_timer(timerdesc, elapsed_time_timer, key2)
 
-            call pack_pardo_timer(optable(c_instr_timer,i),key1,key2) 
+            timerdesc = ' '
+            write (timerdesc,9400) optable(c_lineno,i)
+            call register_timer(timerdesc, elapsed_time_timer, key3)
+
+            timerdesc = ' '
+            write (timerdesc,9500) optable(c_lineno,i)
+            call register_timer(timerdesc, elapsed_time_timer, key4)
+            
+            timerdesc = ' '
+            write (timerdesc,9550) optable(c_lineno,i)
+            call register_timer(timerdesc, elapsed_time_timer, key5)
+
+            write (timerdesc,9560) optable(c_lineno,i)
+            call register_timer(timerdesc, times_exec_timer, key6)
+
+
+            call pack_pardo_timer(optable(c_instr_timer,i),
+     *                                     key1,key2) 
+            if (key1 .gt. max_timers .or. key1 .lt. 0 .or.
+     *           key2 .gt. max_timers .or. key2 .lt. 0) then 
+                print *, me, 'Error! with timer at line ',
+     *           optable(c_lineno, i), ' key1 = ', key1,
+     *           ' key2=', key2
+            endif
+
+            
+               if (key1 + 1 .ne. key2 .or.
+     *             key2 + 1 .ne. key3 .or.
+     *             key3 + 1 .ne. key4 .or.
+     *             key4 + 1 .ne. key5 .or.
+     *             key5 + 1 .ne. key6) then
+                   print *, "Error : Assumption about timer being",
+     *                      " alloted sequentially failed"
+                   call abort_job()
+               endif
+
+c            optable(c_pardo_act_timer,i) = key3
+c            optable(c_pardo_tserver_timer,i) = key4
+c            optable(c_pardo_ovrhead_timer,i) = key5
+
+c            print *,"Overhead timer for pardo at ", optable(c_lineno,i),
+c     *              " is ", optable(c_ovrhead_timer,i), "=", key3
 
 c-------------------------------------------------------------------------
 c  Set up a server stat_key.
@@ -989,6 +1024,21 @@ c-------------------------------------------------------------------------
 
          optable(c_server_stat_key,i) = stat_key
       enddo
+
+
+c-------------------------------------------------------------------------
+c   Register the timer for optable, overhead
+c-------------------------------------------------------------------------
+
+      timerdesc = ' '
+      write (timerdesc,9600)
+      call register_timer(timerdesc, elapsed_time_timer, timer_optl)
+
+
+      timerdesc = ' '
+      write (timerdesc,9650)
+      call register_timer(timerdesc, elapsed_time_timer, timer_ovrhead)
+
 
 c-------------------------------------------------------------------------
 c   Register the timers for each instruction.
@@ -1014,30 +1064,70 @@ c-------------------------------------------------------------------------
             if (opdesc(1:1) .ne. ' ') then
                timerdesc = ' '
                write (timerdesc,9000) optable(c_lineno,i),opdesc
-               call register_timer(timerdesc, elapsed_time_timer, key)
-               timerdesc = ' '
-               optable(c_instr_timer,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'GET'
-               call register_counter(timerdesc, key)
-               optable(c_get_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PUT'
-               call register_counter(timerdesc, key)
-               optable(c_put_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PUTINC'
-               call register_counter(timerdesc, key)
-               optable(c_putinc_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PREPARE'
-               call register_counter(timerdesc, key)
-               optable(c_prepare_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PREPSUM'
-               call register_counter(timerdesc, key)
-               optable(c_preparesum_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'REQUEST'
-               call register_counter(timerdesc, key)
-               optable(c_request_counter,i) = key
-               write (timerdesc,9400) optable(c_lineno,i),'PARDOMSG'
-               call register_counter(timerdesc, key)
-               optable(c_pardomsg_counter,i) = key
+               call register_timer(timerdesc, elapsed_time_timer, key1)
+               if (key1 .gt. max_timers .or. key1 .lt. 0) then
+                    print *, me, 'Error! with timer at line ',
+     *                  optable(c_lineno, i), ' key1 = ', key1
+               endif
+
+
+               optable(c_instr_timer,i) = key1
+               if (optable(c_instr_timer,i) .gt. max_timers .or. 
+     *              optable(c_instr_timer,i) .lt. 0) then
+                    print *, me, 'Error! stored wrong timer at line ',
+     *                  optable(c_lineno, i), ' timer stored ', 
+     *                   optable(c_instr_timer,i)
+               endif
+
+               write (timerdesc,9010) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, elapsed_time_timer, key2)
+c               optable(c_instr_blk_timer,i) = key
+               write (timerdesc,9020) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, elapsed_time_timer, key3)
+c               optable(c_instr_mpi_timer,i) = key
+               write (timerdesc,9040) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, times_exec_timer, key4)
+               write (timerdesc,9050) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, times_exec_timer, key5)
+               write (timerdesc,9060) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, average_unit_timer, key6)
+               write (timerdesc,9070) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, elapsed_time_timer, key7)
+               write (timerdesc,9080) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, elapsed_time_timer, key8)
+
+                
+               if (key1 + 1 .ne. key2 .or.
+     *             key2 + 1 .ne. key3 .or.
+     *             key3 + 1 .ne. key4 .or.
+     *             key4 + 1 .ne. key5 .or.
+     *             key5 + 1 .ne. key6 .or.
+     *             key6 + 1 .ne. key7 .or.
+     *             key7 + 1 .ne. key8) then
+                   print *, "Error : Assumption about timer being",
+     *                      " alloted sequentially failed"
+                   call abort_job()
+               endif
+                                  
+c               if(32000 .le. key1) then
+c                   print *, "Error: Got a key1 from register",
+c     *                " greater than 32k at ", optable(c_lineno,i)
+c                endif
+c               if(key2 .ge. 32000)
+c                   print *, "Error: Got a key2 from register",
+c     *                " greater than 32k at ", optable(c_lineno,i)
+c
+c               if(key3 .ge. 32000)
+c                   print *, "Error: Got a key3 from register",
+c     *                " greater than 32k at ", optable(c_lineno,i)
+c
+c               if(key4 .ge. 32000)
+c                   print *, "Error: Got a key4 from register",
+c     *                " greater than 32k at ", optable(c_lineno,i)
+c
+c               if(key5 .ge. 32000) 
+c                   print *, "Error: Got a key5 from register",
+c     *                " greater than 32k at ", optable(c_lineno,i)
             endif
          endif
       enddo
@@ -1069,6 +1159,32 @@ c-------------------------------------------------------------------------
          endif
       enddo
 
+      do i = 1, noptable
+c        print *, me, ';', optable(c_lineno, i),'=',
+c     *                  optable(c_instr_timer,i)
+        if (optable(c_opcode,i) .ne. call_op .and.
+     *       optable(c_opcode, i) .ne. pardo_op) then
+        if (optable(c_instr_timer ,i) .ge. max_timers
+     *       .or. optable(c_instr_timer, i) .lt. 0)
+     *       print *, me, 'Error! with timer at line ',
+     *           optable(c_lineno, i), ' is ', 
+     *           optable(c_instr_timer, i)
+        endif
+      enddo
+
+
+c      do i = 1, noptable
+c          if (optable(c_lineno, i) .eq. 7626) then
+c              if (optable(c_opcode, i) .eq. pardo_op) then
+c                  print *, '7627 is a pardo!!'
+c
+c              endif
+c              print *, '7626 :', optable(c_instr_timer, i)    
+c          endif
+c
+c      enddo
+
+
 c      if (my_company_rank .eq. 0) then
 c         print *,'Processing Operation table:'
 c         do i = 1, noptable
@@ -1076,11 +1192,27 @@ c            print *,'Op #',i,': ',(optable(j,i),j=1,loptable_entry)
 c         enddo
 c      endif
 
+
  9000 format('Line',i6,': ',a12)
+ 9010 format('Lblk',i6,': ',a12)
+c     Lblk = Block suffered at line number
+ 9020 format('Lmpi',i6,': ',a12)
+ 9040 format('Lnum',i6,': ',a12)
+ 9050 format('Lmno',i6,': ',a12)
+ 9060 format('Luni',i6,': ',a12)
+ 9070 format('Lalo',i6,': ',a12)
+ 9080 format('Ltot',i6,': ',a12)
+c     Lblk = MPI suffered at line number
  9100 format('Proc call at line ',i6)
  9200 format('Pardo at line ',i6)
  9300 format('Blkwait for pardo ',i6)
- 9400 format('Line',i8,': ',a8)
+ 9400 format('Actual pardo proc ',i6)
+c     Time spent at  
+ 9500 format('MPItime for pardo ',i6)
+ 9550 format('Ovrhead for pardo ',i6)
+ 9560 format('Number time pardo ',i6)
+ 9600 format('Optable time ')
+ 9650 format('Overhead time ')
       return
       end
 

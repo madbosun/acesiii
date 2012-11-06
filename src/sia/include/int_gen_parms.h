@@ -24,7 +24,7 @@ c--------------------------------------------------------------------------
       integer max_centers
       integer max_shells
       
-      parameter (max_centers = 1000)
+      parameter (max_centers = 300)
       parameter (max_shells = 5000)
 
 c--------------------------------------------------------------------------
@@ -125,6 +125,7 @@ c nContAOs : total number of contracted functions
       double precision damp_init, cc_conv, scf_conv
 
       double precision excite, eom_tol, eom_roots ! Watson Added
+      double precision reg,stabvalue
 
       integer itrips, itripe
       integer ihess1, ihess2, jhess1, jhess2, subb, sube
@@ -133,7 +134,6 @@ c nContAOs : total number of contracted functions
       logical jobarc_exists, geom_opt, vib_freq_calc, vib_exact
       logical fast_erd_memcalc
       logical calc_2der_integrals
-      double precision reg,stabvalue
 
       common /int_gen_com/ memptr, i0wrk, iscfa, iscfb, iepsa, iepsb,
      &                     ifocka, ifockb,
@@ -145,6 +145,7 @@ c nContAOs : total number of contracted functions
      &                     scf_energy, totenerg, damp_init, cc_conv, 
      &
      &                     excite, eom_tol, eom_roots, ! Watson Added
+     &                     reg, stabvalue,              ! Taube Added ,
      &
      &                     scf_conv, itrips, itripe, 
      &                     charge(max_centers), acenter(max_centers,3),
@@ -182,7 +183,7 @@ c nContAOs : total number of contracted functions
      &                     sip_sub_virt_segsize, sip_sub_ao_segsize,
      &                     nworkthread, jobarc_exists, geom_opt, 
      &                     vib_freq_calc, fast_erd_memcalc, vib_exact,
-     &                     if_scf, calc_2der_integrals,reg,stabvalue,
+     &                     if_scf, calc_2der_integrals,
      &                     init_scf,
      &                     last
 

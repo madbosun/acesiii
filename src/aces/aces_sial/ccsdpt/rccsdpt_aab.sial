@@ -25,6 +25,10 @@
       index ii       = 1, naocc
       index jj       = 1, naocc
       index kk       = 1, naocc
+      index kiter    = 1, 1 
+      index kptr1    = 1, 2 
+      index iii      = 1, 8
+      index jjj      = 1, 8
 #
       aoindex mu     = 1, norb
       aoindex nu     = 1, norb
@@ -97,6 +101,10 @@
 #
       local Xaaaiii(a,a1,b,k1,ii,jj) 
       temp taaaiii(a,a1,b,k1,ii,jj) 
+
+      local XTaaaiii(a,a1,a2,k1,iii,jjj)
+      local XRaaaiii(a,a1,a2,k1,iii,jjj)
+
       served t1a_old(a,i1) 
       temp xai(a,ii) 
       temp x1ai(a,ii) 
@@ -128,6 +136,9 @@
       temp   t24aaai(a,a1,a2,i)
       temp   t25aaai(a,a1,a2,i)
 
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      scalar ncount1
 #
 # Declare scalars
 # ---------------
@@ -463,7 +474,7 @@
 #
       execute sip_barrier
       execute list_to_blocks                t1a_old
-     #execute list_to_blocks                TSaiai
+      execute list_to_blocks                TSaiai
       execute list_to_blocks                T2aiai
       execute read_list_to_blocks
       execute server_barrier
@@ -2307,39 +2318,14 @@
 #
 # Set up the parallelization over the three virtual segments  
 # ----------------------------------------------------------  
-      PARDO a2, a1, a
-      DO k1
-            t1aaai(a,a1,a2,k1) = 0.0
-            t2aaai(a,a1,a2,k1) = 0.0
-            t3aaai(a,a1,a2,k1) = 0.0
-            t4aaai(a,a1,a2,k1) = 0.0
-            t5aaai(a,a1,a2,k1) = 0.0
-            t6aaai(a,a1,a2,k1) = 0.0
-            t7aaai(a,a1,a2,k1) = 0.0
-            t8aaai(a,a1,a2,k1) = 0.0
-            t9aaai(a,a1,a2,k1) = 0.0
-            t10aaai(a,a1,a2,k1) = 0.0
-            t11aaai(a,a1,a2,k1) = 0.0
-            t12aaai(a,a1,a2,k1) = 0.0
-            t13aaai(a,a1,a2,k1) = 0.0
-            t14aaai(a,a1,a2,k1) = 0.0
-            t15aaai(a,a1,a2,k1) = 0.0
-            t16aaai(a,a1,a2,k1) = 0.0
-            t17aaai(a,a1,a2,k1) = 0.0
-            t18aaai(a,a1,a2,k1) = 0.0
-            t19aaai(a,a1,a2,k1) = 0.0
-            t20aaai(a,a1,a2,k1) = 0.0
-            t21aaai(a,a1,a2,k1) = 0.0
-            t22aaai(a,a1,a2,k1) = 0.0
-            t23aaai(a,a1,a2,k1) = 0.0
-            t24aaai(a,a1,a2,k1) = 0.0
-            t25aaai(a,a1,a2,k1) = 0.0
-      ENDDO k1
-      ENDPARDO a2, a1, a
 
-#
-      PARDO a1, a, b 
-      where a  <= a1 
+      PARDO a2, a1, a, k1
+         allocate XTaaaiii(a,a1,a2,k1,*,*)
+         allocate XRaaaiii(a,a1,a2,k1,*,*)
+
+         deallocate XTaaaiii(a,a1,a2,k1,*,*)
+         deallocate XRaaaiii(a,a1,a2,k1,*,*)
+      ENDPARDO a2, a1, a, k1
 #
 # Loop over the occupied combinations 
 # ----------------------------------- 
@@ -2378,6 +2364,9 @@
          if ncount <= xtemp1  
          IF whichj >= whichi   
 #
+      PARDO a1, a, b 
+      where a  <= a1 
+#
 # Allocate the partial amplitude array 
 # ------------------------------------ 
 #
@@ -2418,14 +2407,14 @@
 #                
 # Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
 # ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
+      CALL V3O4_1    
+      CALL V3O4_2   
+      CALL V3O4_3  
+      CALL V3O4_4 
+      CALL V3O4_5 
+      CALL V3O4_6 
+      CALL V3O4_7 
+      CALL V3O4_8 
 #                                                                              
 # Compute the 4th-order energy contribution                                   
 # -----------------------------------------                                  
@@ -2433,2029 +2422,477 @@
 #                                                                          
 # Compute the 5th-order energy contribution                               
 # -----------------------------------------                              
-      CALL COMP_E5S                                                     
+     #CALL COMP_E5S                                                     
+#
+# ------------------------------------------------------------------------------
+#
+# Form sai so that the singles contribution can be computed. 
+#
+# ------------------------------------------------------------------------------ 
+#
+# PERM 1 
+# ------ 
+      fact = 4.0 # efact  
+#
+#     Symmetry 1 
+#     ---------- 
+#
+            kcount = 0.0
+            DO k1
+               kcount = kcount + 1
+               if kcount == kstart
+            icount = 0.0
+            DO i1
+               icount = icount + 1
+               if icount == whichi
+               REQUEST              Vpiqj(a1,i1,b,k1) a1 
+               REQUEST              Vpiqj(a,i1,b,k1) a 
+               t3pppp(a1,b,k1,i1) = Vpiqj(a1,i1,b,k1)  
+               t4pppp(a,b,k1,i1)  = Vpiqj(a,i1,b,k1) 
+            jcount = 0.0
+            DO j1
+               jcount = jcount + 1
+               if jcount == whichj
+
+                  REQUEST              Vpiqj(a,j1,b,k1) a 
+                  REQUEST              Vpiqj(a1,j1,b,k1) b 
+                  t1pppp(a1,b,k1,j1) = Vpiqj(a1,j1,b,k1)  
+                  t2pppp(a,b,k1,j1)  = Vpiqj(a,j1,b,k1) 
+#
+                  iicount = 0.0
+                  DO ii
+                     iicount = iicount + 1
+                     if iicount >= istart
+                     if iicount <= iend
+                  jjcount = 0.0
+                  DO jj
+                     jjcount = jjcount + 1
+                     if jj >= ii # VFL 
+                     if jjcount >= jstart
+                     if jjcount <= jend
+#
+                        tpppp(a,a1,b,k1)   = xaaaiii(a,a1,b,k1,ii,jj) 
+#
+                        t1ppps(a1,b,k1,jj) = 0.0 
+                        execute stripi       t1pppp t1ppps 
+                        t1ppp(a1,b,k1)     = t1ppps(a1,b,k1,jj)  
+                        t1ppps(a1,b,k1,ii) = t1ppp(a1,b,k1)  
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+               IF a < a1 
+               IF ii < jj 
+#
+                       xai(a,ii)      = tpppp(a,a1,b,k1)*t1ppps(a1,b,k1,ii)
+                       xai(a,ii)     *= fact  
+                       PUT sai(a,ii) += xai(a,ii) 
+#
+                       t2ppps(a,b,k1,jj) = 0.0 
+                       execute stripi t2pppp t2ppps 
+                       t2ppp(a,b,k1)     = t2ppps(a,b,k1,jj)
+                       t2ppps(a,b,k1,ii) = t2ppp(a,b,k1) 
+#
+                       t5pppp(a1,a,b,k1)    = tpppp(a,a1,b,k1) 
+                       xai(a1,ii)           = t5pppp(a1,a,b,k1)*t2ppps(a,b,k1,ii) 
+                       xai(a1,ii)          *= fact   
+                       xai(a1,ii)          *= -1.0  
+                       PUT sai(a1,ii)      += xai(a1,ii) 
+#
+                       t3ppps(a1,b,k1,ii) = 0.0
+                       execute stripi t3pppp t3ppps 
+                       t3ppp(a1,b,k1) = t3ppps(a1,b,k1,ii)
+                       t3ppps(a1,b,k1,jj) = t3ppp(a1,b,k1) 
+#
+                       xai(a,jj)           = tpppp(a,a1,b,k1)*t3ppps(a1,b,k1,jj) 
+                       xai(a,jj)          *= fact   
+                       xai(a,jj)          *= -1.0  
+                       PUT sai(a,jj)      += xai(a,jj) 
+#
+                       t4ppps(a,b,k1,ii) = 0.0 
+                       execute stripi t4pppp t4ppps 
+                       t4ppp(a,b,k1) = t4ppps(a,b,k1,ii) 
+                       t4ppps(a,b,k1,jj) = t4ppp(a,b,k1) 
+#
+                       xai(a1,jj)           = t5pppp(a1,a,b,k1)*t4ppps(a,b,k1,jj) 
+                       xai(a1,jj)          *= fact   
+                       PUT sai(a1,jj)      += xai(a1,jj) 
+#
+              ENDIF 
+              ENDIF 
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+                     endif
+                     endif
+                     endif
+                  ENDDO jj
+                     endif
+                     endif
+                  ENDDO ii
+#
+               endif
+             ENDDO j1
+               endif
+             ENDDO i1
+               endif
+             ENDDO k1
+#
+#     Symmetry 2 
+#     ---------- 
+#
+            kcount = 0.0
+            DO k1
+               kcount = kcount + 1
+               if kcount == kstart
+            icount = 0.0
+            DO i1
+               icount = icount + 1
+               if icount == whichi
+               REQUEST              Vpiqj(a1,i1,b,k1) a1 
+               t2pppp(a1,b,k1,i1) = Vpiqj(a1,i1,b,k1)  
+            jcount = 0.0
+            DO j1
+               jcount = jcount + 1
+               if jcount == whichj
+
+                  REQUEST              Vpiqj(a1,j1,b,k1) b 
+                  t1pppp(a1,b,k1,j1) = Vpiqj(a1,j1,b,k1)  
+#
+                  iicount = 0.0
+                  DO ii
+                     iicount = iicount + 1
+                     if iicount >= istart
+                     if iicount <= iend
+                  jjcount = 0.0
+                  DO jj
+                     jjcount = jjcount + 1
+                     if jj >= ii # VFL 
+                     if jjcount >= jstart
+                     if jjcount <= jend
+#
+                        tpppp(a,a1,b,k1)   = xaaaiii(a,a1,b,k1,ii,jj) 
+#
+                        t1ppps(a1,b,k1,jj) = 0.0 
+                        execute stripi       t1pppp t1ppps 
+                        t1ppp(a1,b,k1)     = t1ppps(a1,b,k1,jj)  
+                        t1ppps(a1,b,k1,ii) = t1ppp(a1,b,k1)  
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+               IF a == a1 
+               IF ii < jj 
+#
+                        xai(a,ii)      = tpppp(a,a1,b,k1)*t1ppps(a1,b,k1,ii)
+                        xai(a,ii)     *= fact  
+                        PUT sai(a,ii) += xai(a,ii) 
+#
+                       #REQUEST Vpiqj(a1,i1,b,k1) a1 
+                       #t2pppp(a1,b,k1,i1) = Vpiqj(a1,i1,b,k1)  
+                        t2ppps(a1,b,k1,ii) = 0.0
+                        execute stripi t2pppp t2ppps 
+                        t2ppp(a1,b,k1) = t2ppps(a1,b,k1,ii)
+                        t2ppps(a1,b,k1,jj) = t2ppp(a1,b,k1) 
+#
+                        xai(a,jj)           = tpppp(a,a1,b,k1)*t2ppps(a1,b,k1,jj) 
+                        xai(a,jj)          *= fact   
+                        xai(a,jj)          *= -1.0  
+                        PUT sai(a,jj)      += xai(a,jj) 
+#
+                endif 
+                endif 
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+                     endif
+                     endif
+                     endif
+                  ENDDO jj
+                     endif
+                     endif
+                  ENDDO ii
+#
+               endif
+             ENDDO j1
+               endif
+             ENDDO i1
+               endif
+             ENDDO k1
+#
+#     Symmetry 3 
+#     ---------- 
+#
+            kcount = 0.0
+            DO k1
+               kcount = kcount + 1
+               if kcount == kstart
+            icount = 0.0
+            DO i1
+               icount = icount + 1
+               if icount == whichi
+               REQUEST              Vpiqj(a1,i1,b,k1) a1 
+               t2pppp(a1,b,k1,i1) = Vpiqj(a1,i1,b,k1)  
+            jcount = 0.0
+            DO j1
+               jcount = jcount + 1
+               if jcount == whichj
+
+                  REQUEST              Vpiqj(a1,j1,b,k1) b 
+                  t1pppp(a1,b,k1,j1) = Vpiqj(a1,j1,b,k1)  
+#
+                  iicount = 0.0
+                  DO ii
+                     iicount = iicount + 1
+                     if iicount >= istart
+                     if iicount <= iend
+                  jjcount = 0.0
+                  DO jj
+                     jjcount = jjcount + 1
+                     if jj >= ii # VFL 
+                     if jjcount >= jstart
+                     if jjcount <= jend
+#
+                        tpppp(a,a1,b,k1)   = xaaaiii(a,a1,b,k1,ii,jj) 
+#
+                        t1ppps(a1,b,k1,jj) = 0.0 
+                        execute stripi       t1pppp t1ppps 
+                        t1ppp(a1,b,k1)     = t1ppps(a1,b,k1,jj)  
+                        t1ppps(a1,b,k1,ii) = t1ppp(a1,b,k1)  
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+               IF a < a1 
+               IF ii == jj 
+#
+                        xai(a,ii)      = tpppp(a,a1,b,k1)*t1ppps(a1,b,k1,ii)
+                        xai(a,ii)     *= fact  
+                        PUT sai(a,ii) += xai(a,ii) 
+#
+                       #REQUEST Vpiqj(a1,i1,b,k1) a1 
+                       #t2pppp(a1,b,k1,i1) = Vpiqj(a1,i1,b,k1)  
+                        t2ppps(a1,b,k1,ii) = 0.0
+                        execute stripi t2pppp t2ppps 
+                        t2ppp(a1,b,k1) = t2ppps(a1,b,k1,ii)
+                        t2ppps(a1,b,k1,jj) = t2ppp(a1,b,k1) 
+#
+                        xai(a,jj)           = tpppp(a,a1,b,k1)*t2ppps(a1,b,k1,jj) 
+                        xai(a,jj)          *= fact   
+                        xai(a,jj)          *= -1.0  
+                        PUT sai(a,jj)      += xai(a,jj) 
+#
+                endif 
+                endif 
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+# ---------------------------------------------------------------------------------------------------- 
+#
+                     endif
+                     endif
+                     endif
+                  ENDDO jj
+                     endif
+                     endif
+                  ENDDO ii
+#
+               endif
+             ENDDO j1
+               endif
+             ENDDO i1
+               endif
+             ENDDO k1
+#
+#     Symmetry 4 
+#     ---------- 
+#
+            kcount = 0.0
+            DO k1
+               kcount = kcount + 1
+               if kcount == kstart
+            icount = 0.0
+            DO i1
+               icount = icount + 1
+               if icount == whichi
+            jcount = 0.0
+            DO j1
+               jcount = jcount + 1
+               if jcount == whichj
+
+                  REQUEST              Vpiqj(a1,j1,b,k1) b 
+                  t1pppp(a1,b,k1,j1) = Vpiqj(a1,j1,b,k1)  
+#
+                  iicount = 0.0
+                  DO ii
+                     iicount = iicount + 1
+                     if iicount >= istart
+                     if iicount <= iend
+                  jjcount = 0.0
+                  DO jj
+                     jjcount = jjcount + 1
+                     if jj >= ii # VFL 
+                     if jjcount >= jstart
+                     if jjcount <= jend
+#
+                        tpppp(a,a1,b,k1)   = xaaaiii(a,a1,b,k1,ii,jj) 
+#
+                        t1ppps(a1,b,k1,jj) = 0.0 
+                        execute stripi       t1pppp t1ppps 
+                        t1ppp(a1,b,k1)     = t1ppps(a1,b,k1,jj)  
+                        t1ppps(a1,b,k1,ii) = t1ppp(a1,b,k1)  
+#
+# ------------------------------------------------------------------------------------------------ 
+#
+#
+               IF a == a1 
+               IF ii == jj 
+#
+                        xai(a,ii)      = tpppp(a,a1,b,k1)*t1ppps(a1,b,k1,ii)
+                        xai(a,ii)     *= fact  
+                        PUT sai(a,ii) += xai(a,ii) 
+#
+                endif 
+                endif 
+#
+# ------------------------------------------------------------------------------------------------ 
+#
+                     endif
+                     endif
+                     endif
+                  ENDDO jj
+                     endif
+                     endif
+                  ENDDO ii
+#
+               endif
+             ENDDO j1
+               endif
+             ENDDO i1
+               endif
+             ENDDO k1
+#
+# END PERM 1 
+# ---------- 
+#
+# PERM X 
+# ------ 
+#
+            kcount = 0.0
+            DO k1
+               kcount = kcount + 1
+               if kcount == kstart
+            icount = 0.0
+            DO i1
+               icount = icount + 1
+               if icount == whichi
+            jcount = 0.0
+            DO j1
+               jcount = jcount + 1
+               if jcount == whichj
+
+                  REQUEST              VSpipi(a,i1,a1,j1) a 
+                  t1pppp(a,a1,j1,i1) = VSpipi(a,i1,a1,j1)  
+#
+                  iicount = 0.0
+                  DO ii
+                     iicount = iicount + 1
+                     if iicount >= istart
+                     if iicount <= iend
+
+                        t1ppps(a,a1,j1,ii) = 0.0 
+                        execute stripi t1pppp t1ppps 
+                        t1ppp(a,a1,j1) = t1ppps(a,a1,j1,ii) 
+
+                  jjcount = 0.0
+                  DO jj
+                     jjcount = jjcount + 1
+                     if jj >= ii # VFL 
+                     if jjcount >= jstart
+                     if jjcount <= jend
+#
+# Set the numerical factor 
+# ------------------------ 
+#
+                        if a < a1
+                        if ii < jj  
+                           efact = 4.0 
+                        endif
+                        endif
+#
+                        if a == a1
+                        if ii < jj  
+                           efact = 2.0 
+                        endif
+                        endif
+#
+                        if a < a1
+                        if ii == jj  
+                           efact = 2.0 
+                        endif
+                        endif
+#
+                        if a == a1
+                        if ii == jj  
+                           efact = 1.0 
+                        endif
+                        endif
+# ------------------------ 
+#
+                       #taaaiii(a,a1,b,k1,ii,jj)  = xaaaiii(a,a1,b,k1,ii,jj)
+                       #execute energy_tdenominator taaaiii(a,a1,b,k1,ii,jj)
+                        tpppp(a,a1,b,k1)          = xaaaiii(a,a1,b,k1,ii,jj) 
+#
+                        t1pps(a,a1,jj) = 0.0 
+                        execute stripi   t1ppp t1pps 
+                        t1pp(a,a1)     = t1pps(a,a1,jj)  
+                          
+                        tpp(b,k1)      = tpppp(a,a1,b,k1)*t1pp(a,a1)
+                        tpp(b,k1)     *= efact  
+                        PUT zai(b,k1) += tpp(b,k1) 
+#
+                     endif
+                     endif
+                     endif
+                  ENDDO jj
+                     endif
+                     endif
+                  ENDDO ii
+#
+               endif
+             ENDDO j1
+               endif
+             ENDDO i1
+               endif
+             ENDDO k1
+#
+# ------------------------------------------------------------------------------
+#
 #                                                                      
 # deAllocate the partial amplitude array                                                                         
 # --------------------------------------
 #
             deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
 #
-      endif 
-      endif 
-      ENDDO NT 
-#
       ENDPARDO a1, a, b 
+      execute server_barrier 
 #                                                           
 # ----------------------------------------------------------
 # End Virtual symetry combination one.                      
 # ----------------------------------------------------------
+#
+      endif 
+      endif 
+      ENDDO NT 
 #
      ENDPROC OSEG_TRIP1 
 #    -------------------  
 #
 # ------------------------------------------------------------------------------ 
 #
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP2 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp1   
-         if ncount <= xtemp2    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP2 
-#    -------------------  
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP3 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp2    
-         if ncount <= xtemp3    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP3 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP4 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp3    
-         if ncount <= xtemp4    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP4 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP5 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp4    
-         if ncount <= xtemp5    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP5 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP6 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp5    
-         if ncount <= xtemp6    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP6 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP7 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp6    
-         if ncount <= xtemp7    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP7 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP8 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp7    
-         if ncount <= xtemp8    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP8 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP9 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp8    
-         if ncount <= xtemp9    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP9 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP10 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp9    
-         if ncount <= xtemp10    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP10 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP11 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp10    
-         if ncount <= xtemp11    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP11 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP12 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp11    
-         if ncount <= xtemp12    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP12 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP13 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp12    
-         if ncount <= xtemp13    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP13 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP14 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp13    
-         if ncount <= xtemp14    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP14 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-# ------------------------------------------------------------------ 
-#
-     PROC OSEG_TRIP15 
-#    ---------------  
-#
-# ---------------------------------------------------------- 
-# Virtual symetry combination one.                          
-# ---------------------------------------------------------- 
-#
-# Set up the parallelization over the three virtual segments  
-# ----------------------------------------------------------  
-#
-      PARDO a, a1, b 
-      where a  <= a1 
-#
-           #IF a  <= a1 
-#
-# Loop over the occupied combinations 
-# ----------------------------------- 
-#
-      ncount = 0.0 
-      DO NT 
-
-         ncount = ncount + 1.0  
-         execute print_scalar ncount 
-
-         whichi = 1.0 
-         execute get_ijk whichi ncount  
-
-         istart = 2.0 
-         execute get_ijk istart ncount  
-
-         iend   = 3.0 
-         execute get_ijk iend ncount  
-
-         whichj = 4.0 
-         execute get_ijk whichj ncount  
-
-         jstart = 5.0 
-         execute get_ijk jstart ncount  
-
-         jend   = 6.0 
-         execute get_ijk jend ncount  
-
-         kstart = 7.0 
-         execute get_ijk kstart ncount  
-         kend = kstart 
-
-         execute print_scalar whichi  
-         execute print_scalar whichj  
-         execute print_scalar kstart  
-
-         execute print_scalar istart 
-         execute print_scalar iend  
-
-         execute print_scalar jstart 
-         execute print_scalar jend  
-
-         if kstart <= 0.0  
-            exit 
-         endif  
-         if ncount >  xtemp14    
-         if ncount <= xtemp15    
-         IF whichj >= whichi  
-#
-# Allocate the partial amplitude array 
-# ------------------------------------ 
-#
-            icount = 0 
-            DO ii  
-               icount = icount + 1 
-               if icount >= istart 
-               if icount <= iend  
-               jcount = 0 
-               DO jj 
-                  jcount = jcount + 1 
-                  if jcount >= jstart 
-                  if jcount <= jend  
-                  kcount = 0 
-                  DO k1 
-                     kcount = kcount + 1 
-                     if kcount == kstart 
-                        allocate Xaaaiii(a,a1,b,k1,ii,jj) 
-                     endif 
-                  ENDDO k1 
-                  endif 
-                  endif 
-               ENDDO jj  
-               endif 
-               endif 
-            ENDDO ii  
-#
-# First do the expensive part involving 3-virtual integrals and of order VVVVooo
-# ------------------------------------------------------------------------------ 
-      CALL V4O3_1    
-      CALL V4O3_2   
-      CALL V4O3_3  
-      CALL V4O3_4 
-      CALL V4O3_5 
-      CALL V4O3_6 
-      CALL V4O3_7 
-      CALL V4O3_8 
-#                
-# Second do the cheaper part involving 3-virtual integrals and of order VVVVooo           
-# ------------------------------------------------------------------------------         
-      CALL V3O4_1                                                                       
-      CALL V3O4_2                                                                      
-      CALL V3O4_3                                                                     
-      CALL V3O4_4                                                                    
-      CALL V3O4_5                                                                   
-      CALL V3O4_6                                                                  
-      CALL V3O4_7                                                                 
-      CALL V3O4_8                                                               
-#                                                                              
-# Compute the 4th-order energy contribution                                   
-# -----------------------------------------                                  
-      CALL COMP_E4T                                                         
-#                                                                          
-# Compute the 5th-order energy contribution                               
-# -----------------------------------------                              
-      CALL COMP_E5S                                                     
-#                                                                      
-# deAllocate the partial amplitude array                                                                         
-# --------------------------------------
-#
-            deallocate Xaaaiii(a,a1,b,k1,ii,jj) 
-#
-      endif 
-      endif 
-      endif 
-      ENDDO NT 
-#
-        #ENDIF 
-#
-      ENDPARDO a, a1, b 
-#                                                           
-# ----------------------------------------------------------
-#
-     ENDPROC OSEG_TRIP15 
-#    -------------------  
-#                                                           
-# ----------------------------------------------------------
-#
-#                                                           
 # ----------------------------------------------------------
 #
 # BEGIN MAIN PROGRAM
@@ -4586,8 +3023,35 @@
       eSaab *= 2.0
       totenerg += eaab
       totenerg += eSaab 
+
+      do kiter
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == one
+               tpinf(kiter,kptr1) = eSaab
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == two
+               tpinf(kiter,kptr1) = eaab
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+      enddo kiter
+
+         etemp = 16.0
+         execute print_rel_info etemp pinf
+#
+
 #
       execute sip_barrier
 #
                            ENDSIAL CCSD_RHF_SV1
+#
 #

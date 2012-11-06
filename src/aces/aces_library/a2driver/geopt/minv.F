@@ -36,11 +36,15 @@ C  A SIMPLE INTERFACE TO LINPACK ROUTINES WHICH *WORK*
 c#include "aces.h"
 
       SUBROUTINE MINV(AB,N,LDA,SCRATCH,DET,EPS,M,MODE)
+
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+#     include "mxatms.par"
+      INTEGER ISCRATCH(MXATMS) 
 
       DIMENSION AB(LDA,1),SCRATCH(1),X(2)
 C
-      CALL DGETRF(N,N,AB,LDA,SCRATCH,INFO)
+      INFO = 0 
+      CALL DGETRF(N,N,AB,LDA,ISCRATCH,INFO)
       IF (INFO.NE.0) THEN
 	    IF (INFO.GT.0) THEN
 	      WRITE(6,*) "@MINV Singular Matrix"
@@ -49,15 +53,16 @@ C
         ENDIF
         CALL ERREX
       ENDIF
-      IF(M.EQ.1) CALL DGETRS('N',N,1,AB,LDA,SCRATCH,AB(1,N+1),LDA,INFO)
+      IF(M.EQ.1) CALL DGETRS('N',N,1,AB,LDA,ISCRATCH,AB(1,N+1),LDA,INFO)
       IF(M.GT.1)THEN
        WRITE(6,1000)
 1000   FORMAT(T3,'@MINV-F, Only one system can be solved at a time.')
        CALL ERREX
       ENDIF
 
+      ONE = 1 
       IOFF=1+N
-      IF(M.EQ.0) CALL DGETRI(N,AB,LDA,SCRATCH,SCRATCH(IOFF),N,INFO)
+      IF(M.EQ.0) CALL DGETRI(N,AB,LDA,ISCRATCH,SCRATCH(IOFF),N,INFO)
 C
 C THIS IS WRONG, BUT WHO CARES? I care, Ajith 12/99
 C
@@ -71,6 +76,5 @@ C      IF (DET .LE. EPS) Then
         ENDIF
         CALL ERREX
       ENDIF
-      RETURN
       RETURN
       END

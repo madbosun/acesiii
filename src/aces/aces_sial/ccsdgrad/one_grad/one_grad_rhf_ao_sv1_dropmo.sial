@@ -6156,8 +6156,8 @@
 #
      c1 = Tb11
      c2 = Tb22
-     execute print_scalar c1
-     execute print_scalar c2
+    #execute print_scalar c1
+    #execute print_scalar c2
 #
 #    Done computing the c-vector.
 #    ----------------------------
@@ -6280,9 +6280,9 @@
      c1 = Tb11
      c2 = Tb22
      c3 = Tb33
-     execute print_scalar c1
-     execute print_scalar c2
-     execute print_scalar c3
+    #execute print_scalar c1
+    #execute print_scalar c2
+    #execute print_scalar c3
 #
 #    Done computing the c-vector.
 #    ----------------------------
@@ -6436,10 +6436,10 @@
      c2 = Tb22
      c3 = Tb33
      c4 = Tb44
-     execute print_scalar c1
-     execute print_scalar c2
-     execute print_scalar c3
-     execute print_scalar c4
+    #execute print_scalar c1
+    #execute print_scalar c2
+    #execute print_scalar c3
+    #execute print_scalar c4
 #
 #    Done computing the c-vector.
 #    ----------------------------
@@ -6625,11 +6625,11 @@
      c3 = Tb33
      c4 = Tb44
      c5 = Tb55
-     execute print_scalar c1
-     execute print_scalar c2
-     execute print_scalar c3
-     execute print_scalar c4
-     execute print_scalar c5
+    #execute print_scalar c1
+    #execute print_scalar c2
+    #execute print_scalar c3
+    #execute print_scalar c4
+    #execute print_scalar c5
 #
 #    Done computing the c-vector.
 #    ----------------------------
@@ -6901,7 +6901,7 @@
 #
          execute sip_barrier 
          collective enew += esum 
-         execute print_scalar enew 
+        #execute print_scalar enew 
 #         execute print_scalar eold 
 #
 #        Check on convergence
@@ -7530,7 +7530,7 @@
 #
       execute sip_barrier 
       collective enew += esum 
-      execute print_scalar enew  
+     #execute print_scalar enew  
 #
       ENDPROC SQUAREALL 
 #     ----------------- 
@@ -7682,6 +7682,8 @@
       execute server_barrier
 #
       CALL DMAIN 
+      etemp = 13.0
+      execute print_rel_info etemp ca
 #
 # Write amplitudes to file
 # ------------------------

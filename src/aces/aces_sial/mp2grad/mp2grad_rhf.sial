@@ -23,7 +23,11 @@
 # Declare indeces 
 # --------------- 
 #
-      index kiter    = 1, 100   
+      index kiter    = 1, cc_iter 
+      index jiter    = 1, cc_iter
+      index   kptr1  = 1, 2
+      index   kptr2  = 1, 2
+      index   kone   = 1, 1   
 #
       aoindex mu     = 1, norb
       aoindex nu     = 1, norb
@@ -181,6 +185,7 @@
       scalar ll
       scalar ss
       scalar efact
+      scalar eleven 
 #
 # End Arrays used in transformation for AO2 algorithm
 # --------------------------------------------------- 
@@ -302,6 +307,15 @@
       temp dx4(mu,nu,lambda,sigma)
       temp dy4(mu,nu,lambda,sigma)
       temp dz4(mu,nu,lambda,sigma)
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      scalar one
+      scalar two
+      scalar five
+      scalar six
+      scalar seven
+      scalar ncount1 
+      scalar ncount2 
 #
 # Declare Local arrays 
 # -------------------- 
@@ -3055,7 +3069,7 @@
 #
       totenerg  = ecorraa  
       totenerg += scfeneg
-      execute print_scalar totenerg
+     #execute print_scalar totenerg
 #
 #    ------------------------------------------------------------------------
 #
@@ -3074,6 +3088,9 @@
 # ------------------- 
 #
       execute sip_barrier 
+      one = 1.0 
+      two = 2.0 
+      six = 6.0 
       allocate La(*,*) 
       CALL TRAN_UHF 
       DO p 
@@ -3102,6 +3119,39 @@
       CREATE DHF     
       execute sip_barrier 
       CALL ENERGY 
+
+      do kiter
+      do kptr1
+         etemp = 0.0
+         pinf(kiter,kptr1)  = etemp
+      enddo kptr1
+      enddo kiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == two
+               etemp              = ecorraa
+               etemp             += scfeneg
+               tpinf(jiter,kptr1) = etemp
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == one
+               tpinf(jiter,kptr1) = ecorraa
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        execute print_rel_info six pinf
 #
 #     Compute the HF contribution to the weighted density matrix 
 #     ---------------------------------------------------------- 
@@ -3909,6 +3959,8 @@
 #
       CALL D2TRANS
       execute sip_barrier 
+      eleven = 11.0
+      execute print_rel_info eleven pinf
 #
                            ENDSIAL MBPT2_GRAD_AO2      
 #

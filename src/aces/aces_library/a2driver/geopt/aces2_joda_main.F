@@ -20,7 +20,8 @@ C  in the file COPYRIGHT.
 
 #include "fnamelen.par" 
       character*(fnamelen)fname
-      integer pass1, i, i_havegeom, ipost_vib, ilength
+      integer pass1, i, i_havegeom, ipost_vib, ilength, ijunk,
+     &        i_havegrd, i_manfndf
       logical fd, geomopt, num_grad, vib_frqs, we_havegeom,
      &        optarc_presnt
 
@@ -31,6 +32,8 @@ C  in the file COPYRIGHT.
       integer*8 malloced_previously
       integer*8 ixz
       integer*8 get_max_heap_usage
+      integer*8 symcor_mem_bytes, maxheap_bytes
+      integer*8 gentranmat_mem_bytes
       integer symcor_ints
       integer gentranmat_ints
  
@@ -48,11 +51,11 @@ C  in the file COPYRIGHT.
       integer memreq, m, ierr
       double precision z(1)
       integer iz(1)
+      equivalence (z, iz)
 #ifdef ALTIX
       include 'sheap.h'
       pointer (dptr, z)
 #else
-      equivalence (z, iz)
 #ifndef BLUEGENE
       common z
 #endif
@@ -67,7 +70,8 @@ c   o since JODA does not call crapsi, have it turn on FPEs
       dptr = dshptr
 #endif
 
-       m      = max(mxatms, maxredunco )
+c      m      = max(mxatms, maxredunco) chenged 3/5/2012 VFL  
+       m      = max(3*mxatms, maxredunco) 
        memreq = 15*m*m + 34*m
 
 c   o gather parallel statistics (needed by gfname in ja_init)
@@ -135,6 +139,20 @@ c
  
 #endif
 c
+C Following lines are added to mimic single point gradient
+C calcualtions during manual parallel finte difference 
+C vib. frq. calculations, Ajith Perera, 04/2011.
+
+      Call igetrec(0,'JOBARC', 'GRADIENT',i_havegrd, ijunk)
+      Call igetrec(0,'JOBARC', 'MANULFDS',i_manfndf, ijunk)
+    
+      If (i_havegrd .gt. 0 .and. i_manfndf .gt. 0 .and. fd) Then
+         Write(6,"(a,a)") " Single point gradient calculation ",
+     &                      "is completed"
+         call aces_ja_fin
+         call aces_exit(1)
+      Endif
+
       if (fd) then
 c         print *,'Finite differences are not currently supported.'
 c         call errex()
@@ -163,11 +181,16 @@ c------------------------------------------------------------------------
 c   Set up heap for symcor.
 c------------------------------------------------------------------------
 
-               call mem_query_free(intsize, symcor_ints)
+               maxheap_bytes = get_max_heap_usage()
+               call mem_alloc_query(malloced_previously)
+               symcor_mem_bytes = maxheap_bytes - malloced_previously
+               symcor_ints = symcor_mem_bytes / intsize 
                call mem_alloc(iz, symcor_ints, intsize, ixz, .true., 
      *                     ierr)
                if (ierr .ne. 0) then
                   print *,'SYMCOR MEM ALLOC ERROR'
+                  print *,'maxheap_bytes, malloced_previously ', 
+     *                     maxheap_bytes, malloced_previously
                   print *,'symcor_ints ',symcor_ints
                   call abort_job() 
                endif 
@@ -188,11 +211,16 @@ c------------------------------------------------------------------------
 c   Set up heap for symcor.
 c------------------------------------------------------------------------
 
-            call mem_query_free(intsize, symcor_ints)
+            maxheap_bytes = get_max_heap_usage()
+            call mem_alloc_query(malloced_previously)
+            symcor_mem_bytes = maxheap_bytes - malloced_previously
+            symcor_ints      = symcor_mem_bytes / intsize 
             call mem_alloc(iz, symcor_ints, intsize, ixz, .true., 
      *                     ierr)
             if (ierr .ne. 0) then
                print *,'SYMCOR MEM ALLOC ERROR'
+               print *,'maxheap_bytes, malloced_previously ',
+     *              maxheap_bytes, malloced_previously
                print *,'symcor_ints ',symcor_ints
                call abort_job() 
             endif 
@@ -238,11 +266,16 @@ c------------------------------------------------------------------------
 c   Set up heap for symcor.
 c------------------------------------------------------------------------
 
-                  call mem_query_free(intsize, symcor_ints)
+                  maxheap_bytes = get_max_heap_usage()
+                  call mem_alloc_query(malloced_previously)
+                  symcor_mem_bytes = maxheap_bytes - malloced_previously
+                  symcor_ints      = symcor_mem_bytes / intsize 
                   call mem_alloc(iz, symcor_ints, intsize, ixz, .true., 
      *                     ierr)
                   if (ierr .ne. 0) then
                      print *,'SYMCOR MEM ALLOC ERROR'
+                     print *,'maxheap_bytes, malloced_previously ',
+     *                    maxheap_bytes, malloced_previously
                      print *,'symcor_ints ',symcor_ints
                      call abort_job() 
                   endif 
@@ -319,11 +352,16 @@ c------------------------------------------------------------------------------
       end if
 
 
-      call mem_query_free(intsize, gentranmat_ints)
+      maxheap_bytes = get_max_heap_usage()
+      call mem_alloc_query(malloced_previously)
+      gentranmat_mem_bytes = maxheap_bytes - malloced_previously
+      gentranmat_ints = gentranmat_mem_bytes / intsize
       call mem_alloc(iz, gentranmat_ints, intsize, ixz, .true.,
      *               ierr)
       if (ierr .ne. 0) then
          print *,'GENTRANMAT MEM ALLOC ERROR'
+         print *,'maxheap_bytes, malloced_previously ',
+     *            maxheap_bytes, malloced_previously
          print *,'gentranmat_ints ',gentranmat_ints
          call abort_job()
       endif

@@ -211,12 +211,14 @@ C
      &   AND.IFLAGS(18).NE.4.AND.IFLAGS(18).NE.5.AND.OLDARC)THEN
 C
        IF(.NOT.OPTRES) WRITE(LUOUT, 9010) NCYCLE+1
+       IF(.NOT.OPTRES) WRITE(66, 9100) NCYCLE+1
 C
       ENDIF
 C
       iflags(18) = itmp
 C
 9010  FORMAT (T3,' JODA beginning optimization cycle #', I3,'.')
+9100  FORMAT (T3,' Finished optimization cycle #', I3,'.')
 
       RETURN
       END

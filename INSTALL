@@ -68,5 +68,19 @@ FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2" \
    CFLAGS="-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX" 
 
 
+    To run this version of ACESIII (New Structure with changes in 307 and GPU enabled contractions) on the UFHPC,
+    do:
+        module load intel
+        module load mkl
+        module load openmpi
+        module load cuda
+    run configure with these arguments:
+        ./configure --enable-mkl  --enable-gpu  \
+        MKLLIBS="-Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -Wl,--end-group"  \
+        MKLFLAGS="-L."    \
+        FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2"  \
+        CFLAGS="-DMPIF2C -DC_SUFFIX -O2  -DCB_SUFFIX"  \
+        CXXFLAGS="-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -O2"  \
+        CUDAPATH="/opt/cuda"
 
 

@@ -1260,15 +1260,21 @@ C
 #endif
 
 c Turn off symmetry if subgroup=C1.
+
+c VFL 3/6/2012 
+      szTmp = 'SYMMETRY=NONE'//achar(0)
+      call asv_update_kv(szTmp,iASV,szData,0)
+c VFL 3/6/2012 
+
       if (ioppar(h_IOPPAR_subgroup).eq.1) then
          call asv_update_kv('!sym'//achar(0),iASV,szData,0)
       end if
       if ((ioppar(h_IOPPAR_geom_opt) .eq. 2) .or.
      &    (ioppar(h_IOPPAR_geom_opt) .eq. 3)) then
-         szTmp = 'SYMMETRY=NONE'//achar(0)
-         if (ioppar(h_IOPPAR_sym).ne.0) then
-             call asv_update_kv(szTmp,iASV,szData,0)
-         Endif
+cVFL         szTmp = 'SYMMETRY=NONE'//achar(0)
+cVFL         if (ioppar(h_IOPPAR_sym).ne.0) then
+cVFL             call asv_update_kv(szTmp,iASV,szData,0)
+cVFK         Endif
 C
 C For geo. opt with FULL/RIC and SYM=NONE turn on the NOREORI
 C if it is not given as an input. Ajith Perera, 12/08
