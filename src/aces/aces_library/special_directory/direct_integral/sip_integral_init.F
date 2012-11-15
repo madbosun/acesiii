@@ -41,6 +41,7 @@ c---------------------------------------------------------------------
       integer itemp, ztemp
       integer nalpha
       integer ihrr, zhrr 
+      integer ECP 
 
       integer nw
       integer*8 nw8
@@ -68,6 +69,9 @@ c---------------------------------------------------------------------
       equivalence (ibuf, dbuf)  
       common dbuf    ! blank common for scratch.
 #endif
+
+      common /flags/ iflags
+      integer iflags(100)
 
       logical do_erd_scratch_calc
       save do_erd_scratch_calc
@@ -184,6 +188,13 @@ c-------------------------------------------------------------------------
          if (configure) then
             call aces_to_erd(nfps, ivangmom, nshells, ispherical,
      *                       ibuf(ierdind), dbuf(iscale_fac)) 
+
+c For ECP must renormalize/reorder 
+            ECP = iflags(71) 
+
+            IF (ECP .eq. 1) then 
+            call ecp_renorm(nbasis, ibuf(ierdind), dbuf(iscale_fac)) 
+            endif 
 
             call setup_ccbeg(dbuf(ialpha), ixalpha, dbuf(ipcoeff), 
      *                       ixpcoef, ncfps, npfps, nshells, 

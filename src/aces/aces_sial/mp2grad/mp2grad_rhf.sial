@@ -186,6 +186,7 @@
       scalar ss
       scalar efact
       scalar eleven 
+      scalar rank 
 #
 # End Arrays used in transformation for AO2 algorithm
 # --------------------------------------------------- 
@@ -1003,7 +1004,10 @@
 # Contract with the derivative integrals
 # --------------------------------------
 #
-      PARDO mu, nu
+      execute get_my_rank rank 
+      if rank == 0.0 
+         DO mu 
+         DO nu
 #
             GET            P2A_ao(mu,nu)
             GET            DHFA(mu,nu)
@@ -1014,7 +1018,9 @@
 #
             EXECUTE HCONT1 Tpq(mu,nu)
 #
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu 
+      endif 
 #
 # -----------------------------------------------------------------------------
 #

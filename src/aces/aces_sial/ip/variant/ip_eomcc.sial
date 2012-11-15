@@ -7341,7 +7341,7 @@
             t3ix(i,kk1)      *= -1.0
             t2ix(i,kk1)       = omega
             t3ix(i,kk1)      += t2ix(i,kk1)
-            execute apply_den2 t1ix t3ix
+            execute apply_den2_nor t1ix t3ix
 #
             DO j21
                if j21 > spdim
@@ -7406,7 +7406,7 @@
             t3jx(j,kk1)      *= -1.0
             t2jx(j,kk1)       = omega
             t3jx(j,kk1)      += t2jx(j,kk1)
-            execute apply_den2 t1jx t3jx
+            execute apply_den2_nor t1jx t3jx
 #
             DO j21
                if j21 > spdim

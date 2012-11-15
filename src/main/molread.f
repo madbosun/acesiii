@@ -15,7 +15,7 @@ C  in the file COPYRIGHT.
       SUBROUTINE simple_INSPECT_MOL(fname, MAX_ATOMS, max_shells,
      &                natoms, nshells, nspc, cartesian, ITFCT, LNP1,
      &                lnpo, nfct, nufct, nbasis, NAOBASIS, nCFpS, 
-     &                nPFpS, NAOATM, angmom, atomic_label, vnn)
+     &                nPFpS, NAOATM, angmom, atomic_label)
 C
 C   Simple version of Ajith Perera's INSPECT_MOL routine.  This version 
 C   scans the MOL file to determine the number of atoms.  It also assumes
@@ -218,7 +218,7 @@ C
 C Compute the Nuclear-Nuclear repulsion energy
 C --------------------------------------------
 C
-      vnn = nuclear_nuclear_repulsion_energy(natoms)
+c     vnn = nuclear_nuclear_repulsion_energy(natoms)
 
       close(10)
       RETURN
@@ -524,10 +524,10 @@ C
 C
                   DO 38 I = 1, NP1
 c                    SPCOEF((INAO-1)*NP1+I)= SPCOEF((INAO-1)*NP1+I)*
-c     &                                       XNORM*PICNST*
-c     &                                       (4.D+00*SALPHA(I))**
-c     &                                       (0.5D+00*REAL(LL)+
-c     &                                        0.25D+00)
+c    &                                       XNORM*PICNST*
+c    &                                       (4.D+00*SALPHA(I))**
+c    &                                       (0.5D+00*REAL(LL)+
+c    &                                        0.25D+00)
                      SPCOEF((INAO-1)*NP1+I)= SPCOEF((INAO-1)*NP1+I)*
      &                                       XNORM
  38               CONTINUE

@@ -19,6 +19,8 @@ c--------------------------------------------------------------------------
 
       implicit none
       include 'int_gen_parms.h'
+      common /flags/ iflags
+      integer iflags(100)
 
       integer iatom
       double precision coord(3)
@@ -31,7 +33,7 @@ c--------------------------------------------------------------------------
          call abort_job()
       endif
 
-      charge(iatom) = atom_charge
+      if (iflags(71) .eq. 0) charge(iatom) = atom_charge
       do i = 1, 3
          acenter(iatom,i) = coord(i)
       enddo   

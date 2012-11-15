@@ -3383,7 +3383,6 @@
       ONEHALF   = 0.5
       R0_THRESH = 0.0000001
       root_thresh  = eom_tol
-      root_thresh *= 10.0
       norm_thresh  = 0.000001
 
       ALLOCATE  GRDSECM (*,*)

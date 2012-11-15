@@ -152,6 +152,7 @@
 # Watson
 #
       STATIC  STATIC_REE (kroot,indone)
+      STATIC  STATIC_REE_resid (kroot,indone)
       STATIC  S_ORDER (kroot,indone)
       DISTRIBUTED  REE_rsord (kroot,indone)
       DISTRIBUTED  REE_resid (kroot,indone)
@@ -13140,7 +13141,7 @@
             t3ai(a,i)      *= -1.0
             t2ai(a,i)       = omega
             t3ai(a,i)      += t2ai(a,i)
-            execute apply_den2 t1ai t3ai
+            execute apply_den2_nor t1ai t3ai
 #
             DO j21 
                if j21 > spdim  
@@ -13203,7 +13204,7 @@
             t3bj(b,j)      *= -1.0
             t2bj(b,j)       = omega
             t3bj(b,j)      += t2bj(b,j)
-            execute apply_den2 t1bj t3bj
+            execute apply_den2_nor t1bj t3bj
 #
             DO j21 
                if j21 > spdim  
@@ -32907,34 +32908,37 @@
        DO indone
        DO kindex12
           GET                            REE (kindex12,indone)
+          GET                            REE_resid (kindex12,indone)
           tee        (kindex12,indone) = REE (kindex12,indone)
           STATIC_REE (kindex12,indone) = tee (kindex12,indone)
+          tee        (kindex12,indone) = REE_resid (kindex12,indone)
+          STATIC_REE_resid (kindex12,indone) = tee (kindex12,indone)
        ENDDO kindex12
        ENDDO indone
        EXECUTE  SIP_BARRIER
 
-       EXECUTE  REORDER_ENERGY  STATIC_REE  S_ORDER
-       EXECUTE  SIP_BARRIER
+      #EXECUTE  REORDER_ENERGY  STATIC_REE  S_ORDER
+      #EXECUTE  SIP_BARRIER
 
-       CALL  REORDER_LOW2HIGH
+      #CALL  REORDER_LOW2HIGH
 #
 #
 #          Print out the excitation energies and the respective residuum
 #
 #
-       DO indone
-       DO kindex12
-          GET                      REE_ORD   (kindex12,indone)
-          GET                      REE_rsord (kindex12,indone)
-          tee  (kindex12,indone) = REE_ORD   (kindex12,indone)
-          t1ee (kindex12,indone) = REE_rsord (kindex12,indone)
+      #DO indone
+      #DO kindex12
+      #   GET                      REE_ORD   (kindex12,indone)
+      #   GET                      REE_rsord (kindex12,indone)
+      #   tee  (kindex12,indone) = REE_ORD   (kindex12,indone)
+      #   t1ee (kindex12,indone) = REE_rsord (kindex12,indone)
 
-          STATIC_REE (kindex12,indone) = tee  (kindex12,indone)
-          S_ORDER    (kindex12,indone) = t1ee (kindex12,indone)
-       ENDDO kindex12
-       ENDDO indone
+      #   STATIC_REE (kindex12,indone) = tee  (kindex12,indone)
+      #   S_ORDER    (kindex12,indone) = t1ee (kindex12,indone)
+      #ENDDO kindex12
+      #ENDDO indone
 
-       EXECUTE  EOMROOT_PRINT_NEW  STATIC_REE  S_ORDER
+       EXECUTE  EOMROOT_PRINT_NEW  STATIC_REE STATIC_REE_resid 
 
        EXECUTE  SIP_BARRIER    # Watson
        EXECUTE  SERVER_BARRIER # Watson

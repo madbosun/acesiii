@@ -112,9 +112,9 @@
       DO mu  
       DO nu 
             txx(mu,nu) = Fockrohf_a(mu,nu) 
-            IF Natoms <= 3 
-               txx(mu,nu) = 0.0 
-            ENDIF 
+           #IF Natoms <= 3 
+           #   txx(mu,nu) = 0.0 
+           #ENDIF 
             PUT DA(mu,nu) += txx(mu,nu) 
       ENDDO nu 
       ENDDO mu  
@@ -123,9 +123,9 @@
       DO mu  
       DO nu 
             txx(mu,nu) = Fockrohf_b(mu,nu) 
-            IF Natoms <= 3 
-               txx(mu,nu) = 0.0 
-            ENDIF 
+           #IF Natoms <= 3 
+           #   txx(mu,nu) = 0.0 
+           #ENDIF 
             PUT DB(mu,nu) += txx(mu,nu) 
       ENDDO nu 
       ENDDO mu  

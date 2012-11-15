@@ -59,8 +59,9 @@ c----------------------------------------------------------------------------
       endif
 
       if (ecp .gt. 0) then
-         print *,'ERROR: ACESIII does not support ECP calculations.'
-         call abort_job()
+         print *,'Experimental ACESIII ECP calculations.'
+c        print *,'ERROR: ACESIII does not support ECP calculations.'
+c        call abort_job()
       endif
 
       if (grad_calc .eq. 2 .and. vib .eq. 1) then

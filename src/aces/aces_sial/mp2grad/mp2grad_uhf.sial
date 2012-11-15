@@ -326,6 +326,7 @@
       scalar eleven 
       scalar ncount1
       scalar ncount2
+      scalar rank 
 
 #
 # Declare Local arrays 
@@ -1705,7 +1706,10 @@
 # Contract with the derivative integrals
 # --------------------------------------
 #
-      PARDO mu, nu
+      execute get_my_rank rank 
+      if rank == 0.0 
+         DO mu 
+         DO nu
 #
             GET            P2A_ao(mu,nu)
             GET            P2B_ao(mu,nu)
@@ -1719,7 +1723,9 @@
 #
             EXECUTE HCONT1 Tpq(mu,nu)
 #
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu 
+      endif 
 #
 # -----------------------------------------------------------------------------
 #

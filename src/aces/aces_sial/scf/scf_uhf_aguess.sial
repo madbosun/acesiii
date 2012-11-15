@@ -100,6 +100,8 @@
       distributed FTpq_b(mu,nu) 
       distributed CBT_a(mu,p) 
       distributed CBT_b(mu,q) 
+      local Hxx(mu,nu)
+      Distributed DHxx(mu,nu)
 #
 # Declare temporary arrays 
 # ------------------------ 
@@ -410,11 +412,14 @@
       scalar done 
       scalar donea 
       scalar doneb 
+      scalar zero 
+      scalar mone 
       scalar one
       scalar two
       scalar three
       scalar four
       scalar ncount1 
+      scalar rank 
 #
 # ---------------------------------------------------------------------------- 
 #
@@ -426,11 +431,11 @@
 #
       PARDO mu, nu 
 #
-            Txx(mu,nu)       = oed_nai(mu,nu)  
-            Txx(mu,nu)      += oed_kin(mu,nu)  
+           #Txx(mu,nu)       = oed_nai(mu,nu)  
+           #Txx(mu,nu)      += oed_kin(mu,nu)  
 #
-            PUT Fpq_a(mu,nu) = Txx(mu,nu) 
-            PUT Fpq_b(mu,nu) = Txx(mu,nu) 
+            PUT Fpq_a(mu,nu) = Hxx(mu,nu) 
+            PUT Fpq_b(mu,nu) = Hxx(mu,nu) 
 #
       ENDPARDO mu, nu 
 #
@@ -562,13 +567,13 @@
             GET DHFa(mu,nu) 
             GET DHFb(mu,nu) 
 #
-            Txx(mu,nu)   = oed_nai(mu,nu)  
-            Txx(mu,nu)  += oed_kin(mu,nu)  
+           #Txx(mu,nu)   = oed_nai(mu,nu)  
+           #Txx(mu,nu)  += oed_kin(mu,nu)  
 #
-            T1xx(mu,nu)  = DHFa(mu,nu) 
-            T1xx(mu,nu) += DHFb(mu,nu) 
+           #T1xx(mu,nu)  = DHFa(mu,nu) 
+           #T1xx(mu,nu) += DHFb(mu,nu) 
 #          
-            etemp = Txx(mu,nu)*T1xx(mu,nu)  
+            etemp = Hxx(mu,nu)*T1xx(mu,nu)  
             esum += etemp 
 #
       ENDPARDO mu, nu 
@@ -678,19 +683,25 @@
 #      Initialize the Fock matrix to the bare 1-electron hamiltonian.
 #      -------------------------------------------------------------- 
 #
-       execute sip_barrier
 #
-       PARDO mu, nu   
+       execute get_my_rank rank
+       if rank == 0.0
+          DO mu
+          DO nu
 #
-             Txx(mu,nu)        = oed_nai(mu,nu)  
-             Txx(mu,nu)       += oed_kin(mu,nu)  
+            #Txx(mu,nu)        = oed_nai(mu,nu)  
+            #Txx(mu,nu)       += oed_kin(mu,nu)  
+            #Txx(mu,nu) = 0.0 
+            #execute return_h1 txx 
+             Tpq(mu,nu)        = Hxx(mu,nu)
 #
-             PUT Fpq_a(mu,nu) += Txx(mu,nu) 
-             PUT Fpq_b(mu,nu) += Txx(mu,nu) 
+             PUT Fpq_a(mu,nu) += Tpq(mu,nu)
+             PUT Fpq_b(mu,nu) += Tpq(mu,nu)
 #
-       ENDPARDO mu, nu   
-       execute sip_barrier
-       execute load_balance_off
+          ENDDO nu
+          ENDDO mu
+       endif
+
        execute sip_barrier
 #
 #      Add contributions containing two-particle integral contributions.
@@ -1272,29 +1283,35 @@
 #
        energy = 0.0
        esum = 0.0 
-       PARDO mu, nu 
+
+       execute get_my_rank rank 
+       if rank == 0.0 
+          DO mu  
+          DO nu 
 #
              GET Fpq_a(mu,nu)
              GET Fpq_b(mu,nu)
              GET DHFa(mu,nu) 
              GET DHFb(mu,nu) 
 #
-             Txx(mu,nu)   = oed_nai(mu,nu)  
-             Txx(mu,nu)  += oed_kin(mu,nu)  
+            #Txx(mu,nu)   = oed_nai(mu,nu)  
+            #Txx(mu,nu)  += oed_kin(mu,nu)  
 #
-             T1xx(mu,nu)  = Txx(mu,nu) 
+             T1xx(mu,nu)  = Hxx(mu,nu) 
              T1xx(mu,nu) += Fpq_a(mu,nu) 
 #
              etemp        = T1xx(mu,nu)*DHFa(mu,nu)  
              esum        += etemp 
 #
-             T1xx(mu,nu)  = Txx(mu,nu) 
+             T1xx(mu,nu)  = Hxx(mu,nu) 
              T1xx(mu,nu) += Fpq_b(mu,nu) 
 #
              etemp        = T1xx(mu,nu)*DHFb(mu,nu)  
              esum        += etemp 
 #
-       ENDPARDO mu, nu 
+          ENDDO nu 
+          ENDDO mu  
+       endif 
        execute sip_barrier 
 
        esum *= 0.5 
@@ -9181,6 +9198,8 @@
       damp1  = 1.0/etemp         # 1/(1+damp)  
      #execute print_scalar damp 
      #execute print_scalar damp1
+      zero = 0.0 
+      mone = -10.0 
       one = 1.0 
       two = 2.0 
       three = 3.0 
@@ -9229,9 +9248,9 @@
             GET               IDHFa(mu,nu)
             GET               IDHFb(mu,nu)
             txx(mu,nu)      = IDHFa(mu,nu)
-            txx(mu,nu)     += IDHFb(mu,nu)
-            txx(mu,nu)     *= 0.5
+           #txx(mu,nu)     *= 0.5
             PUT DHFa(mu,nu) = txx(mu,nu)
+            txx(mu,nu)      = IDHFb(mu,nu)
             PUT DHFb(mu,nu) = txx(mu,nu)
             etemp = txx(mu,nu)*txx(mu,nu) 
             esum += etemp 
@@ -9240,14 +9259,43 @@
       collective esum1 += esum  
       delete IDhfa
       delete IDhfb
+#
+#     Construct the complete one-electron Hamiltonian  
+#     ----------------------------------------------- 
+#
+      create DHxx
+      allocate Hxx(*,*)
+      execute sip_barrier
+      execute get_my_rank rank
+      if rank == 0.0
+         DO mu
+         DO nu
+#
+            Txx(mu,nu)      = 0.0
+            execute return_h1 txx
+#
+            PUT DHxx(mu,nu) = Txx(mu,nu)
+#
+         ENDDO nu
+         ENDDO mu
+      endif
 
-      if esum1 > 0.001 
+      DO mu
+      DO nu
+#
+         GET          DHxx(mu,nu)
+         Hxx(mu,nu) = DHxx(mu,nu)
+#
+      ENDDO nu
+      ENDDO mu
+
+     #if esum1 > 0.001 
          CALL FOCK_MATRIX
-      endif 
+     #endif 
 
-      if esum1 <= 0.001 
-         CALL IGUESS  
-      endif 
+     #if esum1 <= 0.001 
+     #   CALL IGUESS  
+     #endif 
 #
 #     execute sip_barrier 
 #     execute list_to_blocks Fpq_a 
@@ -9661,6 +9709,23 @@
       execute print_rel_info three Fock_a  
       execute print_rel_info four Fock_b  
 #
+      execute get_my_rank rank
+      if rank == 0.0
+         DO mu
+         DO p
+            txp(mu,p) = ca(mu,p)
+         ENDDO p
+         ENDDO mu
+      execute print_rel_info zero ca
+         DO mu
+         DO q
+            txq(mu,q) = cb(mu,q)
+         ENDDO q
+         ENDDO mu
+      execute print_rel_info mone cb  
+#
+      endif
+
       scfeneg  = energy2 
       totenerg = scfeneg
       execute sip_barrier

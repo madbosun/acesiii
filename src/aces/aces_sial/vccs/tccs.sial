@@ -1,0 +1,4717 @@
+                  SIAL VCCS_UHF
+#
+#
+#-------------------------------------------------------------------------
+#
+#
+#          ...Declare variables...
+#
+#
+      INDEX    atoms = 1, natoms
+
+      AOINDEX  mu  = 1, norb
+      AOINDEX  nu  = 1, norb
+      AOINDEX  lam = 1, norb
+      AOINDEX  sig = 1, norb
+
+      MOAINDEX  i = baocc, eaocc
+      MOAINDEX  i1= baocc, eaocc
+      MOAINDEX  i2= baocc, eaocc
+
+      MOAINDEX  a = bavirt, eavirt
+      MOAINDEX  a1= bavirt, eavirt
+      MOAINDEX  a2= bavirt, eavirt
+      MOAINDEX  a3= bavirt, eavirt
+
+      MOBINDEX  j = bbocc, ebocc
+      MOBINDEX  j1= bbocc, ebocc
+      MOBINDEX  j2= bbocc, ebocc
+
+      MOBINDEX  b = bbvirt, ebvirt
+      MOBINDEX  b1= bbvirt, ebvirt
+      MOBINDEX  b2= bbvirt, ebvirt
+      MOBINDEX  b3= bbvirt, ebvirt
+
+      MOAINDEX  p = baocc, eavirt
+      MOAINDEX  p1= baocc, eavirt
+      MOAINDEX  p2= baocc, eavirt
+      MOAINDEX  p3= baocc, eavirt
+
+      MOBINDEX  q = bbocc, ebvirt
+      MOBINDEX  q1= bbocc, ebvirt
+      MOBINDEX  q2= bbocc, ebvirt
+      MOBINDEX  q3= bbocc, ebvirt
+
+      INDEX  xiter = 1, 150
+      INDEX  titer = 1, 150
+
+      DISTRIBUTED  CA_NEW (mu,p )
+      DISTRIBUTED  CB_NEW (mu,q )
+
+      LOCAL        LH1pp (p,p1)
+      LOCAL        LH1qq (q,q1)
+      DISTRIBUTED  DISpp (p,p1)
+      DISTRIBUTED  DISqq (q,q1)
+
+      DISTRIBUTED  DHFa (mu,nu)
+      DISTRIBUTED  DHFb (mu,nu)
+
+      DISTRIBUTED  UTRAN_A (p,p1)
+      DISTRIBUTED  UTRAN_B (q,q1)
+
+      DISTRIBUTED  SEMICAN_CA (mu,p)
+      DISTRIBUTED  SEMICAN_CB (mu,q)
+
+      DISTRIBUTED  ZARRAY_A (p,p1)
+      DISTRIBUTED  ZARRAY_B (q,q1)
+
+      DISTRIBUTED  GREF_A   (p,p1)
+      DISTRIBUTED  GREF_B   (q,q1)
+      DISTRIBUTED  GTILDE_A (p,p1)
+      DISTRIBUTED  GTILDE_B (q,q1)
+      DISTRIBUTED  GTOTAL_A (mu,nu)
+      DISTRIBUTED  GTOTAL_B (mu,nu)
+
+      DISTRIBUTED  FOCK_MO_A (p,p1)
+      DISTRIBUTED  FOCK_MO_B (q,q1)
+      DISTRIBUTED  FOCK_AO_A (mu,nu)
+      DISTRIBUTED  FOCK_AO_B (mu,nu)
+      DISTRIBUTED  F_AO_A (mu,nu)
+      DISTRIBUTED  F_AO_B (mu,nu)
+
+      DISTRIBUTED  XMAT_A (p,p1)
+      DISTRIBUTED  XMAT_B (q,q1)
+      DISTRIBUTED  QMAT_A (p,p1)
+      DISTRIBUTED  QMAT_B (q,q1)
+      DISTRIBUTED  DMAT_A (p,p1)
+      DISTRIBUTED  DMAT_B (q,q1)
+      DISTRIBUTED  DCCS_A (mu,nu)
+      DISTRIBUTED  DCCS_B (mu,nu)
+      DISTRIBUTED  DTOT_A (mu,nu)
+      DISTRIBUTED  DTOT_B (mu,nu)
+
+      DISTRIBUTED  SM_XA (p,p1)
+      DISTRIBUTED  SM_XB (q,q1)
+
+      DISTRIBUTED  T1A_OLD (i,a)
+      DISTRIBUTED  T1B_OLD (j,b)
+      DISTRIBUTED  T1A_NEW (i,a)
+      DISTRIBUTED  T1B_NEW (j,b)
+
+      DISTRIBUTED  F_NEW_OV_A (i,a)
+      DISTRIBUTED  F_NEW_OV_B (j,b)
+
+      DISTRIBUTED  XITER_OLD_A (i,i1)
+      DISTRIBUTED  XITER_OLD_B (j,j1)
+      DISTRIBUTED  XITER_NEW_A (i,i1)
+      DISTRIBUTED  XITER_NEW_B (j,j1)
+
+      STATIC  DENS_A (p,p1)
+      STATIC  DENS_B (q,q1)
+      STATIC  NATORA (p,p1)
+      STATIC  NATORB (q,q1)
+
+      STATIC  F_FULL_A  (p,p1)
+      STATIC  F_FULL_B  (q,q1)
+      STATIC  FV_FULL_A (p,p1)
+      STATIC  FV_FULL_B (q,q1)
+
+      STATIC  F_OO_A (i,i1)
+      STATIC  F_OO_B (j,j1)
+      STATIC  F_VV_A (a,a1)
+      STATIC  F_VV_B (b,b1)
+
+      STATIC  FV_OO_A (i,i1)
+      STATIC  FV_OO_B (j,j1)
+      STATIC  FV_VV_A (a,a1)
+      STATIC  FV_VV_B (b,b1)
+
+      STATIC  ST_IDENT_A (p,p1)
+      STATIC  ST_IDENT_B (q,q1)
+
+      LOCAL  NCB1 (q3,q1)
+      LOCAL  NCB2 (q ,q2)
+
+      LOCAL  LCA (mu,p)
+      LOCAL  LCB (mu,q)
+
+      LOCAL  LQMAT_A (p,p1)
+      LOCAL  LQMAT_B (q,q1)
+
+      LOCAL  LDHFa (mu,nu)
+      LOCAL  LDHFb (mu,nu)
+      LOCAL  LFpqa (mu,nu)
+      LOCAL  LFpqb (mu,nu)
+
+      LOCAL  Lxx  (mu,nu)
+      LOCAL  L1xx (mu,nu)
+      LOCAL  Lxi  (mu,i )
+      LOCAL  Lxj  (mu,j )
+      LOCAL  Lxa  (mu,a )
+      LOCAL  Lxb  (mu,b )
+      LOCAL  Lii  (i ,i1)
+      LOCAL  Ljj  (j ,j1)
+      LOCAL  Lpp  (p ,p1)
+      LOCAL  Lqq  (q ,q1)
+
+      TEMP  AOINT  (mu,nu,lam,sig)
+      TEMP  SAOINT (mu,nu,lam,sig)
+      TEMP  txxpx  (mu,nu,p,sig)
+      TEMP  txxqx  (mu,nu,q,sig)
+      TEMP  txxxx  (mu,nu,lam,sig)
+      TEMP  t1xxxx (mu,nu,lam,sig)
+      TEMP  t2xxxx (mu,nu,lam,sig)
+      TEMP  Vxxxx  (mu,nu,lam,sig)
+      TEMP  VSxxxx (mu,nu,lam,sig)
+
+      TEMP  txx  (mu,nu)
+      TEMP  t1xx  (mu,nu)
+      TEMP  t2xx  (mu,nu)
+      TEMP  t3xx  (mu,nu)
+      TEMP  t4xx  (mu,nu)
+      TEMP  t5xx  (mu,nu)
+      TEMP  t6xx  (mu,nu)
+      TEMP  t7xx  (mu,nu)
+      TEMP  t8xx  (mu,nu)
+      TEMP  t9xx  (mu,nu)
+      TEMP  t10xx (mu,nu)
+      TEMP  t11xx (mu,nu)
+      TEMP  t12xx (mu,nu)
+      TEMP  t13xx (mu,nu)
+      TEMP  t14xx (mu,nu)
+      TEMP  t15xx (mu,nu)
+      TEMP  t16xx (mu,nu)
+      TEMP  t17xx (mu,nu)
+      TEMP  t18xx (mu,nu)
+      TEMP  t19xx (mu,nu)
+      TEMP  t20xx (mu,nu)
+      TEMP  t21xx (mu,nu)
+      TEMP  t22xx (mu,nu)
+
+      TEMP  txi  (mu,i)
+      TEMP  t1xi (mu,i)
+      TEMP  txj  (mu,j)
+      TEMP  t1xj (mu,j)
+      TEMP  txa  (mu,a)
+      TEMP  t1xa (mu,a)
+      TEMP  txb  (mu,b)
+      TEMP  t1xb (mu,b)
+      TEMP  txp  (mu,p)
+      TEMP  t1xp (mu,p)
+      TEMP  txq  (mu,q)
+      TEMP  t1xq (mu,q)
+      TEMP  tpx  (p,mu)
+      TEMP  tqx  (q,mu)
+      TEMP  tix  (i,mu)
+      TEMP  tjx  (j,mu)
+
+      TEMP  tpp  (p,p1)
+      TEMP  t1pp (p,p1)
+      TEMP  t2pp (p,p1)
+      TEMP  tqq  (q,q1)
+      TEMP  t1qq (q,q1)
+      TEMP  t2qq (q,q1)
+      TEMP  t3qq (q,q1)
+      TEMP  t4qq (q,q1)
+      TEMP  t5qq (q,q1)
+      TEMP  tip  (i,p1)
+      TEMP  t1ip (i,p1)
+      TEMP  tjq  (j,q1)
+      TEMP  t1jq (j,q1)
+      TEMP  tii  (i,i1)
+      TEMP  t1ii (i,i1)
+      TEMP  t2ii (i,i1)
+      TEMP  tjj  (j,j1)
+      TEMP  t1jj (j,j1)
+      TEMP  t2jj (j,j1)
+      TEMP  tap  (a,p )
+      TEMP  tbq  (b,q )
+      TEMP  taa  (a,a1)
+      TEMP  t1aa (a,a1)
+      TEMP  t2aa (a,a1)
+      TEMP  tbb  (b,b1)
+      TEMP  t1bb (b,b1)
+      TEMP  t2bb (b,b1)
+      TEMP  tai  (a,i)
+      TEMP  t1ai (a,i)
+      TEMP  t2ai (a,i)
+      TEMP  tia  (i,a)
+      TEMP  t1ia (i,a)
+      TEMP  t2ia (i,a)
+      TEMP  tbj  (b,j)
+      TEMP  t1bj (b,j)
+      TEMP  t2bj (b,j)
+      TEMP  tjb  (j,b)
+      TEMP  t1jb (j,b)
+      TEMP  t2jb (j,b)
+#
+#
+#     Arrays and scalars used in DIIS procedure
+#
+#
+      DISTRIBUTED  D0ai (a,i)
+      DISTRIBUTED  D1ai (a,i)
+      DISTRIBUTED  D2ai (a,i)
+      DISTRIBUTED  D3ai (a,i)
+      DISTRIBUTED  D4ai (a,i)
+      DISTRIBUTED  D5ai (a,i)
+
+      DISTRIBUTED  D0bj (b,j)
+      DISTRIBUTED  D1bj (b,j)
+      DISTRIBUTED  D2bj (b,j)
+      DISTRIBUTED  D3bj (b,j)
+      DISTRIBUTED  D4bj (b,j)
+      DISTRIBUTED  D5bj (b,j)
+
+      DISTRIBUTED  E1ai (a,i)
+      DISTRIBUTED  E2ai (a,i)
+      DISTRIBUTED  E3ai (a,i)
+      DISTRIBUTED  E4ai (a,i)
+      DISTRIBUTED  E5ai (a,i)
+
+      DISTRIBUTED  E1bj (b,j)
+      DISTRIBUTED  E2bj (b,j)
+      DISTRIBUTED  E3bj (b,j)
+      DISTRIBUTED  E4bj (b,j)
+      DISTRIBUTED  E5bj (b,j)
+
+      SCALAR  b11
+      SCALAR  b12
+      SCALAR  b13
+      SCALAR  b14
+      SCALAR  b15
+      SCALAR  b16
+      SCALAR  b17
+      SCALAR  b18
+      SCALAR  b19
+      SCALAR  b110
+
+      SCALAR  b22
+      SCALAR  b23
+      SCALAR  b24
+      SCALAR  b25
+      SCALAR  b26
+      SCALAR  b27
+      SCALAR  b28
+      SCALAR  b29
+      SCALAR  b210
+
+      SCALAR  b33
+      SCALAR  b34
+      SCALAR  b35
+      SCALAR  b36
+      SCALAR  b37
+      SCALAR  b38
+      SCALAR  b39
+      SCALAR  b310
+
+      SCALAR  b44
+      SCALAR  b45
+      SCALAR  b46
+      SCALAR  b47
+      SCALAR  b48
+      SCALAR  b49
+      SCALAR  b410
+
+      SCALAR  b55
+      SCALAR  b56
+      SCALAR  b57
+      SCALAR  b58
+      SCALAR  b59
+      SCALAR  b510
+
+      SCALAR  b66
+      SCALAR  b67
+      SCALAR  b68
+      SCALAR  b69
+      SCALAR  b610
+
+      SCALAR  b77
+      SCALAR  b78
+      SCALAR  b79
+      SCALAR  b710
+
+      SCALAR  b88
+      SCALAR  b89
+      SCALAR  b810
+
+      SCALAR  b99
+      SCALAR  b910
+
+      SCALAR  b1010
+
+      SCALAR  Tb11
+      SCALAR  Tb12
+      SCALAR  Tb13
+      SCALAR  Tb14
+      SCALAR  Tb15
+      SCALAR  Tb16
+      SCALAR  Tb17
+      SCALAR  Tb18
+      SCALAR  Tb19
+      SCALAR  Tb110
+
+      SCALAR  Tb22
+      SCALAR  Tb23
+      SCALAR  Tb24
+      SCALAR  Tb25
+      SCALAR  Tb26
+      SCALAR  Tb27
+      SCALAR  Tb28
+      SCALAR  Tb29
+      SCALAR  Tb210
+      SCALAR  Tb33
+      SCALAR  Tb34
+      SCALAR  Tb35
+      SCALAR  Tb36
+      SCALAR  Tb37
+      SCALAR  Tb38
+      SCALAR  Tb39
+      SCALAR  Tb310
+      SCALAR  Tb44
+      SCALAR  Tb45
+      SCALAR  Tb46
+      SCALAR  Tb47
+      SCALAR  Tb48
+      SCALAR  Tb49
+      SCALAR  Tb410
+
+      SCALAR  Tb55
+      SCALAR  Tb56
+      SCALAR  Tb57
+      SCALAR  Tb58
+      SCALAR  Tb59
+      SCALAR  Tb510
+
+      SCALAR  Tb66
+      SCALAR  Tb67
+      SCALAR  Tb68
+      SCALAR  Tb69
+      SCALAR  Tb610
+
+      SCALAR  Tb77
+      SCALAR  Tb78
+      SCALAR  Tb79
+      SCALAR  Tb710
+
+      SCALAR  Tb88
+      SCALAR  Tb89
+      SCALAR  Tb810
+
+      SCALAR  Tb99
+      SCALAR  Tb910
+
+      SCALAR  Tb1010
+
+      SCALAR  c1
+      SCALAR  c2
+      SCALAR  c3
+      SCALAR  c4
+      SCALAR  c5
+      SCALAR  c6
+      SCALAR  c7
+      SCALAR  c8
+      SCALAR  c9
+      SCALAR  c10
+      SCALAR  csum
+
+      SCALAR  VNN
+      SCALAR  RANK
+      SCALAR  ZERO
+      SCALAR  ONEM
+      SCALAR  ONE
+      SCALAR  ONEHALF
+      SCALAR  TWO
+      SCALAR  THREE
+      SCALAR  FOUR
+      SCALAR  IPORBA
+      SCALAR  IPORBB
+      SCALAR  nelec_a
+      SCALAR  nelec_b
+      SCALAR  nelec
+      SCALAR  energy
+      SCALAR  ediff
+      SCALAR  debug
+      SCALAR  etemp
+      SCALAR  exold
+      SCALAR  exnew
+      SCALAR  etnew
+      SCALAR  etnewa
+      SCALAR  etnewb
+      SCALAR  excrit
+      SCALAR  etcrit
+      SCALAR  damp1
+      SCALAR  dampi
+      SCALAR  dampa
+      SCALAR  exsum
+      SCALAR  etsum
+      SCALAR  esuma
+      SCALAR  esumb
+      SCALAR  esumab
+      SCALAR  esum
+      SCALAR  etota
+      SCALAR  etotb
+      SCALAR  etot
+      SCALAR  erelax
+      SCALAR  erelaxa
+      SCALAR  erelaxb
+      SCALAR  erelaxab
+      SCALAR  itercount
+#
+#
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -------------------
+      PROC  ZERO_ARRAYS
+#    -------------------
+#
+#
+      PARDO  i, i1
+         tii (i,i1) = 0.0
+         PUT  XITER_OLD_A (i,i1) = tii (i,i1)
+      ENDPARDO  i, i1
+
+      PARDO  i, a
+         tia (i,a) = 0.0
+         tai (a,i) = 0.0
+         PUT  F_NEW_OV_A (i,a) = tia (i,a)
+      ENDPARDO  i, a
+
+      PARDO  p, p1
+         tpp (p,p1) = 0.0
+         PUT  SM_XA     (p,p1) = tpp (p,p1)
+         PUT  DMAT_A    (p,p1) = tpp (p,p1)
+         PUT  QMAT_A    (p,p1) = tpp (p,p1)
+         PUT  XMAT_A    (p,p1) = tpp (p,p1)
+         PUT  GTILDE_A  (p,p1) = tpp (p,p1)
+         PUT  FOCK_MO_A (p,p1) = tpp (p,p1)
+      ENDPARDO  p, p1
+
+      PARDO  j, j1
+         tjj (j,j1) = 0.0
+         PUT  XITER_OLD_B (j,j1) = tjj (j,j1)
+      ENDPARDO  j, j1
+
+      PARDO  j, b
+         tjb (j,b) = 0.0
+         tbj (b,j) = 0.0
+         PUT  F_NEW_OV_B (j,b) = tjb (j,b)
+      ENDPARDO  j, b
+
+      PARDO  q, q1
+         tqq (q,q1) = 0.0
+         PUT  SM_XB     (q,q1) = tqq (q,q1)
+         PUT  DMAT_B    (q,q1) = tqq (q,q1)
+         PUT  QMAT_B    (q,q1) = tqq (q,q1)
+         PUT  XMAT_B    (q,q1) = tqq (q,q1)
+         PUT  GTILDE_B  (q,q1) = tqq (q,q1)
+         PUT  FOCK_MO_B (q,q1) = tqq (q,q1)
+      ENDPARDO  q, q1
+
+      PARDO  mu, nu
+         txx (mu,nu) = 0.0
+         PUT  DCCS_A    (mu,nu) = txx (mu,nu)
+         PUT  DCCS_B    (mu,nu) = txx (mu,nu)
+         PUT  FOCK_AO_A (mu,nu) = txx (mu,nu)
+         PUT  FOCK_AO_B (mu,nu) = txx (mu,nu)
+         PUT  GTOTAL_A  (mu,nu) = txx (mu,nu)
+         PUT  GTOTAL_B  (mu,nu) = txx (mu,nu)
+      ENDPARDO  mu, nu
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  ZERO_ARRAYS
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -------------------------
+      PROC  MICRO_ITER_XTILDA
+#    -------------------------
+#
+#                           -       -
+#              T           |  a  i1  |
+#     x    = -t t  =  Sum  | t  t    |
+#      oo                a |  i  a   |
+#                           -       -
+#
+      PARDO  i, i1
+         DO a
+            GET                  T1A_OLD (i,a )
+            GET                  T1A_OLD (i1,a)
+            tai  (a,i1)        = T1A_OLD (i1,a)
+            tii  (i,i1)        = T1A_OLD (i,a ) * tai (a,i1)
+            tii  (i,i1)       *= -1.0
+            PUT  SM_XA (i,i1) += tii  (i,i1)
+         ENDDO a
+      ENDPARDO  i, i1
+
+      PARDO  j, j1
+         DO b
+            GET                  T1B_OLD (j,b )
+            GET                  T1B_OLD (j1,b)
+            tbj  (b,j1)        = T1B_OLD (j1,b)
+            tjj  (j,j1)        = T1B_OLD (j,b ) * tbj (b,j1)
+            tjj  (j,j1)       *= -1.0
+            PUT  SM_XB (j,j1) += tjj (j,j1)
+         ENDDO b
+      ENDPARDO  j, j1
+
+      PARDO  a, a1
+         DO i
+            GET                  T1A_OLD (i,a )
+            GET                  T1A_OLD (i,a1)
+            tai  (a,i )        = T1A_OLD (i,a ) 
+            taa  (a,a1)        = tai (a,i ) * T1A_OLD (i,a1)
+            PUT  SM_XA (a,a1) += taa (a,a1)
+         ENDDO i
+      ENDPARDO  a, a1
+      
+      PARDO  b, b1
+         DO j
+            GET                  T1B_OLD (j,b )
+            GET                  T1B_OLD (j,b1)
+            tbj  (b,j )        = T1B_OLD (j,b ) 
+            tbb  (b,b1)        = tbj (b,j ) * T1B_OLD (j,b1)
+            PUT  SM_XB (b,b1) += tbb (b,b1)
+         ENDDO j
+      ENDPARDO  b, b1
+#
+#
+#          Check to see the largest element!
+#
+#
+      IF debug > 0.0
+         DO p
+         DO p1
+            GET               SM_XA (p,p1)
+            F_FULL_A (p,p1) = SM_XA (p,p1)
+         ENDDO p1
+         ENDDO p
+
+         DO q
+         DO q1
+            GET               SM_XB (q,q1)
+            F_FULL_B (q,q1) = SM_XB (q,q1)
+         ENDDO q1
+         ENDDO q
+
+         EXECUTE  EIG  F_FULL_A  FV_FULL_A
+         EXECUTE  EIG  F_FULL_B  FV_FULL_B
+         EXECUTE  PRINT_SCALAR  ZERO
+         esuma = 0.0
+         DO i
+         DO i1
+            tii (i,i1) = F_FULL_A (i,i1)
+            EXECUTE  CHECK_DCONF  tii  esuma
+         ENDDO i1
+         ENDDO i
+         EXECUTE  PRINT_SCALAR  esuma
+         esuma = 0.0
+         DO a
+         DO a1
+            taa (a,a1) = F_FULL_A (a,a1)
+            EXECUTE  CHECK_DCONF  taa  esuma
+         ENDDO a1
+         ENDDO a
+         EXECUTE  PRINT_SCALAR  esuma
+         esumb = 0.0
+         DO j
+         DO j1
+            tjj (j,j1) = F_FULL_B (j,j1)
+            EXECUTE  CHECK_DCONF  tjj  esumb
+         ENDDO j1
+         ENDDO j
+         EXECUTE  PRINT_SCALAR  esumb
+         esumb = 0.0
+         DO b
+         DO b1
+            tbb (b,b1) = F_FULL_B (b,b1)
+            EXECUTE  CHECK_DCONF  tbb  esumb
+         ENDDO b1
+         ENDDO b
+         EXECUTE  PRINT_SCALAR  esumb
+      ENDIF
+#
+#
+#             (0)
+#     Set up X    = 1
+#             oo     oo
+#
+#
+      PARDO  i, i1
+         tii (i,i1)               = ST_IDENT_A (i,i1)
+         PUT  XITER_OLD_A (i,i1) += tii (i,i1)
+      ENDPARDO  i, i1
+
+      PARDO  j, j1
+         tjj (j,j1)               = ST_IDENT_B (j,j1)
+         PUT  XITER_OLD_B (j,j1) += tjj (j,j1)
+      ENDPARDO  j, j1
+
+      EXECUTE  SIP_BARRIER
+
+      exold     = 0.0
+      DO xiter
+
+         exsum      = 0.0
+         exnew      = 0.0
+
+         PARDO  i, i1
+            tii (i,i1) = 0.0
+            DO i2
+               GET            SM_XA       (i2,i1)
+               GET            XITER_OLD_A (i ,i2)
+
+               t1ii (i,i1)  = XITER_OLD_A (i,i2) * SM_XA (i2,i1)
+               tii  (i,i1) += t1ii (i,i1)
+            ENDDO i2
+            tii (i,i1) += ST_IDENT_A (i,i1)
+            PUT  XITER_NEW_A (i,i1)  = tii (i,i1)
+
+            etemp  = tii (i,i1) * tii (i,i1)
+            exsum += etemp
+         ENDPARDO  i, i1
+
+         PARDO  j, j1
+            tjj (j,j1) = 0.0
+            DO j2
+               GET            SM_XB       (j2,j1)
+               GET            XITER_OLD_B (j ,j2)
+
+               t1jj (j,j1)  = XITER_OLD_B (j,j2) * SM_XB (j2,j1)
+               tjj  (j,j1) += t1jj (j,j1)
+            ENDDO j2
+            tjj (j,j1) += ST_IDENT_B (j,j1)
+            PUT  XITER_NEW_B (j,j1)  = tjj (j,j1)
+
+            etemp  = tjj (j,j1) * tjj (j,j1)
+            exsum += etemp
+         ENDPARDO  j, j1
+
+         EXECUTE  SIP_BARRIER
+
+         COLLECTIVE  exnew += exsum
+
+         PARDO  i, i1
+            GET                       XITER_NEW_A (i,i1)
+            PUT  XITER_OLD_A (i,i1) = XITER_NEW_A (i,i1)
+         ENDPARDO  i, i1
+
+         PARDO  j, j1
+            GET                       XITER_NEW_B (j,j1)
+            PUT  XITER_OLD_B (j,j1) = XITER_NEW_B (j,j1)
+         ENDPARDO  j, j1
+
+         EXECUTE  SIP_BARRIER
+#
+#
+#     Check on convergence!
+#
+#
+         IF exnew <= exold
+            ediff  = exold - exnew
+         ENDIF
+
+         IF exnew > exold
+            ediff = exnew - exold
+         ENDIF
+
+         EXECUTE  PRINT_SCALAR  ediff
+         IF ediff < excrit
+            exit  #  xiter  #
+         ENDIF
+
+         exold = exnew
+
+      ENDDO xiter
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Put converged arrays into the proper place
+#
+#
+      PARDO  i, i1
+         GET          XITER_OLD_A (i,i1)
+         tii (i,i1) = XITER_OLD_A (i,i1)
+         IF IPORBA > 0.0
+            EXECUTE  CHANGE_OCC_DENS  tii  IPORBA
+         ENDIF
+         PUT  DMAT_A (i,i1) = tii (i,i1)
+
+         tii (i,i1) -= ST_IDENT_A (i,i1)
+         PUT  XMAT_A (i,i1) = tii (i,i1)
+      ENDPARDO  i, i1
+
+      PARDO  i, i1
+         GET          XITER_OLD_A (i,i1)
+         tii (i,i1) = XITER_OLD_A (i,i1)
+         IF IPORBA > 0.0
+            EXECUTE  CHANGE_OCC_DENS  tii  IPORBA
+         ENDIF
+         PUT  QMAT_A (i,i1) = tii (i,i1)
+      ENDPARDO  i, i1
+
+      PARDO  j, j1
+         GET          XITER_OLD_B (j,j1)
+         tjj (j,j1) = XITER_OLD_B (j,j1)
+         IF IPORBB > 0.0
+            EXECUTE  CHANGE_OCC_DENS  tjj  IPORBB
+         ENDIF
+         PUT  DMAT_B (j,j1) = tjj (j,j1)
+
+         tjj (j,j1) -= ST_IDENT_B (j,j1)
+         PUT  XMAT_B (j,j1) = tjj (j,j1)
+      ENDPARDO  j, j1
+
+      PARDO  j, j1
+         GET          XITER_OLD_B (j,j1)
+         tjj (j,j1) = XITER_OLD_B (j,j1)
+         IF IPORBB > 0.0
+            EXECUTE  CHANGE_OCC_DENS  tjj  IPORBB
+         ENDIF
+         PUT  QMAT_B (j,j1) = tjj (j,j1)
+      ENDPARDO  j, j1
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  MICRO_ITER_XTILDA
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -----------------------
+      PROC  FORM_ALL_X_MATS
+#    -----------------------
+#
+#
+      PARDO  a, i
+         DO i1
+            GET                  T1A_OLD (i1,a)
+            GET                  DMAT_A  (i,i1)
+            tia (i,a)          = DMAT_A  (i,i1) * T1A_OLD (i1,a)
+            PUT  DMAT_A (i,a) += tia (i,a)
+            PUT  XMAT_A (i,a) += tia (i,a)
+         ENDDO i1
+      ENDPARDO  a, i
+
+      PARDO  a, i
+         DO i1
+            GET                  T1A_OLD (i1,a)
+            GET                  DMAT_A  (i1,i)
+            tai  (a,i1)        = T1A_OLD (i1,a)
+            t1ai (a,i )        = tai (a,i1) * DMAT_A (i1,i)
+            PUT  DMAT_A (a,i) += t1ai (a,i)
+            PUT  XMAT_A (a,i) += t1ai (a,i)
+         ENDDO i1
+      ENDPARDO  a, i
+
+      PARDO  a, i
+         DO i1
+            GET                  T1A_OLD (i1,a)
+            GET                  DMAT_A  (i,i1)
+            tia (i,a)          = DMAT_A  (i,i1) * T1A_OLD (i1,a)
+            tia (i,a)         *= -1.0
+            PUT  QMAT_A (i,a) += tia (i,a)
+         ENDDO i1
+      ENDPARDO  a, i
+
+      PARDO  a, i
+         DO i1
+            GET                  T1A_OLD (i1,a)
+            GET                  DMAT_A  (i1,i)
+            t1ai (a,i1)        = T1A_OLD (i1,a)
+            tai  (a,i )        = t1ai (a,i1) * DMAT_A (i1,i)
+            PUT  QMAT_A (a,i) += tai  (a,i )
+         ENDDO i1
+      ENDPARDO  a, i
+
+      PARDO  b, j
+         DO j1
+            GET                  T1B_OLD (j1,b)
+            GET                  DMAT_B  (j,j1)
+            tjb (j,b)          = DMAT_B  (j,j1) * T1B_OLD (j1,b)
+            PUT  DMAT_B (j,b) += tjb (j,b)
+            PUT  XMAT_B (j,b) += tjb (j,b)
+         ENDDO j1
+      ENDPARDO  b, j
+
+      PARDO  b, j
+         DO j1
+            GET                  T1B_OLD (j1,b)
+            GET                  DMAT_B  (j1,j)
+            t1bj (b,j1)        = T1B_OLD (j1,b)
+            tbj  (b,j )        = t1bj (b,j1) * DMAT_B  (j1,j)
+            PUT  DMAT_B (b,j) += tbj  (b,j )
+            PUT  XMAT_B (b,j) += tbj  (b,j )
+         ENDDO j1
+      ENDPARDO  b, j
+
+      PARDO  b, j
+         DO j1
+            GET                  T1B_OLD (j1,b)
+            GET                  DMAT_B  (j,j1)
+            tjb (j,b)          = DMAT_B  (j,j1) * T1B_OLD (j1,b)
+            tjb (j,b)         *= -1.0
+            PUT  QMAT_B (j,b) += tjb (j,b)
+         ENDDO j1
+      ENDPARDO  b, j
+
+      PARDO  b, j
+         DO j1
+            GET                  T1B_OLD (j1,b)
+            GET                  DMAT_B  (j1,j)
+            t1bj (b,j1)        = T1B_OLD (j1,b)
+            tbj  (b,j )        = t1bj (b,j1) * DMAT_B  (j1,j)
+            PUT  QMAT_B (b,j) += tbj (b,j)
+         ENDDO j1
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+
+      PARDO  a, a1
+         DO i
+            GET                   T1A_OLD (i,a1)
+            GET                   DMAT_A  (a,i )
+            taa  (a,a1)         = DMAT_A  (a,i ) * T1A_OLD (i,a1)
+            PUT  DMAT_A (a,a1) += taa (a,a1)
+            PUT  XMAT_A (a,a1) += taa (a,a1)
+         ENDDO i
+      ENDPARDO  a, a1
+
+      PARDO  a, a1
+         DO i
+            GET                   T1A_OLD (i,a1)
+            GET                   DMAT_A  (a,i )
+            taa  (a,a1)         = DMAT_A  (a,i ) * T1A_OLD (i,a1)
+            taa  (a,a1)        *= -1.0
+            PUT  QMAT_A (a,a1) += taa (a,a1)
+         ENDDO i
+      ENDPARDO  a, a1
+
+      PARDO  a, a1
+         taa (a,a1)          = ST_IDENT_A (a,a1)
+         PUT  QMAT_A (a,a1) += taa (a,a1)
+      ENDPARDO  a, a1
+
+      PARDO  b, b1
+         DO j
+            GET                   T1B_OLD (j,b1)
+            GET                   DMAT_B  (b,j )
+            tbb (b,b1)          = DMAT_B  (b,j ) * T1B_OLD (j,b1)
+            PUT  DMAT_B (b,b1) += tbb (b,b1)
+            PUT  XMAT_B (b,b1) += tbb (b,b1)
+         ENDDO j
+      ENDPARDO  b, b1
+
+      PARDO  b, b1
+         DO j
+            GET                   T1B_OLD (j,b1)
+            GET                   DMAT_B  (b,j )
+            tbb (b,b1)          = DMAT_B  (b,j ) * T1B_OLD (j,b1)
+            tbb (b,b1)         *= -1.0
+            PUT  QMAT_B (b,b1) += tbb (b,b1)
+         ENDDO j
+      ENDPARDO  b, b1
+
+      PARDO  b, b1
+         tbb (b,b1)          = ST_IDENT_B (b,b1)
+         PUT  QMAT_B (b,b1) += tbb (b,b1)
+      ENDPARDO  b, b1
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          Now transform the MO density matrix to AO representation!
+#
+#
+      PARDO  p, p1
+         GET  DMAT_A (p,p1)
+         DO mu
+            txp (mu,p1) = CA (mu,p) * DMAT_A (p,p1)
+            DO nu
+               txx         (mu,nu)  = txp (mu,p1) * CA (nu,p1)
+               PUT  DCCS_A (mu,nu) += txx (mu,nu)
+            ENDDO nu
+         ENDDO mu
+      ENDPARDO  p, p1
+      
+      PARDO  q, q1
+         GET  DMAT_B (q,q1)
+         DO mu
+            txq (mu,q1) = CB (mu,q) * DMAT_B (q,q1)
+            DO nu
+               txx         (mu,nu)  = txq (mu,q1) * CB (nu,q1)
+               PUT  DCCS_B (mu,nu) += txx (mu,nu)
+            ENDDO nu
+         ENDDO mu
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  FORM_ALL_X_MATS
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    ----------------------
+      PROC  FORM_NEW_COEFF
+#    ----------------------
+#
+#
+#     Create the necessary arrays!
+#
+#
+      CREATE  CA_NEW
+      CREATE  CB_NEW
+      CREATE  UTRAN_A
+      CREATE  UTRAN_B
+      EXECUTE  SIP_BARRIER
+#
+#                      T
+#     Form the matrix Q  Q
+#     Then diagonalize it, and take the inverse square root.
+#     Then undiagonalize it.
+#     Then multiply by Q (U = QX)
+#     Then form the new coefficients!
+#
+#
+      ALLOCATE  Lpp (*,*)
+      ALLOCATE  Lqq (*,*)
+
+      DO p
+      DO p1
+
+         Lpp (p,p1) = 0.0
+      
+         DO p2
+            GET            QMAT_A (p2,p )
+            GET            QMAT_A (p2,p1)
+            tpp  (p,p2)  = QMAT_A (p2,p )
+            
+            t1pp (p,p1)  = tpp  (p,p2) * QMAT_A (p2,p1)
+            Lpp  (p,p1) += t1pp (p,p1)
+         ENDDO p2
+
+         F_FULL_A (p,p1) = Lpp (p,p1)
+         
+      ENDDO p1
+      ENDDO p
+
+      DO q
+      DO q1
+
+         Lqq (q,q1) = 0.0
+
+         DO q2
+            GET            QMAT_B (q2,q )
+            GET            QMAT_B (q2,q1)
+            tqq  (q,q2)  = QMAT_B (q2,q )
+
+            t1qq (q,q1)  = tqq  (q,q2) * QMAT_B (q2,q1)
+            Lqq  (q,q1) += t1qq (q,q1)
+         ENDDO q2
+
+         F_FULL_B (q,q1) = Lqq (q,q1)
+
+      ENDDO q1
+      ENDDO q
+
+      EXECUTE  SIP_BARRIER
+
+      EXECUTE  EIG_SR_INV  F_FULL_A  FV_FULL_A
+      EXECUTE  EIG_SR_INV  F_FULL_B  FV_FULL_B
+
+      PARDO  p2, p3
+         DO p1
+            t2pp (p3,p1) = FV_FULL_A (p1,p3)
+            t1pp (p2,p1) = F_FULL_A  (p2,p3) * t2pp (p3,p1)
+            DO p
+               tpp (p,p1)  = FV_FULL_A (p,p2) * t1pp (p2,p1)
+               PUT  DMAT_A (p,p1) += tpp (p,p1)
+            ENDDO p
+         ENDDO p1
+      ENDPARDO  p2, p3
+
+      PARDO  q2, q3
+         DO q1
+            t2qq (q3,q1) = FV_FULL_B (q1,q3)
+            t1qq (q2,q1) = F_FULL_B  (q2,q3) * t2qq (q3,q1)
+            DO q
+               tqq (q,q1)  = FV_FULL_B (q,q2) * t1qq (q2,q1)
+               PUT  DMAT_B (q,q1) += tqq (q,q1)
+            ENDDO q
+         ENDDO q1
+      ENDPARDO  q2, q3
+
+      EXECUTE  SIP_BARRIER
+      DEALLOCATE  Lpp (*,*)
+      DEALLOCATE  Lqq (*,*)
+
+      PARDO  p, p1
+         DO p2
+            GET                    QMAT_A (p ,p2)
+            GET                    DMAT_A (p2,p1)
+            tpp (p,p1)           = QMAT_A (p ,p2) * DMAT_A (p2,p1)
+            PUT  UTRAN_A (p,p1) += tpp (p,p1)
+         ENDDO p2
+      ENDPARDO  p, p1
+
+      PARDO  q, q1
+         DO q2
+            GET                    QMAT_B (q ,q2)
+            GET                    DMAT_B (q2,q1)
+            tqq (q,q1)           = QMAT_B (q ,q2) * DMAT_B (q2,q1)
+            PUT  UTRAN_B (q,q1) += tqq (q,q1)
+         ENDDO q2
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+
+      PARDO  mu, p
+         DO p1
+            GET                   UTRAN_A (p1,p)
+            txp (mu,p)          = CA  (mu,p1) * UTRAN_A (p1,p)
+            PUT  CA_NEW (mu,p) += txp (mu,p )
+         ENDDO p1
+      ENDPARDO  mu, p
+
+      PARDO  mu, q
+         DO q1
+            GET                   UTRAN_B (q1,q)
+            txq (mu,q)          = CB  (mu,q1) * UTRAN_B (q1,q)
+            PUT  CB_NEW (mu,q) += txq (mu,q )
+         ENDDO q1
+      ENDPARDO  mu, q
+
+      EXECUTE  SIP_BARRIER
+
+      DO mu
+
+         DO P
+            GET         CA_NEW (mu,p)
+            CA (mu,p) = CA_NEW (mu,p)
+         ENDDO p
+
+         DO q
+            GET         CB_NEW (mu,q)
+            CB (mu,q) = CB_NEW (mu,q)
+         ENDDO q
+
+      ENDDO mu
+
+      EXECUTE  SIP_BARRIER
+
+      PARDO  mu, nu
+         DO p1
+            txp (mu,p1) = OED_OVL (mu,nu) * CA (nu,p1)
+            DO p
+               tpx (p,mu) = CA (mu,p)
+               tpp (p,p1) = tpx (p,mu) * txp (mu,p1)
+               PUT  ZARRAY_A (p,p1) += tpp (p,p1)
+            ENDDO p
+         ENDDO p1
+      ENDPARDO  mu, nu
+
+      EXECUTE  SIP_BARRIER  
+
+      EXECUTE PRINT_SCALAR  ZERO
+      PARDO  p, p1
+         GET  ZARRAY_A (p,p1)
+         tpp (p,p1) = ZARRAY_A (p,p1)
+         EXECUTE  C1_PRINT  tpp  ZERO
+      ENDPARDO  p, p1
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Delete the arrays no longer needed!
+#
+#
+      EXECUTE  SIP_BARRIER
+      DELETE  CA_NEW
+      DELETE  CB_NEW
+      DELETE  DMAT_A
+      DELETE  DMAT_B
+      DELETE  QMAT_A
+      DELETE  QMAT_B
+      DELETE  UTRAN_A
+      DELETE  UTRAN_B
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  FORM_NEW_COEFF
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -----------------
+      PROC  FORM_FOCK
+#    -----------------
+#
+#
+#     Transform everything to the atomic orbital basis
+#
+#
+      ALLOCATE  LDHFa (*,*)
+      ALLOCATE  LDHFb (*,*)
+      ALLOCATE  LFpqa (*,*)
+      ALLOCATE  LFpqb (*,*)
+      EXECUTE  SIP_BARRIER
+
+      DO mu
+      DO nu
+         GET             DCCS_A (mu,nu)
+         GET             DCCS_B (mu,nu)
+         LDHFa (mu,nu) = DCCS_A (mu,nu)
+         LDHFb (mu,nu) = DCCS_B (mu,nu)
+         LFpqa (mu,nu) = 0.0
+         LFpqb (mu,nu) = 0.0
+      ENDDO nu
+      ENDDO mu
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     One electron piece of the Fock matrix
+#
+#
+      PARDO  mu, nu
+         txx (mu,nu) = 0.0
+         EXECUTE  RETURN_H1  txx
+         PUT  FOCK_AO_A (mu,nu) += txx (mu,nu)
+      ENDPARDO  mu, nu
+
+      PARDO  mu, nu
+         txx (mu,nu) = 0.0
+         EXECUTE  RETURN_H1  txx
+         PUT  FOCK_AO_B (mu,nu) += txx (mu,nu)
+      ENDPARDO  mu, nu
+#
+#
+#     Two electron piece to the Fock matrix
+#
+#
+#        CLASS 6:
+#          Do 4-center part  (mu nu | lam sig)   -->
+#
+#                                        (mu  nu  | sig lam)
+#                                        (nu  mu  | lam sig)
+#                                        (nu  mu  | sig lam)
+#                                        (lam sig | mu  nu )
+#                                        (sig lam | mu  nu )
+#                                        (lam sig | nu  mu )
+#                                        (sig lam | nu  mu )
+#
+#
+      PARDO  mu, nu, lam, sig
+
+         WHERE mu   < nu
+         WHERE lam  < sig
+         WHERE mu   < lam
+         WHERE nu  != sig
+         WHERE nu  != lam
+         WHERE mu  != sig
+
+            COMPUTE_INTEGRALS  AOINT (mu,nu,lam,sig)
+
+            T1xx  (lam,sig)  = LDHFa (lam,sig)
+            T1xx  (lam,sig) += LDHFb (lam,sig)
+            T4xx  (mu,nu)    = LDHFa (mu,nu)
+            T4xx  (mu,nu)   += LDHFb (mu,nu)
+
+            T2xx  (mu,nu)    = AOINT (mu,nu,lam,sig) * T1xx (lam,sig)
+            T2xx  (mu,nu)   *= 2.0
+            LFpqa (mu,nu)   += T2xx (mu,nu)
+            LFpqb (mu,nu)   += T2xx (mu,nu)
+            T3xx  (nu,mu)    = T2xx (mu,nu)
+            LFpqa (nu,mu)   += T3xx (nu,mu)
+            LFpqb (nu,mu)   += T3xx (nu,mu)
+
+            T5xx  (lam,sig)  = AOINT (mu,nu,lam,sig) * T4xx (mu,nu)
+            T5xx  (lam,sig) *= 2.0
+            LFpqa (lam,sig) += T5xx (lam,sig)
+            LFpqb (lam,sig) += T5xx (lam,sig)
+            T6xx  (sig,lam)  = T5xx (lam,sig)
+            LFpqa (sig,lam) += T6xx (sig,lam)
+            LFpqb (sig,lam) += T6xx (sig,lam)
+
+            T7xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,sig)
+            LFpqa (mu,lam)  -= T7xx  (mu,lam)
+            T8xx  (lam,mu)   = T7xx  (mu,lam)
+            LFpqa (lam,mu)  -= T8xx  (lam,mu)
+
+            T9xx  (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,lam)
+            LFpqa (mu,sig)  -= T9xx  (mu,sig)
+            T10xx (sig,mu)   = T9xx  (mu,sig)
+            LFpqa (sig,mu)  -= T10xx (sig,mu)
+
+            T11xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,sig)
+            LFpqa (nu,lam)  -= T11xx (nu,lam)
+            T12xx (lam,nu)   = T11xx (nu,lam)
+            LFpqa (lam,nu)  -= T12xx (lam,nu)
+
+            T13xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,lam)
+            LFpqa (nu,sig)  -= T13xx (nu,sig)
+            T14xx (sig,nu)   = T13xx (nu,sig)
+            LFpqa (sig,nu)  -= T14xx (sig,nu)
+
+            T15xx (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,sig)
+            LFpqb (mu,lam)  -= T15xx (mu,lam)
+            T16xx (lam,mu)   = T15xx (mu,lam)
+            LFpqb (lam,mu)  -= T16xx (lam,mu)
+
+            T17xx (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,lam)
+            LFpqb (mu,sig)  -= T17xx (mu,sig)
+            T18xx (sig,mu)   = T17xx (mu,sig)
+            LFpqb (sig,mu)  -= T18xx (sig,mu)
+
+            T19xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,sig)
+            LFpqb (nu,lam)  -= T19xx (nu,lam)
+            T20xx (lam,nu)   = T19xx (nu,lam)
+            LFpqb (lam,nu)  -= T20xx (lam,nu)
+
+            T21xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,lam)
+            LFpqb (nu,sig)  -= T21xx (nu,sig)
+            T22xx (sig,nu)   = T21xx (nu,sig)
+            LFpqb (sig,nu)  -= T22xx (sig,nu)
+
+      ENDPARDO  mu, nu, lam, sig
+#           
+#
+#        CLASS 3
+#          Do 2-center part  (mu mu | mu nu)   -->
+#           
+#                                        (mu nu | mu mu)
+#                                        (mu mu | nu mu)
+#                                        (nu mu | mu mu)
+#
+#          Do 3-center part  (mu mu | nu lam)  -->
+#
+#                                        (mu  mu  | lam nu)
+#                                        (nu  lam | mu  mu)
+#                                        (lam nu  | mu  mu)
+#           
+#           
+      PARDO  mu, nu, sig
+
+         WHERE mu == nu
+
+            T3xx (mu,nu)  = LDHFa (mu,nu)
+            T3xx (mu,nu) += LDHFb (mu,nu)
+
+            DO lam
+
+               WHERE lam  < sig
+
+                  COMPUTE_INTEGRALS  AOINT (mu,nu,lam,sig)
+
+                  T1xx (lam,sig)   = LDHFa (lam,sig)
+                  T1xx (lam,sig)  += LDHFb (lam,sig)
+
+                  T2xx (mu,nu)     = AOINT (mu,nu,lam,sig) * T1xx (lam,sig)
+                  T2xx (mu,nu)    *= 2.0
+
+                  T4xx (lam,sig)   = AOINT (mu,nu,lam,sig) * T3xx (mu,nu)
+                  T5xx (sig,lam)   = T4xx  (lam,sig)
+
+                  T6xx (mu,lam)    = AOINT (mu,nu,lam,sig) * LDHFa (nu,sig)
+                 #T6xx (mu,lam)   *= -1.0
+                  T7xx (lam,mu)    = T6xx  (mu,lam)
+
+                  T8xx (mu,sig)    = AOINT (mu,nu,lam,sig) * LDHFa (nu,lam)
+                 #T8xx (mu,sig)   *= -1.0
+                  T9xx (sig,mu)    = T8xx  (mu,sig)
+
+                  T10xx (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,sig)
+                 #T10xx (mu,lam)  *= -1.0
+                  T11xx (lam,mu)   = T10xx (mu,lam)
+
+                  T12xx (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,lam)
+                 #T12xx (mu,sig)  *= -1.0
+                  T13xx (sig,mu)   = T12xx (mu,sig)
+
+                  LFpqa (mu,nu)   += T2xx  (mu,nu)
+                  LFpqb (mu,nu)   += T2xx  (mu,nu)
+
+                  LFpqa (lam,sig) += T4xx  (lam,sig)
+                  LFpqb (lam,sig) += T4xx  (lam,sig)
+
+                  LFpqa (sig,lam) += T5xx  (sig,lam)
+                  LFpqb (sig,lam) += T5xx  (sig,lam)
+
+                  LFpqa (mu,lam)  -= T6xx  (mu,lam)
+                  LFpqa (lam,mu)  -= T7xx  (lam,mu)
+
+                  LFpqa (mu,sig)  -= T8xx  (mu,sig)
+                  LFpqa (sig,mu)  -= T9xx  (sig,mu)
+
+                  LFpqb (mu,lam)  -= T10xx (mu,lam)
+                  LFpqb (lam,mu)  -= T11xx (lam,mu)
+
+                  LFpqb (mu,sig)  -= T12xx (mu,sig)
+                  LFpqb (sig,mu)  -= T13xx (sig,mu)
+
+            ENDDO lam
+
+      ENDPARDO  mu, nu, sig
+#           
+#
+#        CLASS 5:
+#        CLASS A:
+#          Do 3-center part  (mu nu | mu lam)   -->
+#           
+#                                        (mu  nu  | lam mu )
+#                                        (nu  mu  | mu  lam)
+#                                        (nu  mu  | lam mu )
+#                                        (mu  lam | mu  nu )
+#                                        (lam mu  | mu  nu )
+#                                        (mu  lam | nu  mu )
+#                                        (lam mu  | nu  mu )
+#           
+#           
+      PARDO  mu, nu, sig
+
+         WHERE nu < sig
+         WHERE mu < nu
+
+            T4xx (mu,nu)  = LDHFa (mu,nu)
+            T4xx (mu,nu) += LDHFb (mu,nu)
+
+            DO lam   
+
+               WHERE mu  == lam
+               WHERE lam <  sig
+
+                  COMPUTE_INTEGRALS  AOINT (mu,nu,lam,sig)
+
+                  T1xx  (lam,sig)  = LDHFa (lam,sig)
+                  T1xx  (lam,sig) += LDHFb (lam,sig)
+
+                  T2xx  (mu,nu)    = AOINT (mu,nu,lam,sig) * T1xx (lam,sig)
+                  T2xx  (mu,nu)   *= 2.0
+                  T3xx  (nu,mu)    = T2xx  (mu,nu)
+
+                  T5xx  (lam,sig)  = AOINT (mu,nu,lam,sig) * T4xx (mu,nu)
+                  T5xx  (lam,sig) *= 2.0
+                  T6xx  (sig,lam)  = T5xx  (lam,sig)
+
+                  T7xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,sig)
+                  T7xx  (mu,lam)  *= -1.0
+                  T8xx  (lam,mu)   = T7xx  (mu,lam)
+
+                  T9xx  (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,lam)
+                  T9xx  (mu,sig)  *= -1.0
+                  T10xx (sig,mu)   = T9xx  (mu,sig)
+
+                  T11xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,sig)
+                  T11xx (nu,lam)  *= -1.0
+                  T12xx (lam,nu)   = T11xx (nu,lam)
+
+                  T13xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,lam)
+                  T13xx (nu,sig)  *= -1.0
+                  T14xx (sig,nu)   = T13xx (nu,sig)
+
+                  T15xx (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,sig)
+                  T15xx (mu,lam)  *= -1.0
+                  T16xx (lam,mu)   = T15xx (mu,lam)
+
+                  T17xx (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,lam)
+                  T17xx (mu,sig)  *= -1.0
+                  T18xx (sig,mu)   = T17xx (mu,sig)
+
+                  T19xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,sig)
+                  T19xx (nu,lam)  *= -1.0
+                  T20xx (lam,nu)   = T19xx (nu,lam)
+
+                  T21xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,lam)
+                  T21xx (nu,sig)  *= -1.0
+                  T22xx (sig,nu)   = T21xx (nu,sig)
+
+                  LFpqa (mu,nu)   += T2xx  (mu,nu)
+                  LFpqb (mu,nu)   += T2xx  (mu,nu)
+                  LFpqa (nu,mu)   += T3xx  (nu,mu)
+                  LFpqb (nu,mu)   += T3xx  (nu,mu)
+                  LFpqa (lam,sig) += T5xx  (lam,sig)
+                  LFpqb (lam,sig) += T5xx  (lam,sig)
+                  LFpqa (sig,lam) += T6xx  (sig,lam)
+                  LFpqb (sig,lam) += T6xx  (sig,lam)
+                  LFpqa (mu,lam)  += T7xx  (mu,lam)
+                  LFpqa (lam,mu)  += T8xx  (lam,mu)
+                  LFpqa (mu,sig)  += T9xx  (mu,sig)
+                  LFpqa (sig,mu)  += T10xx (sig,mu)
+                  LFpqa (nu,lam)  += T11xx (nu,lam)
+                  LFpqa (lam,nu)  += T12xx (lam,nu)
+                  LFpqa (nu,sig)  += T13xx (nu,sig)
+                  LFpqa (sig,nu)  += T14xx (sig,nu)
+                  LFpqb (mu,lam)  += T15xx (mu,lam)
+                  LFpqb (lam,mu)  += T16xx (lam,mu)
+                  LFpqb (mu,sig)  += T17xx (mu,sig)
+                  LFpqb (sig,mu)  += T18xx (sig,mu)
+                  LFpqb (nu,lam)  += T19xx (nu,lam)
+                  LFpqb (lam,nu)  += T20xx (lam,nu)
+                  LFpqb (nu,sig)  += T21xx (nu,sig)
+                  LFpqb (sig,nu)  += T22xx (sig,nu)
+
+            ENDDO lam
+
+      ENDPARDO  mu, nu, sig
+#           
+#
+#        CLASS 5:
+#        CLASS B:
+#          Do 3-center part  (mu nu | mu lam)   -->
+#           
+#                                        (mu  nu  | lam mu )
+#                                        (nu  mu  | mu  lam)
+#                                        (nu  mu  | lam mu )
+#                                        (mu  lam | mu  nu )
+#                                        (lam mu  | mu  nu )
+#                                        (mu  lam | nu  mu )
+#                                        (lam mu  | nu  mu )
+#           
+#           
+      PARDO  mu, nu, lam
+
+         WHERE nu == lam
+         WHERE mu <  nu
+
+            T4xx (mu,nu)  = LDHFa (mu,nu)
+            T4xx (mu,nu) += LDHFb (mu,nu)
+
+            DO sig 
+
+               WHERE lam < sig    
+               WHERE mu  < sig
+
+                  COMPUTE_INTEGRALS  AOINT (mu,nu,lam,sig)
+
+                  T1xx  (lam,sig)  = LDHFa (lam,sig)
+                  T1xx  (lam,sig) += LDHFb (lam,sig)
+
+                  T2xx  (mu,nu)    = AOINT (mu,nu,lam,sig) * T1xx (lam,sig)
+                  T2xx  (mu,nu)   *= 2.0
+                  T3xx  (nu,mu)    = T2xx  (mu,nu)
+
+                  T5xx  (lam,sig)  = AOINT (mu,nu,lam,sig) * T4xx (mu,nu)
+                  T5xx  (lam,sig) *= 2.0
+                  T6xx  (sig,lam)  = T5xx  (lam,sig)
+
+                  T7xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,sig)
+                  T7xx  (mu,lam)  *= -1.0
+                  T8xx  (lam,mu)   = T7xx  (mu,lam)
+
+                  T9xx  (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,lam)
+                  T9xx  (mu,sig)  *= -1.0
+                  T10xx (sig,mu)   = T9xx  (mu,sig)
+
+                  T11xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,sig)
+                  T11xx (nu,lam)  *= -1.0
+                  T12xx (lam,nu)   = T11xx (nu,lam)
+
+                  T13xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,lam)
+                  T13xx (nu,sig)  *= -1.0
+                  T14xx (sig,nu)   = T13xx (nu,sig)
+
+                  T15xx (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,sig)
+                  T15xx (mu,lam)  *= -1.0
+                  T16xx (lam,mu)   = T15xx (mu,lam)
+
+                  T17xx (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,lam)
+                  T17xx (mu,sig)  *= -1.0
+                  T18xx (sig,mu)   = T17xx (mu,sig)
+
+                  T19xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,sig)
+                  T19xx (nu,lam)  *= -1.0
+                  T20xx (lam,nu)   = T19xx (nu,lam)
+
+                  T21xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,lam)
+                  T21xx (nu,sig)  *= -1.0
+                  T22xx (sig,nu)   = T21xx (nu,sig)
+
+                  LFpqa (mu,nu)   += T2xx  (mu,nu)
+                  LFpqb (mu,nu)   += T2xx  (mu,nu)
+                  LFpqa (nu,mu)   += T3xx  (nu,mu)
+                  LFpqb (nu,mu)   += T3xx  (nu,mu)
+                  LFpqa (lam,sig) += T5xx  (lam,sig)
+                  LFpqb (lam,sig) += T5xx  (lam,sig)
+                  LFpqa (sig,lam) += T6xx  (sig,lam)
+                  LFpqb (sig,lam) += T6xx  (sig,lam)
+                  LFpqa (mu,lam)  += T7xx  (mu,lam)
+                  LFpqa (lam,mu)  += T8xx  (lam,mu)
+                  LFpqa (mu,sig)  += T9xx  (mu,sig)
+                  LFpqa (sig,mu)  += T10xx (sig,mu)
+                  LFpqa (nu,lam)  += T11xx (nu,lam)
+                  LFpqa (lam,nu)  += T12xx (lam,nu)
+                  LFpqa (nu,sig)  += T13xx (nu,sig)
+                  LFpqa (sig,nu)  += T14xx (sig,nu)
+                  LFpqb (mu,lam)  += T15xx (mu,lam)
+                  LFpqb (lam,mu)  += T16xx (lam,mu)
+                  LFpqb (mu,sig)  += T17xx (mu,sig)
+                  LFpqb (sig,mu)  += T18xx (sig,mu)
+                  LFpqb (nu,lam)  += T19xx (nu,lam)
+                  LFpqb (lam,nu)  += T20xx (lam,nu)
+                  LFpqb (nu,sig)  += T21xx (nu,sig)
+                  LFpqb (sig,nu)  += T22xx (sig,nu)
+
+            ENDDO sig
+
+      ENDPARDO  mu, nu, lam
+#           
+#
+#        CLASS 5:
+#        CLASS C:
+#          Do 3-center part  (mu nu | mu lam)   -->
+#           
+#                                        (mu  nu  | lam mu )
+#                                        (nu  mu  | mu  lam)
+#                                        (nu  mu  | lam mu )
+#                                        (mu  lam | mu  nu )
+#                                        (lam mu  | mu  nu )
+#                                        (mu  lam | nu  mu )
+#                                        (lam mu  | nu  mu )
+#           
+#           
+      PARDO  mu, nu, sig
+
+         WHERE nu == sig
+         WHERE mu <  nu
+
+            T4xx (mu,nu)  = LDHFa (mu,nu)
+            T4xx (mu,nu) += LDHFb (mu,nu)
+
+            DO lam
+
+               WHERE lam < sig
+               WHERE mu  < lam
+
+                  COMPUTE_INTEGRALS  AOINT (mu,nu,lam,sig)
+
+                  T1xx  (lam,sig)  = LDHFa (lam,sig)
+                  T1xx  (lam,sig) += LDHFb (lam,sig)
+
+                  T2xx  (mu,nu)    = AOINT (mu,nu,lam,sig) * T1xx  (lam,sig)
+                  T2xx  (mu,nu)   *= 2.0
+                  T3xx  (nu,mu)    = T2xx  (mu,nu)
+
+                  T5xx  (lam,sig)  = AOINT (mu,nu,lam,sig) * T4xx  (mu,nu)
+                  T5xx  (lam,sig) *= 2.0
+                  T6xx  (sig,lam)  = T5xx  (lam,sig)
+
+                  T7xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,sig)
+                  T7xx  (mu,lam)  *= -1.0
+                  T8xx  (lam,mu)   = T7xx  (mu,lam)
+
+                  T9xx  (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,lam)
+                  T9xx  (mu,sig)  *= -1.0
+                  T10xx (sig,mu)   = T9xx  (mu,sig)
+
+                  T11xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,sig)
+                  T11xx (nu,lam)  *= -1.0
+                  T12xx (lam,nu)   = T11xx (nu,lam)
+
+                  T13xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,lam)
+                  T13xx (nu,sig)  *= -1.0
+                  T14xx (sig,nu)   = T13xx (nu,sig)
+
+                  T15xx (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,sig)
+                  T15xx (mu,lam)  *= -1.0
+                  T16xx (lam,mu)   = T15xx (mu,lam)
+
+                  T17xx (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,lam)
+                  T17xx (mu,sig)  *= -1.0
+                  T18xx (sig,mu)   = T17xx (mu,sig)
+
+                  T19xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,sig)
+                  T19xx (nu,lam)  *= -1.0
+                  T20xx (lam,nu)   = T19xx (nu,lam)
+
+                  T21xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,lam)
+                  T21xx (nu,sig)  *= -1.0
+                  T22xx (sig,nu)   = T21xx (nu,sig)
+                   
+                  LFpqa (nu,mu)   += T3xx  (nu,mu)
+                  LFpqa (mu,nu)   += T2xx  (mu,nu)
+                  LFpqb (mu,nu)   += T2xx  (mu,nu)
+                  LFpqb (nu,mu)   += T3xx  (nu,mu)
+                  LFpqa (lam,sig) += T5xx  (lam,sig)
+                  LFpqb (lam,sig) += T5xx  (lam,sig)
+                  LFpqa (sig,lam) += T6xx  (sig,lam)
+                  LFpqb (sig,lam) += T6xx  (sig,lam)
+                  LFpqa (mu,lam)  += T7xx  (mu,lam)
+                  LFpqa (lam,mu)  += T8xx  (lam,mu)
+                  LFpqa (mu,sig)  += T9xx  (mu,sig)
+                  LFpqa (sig,mu)  += T10xx (sig,mu)
+                  LFpqa (nu,lam)  += T11xx (nu,lam)
+                  LFpqa (lam,nu)  += T12xx (lam,nu)
+                  LFpqa (nu,sig)  += T13xx (nu,sig)
+                  LFpqa (sig,nu)  += T14xx (sig,nu)
+                  LFpqb (mu,lam)  += T15xx (mu,lam)
+                  LFpqb (lam,mu)  += T16xx (lam,mu)
+                  LFpqb (mu,sig)  += T17xx (mu,sig)
+                  LFpqb (sig,mu)  += T18xx (sig,mu)
+                  LFpqb (nu,lam)  += T19xx (nu,lam)
+                  LFpqb (lam,nu)  += T20xx (lam,nu)
+                  LFpqb (nu,sig)  += T21xx (nu,sig)
+                  LFpqb (sig,nu)  += T22xx (sig,nu)
+
+            ENDDO lam
+
+      ENDPARDO mu, nu, sig
+#           
+#
+#        CLASS 1:
+#          Do 1-center part  (mu mu | mu mu)
+#           
+#           
+      PARDO  mu, sig, nu
+
+         WHERE nu  == mu
+         WHERE sig == mu
+
+            DO lam
+
+               WHERE lam == mu 
+
+                  COMPUTE_INTEGRALS  AOINT (mu,nu,lam,sig)
+
+                  T1xx  (lam,sig)  = LDHFa (lam,sig)
+                  T1xx  (lam,sig) += LDHFb (lam,sig)
+                  T2xx  (mu,nu)    = AOINT (mu,nu,lam,sig) * T1xx  (lam,sig)
+
+                  T3xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,sig)
+                  T3xx  (mu,lam)  *= -1.0
+
+                  T4xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,sig)
+                  T4xx  (mu,lam)  *= -1.0
+
+                  LFpqa (mu,nu)   += T2xx  (mu,nu)
+                  LFpqb (mu,nu)   += T2xx  (mu,nu)
+                  LFpqa (mu,lam)  += T3xx  (mu,lam)
+                  LFpqb (mu,lam)  += T4xx  (mu,lam)
+
+            ENDDO lam
+
+      ENDPARDO  mu, sig, nu
+#           
+#
+#        CLASS 2:
+#          Do 2-center part  (mu mu | nu nu)   -->
+#           
+#                                        (nu nu | mu mu)
+#           
+#
+      PARDO  mu, nu, sig
+
+         WHERE mu == nu
+
+            T3xx (mu,nu)  = LDHFa (mu,nu)
+            T3xx (mu,nu) += LDHFb (mu,nu)
+
+            DO lam
+
+               WHERE mu  <  lam
+               WHERE lam == sig
+
+                  COMPUTE_INTEGRALS  AOINT (mu,nu,lam,sig)
+
+                  T1xx  (lam,sig)  = LDHFa (lam,sig)
+                  T1xx  (lam,sig) += LDHFb (lam,sig)
+
+                  T2xx  (mu,nu)    = AOINT (mu,nu,lam,sig) * T1xx  (lam,sig)
+
+                  T4xx  (lam,sig)  = AOINT (mu,nu,lam,sig) * T3xx  (mu,nu)
+
+                  T5xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,sig)
+                  T5xx  (mu,lam)  *= -1.0
+                  T6xx  (lam,mu)   = T5xx  (mu,lam)
+
+                  T7xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,sig)
+                  T7xx  (mu,lam)  *= -1.0
+                  T8xx  (lam,mu)   = T7xx  (mu,lam)
+
+                  LFpqa (mu,nu)   += T2xx  (mu,nu)
+                  LFpqb (mu,nu)   += T2xx  (mu,nu)
+                  LFpqa (lam,sig) += T4xx  (lam,sig)
+                  LFpqb (lam,sig) += T4xx  (lam,sig)
+                  LFpqa (mu,lam)  += T5xx  (mu,lam)
+                  LFpqa (lam,mu)  += T6xx  (lam,mu)
+                  LFpqb (mu,lam)  += T7xx  (mu,lam)
+                  LFpqb (lam,mu)  += T8xx  (lam,mu)
+
+            ENDDO lam
+
+      ENDPARDO mu, nu, sig
+#           
+#
+#        CLASS 4:
+#          Do 2-center part  (mu nu | mu nu)   -->
+#           
+#                                        (mu nu | nu mu)
+#                                        (nu mu | mu nu)
+#                                        (nu mu | nu mu)
+#           
+#
+      PARDO  mu, nu, sig
+
+         WHERE  mu <  nu
+         WHERE  nu == sig
+
+            DO lam
+
+               WHERE  mu  == lam
+               WHERE  lam <  sig        
+
+                  COMPUTE_INTEGRALS  AOINT (mu,nu,lam,sig)
+
+                  T1xx  (lam,sig)  = LDHFa(lam,sig)
+                  T1xx  (lam,sig) += LDHFb(lam,sig)
+
+                  T2xx  (mu,nu)    = AOINT (mu,nu,lam,sig) * T1xx  (lam,sig)
+                  T2xx  (mu,nu)   *= 2.0
+                  T3xx  (nu,mu)    = T2xx  (mu,nu)
+
+                  T4xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,sig)
+                  T4xx  (mu,lam)  *= -1.0
+
+                  T5xx  (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (nu,lam)
+                  T5xx  (mu,sig)  *= -1.0
+
+                  T6xx  (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,sig)
+                  T6xx  (nu,lam)  *= -1.0
+
+                  T7xx  (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFa (mu,lam)
+                  T7xx  (nu,sig)  *= -1.0
+
+                  T8xx  (mu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,sig)
+                  T8xx  (mu,lam)  *= -1.0
+
+                  T9xx  (mu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (nu,lam)
+                  T9xx  (mu,sig)  *= -1.0
+
+                  T10xx (nu,lam)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,sig)
+                  T10xx (nu,lam)  *= -1.0
+
+                  T11xx (nu,sig)   = AOINT (mu,nu,lam,sig) * LDHFb (mu,lam)
+                  T11xx (nu,sig)  *= -1.0
+
+                  LFpqa (mu,nu)   += T2xx  (mu,nu)
+                  LFpqb (mu,nu)   += T2xx  (mu,nu)
+                  LFpqa (nu,mu)   += T3xx  (nu,mu)
+                  LFpqb (nu,mu)   += T3xx  (nu,mu)
+                  LFpqa (mu,lam)  += T4xx  (mu,lam)
+                  LFpqa (mu,sig)  += T5xx  (mu,sig)
+                  LFpqa (nu,lam)  += T6xx  (nu,lam)
+                  LFpqa (nu,sig)  += T7xx  (nu,sig)
+                  LFpqb (mu,lam)  += T8xx  (mu,lam)
+                  LFpqb (mu,sig)  += T9xx  (mu,sig)
+                  LFpqb (nu,lam)  += T10xx (nu,lam)
+                  LFpqb (nu,sig)  += T11xx (nu,sig)
+
+            ENDDO lam
+
+      ENDPARDO  mu, nu, sig
+
+      EXECUTE  SIP_BARRIER
+
+      DO mu       
+      DO nu
+
+         PUT FOCK_AO_A (mu,nu) += LFpqa (mu,nu) 
+         PUT FOCK_AO_B (mu,nu) += LFpqb (mu,nu)
+
+      ENDDO nu    
+      ENDDO mu
+
+      DO mu
+      DO nu
+
+         PUT GTOTAL_A (mu,nu) += LFpqa (mu,nu)
+         PUT GTOTAL_B (mu,nu) += LFpqb (mu,nu)
+
+      ENDDO nu
+      ENDDO mu
+
+      EXECUTE  SIP_BARRIER
+
+      DEALLOCATE  LDHFa (*,*) 
+      DEALLOCATE  LDHFb (*,*)
+      DEALLOCATE  LFpqa (*,*) 
+      DEALLOCATE  LFpqb (*,*)
+#
+#
+#     Transform to the alpha and beta molecular orbitals
+#
+#
+      PARDO  mu, nu
+         GET  FOCK_AO_A (mu,nu)
+         DO p1
+            txp (mu,p1) = FOCK_AO_A (mu,nu) * CA (nu,p1)
+            DO p
+               tpp (p,p1) = CA (mu,p) * txp (mu,p1)
+               PUT  FOCK_MO_A (p,p1) += tpp (p,p1)
+            ENDDO p
+         ENDDO p1
+      ENDPARDO  mu, nu
+
+      PARDO  mu, nu
+         GET  FOCK_AO_B (mu,nu)
+         DO q1
+            txq (mu,q1) = FOCK_AO_B (mu,nu) * CB (nu,q1)
+            DO q
+               tqq (q,q1) = CB (mu,q) * txq (mu,q1)
+               PUT  FOCK_MO_B (q,q1) += tqq (q,q1)
+            ENDDO q
+         ENDDO q1
+      ENDPARDO  mu, nu
+
+      PARDO  mu, nu
+         GET  GTOTAL_A (mu,nu)
+         DO p1
+            txp (mu,p1) = GTOTAL_A (mu,nu) * CA (nu,p1)
+            DO p
+               tpp (p,p1) = CA (mu,p) * txp (mu,p1)
+               PUT  GTILDE_A (p,p1) += tpp (p,p1)
+            ENDDO p
+         ENDDO p1
+      ENDPARDO  mu, nu
+
+      PARDO  mu, nu
+         GET  GTOTAL_B (mu,nu)
+         DO q1
+            txq (mu,q1) = GTOTAL_B (mu,nu) * CB (nu,q1)
+            DO q
+               tqq (q,q1) = CB (mu,q) * txq (mu,q1)
+               PUT  GTILDE_B (q,q1) += tqq (q,q1)
+            ENDDO q
+         ENDDO q1
+      ENDPARDO  mu, nu
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  FORM_FOCK
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    --------------------
+      PROC  FORM_NEW_FOV
+#    --------------------
+#
+#
+#     Put QMAT into Local Arrays!
+#
+#
+      ALLOCATE  LQMAT_A (*,*)
+      ALLOCATE  LQMAT_B (*,*)
+      EXECUTE  SIP_BARRIER
+
+      DO p
+      DO p1
+         GET              QMAT_A (p,p1)
+         tpp     (p,p1) = QMAT_A (p,p1)
+         LQMAT_A (p,p1) = tpp    (p,p1)
+      ENDDO p1
+      ENDDO p
+
+      DO q
+      DO q1
+         GET              QMAT_B (q,q1)
+         tqq     (q,q1) = QMAT_B (q,q1)
+         LQMAT_B (q,q1) = tqq    (q,q1)
+      ENDDO q1
+      ENDDO q
+#
+#
+#     Alpha part of transformation!
+#
+#
+      PARDO  p, p1
+         GET  FOCK_MO_A (p,p1)
+         DO i
+            t1ip (i,p ) = LQMAT_A (p,i)
+            tip  (i,p1) = t1ip (i,p) * FOCK_MO_A (p,p1)
+            DO a
+               tia (i,a) = tip (i,p1) * LQMAT_A (p1,a)
+               PUT  F_NEW_OV_A (i,a) += tia (i,a)
+            ENDDO a
+         ENDDO i
+      ENDPARDO  p, p1
+#
+#
+#     Beta part of transformation!
+#
+#
+      PARDO  q, q1
+         GET  FOCK_MO_B (q, q1)
+         DO j 
+            t1jq (j,q ) = LQMAT_B (q,j)
+            tjq  (j,q1) = t1jq (j,q) * FOCK_MO_B (q,q1)
+            DO b
+               tjb (j,b) = tjq (j,q1) * LQMAT_B (q1,b)
+               PUT  F_NEW_OV_B (j,b) += tjb (j,b)
+            ENDDO b 
+         ENDDO j
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+
+      DEALLOCATE  LQMAT_A (*,*)
+      DEALLOCATE  LQMAT_B (*,*)
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  FORM_NEW_FOV
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    --------------------------
+      PROC  COMPUTE_SCF_ENERGY
+#    --------------------------
+#
+#
+      energy = 0.0
+      esuma  = 0.0
+      esumb  = 0.0
+      etota  = 0.0
+      etotb  = 0.0
+
+      PARDO  mu, nu
+
+         GET  FOCK_AO_A (mu,nu)
+         GET  FOCK_AO_B (mu,nu)
+         GET  DCCS_A    (mu,nu)
+         GET  DCCS_B    (mu,nu)
+
+         txx (mu,nu) = 0.0
+         EXECUTE  RETURN_H1  txx
+
+         t1xx (mu,nu)  = txx       (mu,nu)
+         t1xx (mu,nu) += FOCK_AO_A (mu,nu)
+
+         etemp         = t1xx (mu,nu) * DCCS_A (mu,nu)
+         esuma        += etemp
+
+         t1xx (mu,nu)  = txx       (mu,nu)
+         t1xx (mu,nu) += FOCK_AO_B (mu,nu)
+
+         etemp         = t1xx (mu,nu) * DCCS_B (mu,nu)
+         esumb        += etemp
+
+      ENDPARDO  mu, nu
+
+      EXECUTE  SIP_BARRIER
+
+      esuma             *= 0.5
+      esumb             *= 0.5
+
+      COLLECTIVE etota  += esuma
+      COLLECTIVE etotb  += esumb
+
+      EXECUTE  SIP_BARRIER
+
+      energy  = VNN
+      energy += etota
+      energy += etotb
+      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  esuma
+      EXECUTE  PRINT_SCALAR  esumb
+      EXECUTE  PRINT_SCALAR  energy
+
+
+      esuma = 0.0
+      esumb = 0.0
+      etota = 0.0
+      etotb = 0.0
+      etot  = 0.0
+      EXECUTE  SIP_BARRIER
+
+      PARDO  p, p1
+         GET            FOCK_MO_A (p,p1)
+         GET            DMAT_A    (p,p1)
+         t1pp (p,p1)  = FOCK_MO_A (p,p1)
+         t1pp (p,p1) += LH1pp     (p,p1)
+         t2pp (p,p1)  = DMAT_A    (p,p1)
+         etemp  = t1pp (p,p1) * t2pp (p,p1)
+         etemp *= 0.5
+         esuma += etemp
+      ENDPARDO  p, p1
+
+      PARDO  q, q1
+         GET            FOCK_MO_B (q,q1)
+         GET            DMAT_B    (q,q1)
+         t1qq (q,q1)  = FOCK_MO_B (q,q1)
+         t1qq (q,q1) += LH1qq     (q,q1)
+         t2qq (q,q1)  = DMAT_B    (q,q1)
+         etemp  = t1qq (q,q1) * t2qq (q,q1)
+         etemp *= 0.5
+         esumb += etemp
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+
+      COLLECTIVE  etota += esuma
+      COLLECTIVE  etotb += esumb
+      EXECUTE  SIP_BARRIER
+
+      etot  = VNN
+      etot += etota
+      etot += etotb
+      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  etota
+      EXECUTE  PRINT_SCALAR  etotb
+      EXECUTE  PRINT_SCALAR  etot
+      EXECUTE  PRINT_SCALAR  ZERO
+
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  COMPUTE_SCF_ENERGY
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    --------------------------
+      PROC  COMPUTE_RELAXATION
+#    --------------------------
+#        
+#
+      PARDO  mu, nu
+         txx (mu,nu) = 0.0
+         PUT  DCCS_A    (mu,nu) = txx (mu,nu)
+         PUT  DCCS_B    (mu,nu) = txx (mu,nu)
+         PUT  GTOTAL_A  (mu,nu) = txx (mu,nu)
+         PUT  GTOTAL_B  (mu,nu) = txx (mu,nu)
+         PUT  FOCK_AO_A (mu,nu) = txx (mu,nu)
+         PUT  FOCK_AO_B (mu,nu) = txx (mu,nu)
+      ENDPARDO  mu, nu
+
+      PARDO  p, p1
+         tpp (p,p1) = 0.0
+         PUT  GTILDE_A  (p,p1) = tpp (p,p1)
+         PUT  FOCK_MO_A (p,p1) = tpp (p,p1)
+      ENDPARDO  p, p1
+
+      PARDO  q, q1
+         tqq (q,q1) = 0.0
+         PUT  GTILDE_B  (q,q1) = tqq (q,q1)
+         PUT  FOCK_MO_B (q,q1) = tqq (q,q1)
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Backtransform, and form Fock!
+#
+#
+      PARDO  p, p1
+         GET  XMAT_A (p,p1)
+         DO mu
+            txp (mu,p1) = CA (mu,p) * XMAT_A (p,p1)
+            DO nu
+               txx         (mu,nu)  = txp (mu,p1) * CA (nu,p1)
+               PUT  DCCS_A (mu,nu) += txx (mu,nu) 
+            ENDDO nu
+         ENDDO mu 
+      ENDPARDO  p, p1
+      
+      PARDO  q, q1
+         GET  XMAT_B (q,q1)
+         DO mu
+            txq (mu,q1) = CB (mu,q) * XMAT_B (q,q1)
+            DO nu
+               txx         (mu,nu)  = txq (mu,q1) * CB (nu,q1)
+               PUT  DCCS_B (mu,nu) += txx (mu,nu)
+            ENDDO nu
+         ENDDO mu
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+      CALL  FORM_FOCK
+      EXECUTE  SIP_BARRIER
+
+      esum     = 0.0
+      esuma    = 0.0
+      esumb    = 0.0
+      esumab   = 0.0
+      erelax   = 0.0
+      erelaxa  = 0.0
+      erelaxb  = 0.0
+      erelaxab = 0.0
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          Compute the energy!
+#
+#
+      esuma = 0.0
+      esumb = 0.0
+      etota = 0.0
+      etotb = 0.0
+      etot  = 0.0
+      EXECUTE  SIP_BARRIER
+
+      PARDO  p, p1
+         GET  DMAT_A   (p,p1)
+         GET  GREF_A   (p,p1)
+         GET  GTILDE_A (p,p1)
+
+         t1pp (p,p1)  = LH1pp    (p,p1)
+         t1pp (p,p1) *= 2.0
+         t1pp (p,p1) += GREF_A   (p,p1)
+         t1pp (p,p1) += GTILDE_A (p,p1)
+
+         t2pp (p,p1)  = DMAT_A   (p,p1)
+         etemp  = t1pp (p,p1) * t2pp (p,p1)
+         etemp *= 0.5
+         esuma += etemp
+      ENDPARDO  p, p1
+
+      PARDO  q, q1
+         GET  DMAT_B   (q,q1)
+         GET  GREF_B   (q,q1)
+         GET  GTILDE_B (q,q1)
+
+         t1qq (q,q1)  = LH1qq    (q,q1)
+         t1qq (q,q1) *= 2.0
+         t1qq (q,q1) += GREF_B   (q,q1)
+         t1qq (q,q1) += GTILDE_B (q,q1)
+
+         t2qq (q,q1)  = DMAT_B   (q,q1)
+         etemp  = t1qq (q,q1) * t2qq (q,q1)
+         etemp *= 0.5
+         esumb += etemp
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+      COLLECTIVE  etota += esuma
+      COLLECTIVE  etotb += esumb
+      EXECUTE  SIP_BARRIER
+
+      etot  = VNN
+      etot += etota
+      etot += etotb
+      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  etota
+      EXECUTE  PRINT_SCALAR  etotb
+      EXECUTE  PRINT_SCALAR  etot
+
+      EXECUTE  SIP_BARRIER
+
+      esuma = 0.0
+      esumb = 0.0
+      etota = 0.0
+      etotb = 0.0
+      etot  = 0.0
+      EXECUTE  SIP_BARRIER
+
+      PARDO  p, p1
+         GET            XMAT_A (p,p1)
+         t1pp (p,p1)  = LH1pp  (p,p1)
+         t1pp (p,p1) += FOCK_A (p,p1)
+         etemp  = t1pp (p,p1) * XMAT_A (p,p1)
+         etemp *= 0.5
+         esuma += etemp
+      ENDPARDO  p, p1
+
+      PARDO  p, p1
+         GET      DMAT_A   (p,p1)
+         GET      GTILDE_A (p,p1)
+         etemp  = GTILDE_A (p,p1) * DMAT_A (p,p1)
+         etemp *= 0.5
+         esuma += etemp
+      ENDPARDO  p, p1
+
+      PARDO  q, q1
+         GET            XMAT_B (q,q1)
+         t1qq (q,q1)  = LH1qq  (q,q1)
+         t1qq (q,q1) += FOCK_B (q,q1)
+         etemp  = t1qq (q,q1) * XMAT_B (q,q1)
+         etemp *= 0.5
+         esumb += etemp
+      ENDPARDO  q, q1
+
+      PARDO  q, q1
+         GET      DMAT_B   (q,q1)
+         GET      GTILDE_B (q,q1)
+         etemp  = GTILDE_B (q,q1) * DMAT_B (q,q1)
+         etemp *= 0.5
+         esumb += etemp
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+      COLLECTIVE  etota += esuma
+      COLLECTIVE  etotb += esumb
+      EXECUTE  SIP_BARRIER
+
+      etot += etota
+      etot += etotb
+      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  etota
+      EXECUTE  PRINT_SCALAR  etotb
+      EXECUTE  PRINT_SCALAR  etot
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  COMPUTE_RELAXATION
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -----------------
+      PROC  UPDATE_T1
+#    -----------------
+#        
+#        
+      PARDO  a, i
+         GET           T1A_NEW (i,a)
+         GET           T1A_OLD (i,a)
+         tai  (a,i)  = T1A_NEW (i,a)
+         t1ai (a,i)  = T1A_OLD (i,a)
+         tai  (a,i) -= t1ai    (a,i)
+
+         IF titer == 1
+             PUT  E1ai (a,i) = tai (a,i)
+         ENDIF
+
+         IF titer == 2
+             PUT  E2ai (a,i) = tai (a,i)
+         ENDIF
+
+         IF titer == 3
+             PUT  E3ai (a,i) = tai (a,i)
+         ENDIF
+
+         IF titer == 4
+             PUT  E4ai (a,i) = tai (a,i)
+         ENDIF
+
+         IF titer >= 5
+             PUT  E5ai (a,i) = tai (a,i)
+         ENDIF
+
+      ENDPARDO  a, i
+
+      PARDO  b, j
+         GET           T1B_NEW (j,b)
+         GET           T1B_OLD (j,b)
+         tbj  (b,j)  = T1B_NEW (j,b)
+         t1bj (b,j)  = T1B_OLD (j,b)
+         tbj  (b,j) -= t1bj    (b,j)
+
+         IF titer == 1
+             PUT  E1bj (b,j) = tbj (b,j)
+         ENDIF
+
+         IF titer == 2
+             PUT  E2bj (b,j) = tbj (b,j)
+         ENDIF
+
+         IF titer == 3
+             PUT  E3bj (b,j) = tbj (b,j)
+         ENDIF
+
+         IF titer == 4
+             PUT  E4bj (b,j) = tbj (b,j)
+         ENDIF
+
+         IF titer >= 5
+             PUT  E5bj (b,j) = tbj (b,j)
+         ENDIF
+
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+
+      PARDO  a, i
+         GET                  T1A_NEW (i,a)
+         PUT  T1A_OLD (i,a) = T1A_NEW (i,a)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+         GET                  T1B_NEW (j,b)
+         PUT  T1B_OLD (j,b) = T1B_NEW (j,b)
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#        
+#     
+      ENDPROC  UPDATE_T1
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    --------------------
+      PROC  ZERO_DSCALAR
+#    --------------------
+#
+#
+      b11    = 0.0
+      b12    = 0.0
+      b13    = 0.0
+      b14    = 0.0
+      b15    = 0.0
+      b16    = 0.0
+      b17    = 0.0
+      b18    = 0.0
+      b19    = 0.0
+      b110   = 0.0
+
+      b22    = 0.0
+      b23    = 0.0
+      b24    = 0.0
+      b25    = 0.0
+      b26    = 0.0
+      b27    = 0.0
+      b28    = 0.0
+      b29    = 0.0
+      b210   = 0.0
+
+      b33    = 0.0
+      b34    = 0.0
+      b35    = 0.0
+      b36    = 0.0
+      b37    = 0.0
+      b38    = 0.0
+      b39    = 0.0
+      b310   = 0.0
+
+      b44    = 0.0
+      b45    = 0.0
+      b46    = 0.0
+      b47    = 0.0
+      b48    = 0.0
+      b49    = 0.0
+      b410   = 0.0
+
+      b55    = 0.0
+      b56    = 0.0
+      b57    = 0.0
+      b58    = 0.0
+      b59    = 0.0
+      b510   = 0.0
+
+      b66    = 0.0
+      b67    = 0.0
+      b68    = 0.0
+      b69    = 0.0
+      b610   = 0.0
+
+      b77    = 0.0
+      b78    = 0.0
+      b79    = 0.0
+      b710   = 0.0
+
+      b88    = 0.0
+      b89    = 0.0
+      b810   = 0.0
+
+      b99    = 0.0
+      b910   = 0.0
+
+      b1010  = 0.0
+
+      Tb11   = 0.0
+      Tb12   = 0.0
+      Tb13   = 0.0
+      Tb14   = 0.0
+      Tb15   = 0.0
+      Tb16   = 0.0
+      Tb17   = 0.0
+      Tb18   = 0.0
+      Tb19   = 0.0
+      Tb110  = 0.0
+
+      Tb22   = 0.0
+      Tb23   = 0.0
+      Tb24   = 0.0
+      Tb25   = 0.0
+      Tb26   = 0.0
+      Tb27   = 0.0
+      Tb28   = 0.0
+      Tb29   = 0.0
+      Tb210  = 0.0
+
+      Tb33   = 0.0
+      Tb34   = 0.0
+      Tb35   = 0.0
+      Tb36   = 0.0
+      Tb37   = 0.0
+      Tb38   = 0.0
+      Tb39   = 0.0
+      Tb310  = 0.0
+
+      Tb44   = 0.0
+      Tb45   = 0.0
+      Tb46   = 0.0
+      Tb47   = 0.0
+      Tb48   = 0.0
+      Tb49   = 0.0
+      Tb410  = 0.0
+
+      Tb55   = 0.0
+      Tb56   = 0.0
+      Tb57   = 0.0
+      Tb58   = 0.0
+      Tb59   = 0.0
+      Tb510  = 0.0
+
+      Tb66   = 0.0
+      Tb67   = 0.0
+      Tb68   = 0.0
+      Tb69   = 0.0
+      Tb610  = 0.0
+
+      Tb77   = 0.0
+      Tb78   = 0.0
+      Tb79   = 0.0
+      Tb710  = 0.0
+
+      Tb88   = 0.0
+      Tb89   = 0.0
+      Tb810  = 0.0
+
+      Tb99   = 0.0
+      Tb910  = 0.0
+
+      Tb1010 = 0.0
+
+      c1     = 0.0
+      c2     = 0.0
+      c3     = 0.0
+      c4     = 0.0
+      c5     = 0.0
+      c6     = 0.0
+      c7     = 0.0
+      c8     = 0.0
+      c9     = 0.0
+      c10    = 0.0
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  ZERO_DSCALAR
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    ------------------
+      PROC  SETUP_DIIS
+#    ------------------
+#
+#
+#     Put the matrix elements of B into the SIP "B" Matrix
+#
+#
+      EXECUTE  DIIS_SETUP  Tb11
+      EXECUTE  DIIS_SETUP  Tb12
+      EXECUTE  DIIS_SETUP  Tb13
+      EXECUTE  DIIS_SETUP  Tb14
+      EXECUTE  DIIS_SETUP  Tb15
+      EXECUTE  DIIS_SETUP  Tb16
+      EXECUTE  DIIS_SETUP  Tb17
+      EXECUTE  DIIS_SETUP  Tb18
+      EXECUTE  DIIS_SETUP  Tb19
+      EXECUTE  DIIS_SETUP  Tb110
+
+      EXECUTE  DIIS_SETUP  Tb22
+      EXECUTE  DIIS_SETUP  Tb23
+      EXECUTE  DIIS_SETUP  Tb24
+      EXECUTE  DIIS_SETUP  Tb25
+      EXECUTE  DIIS_SETUP  Tb26
+      EXECUTE  DIIS_SETUP  Tb27
+      EXECUTE  DIIS_SETUP  Tb28
+      EXECUTE  DIIS_SETUP  Tb29
+      EXECUTE  DIIS_SETUP  Tb210
+
+      EXECUTE  DIIS_SETUP  Tb33
+      EXECUTE  DIIS_SETUP  Tb34
+      EXECUTE  DIIS_SETUP  Tb35
+      EXECUTE  DIIS_SETUP  Tb36
+      EXECUTE  DIIS_SETUP  Tb37
+      EXECUTE  DIIS_SETUP  Tb38
+      EXECUTE  DIIS_SETUP  Tb39
+      EXECUTE  DIIS_SETUP  Tb310
+
+      EXECUTE  DIIS_SETUP  Tb44
+      EXECUTE  DIIS_SETUP  Tb45
+      EXECUTE  DIIS_SETUP  Tb46
+      EXECUTE  DIIS_SETUP  Tb47
+      EXECUTE  DIIS_SETUP  Tb48
+      EXECUTE  DIIS_SETUP  Tb49
+      EXECUTE  DIIS_SETUP  Tb410
+
+      EXECUTE  DIIS_SETUP  Tb55
+      EXECUTE  DIIS_SETUP  Tb56
+      EXECUTE  DIIS_SETUP  Tb57
+      EXECUTE  DIIS_SETUP  Tb58
+      EXECUTE  DIIS_SETUP  Tb59
+      EXECUTE  DIIS_SETUP  Tb510
+
+      EXECUTE  DIIS_SETUP  Tb66
+      EXECUTE  DIIS_SETUP  Tb67
+      EXECUTE  DIIS_SETUP  Tb68
+      EXECUTE  DIIS_SETUP  Tb69
+      EXECUTE  DIIS_SETUP  Tb610
+
+      EXECUTE  DIIS_SETUP  Tb77
+      EXECUTE  DIIS_SETUP  Tb78
+      EXECUTE  DIIS_SETUP  Tb79
+      EXECUTE  DIIS_SETUP  Tb710
+
+      EXECUTE  DIIS_SETUP  Tb88
+      EXECUTE  DIIS_SETUP  Tb89
+      EXECUTE  DIIS_SETUP  Tb810
+
+      EXECUTE  DIIS_SETUP  Tb99
+      EXECUTE  DIIS_SETUP  Tb910
+
+      EXECUTE  DIIS_SETUP  Tb1010
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  SETUP_DIIS
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -------------
+      PROC  DIIS1
+#    -------------
+#
+#
+      CALL  ZERO_DSCALAR
+#
+#
+#     Determine the "B-Matrix"
+#
+#
+      PARDO  a, i
+#
+#     GET amplitude data from all 2 previous iterations.
+#
+#
+           GET  E1ai (a,i)    # kiter-1 amplitudes
+           GET  E2ai (a,i)    # kiter-0 amplitudes
+#
+#
+#          Compute contributions to the 'B-matrix'.
+#
+#
+#             b1x x=1,2
+#             ---------
+#
+              etemp  = E1ai (a,i) * E1ai (a,i)
+              etemp *= 4.0
+              b11   += etemp
+
+              etemp  = E1ai (a,i) * E2ai (a,i)
+              etemp *= 4.0
+              b12   += etemp
+#
+#
+#             b1x x=2,2
+#             ---------
+#
+              etemp  = E2ai (a,i) * E2ai (a,i)
+              etemp *= 4.0
+              b22   += etemp
+
+      ENDPARDO  a, i
+#
+#
+#     Compute contributions due to T1bj amplitudes.
+#
+#
+      PARDO  b, j
+#
+#     GET amplitude data from all 2 previous iterations.
+#
+#
+           GET  E1bj (b,j)    # kiter-1 amplitudes
+           GET  E2bj (b,j)    # kiter-0 amplitudes
+#
+#
+#          Compute contributions to the 'B-matrix'.
+#
+#
+#             b1x x=1,2
+#             ---------
+#
+              etemp  = E1bj (b,j) * E1bj (b,j)
+              etemp *= 4.0
+              b11   += etemp
+
+              etemp  = E1bj (b,j) * E2bj (b,j)
+              etemp *= 4.0
+              b12   += etemp
+#
+#
+#             b1x x=2,2
+#             ---------
+#
+              etemp  = E2bj (b,j) * E2bj (b,j)
+              etemp *= 4.0
+              b22   += etemp
+
+      ENDPARDO b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Collectively sum B-matrix elements.
+#
+#
+      COLLECTIVE  Tb11 += b11
+      COLLECTIVE  Tb12 += b12
+      COLLECTIVE  Tb22 += b22
+#
+#
+#    Now the unique elements of the 'B-matrix' have been computed,
+#    the array is filled out in the setup_diis.
+#
+#    Put the elements of the 'B-matrix', which have been computed
+#    as scalars into the R-matrix.
+#
+#
+      CALL SETUP_DIIS
+
+      EXECUTE  COMPUTE_DIIS
+
+      c1 = Tb11
+      c2 = Tb22
+      csum = 0.0
+      csum = c1 + c2
+#      EXECUTE  PRINT_SCALAR  c1
+#      EXECUTE  PRINT_SCALAR  c2
+      EXECUTE  PRINT_SCALAR  csum
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Done computing the c-vector.
+#
+#     Form the updated amplitudes using the c-vector.
+#
+#          Form T1A_OLD!
+#
+#
+      PARDO  a, i
+#
+#
+#     GET amplitude data from all 2 previous iterations.
+#
+#
+           GET  D0ai (a,i)     # kiter-2 amplitudes
+           GET  D1ai (a,i)     # kiter-1 amplitudes
+
+           GET  E1ai (a,i)     # kiter-1 amplitudes
+           GET  E2ai (a,i)     # kiter-0 amplitudes
+#
+#
+#          Compute contributions to updated amplitudes --> T1A_OLD.
+#
+#
+           t1ai (a,i)         = D0ai (a,i)
+           t1ai (a,i)        += E1ai (a,i)
+           t1ai (a,i)        *= c1
+           tai  (a,i)         = t1ai (a,i)
+
+           t1ai (a,i)         = D1ai (a,i)
+           t1ai (a,i)        += E2ai (a,i)
+           t1ai (a,i)        *= c2
+           tai  (a,i)        += t1ai (a,i)
+
+           tia  (i,a)         = tai  (a,i)
+
+           PUT  T1A_OLD (i,a) = tia  (i,a)
+
+      ENDPARDO  a, i
+#
+#
+#     Form T1B_OLD!
+#
+#
+#
+      PARDO b, j
+#
+#
+#     GET amplitude data from all 2 previous iterations.
+#
+#
+           GET  D0bj (b,j)     # kiter-2 amplitudes
+           GET  D1bj (b,j)     # kiter-1 amplitudes
+
+           GET  E1bj (b,j)     # kiter-1 amplitudes
+           GET  E2bj (b,j)     # kiter-0 amplitudes
+#
+#
+#          Compute contributions to updated amplitudes --> tbj_old.
+#
+#
+           t1bj (b,j)         = D0bj (b,j)
+           t1bj (b,j)        += E1bj (b,j)
+           t1bj (b,j)        *= c1
+           tbj  (b,j)         = t1bj (b,j)
+
+           t1bj (b,j)         = D1bj (b,j)
+           t1bj (b,j)        += E2bj (b,j)
+           t1bj (b,j)        *= c2
+           tbj  (b,j)        += t1bj (b,j)
+
+           tjb  (j,b)         = tbj  (b,j)
+
+           PUT  T1B_OLD (j,b) = tjb  (j,b)
+
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  DIIS1
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -------------
+      PROC  DIIS2
+#    -------------
+#
+#
+      CALL  ZERO_DSCALAR
+#
+#
+#     Determine the "B-Matrix"
+#
+#
+#     Compute contributions due to T1ai amplitudes.
+#
+#
+      PARDO  a, i
+#
+#
+#          GET amplitude data from all 3 previous iterations.
+#
+#
+           GET E1ai (a,i)    # kiter-2 amplitudes
+           GET E2ai (a,i)    # kiter-1 amplitudes
+           GET E3ai (a,i)    # kiter-0 amplitudes
+#
+#          Compute contributions to the 'B-matrix'.
+#
+#
+#             b1x x=1,3
+#             ---------
+#
+              etemp  = E1ai (a,i) * E1ai (a,i)
+              etemp *= 4.0
+              b11   += etemp
+
+              etemp  = E1ai (a,i) * E2ai (a,i)
+              etemp *= 4.0
+              b12   += etemp
+
+              etemp  = E1ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b13   += etemp
+#
+#
+#             b1x x=2,3
+#             ---------
+#
+              etemp  = E2ai (a,i) * E2ai (a,i)
+              etemp *= 4.0
+              b22   += etemp
+
+              etemp  = E2ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b23   += etemp
+#
+#
+#             b1x x=3,3
+#             ---------
+#
+              etemp  = E3ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b33   += etemp
+
+      ENDPARDO  a, i
+#
+#
+#    Compute contributions due to T1bj amplitudes.
+#
+#
+     PARDO  b, j
+#
+#
+#    GET amplitude data from all 3 previous iterations.
+#
+#
+           GET  E1bj (b,j)    # kiter-2 amplitudes
+           GET  E2bj (b,j)    # kiter-1 amplitudes
+           GET  E3bj (b,j)    # kiter-0 amplitudes
+#
+#          Compute contributions to the 'B-matrix'.
+#
+#
+#             b1x x=1,3
+#             ---------
+#
+              etemp  = E1bj (b,j) * E1bj (b,j)
+              etemp *= 4.0
+              b11   += etemp
+
+              etemp  = E1bj (b,j) * E2bj (b,j)
+              etemp *= 4.0
+              b12   += etemp
+
+              etemp  = E1bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b13   += etemp
+#
+#
+#             b1x x=2,3
+#             ---------
+#
+              etemp  = E2bj (b,j) * E2bj (b,j)
+              etemp *= 4.0
+              b22   += etemp
+
+              etemp  = E2bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b23   += etemp
+#
+#
+#             b1x x=3,3
+#             ---------
+#
+              etemp  = E3bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b33   += etemp
+
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Collectively sum B-matrix elements.
+#
+#
+      COLLECTIVE  Tb11 += b11
+      COLLECTIVE  Tb12 += b12
+      COLLECTIVE  Tb13 += b13
+      COLLECTIVE  Tb22 += b22
+      COLLECTIVE  Tb23 += b23
+      COLLECTIVE  Tb33 += b33
+#
+#    Now the unique elements of the 'B-matrix' have been computed
+#    and the array filled out.
+#    
+#
+#    Put the elements of the 'B-matrix', which have been computed
+#    as scalars into the R-matrix.
+#
+#
+      CALL SETUP_DIIS
+
+      EXECUTE  COMPUTE_DIIS
+
+      c1 = Tb11
+      c2 = Tb22
+      c3 = Tb33
+#      EXECUTE  PRINT_SCALAR  c1
+#      EXECUTE  PRINT_SCALAR  c2
+#      EXECUTE  PRINT_SCALAR  c3
+      csum = 0.0
+      csum = c1
+      csum += c2
+      csum += c3
+      EXECUTE  PRINT_SCALAR  csum
+      EXECUTE  SIP_BARRIER
+#
+#     Done computing the c-vector.
+#
+#     Form the updated amplitudes using the c-vector.
+#
+#          Form T1A_OLD
+#
+#
+      PARDO  a, i
+#
+#
+#     GET amplitude data from all 3 previous iterations.
+#
+#
+           GET  D0ai (a,i)     # kiter-3 amplitudes
+           GET  D1ai (a,i)     # kiter-2 amplitudes
+           GET  D2ai (a,i)     # kiter-1 amplitudes
+
+           GET  E1ai (a,i)     # kiter-2 amplitudes
+           GET  E2ai (a,i)     # kiter-1 amplitudes
+           GET  E3ai (a,i)     # kiter-0 amplitudes
+#
+#
+#          Compute contributions to updated amplitudes --> tai_old.
+#
+#
+           t1ai (a,i)        = D0ai (a,i)
+           t1ai (a,i)       += E1ai (a,i)
+           t1ai (a,i)       *= c1
+           tai  (a,i)        = t1ai (a,i)
+
+           t1ai (a,i)        = D1ai (a,i)
+           t1ai (a,i)       += E2ai (a,i)
+           t1ai (a,i)       *= c2
+           tai  (a,i)       += t1ai (a,i)
+
+           t1ai (a,i)        = D2ai (a,i)
+           t1ai (a,i)       += E3ai (a,i)
+           t1ai (a,i)       *= c3
+           tai  (a,i)       += t1ai (a,i)
+
+           tia  (i,a)        = tai  (a,i)
+
+           PUT T1A_OLD (i,a) = tia  (i,a)
+
+     ENDPARDO  a, i
+#
+#
+#    Form T1B_OLD
+#
+#
+     PARDO  b, j
+#
+#
+#    GET amplitude data from all 3 previous iterations.
+#
+#
+           GET  D0bj (b,j)     # kiter-3 amplitudes
+           GET  D1bj (b,j)     # kiter-2 amplitudes
+           GET  D2bj (b,j)     # kiter-1 amplitudes
+
+           GET  E1bj (b,j)     # kiter-2 amplitudes
+           GET  E2bj (b,j)     # kiter-1 amplitudes
+           GET  E3bj (b,j)     # kiter-0 amplitudes
+#
+#
+#          Compute contributions to updated amplitudes --> tbj_old.
+#
+#
+           t1bj (b,j)        = D0bj (b,j)
+           t1bj (b,j)       += E1bj (b,j)
+           t1bj (b,j)       *= c1
+           tbj  (b,j)        = t1bj (b,j)
+
+           t1bj (b,j)        = D1bj (b,j)
+           t1bj (b,j)       += E2bj (b,j)
+           t1bj (b,j)       *= c2
+           tbj  (b,j)       += t1bj (b,j)
+
+           t1bj (b,j)        = D2bj (b,j)
+           t1bj (b,j)       += E3bj (b,j)
+           t1bj (b,j)       *= c3
+           tbj  (b,j)       += t1bj (b,j)
+
+           tjb  (j,b)        = tbj  (b,j)
+
+           PUT T1B_OLD (j,b) = tjb  (j,b)
+
+      ENDPARDO b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  DIIS2
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -------------
+      PROC  DIIS3
+#    -------------
+#
+#
+      CALL  ZERO_DSCALAR
+#
+#
+#     Determine the "B-Matrix"
+#
+#
+#     Compute contributions due to T  amplitudes.
+#                                   1
+#
+      PARDO  a, i
+#
+#
+#     GET amplitude data from all 4 previous iterations.
+#
+#
+           GET  E1ai (a,i)    # kiter-3 amplitudes
+           GET  E2ai (a,i)    # kiter-2 amplitudes
+           GET  E3ai (a,i)    # kiter-1 amplitudes
+           GET  E4ai (a,i)    # kiter-0 amplitudes
+#
+#
+#          Compute contributions to the 'B-matrix'.
+#
+#
+#             b1x x=1,4
+#             ---------
+#
+              etemp  = E1ai (a,i) * E1ai (a,i)
+              etemp *= 4.0
+              b11   += etemp
+
+              etemp  = E1ai (a,i) * E2ai (a,i)
+              etemp *= 4.0
+              b12   += etemp
+
+              etemp  = E1ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b13   += etemp
+
+              etemp  = E1ai (a,i) * E4ai (a,i)
+              etemp *= 4.0
+              b14   += etemp
+#
+#
+#             b1x x=2,4
+#             ---------
+#
+              etemp  = E2ai (a,i) * E2ai (a,i)
+              etemp *= 4.0
+              b22   += etemp
+
+              etemp  = E2ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b23   += etemp
+
+              etemp  = E2ai (a,i) * E4ai (a,i)
+              etemp *= 4.0
+              b24   += etemp
+#
+#
+#             b1x x=3,4
+#             ---------
+#
+              etemp  = E3ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b33   += etemp
+
+              etemp  = E3ai (a,i) * E4ai (a,i)
+              etemp *= 4.0
+              b34   += etemp
+
+#             b1x x=4,4
+#             ---------
+#
+              etemp  = E4ai (a,i) * E4ai (a,i)
+              etemp *= 4.0
+              b44   += etemp
+
+      ENDPARDO  a, i
+#
+#
+#     Compute contributions due to T1bj amplitudes.
+#
+#
+      PARDO  b, j
+#
+#
+#     GET amplitude data from all 4 previous iterations.
+#
+#
+           GET  E1bj (b,j)    # kiter-3 amplitudes
+           GET  E2bj (b,j)    # kiter-2 amplitudes
+           GET  E3bj (b,j)    # kiter-1 amplitudes
+           GET  E4bj (b,j)    # kiter-0 amplitudes
+#
+#          Compute contributions to the 'B-matrix'.
+#
+#
+#             b1x x=1,4
+#             ---------
+#
+              etemp  = E1bj (b,j) * E1bj (b,j)
+              etemp *= 4.0
+              b11   += etemp
+
+              etemp  = E1bj (b,j) * E2bj (b,j)
+              etemp *= 4.0
+              b12   += etemp
+
+              etemp  = E1bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b13   += etemp
+
+              etemp  = E1bj (b,j) * E4bj (b,j)
+              etemp *= 4.0
+              b14   += etemp
+#
+#
+#             b1x x=2,4
+#             ---------
+#
+              etemp  = E2bj (b,j) * E2bj (b,j)
+              etemp *= 4.0
+              b22   += etemp
+
+              etemp  = E2bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b23   += etemp
+
+              etemp  = E2bj (b,j) * E4bj (b,j)
+              etemp *= 4.0
+              b24   += etemp
+#
+#
+#             b1x x=3,4
+#             ---------
+#
+              etemp  = E3bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b33   += etemp
+
+              etemp  = E3bj (b,j) * E4bj (b,j)
+              etemp *= 4.0
+              b34   += etemp
+#
+#
+#             b1x x=4,4
+#             ---------
+#
+              etemp  = E4bj (b,j) * E4bj (b,j)
+              etemp *= 4.0
+              b44   += etemp
+
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Collectively sum B-matrix elements.
+#
+#
+      COLLECTIVE  Tb11 += b11
+      COLLECTIVE  Tb12 += b12
+      COLLECTIVE  Tb13 += b13
+      COLLECTIVE  Tb14 += b14
+      COLLECTIVE  Tb22 += b22
+      COLLECTIVE  Tb23 += b23
+      COLLECTIVE  Tb24 += b24
+      COLLECTIVE  Tb33 += b33
+      COLLECTIVE  Tb34 += b34
+      COLLECTIVE  Tb44 += b44
+#
+#
+#    Now the unique elements of the 'B-matrix' have been computed
+#    and the array filled out.
+#
+#    Put the elements of the 'B-matrix', which have been computed
+#    as scalars into the R-matrix.
+#
+#
+      CALL  SETUP_DIIS
+
+      EXECUTE  COMPUTE_DIIS
+
+      c1 = Tb11
+      c2 = Tb22
+      c3 = Tb33
+      c4 = Tb44
+#      EXECUTE  PRINT_SCALAR  c1
+#      EXECUTE  PRINT_SCALAR  c2
+#      EXECUTE  PRINT_SCALAR  c3
+#      EXECUTE  PRINT_SCALAR  c4
+      csum = 0.0
+      csum = c1
+      csum += c2
+      csum += c3
+      csum += c4
+      EXECUTE  PRINT_SCALAR  csum
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Done computing the c-vector.
+#
+#     Form the updated amplitudes using the c-vector.
+#
+#     Form T1A_OLD!
+#
+#
+      PARDO  a, i
+#
+#
+#     GET amplitude data from all 4 previous iterations.
+#
+#
+           GET  D0ai (a,i)     # kiter-4 amplitudes
+           GET  D1ai (a,i)     # kiter-3 amplitudes
+           GET  D2ai (a,i)     # kiter-2 amplitudes
+           GET  D3ai (a,i)     # kiter-1 amplitudes
+
+           GET  E1ai (a,i)     # kiter-3 amplitudes
+           GET  E2ai (a,i)     # kiter-2 amplitudes
+           GET  E3ai (a,i)     # kiter-1 amplitudes
+           GET  E4ai (a,i)     # kiter-0 amplitudes
+#
+#
+#          Compute contributions to updated amplitudes --> tai_old.
+#
+#
+           t1ai (a,i)         = D0ai (a,i)
+           t1ai (a,i)        += E1ai (a,i)
+           t1ai (a,i)        *= c1
+           tai  (a,i)         = t1ai (a,i)
+
+           t1ai (a,i)         = D1ai (a,i)
+           t1ai (a,i)        += E2ai (a,i)
+           t1ai (a,i)        *= c2
+           tai  (a,i)        += t1ai (a,i)
+
+           t1ai (a,i)         = D2ai (a,i)
+           t1ai (a,i)        += E3ai (a,i)
+           t1ai (a,i)        *= c3
+           tai  (a,i)        += t1ai (a,i)
+
+           t1ai (a,i)         = D3ai (a,i)
+           t1ai (a,i)        += E4ai (a,i)
+           t1ai (a,i)        *= c4
+           tai  (a,i)        += t1ai (a,i)
+
+           tia  (i,a)         = tai  (a,i)
+
+           PUT  T1A_OLD (i,a) = tia  (i,a)
+
+      ENDPARDO  a, i
+#
+#
+#    Form T1B_OLD!
+#
+#
+     PARDO  b, j
+#
+#
+#    GET amplitude data from all 4 previous iterations.
+#
+#
+           GET  D0bj (b,j)     # kiter-4 amplitudes
+           GET  D1bj (b,j)     # kiter-3 amplitudes
+           GET  D2bj (b,j)     # kiter-2 amplitudes
+           GET  D3bj (b,j)     # kiter-1 amplitudes
+
+           GET  E1bj (b,j)     # kiter-3 amplitudes
+           GET  E2bj (b,j)     # kiter-2 amplitudes
+           GET  E3bj (b,j)     # kiter-1 amplitudes
+           GET  E4bj (b,j)     # kiter-0 amplitudes
+#
+#
+#          Compute contributions to updated amplitudes --> tbj_old.
+#
+#
+           t1bj (b,j)         = D0bj (b,j)
+           t1bj (b,j)        += E1bj (b,j)
+           t1bj (b,j)        *= c1
+           tbj  (b,j)         = t1bj (b,j)
+
+           t1bj (b,j)         = D1bj (b,j)
+           t1bj (b,j)        += E2bj (b,j)
+           t1bj (b,j)        *= c2
+           tbj  (b,j)        += t1bj (b,j)
+
+           t1bj (b,j)         = D2bj (b,j)
+           t1bj (b,j)        += E3bj (b,j)
+           t1bj (b,j)        *= c3
+           tbj  (b,j)        += t1bj (b,j)
+
+           t1bj (b,j)         = D3bj (b,j)
+           t1bj (b,j)        += E4bj (b,j)
+           t1bj (b,j)        *= c4
+           tbj  (b,j)        += t1bj (b,j)
+
+           tjb  (j,b)         = tbj  (b,j)
+
+           PUT  T1B_OLD (j,b) = tjb  (j,b)
+
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  DIIS3
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -------------
+      PROC  DIIS4
+#    -------------
+#
+#
+      CALL  ZERO_DSCALAR
+#
+#
+#     Determine the "B-Matrix"
+#
+#
+#     Compute contributions due to T1ai amplitudes.
+#
+#
+      PARDO  a, i
+#
+#
+#     GET amplitude data from all 5 previous iterations.
+#
+#
+           GET  E1ai (a,i)    # kiter-4 amplitudes
+           GET  E2ai (a,i)    # kiter-3 amplitudes
+           GET  E3ai (a,i)    # kiter-2 amplitudes
+           GET  E4ai (a,i)    # kiter-1 amplitudes
+           GET  E5ai (a,i)    # kiter-0 amplitudes
+#
+#
+#          Compute contributions to the 'B-matrix'.
+#
+#
+#             b1x x=1,5
+#             ---------
+#
+              etemp  = E1ai (a,i) * E1ai (a,i)
+              etemp *= 4.0
+              b11   += etemp
+
+              etemp  = E1ai (a,i) * E2ai (a,i)
+              etemp *= 4.0
+              b12   += etemp
+
+              etemp  = E1ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b13   += etemp
+
+              etemp  = E1ai (a,i) * E4ai (a,i)
+              etemp *= 4.0
+              b14   += etemp
+
+              etemp  = E1ai (a,i) * E5ai (a,i)
+              etemp *= 4.0
+              b15   += etemp
+#
+#
+#             b1x x=2,5
+#             ---------
+#
+              etemp  = E2ai (a,i) * E2ai (a,i)
+              etemp *= 4.0
+              b22   += etemp
+
+              etemp  = E2ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b23   += etemp
+
+              etemp  = E2ai (a,i) * E4ai (a,i)
+              etemp *= 4.0
+              b24   += etemp
+
+              etemp  = E2ai (a,i) * E5ai (a,i)
+              etemp *= 4.0
+              b25   += etemp
+#
+#
+#             b1x x=3,5
+#             ---------
+#
+              etemp  = E3ai (a,i) * E3ai (a,i)
+              etemp *= 4.0
+              b33   += etemp
+
+              etemp  = E3ai (a,i) * E4ai (a,i)
+              etemp *= 4.0
+              b34   += etemp
+
+              etemp  = E3ai (a,i) * E5ai (a,i)
+              etemp *= 4.0
+              b35   += etemp
+#
+#
+#             b1x x=4,5
+#             ---------
+#
+              etemp  = E4ai (a,i) * E4ai (a,i)
+              etemp *= 4.0
+              b44   += etemp
+
+              etemp  = E4ai (a,i) * E5ai (a,i)
+              etemp *= 4.0
+              b45   += etemp
+#
+#
+#             b1x x=5,5
+#             ---------
+#
+              etemp  = E5ai (a,i) * E5ai (a,i)
+              etemp *= 4.0
+              b55   += etemp
+
+      ENDPARDO  a, i
+#
+#
+#    Compute contributions due to T1bj amplitudes.
+#
+#
+      PARDO  b, j
+#
+#
+#     GET amplitude data from all 5 previous iterations.
+#
+#
+           GET  E1bj (b,j)    # kiter-4 amplitudes
+           GET  E2bj (b,j)    # kiter-3 amplitudes
+           GET  E3bj (b,j)    # kiter-2 amplitudes
+           GET  E4bj (b,j)    # kiter-1 amplitudes
+           GET  E5bj (b,j)    # kiter-0 amplitudes
+#
+#
+#          Compute contributions to the 'B-matrix'.
+#
+#
+#             b1x x=1,5
+#             ---------
+#
+              etemp  = E1bj (b,j) * E1bj (b,j)
+              etemp *= 4.0
+              b11   += etemp
+
+              etemp  = E1bj (b,j) * E2bj (b,j)
+              etemp *= 4.0
+              b12   += etemp
+
+              etemp  = E1bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b13   += etemp
+
+              etemp  = E1bj (b,j) * E4bj (b,j)
+              etemp *= 4.0
+              b14   += etemp
+
+              etemp  = E1bj (b,j) * E5bj (b,j)
+              etemp *= 4.0
+              b15   += etemp
+#
+#
+#             b1x x=2,5
+#             ---------
+#
+              etemp  = E2bj (b,j) * E2bj (b,j)
+              etemp *= 4.0
+              b22   += etemp
+
+              etemp  = E2bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b23   += etemp
+
+              etemp  = E2bj (b,j) * E4bj (b,j)
+              etemp *= 4.0
+              b24   += etemp
+
+              etemp  = E2bj (b,j) * E5bj (b,j)
+              etemp *= 4.0
+              b25   += etemp
+#
+#
+#             b1x x=3,5
+#             ---------
+#
+              etemp  = E3bj (b,j) * E3bj (b,j)
+              etemp *= 4.0
+              b33   += etemp
+
+              etemp  = E3bj (b,j) * E4bj (b,j)
+              etemp *= 4.0
+              b34   += etemp
+
+              etemp  = E3bj (b,j) * E5bj (b,j)
+              etemp *= 4.0
+              b35   += etemp
+#
+#
+#             b1x x=4,5
+#             ---------
+#
+              etemp  = E4bj (b,j) * E4bj (b,j)
+              etemp *= 4.0
+              b44   += etemp
+
+              etemp  = E4bj (b,j) * E5bj (b,j)
+              etemp *= 4.0
+              b45   += etemp
+#
+#
+#             b1x x=5,5
+#             ---------
+#
+              etemp  = E5bj (b,j) * E5bj (b,j)
+              etemp *= 4.0
+              b55   += etemp
+
+      ENDPARDO b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Collectively sum B-matrix elements.
+#
+#
+      COLLECTIVE  Tb11 += b11
+      COLLECTIVE  Tb12 += b12
+      COLLECTIVE  Tb13 += b13
+      COLLECTIVE  Tb14 += b14
+      COLLECTIVE  Tb15 += b15
+      COLLECTIVE  Tb22 += b22
+      COLLECTIVE  Tb23 += b23
+      COLLECTIVE  Tb24 += b24
+      COLLECTIVE  Tb25 += b25
+      COLLECTIVE  Tb33 += b33
+      COLLECTIVE  Tb34 += b34
+      COLLECTIVE  Tb35 += b35
+      COLLECTIVE  Tb44 += b44
+      COLLECTIVE  Tb45 += b45
+      COLLECTIVE  Tb55 += b55
+#
+#
+#    Now the unique elements of the 'B-matrix' have been computed
+#    and the array filled out.
+#
+#    Put the elements of the 'B-matrix', which have been computed
+#    as scalars into the R-matrix.
+#
+#
+      CALL  SETUP_DIIS
+
+      EXECUTE  COMPUTE_DIIS
+
+      c1 = Tb11
+      c2 = Tb22
+      c3 = Tb33
+      c4 = Tb44
+      c5 = Tb55
+#      EXECUTE  PRINT_SCALAR  c1
+#      EXECUTE  PRINT_SCALAR  c2
+#      EXECUTE  PRINT_SCALAR  c3
+#      EXECUTE  PRINT_SCALAR  c4
+#      EXECUTE  PRINT_SCALAR  c5
+      csum = 0.0
+      csum = c1
+      csum += c2
+      csum += c3
+      csum += c4
+      csum += c5
+      EXECUTE  PRINT_SCALAR  csum
+      EXECUTE  SIP_BARRIER
+#
+#
+#    Done computing the c-vector.
+#
+#    Form the updated amplitudes using the c-vector.
+#
+#    Form T1A_OLD!
+#
+#
+      PARDO  a, i
+#
+#
+#     GET amplitude data from all 5 previous iterations.
+#
+#
+           GET  D0ai (a,i)     # kiter-5 amplitudes
+           GET  D1ai (a,i)     # kiter-4 amplitudes
+           GET  D2ai (a,i)     # kiter-3 amplitudes
+           GET  D3ai (a,i)     # kiter-2 amplitudes
+           GET  D4ai (a,i)     # kiter-1 amplitudes
+
+           GET  E1ai (a,i)     # kiter-4 amplitudes
+           GET  E2ai (a,i)     # kiter-3 amplitudes
+           GET  E3ai (a,i)     # kiter-2 amplitudes
+           GET  E4ai (a,i)     # kiter-1 amplitudes
+           GET  E5ai (a,i)     # kiter-0 amplitudes
+#
+#
+#          Compute contributions to updated amplitudes --> tai_old.
+#
+#
+           t1ai (a,i)         = D0ai (a,i)
+           t1ai (a,i)        += E1ai (a,i)
+           t1ai (a,i)        *= c1
+           tai  (a,i)         = t1ai (a,i)
+
+           t1ai (a,i)         = D1ai (a,i)
+           t1ai (a,i)        += E2ai (a,i)
+           t1ai (a,i)        *= c2
+           tai  (a,i)        += t1ai (a,i)
+
+           t1ai (a,i)         = D2ai (a,i)
+           t1ai (a,i)        += E3ai (a,i)
+           t1ai (a,i)        *= c3
+           tai  (a,i)        += t1ai (a,i)
+
+           t1ai (a,i)         = D3ai (a,i)
+           t1ai (a,i)        += E4ai (a,i)
+           t1ai (a,i)        *= c4
+           tai  (a,i)        += t1ai (a,i)
+
+           t1ai (a,i)         = D4ai (a,i)
+           t1ai (a,i)        += E5ai (a,i)
+           t1ai (a,i)        *= c5
+           tai  (a,i)        += t1ai (a,i)
+
+           tia  (i,a)         = tai  (a,i)
+
+           PUT  T1A_OLD (i,a) = tia  (i,a)
+
+      ENDPARDO  a, i
+#
+#
+#    Form T1B_OLD!
+#
+#
+      PARDO  b, j
+#
+#
+#     GET amplitude data from all 5 previous iterations.
+#
+#
+           GET  D0bj (b,j)     # kiter-5 amplitudes
+           GET  D1bj (b,j)     # kiter-4 amplitudes
+           GET  D2bj (b,j)     # kiter-3 amplitudes
+           GET  D3bj (b,j)     # kiter-2 amplitudes
+           GET  D4bj (b,j)     # kiter-1 amplitudes
+
+           GET  E1bj (b,j)     # kiter-4 amplitudes
+           GET  E2bj (b,j)     # kiter-3 amplitudes
+           GET  E3bj (b,j)     # kiter-2 amplitudes
+           GET  E4bj (b,j)     # kiter-1 amplitudes
+           GET  E5bj (b,j)     # kiter-0 amplitudes
+#
+#
+#          Compute contributions to updated amplitudes --> tbj_old.
+#
+#
+           t1bj (b,j)         = D0bj (b,j)
+           t1bj (b,j)        += E1bj (b,j)
+           t1bj (b,j)        *= c1
+           tbj  (b,j)         = t1bj (b,j)
+
+           t1bj (b,j)         = D1bj (b,j)
+           t1bj (b,j)        += E2bj (b,j)
+           t1bj (b,j)        *= c2
+           tbj  (b,j)        += t1bj (b,j)
+
+           t1bj (b,j)         = D2bj (b,j)
+           t1bj (b,j)        += E3bj (b,j)
+           t1bj (b,j)        *= c3
+           tbj  (b,j)        += t1bj (b,j)
+
+           t1bj (b,j)         = D3bj (b,j)
+           t1bj (b,j)        += E4bj (b,j)
+           t1bj (b,j)        *= c4
+           tbj  (b,j)        += t1bj (b,j)
+
+           t1bj (b,j)         = D4bj (b,j)
+           t1bj (b,j)        += E5bj (b,j)
+           t1bj (b,j)        *= c5
+           tbj  (b,j)        += t1bj (b,j)
+
+           tjb  (j,b)         = tbj  (b,j)
+
+           PUT  T1B_OLD (j,b) = tjb  (j,b)
+
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  DIIS4
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    -------------
+      PROC  MOVE4
+#    -------------
+#
+#
+#     Move 0 to 1
+#
+      PARDO  a, i
+         GET               D1ai (a,i)
+         PUT  D0ai (a,i) = D1ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+         GET               D1bj (b,j)
+         PUT  D0bj (b,j) = D1bj (b,j)
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Move 2 to 1
+#
+#
+      PARDO  a, i
+            GET               E2ai (a,i)
+            PUT  E1ai (a,i) = E2ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+            GET               E2bj (b,j)
+            PUT  E1bj (b,j) = E2bj (b,j)
+      ENDPARDO  b, j
+
+      PARDO  a, i
+            GET               D2ai (a,i)
+            PUT  D1ai (a,i) = D2ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+            GET               D2bj (b,j)
+            PUT  D1bj (b,j) = D2bj (b,j)
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Move 3 to 2
+#
+#
+      PARDO  a, i
+            GET               E3ai (a,i)
+            PUT  E2ai (a,i) = E3ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+            GET               E3bj (b,j)
+            PUT  E2bj (b,j) = E3bj (b,j)
+      ENDPARDO  b, j
+
+      PARDO  a, i
+            GET               D3ai (a,i)
+            PUT  D2ai (a,i) = D3ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+            GET               D3bj (b,j)
+            PUT  D2bj (b,j) = D3bj (b,j)
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Move 4 to 3
+#
+#
+      PARDO  a, i
+            GET               E4ai (a,i)
+            PUT  E3ai (a,i) = E4ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+            GET               E4bj (b,j)
+            PUT  E3bj (b,j) = E4bj (b,j)
+      ENDPARDO  b, j
+
+      PARDO  a, i
+            GET               D4ai (a,i)
+            PUT  D3ai (a,i) = D4ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+            GET               D4bj (b,j)
+            PUT  D3bj (b,j) = D4bj (b,j)
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Move 5 to 4
+#
+#
+      PARDO  a, i
+            GET               E5ai (a,i)
+            PUT  E4ai (a,i) = E5ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+            GET               E5bj (b,j)
+            PUT  E4bj (b,j) = E5bj (b,j)
+      ENDPARDO  b, j
+
+      PARDO  a, i
+            GET               D5ai (a,i)
+            PUT  D4ai (a,i) = D5ai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+            GET               D5bj (b,j)
+            PUT  D4bj (b,j) = D5bj (b,j)
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  MOVE4
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    ---------------
+      PROC  MOVE_T1
+#    ---------------
+#
+#
+      PARDO  a, i
+
+         GET         T1A_OLD (i,a)
+         tai (a,i) = T1A_OLD (i,a)
+
+         IF titer == 1
+             PUT  D1ai (a,i) = tai (a,i)
+         ENDIF
+
+         IF titer == 2
+             PUT  D2ai (a,i) = tai (a,i)
+         ENDIF
+
+         IF titer == 3
+             PUT  D3ai (a,i) = tai (a,i)
+         ENDIF
+
+         IF titer == 4
+             PUT  D4ai (a,i) = tai (a,i)
+         ENDIF
+
+         IF titer >= 5
+             PUT  D4ai (a,i) = tai (a,i)
+         ENDIF
+
+      ENDPARDO  a, i
+
+      PARDO  b, j
+
+         GET         T1B_OLD (j,b)
+         tbj (b,j) = T1B_OLD (j,b)
+
+         IF titer == 1
+             PUT  D1bj (b,j) = tbj (b,j)
+         ENDIF
+
+         IF titer == 2
+             PUT  D2bj (b,j) = tbj (b,j)
+         ENDIF
+
+         IF titer == 3
+             PUT  D3bj (b,j) = tbj (b,j)
+         ENDIF
+
+         IF titer == 4
+             PUT  D4bj (b,j) = tbj (b,j)
+         ENDIF
+
+         IF titer >= 5
+             PUT  D4bj (b,j) = tbj (b,j)
+         ENDIF
+
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  MOVE_T1
+#-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#        
+#    --------------------------
+      PROC  CONSISTENCY_CHECKS
+#    --------------------------
+#        
+#    
+#     Trace of the density matrix is the number of electrons!
+#
+#
+      esuma   = 0.0
+      esumb   = 0.0
+      nelec_a = 0.0
+      nelec_b = 0.0
+      nelec   = 0.0
+
+      PARDO  p, p1
+         GET          DMAT_A (p,p1)
+         tpp (p,p1) = DMAT_A (p,p1)
+         EXECUTE  CALC_TRACE  tpp  etemp
+         esuma += etemp
+      ENDPARDO  p, p1
+
+      PARDO  q, q1
+         GET          DMAT_B (q,q1)
+         tqq (q,q1) = DMAT_B (q,q1)
+         EXECUTE  CALC_TRACE  tqq  etemp
+         esumb += etemp
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+
+      COLLECTIVE  nelec_a += esuma
+      COLLECTIVE  nelec_b += esumb
+
+      nelec = nelec_a + nelec_b
+
+      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  nelec_a
+      EXECUTE  PRINT_SCALAR  nelec_b
+      EXECUTE  PRINT_SCALAR  nelec
+#
+#
+#     The density matrix is idempotent: D D = D
+#
+#
+      EXECUTE  PRINT_SCALAR  ZERO
+      PARDO  p, p1
+         GET          DMAT_A (p,p1)
+         tpp (p,p1) = DMAT_A (p,p1)
+         EXECUTE  C1_PRINT  tpp  ZERO
+      ENDPARDO  p, p1
+      EXECUTE  SIP_BARRIER
+
+      ALLOCATE  Lpp (*,*)
+      EXECUTE  PRINT_SCALAR  ZERO
+      PARDO  p, p1
+         Lpp (p,p1) = 0.0
+         DO p2
+            GET             DMAT_A (p ,p2)
+            GET             DMAT_A (p1,p2)
+            t1pp (p1,p2)  = DMAT_A (p1,p2)
+            tpp  (p ,p1)  = DMAT_A (p ,p2) * t1pp (p1,p2)
+            Lpp  (p ,p1) += tpp (p,p1)
+         ENDDO p2
+         EXECUTE  C1_PRINT  Lpp  ZERO
+      ENDPARDO  p, p1
+      DEALLOCATE  Lpp (*,*)
+
+      EXECUTE  SIP_BARRIER
+
+      EXECUTE  PRINT_SCALAR  ZERO
+      PARDO  q, q1
+         GET          DMAT_B (q,q1)
+         tqq (q,q1) = DMAT_B (q,q1)
+         EXECUTE  C1B_PRINT  tqq  ZERO
+      ENDPARDO  q, q1
+      EXECUTE  SIP_BARRIER
+
+      EXECUTE  PRINT_SCALAR  ZERO
+      ALLOCATE  Lqq (*,*)
+      PARDO  q, q1
+         Lqq (q,q1) = 0.0
+         DO q2
+            GET             DMAT_B (q ,q2)
+            GET             DMAT_B (q2,q1)
+            t1qq (q2,q1)  = DMAT_B (q2,q1)
+            tqq  (q ,q1)  = DMAT_B (q ,q2) * t1qq (q2,q1)
+            Lqq  (q ,q1) += tqq (q,q1)
+         ENDDO q2
+         EXECUTE  C1B_PRINT  Lqq  ZERO
+      ENDPARDO  q, q1
+      DEALLOCATE  Lqq (*,*)
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#                   T
+#     The trace of Q Q = N + 2 Tr(X  )
+#                                  oo
+#
+#
+      ALLOCATE  Lpp (*,*)
+      esum  = 0.0
+      esuma = 0.0
+      EXECUTE  PRINT_SCALAR  ZERO
+      PARDO  p, p1
+
+         Lpp (p,p1) = 0.0
+
+         DO p2
+            GET            QMAT_A (p2,p )
+            GET            QMAT_A (p2,p1)
+            tpp  (p,p2)  = QMAT_A (p2,p )
+
+            t1pp (p,p1)  = tpp  (p,p2) * QMAT_A (p2,p1)
+            Lpp  (p,p1) += t1pp (p,p1)
+         ENDDO p2
+
+         EXECUTE  CALC_TRACE  Lpp  etemp
+         EXECUTE  C1_PRINT    Lpp  ZERO
+         esum += etemp
+
+      ENDPARDO  p, p1
+      EXECUTE  SIP_BARRIER
+      DEALLOCATE  Lpp (*,*)
+      COLLECTIVE  esuma += esum
+      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  esuma
+      EXECUTE  SIP_BARRIER
+
+      esum  = 0.0
+      esuma = 0.0
+      ALLOCATE  Lii (*,*)
+      PARDO  i, i1
+         Lii (i,i1) = 0.0
+         DO a
+            GET  T1A_OLD (i,a )
+            GET  DMAT_A  (a,i1)
+            tii (i,i1)  = T1A_OLD (i,a) * DMAT_A (a,i1)
+            tii (i,i1) *= -1.0
+            Lii (i,i1) += tii (i,i1)
+         ENDDO a
+         EXECUTE  CALC_TRACE  Lii  etemp
+         esum += etemp
+         Lii (i,i1) += ST_IDENT_A (i,i1)
+         EXECUTE  C1_PRINT  Lii  ZERO
+      ENDPARDO  i, i1
+      EXECUTE  SIP_BARRIER
+      DEALLOCATE  Lii (*,*)
+      COLLECTIVE  esuma += esum
+      esuma *= 2.0
+      EXECUTE  PRINT_SCALAR  esuma
+      EXECUTE  SIP_BARRIER
+
+      esum  = 0.0
+      esuma = 0.0
+      PARDO  a, a1
+         GET  DMAT_A (a,a1)
+         taa (a,a1)  = DMAT_A (a,a1)
+         taa (a,a1) *= -1.0
+         EXECUTE  CALC_TRACE  taa  etemp
+         esum += etemp
+         taa (a,a1) += ST_IDENT_A (a,a1)
+         EXECUTE  C1_PRINT  taa  ZERO
+      ENDPARDO  a, a1
+      EXECUTE  SIP_BARRIER
+      COLLECTIVE  esuma += esum
+      EXECUTE  PRINT_SCALAR  esuma
+
+      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  ZERO
+#
+#
+#          ...ready!
+#        
+#        
+      ENDPROC  CONSISTENCY_CHECKS
+#-------------------------------------------------------------------------
+            
+               
+               
+
+#-------------------------------------------------------------------------
+#                                                                        #
+#                      \--------------------------/                      #
+#                      |    BEGIN MAIN PROGRAM    |                      #
+#                      /--------------------------\                      #
+#                                                                        #
+#-------------------------------------------------------------------------
+#                                                                        #
+#                                                                        #
+      debug   = -1.0  # debug < 0 == no debug print
+
+      excrit  = 0.0000001
+      etcrit  = 0.0000001
+      damp1   =  damp
+      dampa   =  damp1
+      damp1  *= -1.0
+      dampi   =  damp1
+      EXECUTE  PRINT_SCALAR  excrit
+      EXECUTE  PRINT_SCALAR  etcrit
+      EXECUTE  PRINT_SCALAR  dampi
+      EXECUTE  PRINT_SCALAR  dampa
+
+      ONEM    = -1.0
+      ZERO    =  0.0
+      ONE     =  1.0
+      ONEHALF =  0.5
+      TWO     =  2.0
+      THREE   =  3.0
+      FOUR    =  4.0
+
+      IPORBA  = 0.0
+      IPORBB  = 1.0
+#
+#
+#          Nuclear - Nuclear repulsion energy!
+#
+#
+      VNN = 0.0
+      DO atoms
+         VNN += 1.0
+      ENDDO atoms
+      EXECUTE  V_NUC_NUC  VNN
+
+      DO p
+      DO p1
+         EXECUTE  ADD_SCAL2DIAG  ST_IDENT_A  ONE
+      ENDDO p1
+      ENDDO p
+
+      DO q
+      DO q1
+         EXECUTE  ADD_SCAL2DIAG  ST_IDENT_B  ONE
+      ENDDO q1
+      ENDDO q
+
+      ALLOCATE  LH1qq (*,*)
+      ALLOCATE  LH1pp (*,*)
+      CREATE    DISqq 
+      CREATE    DISpp 
+      EXECUTE  SIP_BARRIER
+
+      PARDO  mu, nu
+         txx (mu,nu) = 0.0
+         EXECUTE  RETURN_H1  txx
+
+         DO p
+            tpx  (p,nu) = CA (mu,p) * txx (mu,nu)
+            DO p1
+              tpp (p,p1) = tpx (p,nu) * CA (nu,p1)
+              PUT  DISpp (p,p1) += tpp (p,p1)
+            ENDDO p1
+         ENDDO p
+
+         DO q
+            tqx  (q,nu) = CB (mu,q) * txx (mu,nu)
+            DO q1
+              tqq (q,q1) = tqx (q,nu) * CB (nu,q1)
+              PUT  DISqq (q,q1) += tqq (q,q1)
+            ENDDO q1
+         ENDDO q
+      ENDPARDO  mu, nu
+      EXECUTE  SIP_BARRIER
+
+      DO p
+      DO p1
+         GET          DISpp (p,p1)
+         tpp (p,p1) = DISpp (p,p1)
+         LH1pp (p,p1) = tpp (p,p1)
+      ENDDO p1
+      ENDDO p
+
+      DO q
+      DO q1
+         GET          DISqq (q,q1)
+         tqq (q,q1) = DISqq (q,q1)
+         LH1qq (q,q1) = tqq (q,q1)
+      ENDDO q1
+      ENDDO q
+      EXECUTE  SIP_BARRIER
+
+      DELETE  DISpp
+      DELETE  DISqq
+#
+#
+#     Create some arrays and read some arrays
+#
+#
+      CREATE  D0ai
+      CREATE  D1ai
+      CREATE  D2ai
+      CREATE  D3ai
+      CREATE  D4ai
+      CREATE  D5ai
+
+      CREATE  D0bj
+      CREATE  D1bj
+      CREATE  D2bj
+      CREATE  D3bj
+      CREATE  D4bj
+      CREATE  D5bj
+
+      CREATE  E1ai
+      CREATE  E2ai
+      CREATE  E3ai
+      CREATE  E4ai
+      CREATE  E5ai
+
+      CREATE  E1bj
+      CREATE  E2bj
+      CREATE  E3bj
+      CREATE  E4bj
+      CREATE  E5bj
+
+      CREATE  T1A_OLD
+      CREATE  T1B_OLD
+      CREATE  T1A_NEW
+      CREATE  T1B_NEW
+      CREATE  QMAT_A
+      CREATE  QMAT_B
+      CREATE  DMAT_A
+      CREATE  DMAT_B
+      CREATE  XMAT_A
+      CREATE  XMAT_B
+      CREATE  DCCS_A
+      CREATE  DCCS_B
+      CREATE  F_NEW_OV_A
+      CREATE  F_NEW_OV_B
+      CREATE  FOCK_MO_A
+      CREATE  FOCK_MO_B
+      CREATE  FOCK_AO_A
+      CREATE  FOCK_AO_B
+      CREATE  F_AO_A
+      CREATE  F_AO_B
+      CREATE  SM_XA
+      CREATE  SM_XB
+      CREATE  XITER_OLD_A
+      CREATE  XITER_OLD_B
+      CREATE  XITER_NEW_A
+      CREATE  XITER_NEW_B
+
+      CREATE  GREF_A
+      CREATE  GREF_B
+      CREATE  GTILDE_A
+      CREATE  GTILDE_B
+      CREATE  GTOTAL_A
+      CREATE  GTOTAL_B
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Form the reference G matrix!
+#
+#
+      PARDO  i, mu, nu
+         txi (mu,i)  = CA (mu,i)
+         txx (mu,nu) = txi (mu,i) * CA (nu,i)
+         PUT  DCCS_A (mu,nu) += txx (mu,nu)
+      ENDPARDO  i, mu, nu
+
+      PARDO  j, mu, nu
+         txj (mu,j)  = CB (mu,j)
+         txx (mu,nu) = txj (mu,j) * CB (nu,j)
+         PUT  DCCS_B (mu,nu) += txx (mu,nu)
+      ENDPARDO  j, mu, nu
+
+      EXECUTE  SIP_BARRIER
+      CALL  FORM_FOCK
+      EXECUTE  SIP_BARRIER
+
+      PARDO  p, p1
+         GET          GTILDE_A (p,p1)
+         tpp (p,p1) = GTILDE_A (p,p1)
+         PUT  GREF_A (p,p1) = tpp (p,p1)
+      ENDPARDO  p, p1
+
+      PARDO  q, q1
+         GET          GTILDE_B (q,q1)
+         tqq (q,q1) = GTILDE_B (q,q1)
+         PUT  GREF_B (q,q1) = tqq (q,q1)
+      ENDPARDO  q, q1
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Generate initial T  amplitudes for alpha and beta
+#                       1
+#
+#
+      PARDO  a, i
+         tai (a,i)          = FOCK_A (a,i)
+         EXECUTE  ENERGY_DENOMINATOR  tai
+
+         tia (i,a)          = tai (a,i)
+         PUT  T1A_OLD (i,a) = tia (i,a)
+         PUT  D0ai    (a,i) = tai (a,i)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+         tbj (b,j)          = FOCK_B (b,j)
+         EXECUTE  ENERGY_DENOMINATOR  tbj
+
+         tjb (j,b)          = tbj (b,j)
+         PUT  T1B_OLD (j,b) = tjb (j,b)
+         PUT  D0bj    (b,j) = tbj (b,j)
+      ENDPARDO  b, j
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#     Perform the iterations for T
+#                                 1
+#
+#
+      itercount = 0
+      DO titer
+
+         itercount += 1
+         EXECUTE  PRINT_SCALAR  itercount
+         etsum = 0.0
+         etnew = 0.0
+
+         CALL  ZERO_ARRAYS
+        #CALL  MICRO_ITER_XTILDA
+        #CALL  FORM_ALL_X_MATS
+        #CALL  CONSISTENCY_CHECKS
+
+         PARDO  a, i
+            GET         T1A_OLD (i,a)
+            tia (i,a) = T1A_OLD (i,a)
+            PUT  DMAT_A (i,a) += tia (i,a)
+            PUT  QMAT_A (i,a) += tia (i,a)
+         ENDPARDO  a, i
+
+         PARDO  b, j
+            GET         T1B_OLD (j,b)
+            tjb (j,b) = T1B_OLD (j,b)
+            PUT  DMAT_B (j,b) += tjb (j,b)
+            PUT  QMAT_B (j,b) += tjb (j,b)
+         ENDPARDO  b,j
+
+         PARDO  i, i1
+            tii (i,i1) = ST_IDENT_A (i,i1)
+            IF IPORBA > 0.0
+               EXECUTE  CHANGE_OCC_DENS  tii  IPORBB
+            ENDIF
+            PUT  DMAT_A (i,i1) += tii (i,i1)
+            PUT  QMAT_A (i,i1) += tii (i,i1)
+         ENDPARDO  i, i1
+
+         PARDO  j, j1
+            tjj (j,j1) = ST_IDENT_B (j,j1)
+            IF IPORBB > 0.0
+               EXECUTE  CHANGE_OCC_DENS  tjj  IPORBB
+            ENDIF
+            PUT  DMAT_B (j,j1) += tjj (j,j1)
+            PUT  QMAT_B (j,j1) += tjj (j,j1)
+         ENDPARDO  j, j1
+
+         EXECUTE  SIP_BARRIER
+
+         PARDO  p, p1
+            GET  DMAT_A (p,p1)
+            DO mu
+               txp (mu,p1) = CA (mu,p) * DMAT_A (p,p1)
+               DO nu
+                  txx         (mu,nu)  = txp (mu,p1) * CA (nu,p1)
+                  PUT  DCCS_A (mu,nu) += txx (mu,nu) 
+               ENDDO nu
+            ENDDO mu 
+         ENDPARDO  p, p1
+      
+         PARDO  q, q1
+            GET  DMAT_B (q,q1)
+            DO mu
+               txq (mu,q1) = CB (mu,q) * DMAT_B (q,q1)
+               DO nu
+                  txx         (mu,nu)  = txq (mu,q1) * CB (nu,q1)
+                  PUT  DCCS_B (mu,nu) += txx (mu,nu) 
+               ENDDO nu
+            ENDDO mu 
+         ENDPARDO  q, q1
+
+         EXECUTE  SIP_BARRIER
+
+         CALL  FORM_FOCK
+         CALL  COMPUTE_SCF_ENERGY
+         CALL  FORM_NEW_FOV
+#
+#
+#                                     -           -
+#                                    |  NEW    OLD |
+#     Check on the convergence:  MAX | T    - T    | < threshold
+#                                    |  1      1   |
+#                                     -           -
+#        And form the brand new T  
+#                                1
+#
+#
+         PARDO  a, i
+
+            GET         T1A_OLD    (i,a)
+            GET         F_NEW_OV_A (i,a)
+            tai (a,i) = F_NEW_OV_A (i,a)
+
+            EXECUTE  ENERGY_DENOMINATOR  tai
+
+            tia (i,a)           = tai     (a,i)
+            tia (i,a)          += T1A_OLD (i,a)
+            PUT  T1A_NEW (i,a)  = tia     (i,a)
+
+         ENDPARDO  a, i
+
+         PARDO  b, j
+
+            GET         T1B_OLD    (j,b)
+            GET         F_NEW_OV_B (j,b)
+            tbj (b,j) = F_NEW_OV_B (j,b)
+
+            EXECUTE  ENERGY_DENOMINATOR  tbj
+
+            tjb (j,b)           = tbj     (b,j)
+            tjb (j,b)          += T1B_OLD (j,b)
+            PUT  T1B_NEW (j,b)  = tjb     (j,b)
+
+         ENDPARDO  b, j
+
+         EXECUTE  SIP_BARRIER
+
+         CALL  UPDATE_T1
+#
+#
+#     Get updated amplitudes based on DIIS procedure!
+#
+#
+         IF titer == 2
+
+           #CALL  DIIS1
+
+         ENDIF
+
+         IF titer == 3
+
+           #CALL  DIIS2
+
+         ENDIF
+
+         IF titer == 4
+
+           #CALL  DIIS3
+
+         ENDIF
+
+         IF titer >= 5
+
+           #CALL  DIIS4
+           #CALL  MOVE4
+
+         ENDIF
+#
+#
+#     Check on convergence!
+#
+#
+         etnew = 0.0
+
+         IF titer > 1
+
+            DO i
+            DO a
+
+               GET          T1A_NEW (i,a)
+               GET          T1A_OLD (i,a)
+               tia (i,a)  = T1A_NEW (i,a)
+               tia (i,a) -= T1A_OLD (i,a)
+
+               EXECUTE  CHECK_DCONF  tia  etnewa
+               IF etnewa > etnew
+                   etnew = etnewa
+               ENDIF
+
+            ENDDO a
+            ENDDO i
+
+            DO j
+            DO b
+
+               GET          T1B_NEW (j,b)
+               GET          T1B_OLD (j,b)
+               tjb (j,b)  = T1B_NEW (j,b)
+               tjb (j,b) -= T1B_OLD (j,b)
+
+               EXECUTE  CHECK_DCONF  tjb  etnewb
+               IF etnewb > etnew
+                   etnew = etnewb
+               ENDIF
+
+            ENDDO b
+            ENDDO j
+
+            EXECUTE  SIP_BARRIER
+
+           #EXECUTE  PRINT_SCALAR  etnewa
+           #EXECUTE  PRINT_SCALAR  etnewb
+            EXECUTE  PRINT_SCALAR  etnew
+
+            IF etnew < etcrit
+              EXIT  #  titer  #
+            ENDIF
+
+         ENDIF  #  titer > 1 to get the maximum density difference  #
+#
+#
+#     Move the new T  in to the old T  array!
+#                   1                1
+#
+#
+         CALL  MOVE_T1
+
+      ENDDO titer
+#
+#
+#     Free up unnecessary memory blocks!
+#
+#
+      EXECUTE  SIP_BARRIER
+      DELETE  D0ai
+      DELETE  D1ai
+      DELETE  D2ai
+      DELETE  D3ai
+      DELETE  D4ai
+      DELETE  D5ai
+
+      DELETE  D0bj
+      DELETE  D1bj
+      DELETE  D2bj
+      DELETE  D3bj
+      DELETE  D4bj
+      DELETE  D5bj
+
+      DELETE  E1ai
+      DELETE  E2ai
+      DELETE  E3ai
+      DELETE  E4ai
+      DELETE  E5ai
+
+      DELETE  E1bj
+      DELETE  E2bj
+      DELETE  E3bj
+      DELETE  E4bj
+      DELETE  E5bj
+
+      DELETE  T1A_NEW
+      DELETE  T1B_NEW
+      DELETE  F_NEW_OV_A
+      DELETE  F_NEW_OV_B
+     #DELETE  FOCK_MO_A
+     #DELETE  FOCK_MO_B
+      DELETE  SM_XA
+      DELETE  SM_XB
+      DELETE  XITER_OLD_A
+      DELETE  XITER_OLD_B
+      DELETE  XITER_NEW_A
+      DELETE  XITER_NEW_B
+#
+#
+#     Compute the scf energy, then the relaxation energy!
+#
+#
+      CALL  COMPUTE_SCF_ENERGY
+      CALL  COMPUTE_RELAXATION
+#
+#
+#     If the orthogonal set of relaxed orbitals is wanted,
+#     do that now!
+#
+#
+     #CALL  FORM_NEW_COEFF
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#
+#          ...ready!
+#
+#
+#    ------------------
+      ENDSIAL VCCS_UHF
+#    ------------------
+#
+#-------------------------------------------------------------------------
+

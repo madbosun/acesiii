@@ -10817,7 +10817,7 @@
             t3ai(a,i)      *= -1.0
             t2ai(a,i)       = omega
             t3ai(a,i)      += t2ai(a,i)
-            execute apply_den2 t1ai t3ai
+            execute apply_den2_nor t1ai t3ai
 #
             DO j21 
                if j21 > spdim  

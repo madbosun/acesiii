@@ -129,6 +129,7 @@
 # --------------- 
 #
       scalar eleven  
+      scalar rank 
 #
       PROC WHFDENS
 #     ------------
@@ -211,13 +212,18 @@
 # Contract with the derivative integrals
 # --------------------------------------
 #
-      PARDO mu, nu
+      execute get_my_rank rank 
+      if rank == 0.0 
+         DO mu 
+         DO nu
             GET           DHFA(mu,nu)
             GET           DHFB(mu,nu)
             Tpq(mu,nu)  = DHFA(mu,nu)
             Tpq(mu,nu) += DHFB(mu,nu)
             EXECUTE HCONT1 Tpq(mu,nu)
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu
+       endif 
 #
 # -----------------------------------------------------------------------------
 #

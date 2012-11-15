@@ -70,6 +70,13 @@ c---------------------------------------------------------------------------
       common /d2int_com/jatom, jx, jcenter
       integer jatom, jx, jcenter, dcoord
 
+      integer ECP, ntot 
+      double precision ecp_erd 
+      common /FECP/ntot, ecp_erd(1500,1500) 
+
+      common /flags/ iflags
+      integer iflags(100)
+
 #ifdef ALTIX
       iptr = ishptr
       dptr = dshptr
@@ -97,9 +104,11 @@ c----------------------------------------------------------------------------
 c   Clear the output array.
 c----------------------------------------------------------------------------
 
+      ECP = iflags(71) 
       do b = db1,db2
       do a = da1,da2
          Z(a,b) = 0.d0
+         IF (ECP .EQ. 1) z(a,b) = ecp_erd(a,b) 
       enddo
       enddo
 
