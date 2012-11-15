@@ -182,10 +182,10 @@ c
 
        if (me .eq. my_company_rank)then
 
-c        write(66,*) ' ' 
-c        write(66,10)  
-c        write(66,20)  
-c        write(66,40)  
+         write(66,*) ' ' 
+         write(66,10)  
+         write(66,20)  
+         write(66,40)  
 c
          do b = b1, b2 
          do a = a1, a2 

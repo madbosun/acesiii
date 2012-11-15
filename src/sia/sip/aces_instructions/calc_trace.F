@@ -12,7 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine place_one_dip(array_table, 
+      subroutine calc_trace(array_table, 
      *                      narray_table, index_table,
      *                      nindex_table, segment_table, nsegment_table,
      *                      block_map_table, nblock_map_table,
@@ -78,14 +78,14 @@ c---------------------------------------------------------------------------
       nindex     = array_table(c_nindex, array)
 
       if (array .eq. 0) then
-         print *,'Error: The first argument in return_sval  
+         print *,'Error: The first argument in CALC_TRACE
      *            must be an array.'  
          print *,(op(i),i=1,loptable_entry)
          call abort_job()
       endif
 
       if (nindex .ne. 2) then 
-         write(6,*) ' The first array in return_sval must gave two 
+         write(6,*) ' The first array in CALC_TRACE must have two 
      *                indices.'   
          write(6,*) ' Number given =', nindex  
          call abort_job() 
@@ -138,7 +138,7 @@ c---------------------------------------------------------------------------
       if (evec_type .ne. scalar_value) return
 
       if (evec_array .lt. 1 .or. evec_array .gt. narray_table) then
-         print *,'Error: Invalid scalar in return_sval, line ',
+         print *,'Error: Invalid scalar in CALC_TRACE, line ',
      *     current_line
          print *,'Array index is ',array,' Allowable values are ',
      *      ' 1 through ',narray_table
@@ -147,74 +147,47 @@ c---------------------------------------------------------------------------
 
       sind =  array_table(c_scalar_index, evec_array)
       if (sind .lt. 1 .or. sind .gt. nscalar_table) then
-         print *,'Scalar table index out of range in return_sval, ',
+         print *,'Scalar table index out of range in CALC_TRACE, ',
      *           'line ',current_line
          print *,'Index for array ',evec_array,' is ',ind,' should be ',
      *           'between 1 and ',nscalar_table
          call abort_job()
       endif
 
-      call doplaceonedip(x(iarray),scalar_table(sind),
+      call sum_diags(x(iarray),scalar_table(sind),
      *             val1(1),val2(1),val1(2),val2(2))
 
       return 
       end 
-
-      subroutine doplaceonedip(array1,sval,a1,a2,b1,b2) 
-
 c---------------------------------------------------------------------------
 c
 c 
 c---------------------------------------------------------------------------
 
+
+      subroutine sum_diags(array1,sval,a1,a2,b1,b2) 
+
       implicit none
       include 'interpreter.h'
       include 'int_gen_parms.h'
-c
+      include 'parallel_info.h'
+
       integer a, a1, a2, b, b1, b2   
-      double precision array1(a1:a2,b1:b2), sval, ediff    
-
-      write(6,*) ' RANGE :', a1, a2, b1, b2, sval  
-      write(6,*) ' alpha_occupied: ', nalpha_occupied  
-      write(6,*) ' beta_occupied: ', nbeta_occupied  
-
-      ediff = dabs(1.0 - dabs(sval))
-
-      if (ediff .lt. 0.000001) then
-      do a = a1, a2
-      do b = b1, b2
-        if(b .eq. nbeta_occupied
-     *        .and. a .eq. nalpha_occupied)then
-           array1(a,b) = sval
-           write(6,*) 'C VECTOR ', a, b, array1(a,b)
-        endif
-      enddo
-      enddo
-      endif
-
-      if (ediff .gt. 0.000001) then
-      do a = a1, a2
-      do b = b1, b2
-         array1(a,b) = 0.0
-      enddo
-      enddo
-
-      do a = a1, a2
-      do b = b1, b2
-        if(b .eq. nbeta_occupied-1 
-     *        .and. a .eq. nalpha_occupied)then
-           array1(a,b) =  sval
-           array1(b,a) =  -sval 
-           write(6,*) 'C VECTOR ', a, b, array1(a,b)
-        endif
-      enddo
-      enddo
+      double precision array1(a1:a2,b1:b2), sval, stemp   
 
 
-      endif
+      sval = 0.0D0
 
+      do b = b1, b2 
+      do a = a1, a2 
 
-c
+         IF  ( a .EQ. b )  THEN
+            sval = sval + array1(a,b)
+         ENDIF
+
+      enddo  
+      enddo  
+
       return
       end
 

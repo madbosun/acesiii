@@ -12,7 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine apply_den2(array_table, narray_table, 
+      subroutine apply_den2_nor(array_table, narray_table, 
      *                      index_table,
      *                      nindex_table, segment_table, nsegment_table,
      *                      block_map_table, nblock_map_table,
@@ -157,14 +157,14 @@ c-------------------------------------------------------------------------
 
       enddo
 
-      call do_div2(x(isource),x(itarget),
+      call do_div2_nor(x(isource),x(itarget),
      *                      sval1(1),sval2(1),sval1(2),sval2(2),
      *                      tval1(1),tval2(1),tval1(2),tval2(2))
 
       return
       end
 
-      subroutine do_div2(x,y,
+      subroutine do_div2_nor(x,y,
      *                   a1,a2,b1,b2,i1,i2,j1,j2)
       implicit none 
       include 'interpreter.h'
@@ -180,13 +180,10 @@ c-------------------------------------------------------------------------
       do i = i1, i2 
       do j = j1, j2 
          div = y(i,j) 
-         if (dabs(div) .gt. 1.0d-8) then 
+c        if (dabs(div) .gt. 1.0d-5) then 
             val = x(i,j)/div   
             x(i,j) = val 
-         else 
-            write(6,*) 'Eliminating small denominator in apply_den2 '  
-            x(i,j) = 0.0 
-         endif 
+c        endif 
       enddo 
       enddo 
 

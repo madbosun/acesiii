@@ -12,7 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine symm_force_i(array_table, narray_table, 
+      subroutine asymm_force_i(array_table, narray_table, 
      *                      index_table,
      *                      nindex_table, segment_table, nsegment_table,
      *                      block_map_table, nblock_map_table,
@@ -109,7 +109,7 @@ c---------------------------------------------------------------------------
       endif 
 
       if (nindex .eq. 4) then
-         call dosymmforcei4(x(indblk), val1(1),val2(1),type(1),
+         call doasymmforcei4(x(indblk), val1(1),val2(1),type(1),
      *                   val1(2),val2(2),type(2),
      *                   val1(3),val2(3),type(3),
      *                   val1(4),val2(4),type(4), 
@@ -117,20 +117,20 @@ c---------------------------------------------------------------------------
         return 
       endif  
       if (nindex .eq. 2) then
-         call dosymmforcei2(x(indblk), val1(1),val2(1),type(1),
+         call doasymmforcei2(x(indblk), val1(1),val2(1),type(1),
      *                   val1(2),val2(2),type(2),
      *                   epsilon,epsilonb)
         return 
       endif
          print *,'Error in return_diagonal_4: Result array ',
-     *      'must have 4 indices.'
+     *      'must have 2 or 4 indices.'
          print *,'array ',array,' has ',nindex,' indices.'
          call abort_job()
       
       return
       end
 
-      subroutine dosymmforcei4(x, a1,a2,atype,
+      subroutine doasymmforcei4(x, a1,a2,atype,
      *                      i1,i2,itype,b1,b2,btype,
      *                      j1,j2, jtype, epsilon, epsilonb)
       implicit none
@@ -146,7 +146,6 @@ c---------------------------------------------------------------------------
       double precision val
 
 c
-c     go to 30 
       if (atype .eq. btype .and. itype .eq. jtype) then 
       do b = b1,b2
       do a = a1,a2
@@ -160,7 +159,6 @@ c     go to 30
          enddo
       enddo
       enddo
-c
       val = 0.0d0 
       do b = b1,b2
       do a = a1,a2
@@ -173,13 +171,46 @@ c
          enddo
       enddo
       enddo
+      return 
       endif 
-30    continue 
+c
+      if (atype .ne. btype .and. itype .eq. jtype) then 
+
+      do b = b1,b2
+      do a = a1,a2
+         do j = j1,j2
+         do i = i1,i2
+            if (i .lt. j)then
+               val = x(a,i,b,j)
+               x(a,j,b,i)= val*(-1.0d0)
+            endif
+         enddo
+         enddo
+      enddo
+      enddo
+
+      val = 0.0d0 
+      do b = b1,b2
+      do a = a1,a2
+         do j = j1,j2
+         do i = i1,i2
+            if (i .eq. j)then
+               x(a,j,b,i)= val
+            endif
+         enddo
+         enddo
+      enddo
+      enddo
+
+      return 
+
+      endif 
+c
 c
       return
       end
 
-      subroutine dosymmforcei2(x, a1,a2,atype,
+      subroutine doasymmforcei2(x, a1,a2,atype,
      *                      i1,i2,itype,
      *                       epsilon, epsilonb)
       implicit none
@@ -198,10 +229,18 @@ c
       do a = a1,a2
          do i = i1,i2
             if (a .lt. i)then
-               val = x(a,i) + x(i,a) 
-               x(i,a)= val*(0.5d0)
-               x(a,i)= val*(0.5d0)
+               val = x(a,i)
+               x(i,a)= val*(-1.0d0)
             endif
+         enddo
+      enddo
+c
+      val = 0.0d0 
+      do a = a1,a2
+         do i = i1,i2
+         if(a .eq. i)then
+               x(a,i)= val
+         endif
          enddo
       enddo
 c

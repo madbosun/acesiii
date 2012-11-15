@@ -1,5 +1,5 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
+C  Copyright (c) 1997-1999, 2003 Massachusetts Institute of Technology
+C 
 C  This program is free software; you can redistribute it and/or modify
 C  it under the terms of the GNU General Public License as published by
 C  the Free Software Foundation; either version 2 of the License, or
@@ -10,9 +10,11 @@ C  but WITHOUT ANY WARRANTY; without even the implied warranty of
 C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 C  GNU General Public License for more details.
 
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
-      subroutine nuc_dipole_moment(array_table, 
+C  You should have received a copy of the GNU General Public License
+C  along with this program; if not, write to the Free Software
+C  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+C  USA
+      subroutine v_nuc_nuc(array_table, 
      *                      narray_table, index_table,
      *                      nindex_table, segment_table, nsegment_table,
      *                      block_map_table, nblock_map_table,
@@ -21,9 +23,9 @@ C  in the file COPYRIGHT.
 
 c--------------------------------------------------------------------------
 c
-c The scalar1 is raised to the scalar2 power and replaced. 
 c
-c scalar1 = scalar1**scalar2 
+c
+c
 c   
 c--------------------------------------------------------------------------
 
@@ -61,7 +63,7 @@ c--------------------------------------------------------------------------
       integer find_current_block
       integer stack
 
-      double precision DNUC,XCOORD,YCOORD,ZCOORD
+      double precision VNUC,XCOORD,YCOORD,ZCOORD,DIST
       double precision x(1)
 #ifdef ALTIX
       pointer (dptr, x)
@@ -75,7 +77,7 @@ c--------------------------------------------------------------------------
 #endif
 
 c----------------------------------------------------------------------------
-c   Locate the scalar that tells whether X Y or Z nuclear dipole moment
+c   Locate the scalar
 c---------------------------------------------------------------------------
 
       array      = op(c_result_array)
@@ -97,56 +99,24 @@ c---------------------------------------------------------------------------
      *          'between 1 and ',nscalar_table
         call abort_job()
       endif
-
-c----------------------------------------------------------------------------
-c   Locate the scalar that will hold the nuclear dipole moment
-C
-C   !!!  On input, this scalar has the number of atoms  !!!
-c---------------------------------------------------------------------------
-
-      evec_array  = op(c_op1_array)
-      evec_type   = array_table(c_array_type, evec_array)
-      nindex_evec = array_table(c_nindex, evec_array)
-
-      xind =  array_table(c_scalar_index, evec_array)
-      if (xind .lt. 1 .or. xind .gt. nscalar_table) then
-        print *,'Scalar table index out of range in nn_dipole_moment, ',
-     *          'line ',current_line
-        print *,'Index for array ',evec_array,'is',xind,' should be ',
-     *          'between 1 and ',nscalar_table
-        call abort_job()
-      endif
 C
 C
-C   Compute the nuclear contribution to the dipole moment
+C   Compute the nuclear nuclear potential energy
 C
 C 
-      if ( abs (scalar_table(sind) - 1) .LT. 0.0001 ) imoment = 1
-      if ( abs (scalar_table(sind) - 2) .LT. 0.0001 ) imoment = 2
-      if ( abs (scalar_table(sind) - 3) .LT. 0.0001 ) imoment = 3
-
-      natoms = scalar_table(xind)
-      scalar_table(xind) = 0.0D0
-      DNUC = 0.0D0
-      IF (imoment .EQ. 1) THEN
-         DO I = 1, natoms
-            XCOORD = acenter(I,1)
-            DNUC = DNUC + charge(I)*XCOORD
-         ENDDO ! I
-      ELSE IF (imoment .EQ. 2) THEN
-         DO I = 1, natoms
-            YCOORD = acenter(I,2)
-            DNUC = DNUC + charge(I)*YCOORD
-         ENDDO ! I
-      ELSE IF (imoment .EQ. 3) THEN
-         DO I = 1, natoms
-            ZCOORD = acenter(I,3)
-            DNUC = DNUC + charge(I)*ZCOORD
-         ENDDO ! I
-      ELSE
-         WRITE(*,*) "Wrong type of moment; should be 1, 2, or 3."
-      ENDIF
-      scalar_table(xind) = DNUC
+      natoms = scalar_table(sind)
+      scalar_table(sind) = 0.0D0
+      VNUC = 0.0D0
+      DO I = 1, natoms
+      DO J = I + 1, natoms
+         XCOORD = acenter(I,1) - acenter(J,1)
+         YCOORD = acenter(I,2) - acenter(J,2)
+         ZCOORD = acenter(I,3) - acenter(J,3)
+         DIST   = DSQRT (XCOORD*XCOORD + YCOORD*YCOORD + ZCOORD*ZCOORD)
+         VNUC = VNUC + charge(I)*charge(J) / DIST
+      ENDDO ! J
+      ENDDO ! I
+      scalar_table(sind) = VNUC
 
       return 
       end 
