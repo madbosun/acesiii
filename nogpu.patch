@@ -1,0 +1,539 @@
+diff --git a/GNUmakefile.chssi b/GNUmakefile.chssi
+index 88d2390..0c8ba69 100755
+--- a/GNUmakefile.chssi
++++ b/GNUmakefile.chssi
+@@ -41,7 +41,6 @@ SERIAL_CPP=g++
+ LIB_DIRS=-L/usr/lib
+ LIBS=-lmpi_cxx -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lblas -llapack -lstdc++
+ SIAL_COMPILER_LIBS=-lsial -lsip_shared -laces2 -lgfortranbegin -lgfortran -ldl -lsip1 -lsip2
+-
+ else
+ FFLAGS=-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2 
+ CFLAGS=-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX 
+@@ -52,10 +51,9 @@ FC=mpif77
+ CC=mpicc
+ CPP=mpicxx
+ SERIAL_CPP=icpc
+-NVCC=nvcc
+-INCLUDE_DIRS=-I${HPC_OPENMPI_INC} -I${HPC_MKL_INC} -I${HPC_CUDA_INC}
+-LIB_DIRS=-L${HPC_MKL_LIB} -L${HPC_CUDA_LIB}
++INCLUDE_DIRS=-I$$MPIHOME/include 
++LIB_DIRS=-L/opt/intel/mkl/11.1.064/lib/em64t/ -L/opt/intel/fce/10.1.015/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -lmkl_def -lmkl_p4n -lmkl_mc
+ SIAL_COMPILER_LIBS=-lsial -lsip_shared -laces2  -lifcore
+-LIBS=-lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lmkl_def -lmkl_p4n -lmkl_mc -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lstdc++
++LIBS=-lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lstdc++
+ endif 
+ 
+diff --git a/configure b/configure
+index 1cb2b73..7b202e9 100755
+--- a/configure
++++ b/configure
+@@ -310,7 +310,7 @@ ac_includes_default="\
+ # include <unistd.h>
+ #endif"
+ 
+-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS FC FCFLAGS LDFLAGS ac_ct_FC EXEEXT OBJEXT CC CFLAGS CPPFLAGS ac_ct_CC CXX CXXFLAGS ac_ct_CXX SIAL_COMPILER_LIBS ACESLIBS ACESFLAGS MKLLIBS MKLFLAGS SERIAL_CPP NVCC CPP EGREP LIBOBJS LTLIBOBJS'
++ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS FC FCFLAGS LDFLAGS ac_ct_FC EXEEXT OBJEXT CC CFLAGS CPPFLAGS ac_ct_CC CXX CXXFLAGS ac_ct_CXX SIAL_COMPILER_LIBS ACESLIBS ACESFLAGS MKLLIBS MKLFLAGS SERIAL_CPP CPP EGREP LIBOBJS LTLIBOBJS'
+ ac_subst_files=''
+ 
+ # Initialize some variables set by options.
+@@ -2627,15 +2627,9 @@ fi
+ 
+ 
+ 
+-
+-
+-
+ #This specifies the default C++ compiler in case no other compiler is found
+ SERIAL_CPP="g++"
+ 
+-#This specifies the NVIDIA Cuda compiler
+-NVCC="nvcc"
+-
+ #Settings for Intel MKL libraries on linux machine
+ # Check whether --enable-mkl or --disable-mkl was given.
+ if test "${enable_mkl+set}" = set; then
+@@ -2656,7 +2650,7 @@ fi
+ SERIAL_CPP="icpc"
+ #Also set SIAL_COMPILER_LIBS accordingly
+ if test x$SIAL_COMPILER_LIBS = x; then
+-SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2 -lifcore"
++SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2  -lifcore"
+ fi
+ ACESLIBS=$MKLLIBS
+ ACESFLAGS=$MKLFLAGS
+@@ -2703,8 +2697,8 @@ echo "$as_me: error: Please specify all the required libraries in variable CRAYL
+ fi
+ 
+ if test x$CRAYFLAGS = x; then
+-   { { echo "$as_me:$LINENO: error: Please specify all the library locations in variable CRAYFLAGS" >&5
+-echo "$as_me: error: Please specify all the library locations in variable CRAYFLAGS" >&2;}
++   { { echo "$as_me:$LINENO: error: Please specify all the library locations in variable  CRAYFLAGS" >&5
++echo "$as_me: error: Please specify all the library locations in variable  CRAYFLAGS" >&2;}
+    { (exit 1); exit 1; }; }
+ fi
+ #Set c++ compiler
+@@ -4053,7 +4047,6 @@ s,@ACESFLAGS@,$ACESFLAGS,;t t
+ s,@MKLLIBS@,$MKLLIBS,;t t
+ s,@MKLFLAGS@,$MKLFLAGS,;t t
+ s,@SERIAL_CPP@,$SERIAL_CPP,;t t
+-s,@NVCC@,$NVCC,;t t
+ s,@CPP@,$CPP,;t t
+ s,@EGREP@,$EGREP,;t t
+ s,@LIBOBJS@,$LIBOBJS,;t t
+diff --git a/configure.ac b/configure.ac
+index 2981ac2..ace8c26 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -17,21 +17,15 @@ fi
+ if test x$CXX = x; then
+ AC_PROG_CXX(mpicxx g++ cc)
+ fi
+-
+ AC_SUBST(SIAL_COMPILER_LIBS)
+ AC_SUBST(ACESLIBS)
+ AC_SUBST(ACESFLAGS)
+ AC_SUBST(MKLLIBS)
+ AC_SUBST(MKLFLAGS)
+ AC_SUBST(SERIAL_CPP)
+-AC_SUBST(NVCC)
+-
+ #This specifies the default C++ compiler in case no other compiler is found
+ SERIAL_CPP="g++"
+ 
+-#This specifies the NVIDIA Cuda compiler
+-NVCC="nvcc"
+-
+ #Settings for Intel MKL libraries on linux machine
+ AC_ARG_ENABLE([mkl],
+     [AS_HELP_STRING([--enable-mkl], [Use Intel MKL Library])],
+@@ -47,7 +41,7 @@ fi
+ SERIAL_CPP="icpc"
+ #Also set SIAL_COMPILER_LIBS accordingly
+ if test x$SIAL_COMPILER_LIBS = x; then
+-SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2 -lifcore"
++SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2  -lifcore"
+ fi
+ ACESLIBS=$MKLLIBS
+ ACESFLAGS=$MKLFLAGS
+@@ -84,7 +78,7 @@ if test x$CRAYLIBS = x; then
+ fi
+ 
+ if test x$CRAYFLAGS = x; then
+-   AC_MSG_ERROR([Please specify all the library locations in variable CRAYFLAGS])
++   AC_MSG_ERROR([Please specify all the library locations in variable  CRAYFLAGS])
+ fi
+ #Set c++ compiler
+ SERIAL_CPP=$CXX
+diff --git a/src/main/Makefile.in b/src/main/Makefile.in
+index bcd8a1d..11bb604 100644
+--- a/src/main/Makefile.in
++++ b/src/main/Makefile.in
+@@ -13,10 +13,10 @@ CPPFLAGS=@CXXFLAGS@
+ 
+ #ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
+ LIBS = @ACESLIBS@
+-LIBS:= -lcublas -lcudart -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
++LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
+ 
+ #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
+-LIB_DIRS:= @ACESFLAGS@ $(LIB_DIRS)
++LIB_DIRS= @ACESFLAGS@
+ 
+ SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
+ 
+@@ -24,7 +24,7 @@ SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
+ 
+ 
+ INCLUDE_DIRS := -I../sia/include -I../aces/aces_library/a2driver/aces2/include -I../sia/sip/include $(INCLUDE_DIRS)
+-LIB_DIRS:= -L../../lib $(LIB_DIRS)
++LIB_DIRS:=-L../../lib $(LIB_DIRS)
+ 
+ FRAMELIB=../../lib/libframelib.a
+ ERD_LIB=../../lib/liberd.a
+diff --git a/src/sia/include/f_types.h b/src/sia/include/f_types.h
+index 7160af7..0760749 100644
+--- a/src/sia/include/f_types.h
++++ b/src/sia/include/f_types.h
+@@ -1,3 +1,4 @@
++
+ #ifndef _F_TYPES_H_
+ #define _F_TYPES_H_
+ 
+@@ -12,7 +13,7 @@
+ #endif
+ 
+ #else /* C */
+-typedef double f_double;
++
+ #ifdef F_64BIT
+ #ifdef _IA32
+ typedef long long f_int;
+diff --git a/src/sia/include/machine_types.h b/src/sia/include/machine_types.h
+index 9f09dd5..e7c42f6 100644
+--- a/src/sia/include/machine_types.h
++++ b/src/sia/include/machine_types.h
+@@ -1,5 +1,5 @@
+-      logical aces64, gpu_enabled
++      logical aces64
+       integer mpi_int_ratio, intsize
+       integer aces_ints_per_double , bytes_per_double
+       common /machine_types/aces64, intsize, mpi_int_ratio,
+-     *        aces_ints_per_double, bytes_per_double, gpu_enabled
++     *        aces_ints_per_double, bytes_per_double
+diff --git a/src/sia/sip/sip_instructions/Makefile.in b/src/sia/sip/sip_instructions/Makefile.in
+index 09f0861..baa02fd 100644
+--- a/src/sia/sip/sip_instructions/Makefile.in
++++ b/src/sia/sip/sip_instructions/Makefile.in
+@@ -1,12 +1,9 @@
+ include ../../../../GNUmakefile.chssi
+ 
+-.SUFFIXES: .cu
+-
+ #Compilers
+ FC=@FC@
+ CC=@CC@
+ CPP=@CXX@
+-NVCC=@NVCC@
+ SERIAL_CPP=@SERIAL_CPP@
+ 
+ #Compiler flags
+@@ -24,7 +21,7 @@ LIB_DIRS= @ACESFLAGS@
+ SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
+ 
+ INCLUDE_DIRS := -I../../include -I../include -I../../../aces/aces_library/a2driver/aces2/include $(INCLUDE_DIRS)
+-LIB_DIRS:= -L../../../../lib $(LIB_DIRS)
++LIB_DIRS:=-L../../../../lib $(LIB_DIRS)
+ 
+ SIP_LIB=../../../../lib/libsip2.a
+ 
+@@ -36,9 +33,6 @@ cSOURCE=$(wildcard *.c)
+ c_OBJS:=$(cSOURCE:.c=.o)
+ CPP_SOURCE=$(wildcard *.cpp)
+ CPP_OBJS:=$(CPP_SOURCE:.cpp=.o)
+-CU_SOURCE=$(wildcard *.cu)
+-CU_OBJS:=$(CU_SOURCE:.cu=.o)
+-
+ 
+ all: tabula_rasa $(SIP_LIB)
+ 
+@@ -49,9 +43,8 @@ $(SIP_LIB): libsip2.a
+ 	cp libsip2.a $(SIP_LIB)
+ 	rm -f make.out make.err
+ 
+-libsip2.a: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS) $(CU_OBJS)
+-	ar $(ARFLAGS) libsip2.a $(F_OBJS) $(f_OBJS) $(c_OBJS) \
+-	   $(CPP_OBJS) $(CU_OBJS)
++libsip2.a: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
++	ar $(ARFLAGS) libsip2.a $(F_OBJS) $(f_OBJS) $(c_OBJS) $(CPP_OBJS)
+ 
+ libclean: ;
+ 	rm -f libsip2.a
+@@ -75,5 +68,4 @@ binclean relink archive: % : ;
+ .cpp.o: 
+ 	$(CPP) -c $(CPPFLAGS) $(INCLUDE_DIRS) $< 1>>make.out 2>>make.err
+ 
+-.cu.o:
+-	$(NVCC) -arch=sm_20 -Xcompiler $(CPPFLAGS) -c $(INCLUDE_DIRS) $< 1>>make.out 2>>make.err
++
+diff --git a/src/sia/sip/sip_instructions/contract_blocks.F b/src/sia/sip/sip_instructions/contract_blocks.F
+index cd9416e..054418d 100644
+--- a/src/sia/sip/sip_instructions/contract_blocks.F
++++ b/src/sia/sip/sip_instructions/contract_blocks.F
+@@ -50,7 +50,7 @@ c--------------------------------------------------------------------------
+ 
+       integer n1, n2, ny
+       integer nw, iseg, range1, range2
+-      integer*8 iy, ix1, ix2, daddr, ii 
++      integer*8 iy, ix1, ix2, daddr
+       integer*8 get_block_index, get_index_from_base
+       integer ystack, x1stack, x2stack
+       integer i, j, k
+@@ -77,9 +77,7 @@ c--------------------------------------------------------------------------
+      *        x2a(mx_array_index), x2b(mx_array_index)
+       integer nya(mx_array_index), nyb(mx_array_index), 
+      *        nx1a(mx_array_index), nx1b(mx_array_index), 
+-     *        nx2a(mx_array_index), nx2b(mx_array_index),
+-     *        nyg(mx_array_index), nx1g(mx_array_index),
+-     *        nx2g(mx_array_index)
++     *        nx2a(mx_array_index), nx2b(mx_array_index)
+ 
+       integer handle1, handle2, handle3, istat
+       integer allocate_scratch_block
+@@ -102,37 +100,35 @@ c--------------------------------------------------------------------------
+ c------------------------------------------------------------------------
+ c   Allocate 3 scratch blocks for the 2-index contraction routines.
+ c------------------------------------------------------------------------
+-         if(gpu_enabled) then
+-           call cwork_gpu_alloc()
++
++         istat = allocate_scratch_block(scr, iscr1, handle1,
++     *                           array_table, narray_table,
++     *                           index_table, nindex_table, 
++     *                           block_map_table)
++         if (istat .ne. 0) then
++            print *,'Error: Unable to allocate scratch blocks.'
++            call abort_job()
+          endif
+-           istat = allocate_scratch_block(scr, iscr1, handle1,
+-     *                             array_table, narray_table,
+-     *                             index_table, nindex_table, 
+-     *                             block_map_table)
+-           if (istat .ne. 0) then
+-              print *,'Error: Unable to allocate scratch blocks.'
+-              call abort_job()
+-           endif
+-
+-           istat = allocate_scratch_block(scr, iscr2, handle2,
+-     *                             array_table, narray_table,
+-     *                             index_table, nindex_table,
+-     *                             block_map_table)
+-           if (istat .ne. 0) then
+-              print *,'Error: Unable to allocate scratch blocks.'
+-              call abort_job()
+-           endif
+-
+-           istat = allocate_scratch_block(scr, iscr3, handle3,
+-     *                             array_table, narray_table,
+-     *                             index_table, nindex_table,
+-     *                             block_map_table)
+-           if (istat .ne. 0) then
+-              print *,'Error: Unable to allocate scratch blocks.'
+-              call abort_job()
+-           endif
++
++         istat = allocate_scratch_block(scr, iscr2, handle2,
++     *                           array_table, narray_table,
++     *                           index_table, nindex_table,
++     *                           block_map_table)
++         if (istat .ne. 0) then
++            print *,'Error: Unable to allocate scratch blocks.'
++            call abort_job()
+          endif
+ 
++         istat = allocate_scratch_block(scr, iscr3, handle3,
++     *                           array_table, narray_table,
++     *                           index_table, nindex_table,
++     *                           block_map_table)
++         if (istat .ne. 0) then
++            print *,'Error: Unable to allocate scratch blocks.'
++            call abort_job()
++         endif
++      endif
++
+ c      print *,'CONTRACT_BLOCKS: x1 = ',x1handle,' x1_block = ',x1_block,
+ c     *        ' x2 = ',x2handle,' x2_block = ',x2_block,' y = ',yhandle,
+ c     *        ' y_block = ',y_block,' indices = ',(cind(i),i=1,ncind)
+@@ -317,25 +313,12 @@ c      print *,'indx1: ',(indx1(j),j=1,n1)
+ c      print *,'indx2: ',(indx2(j),j=1,n2)
+ c      print *,'cind: ',(cind(j),j=1,ncind)
+ 
+-
+-      if((gpu_enabled) .and. (ytype .ne. scalar_value) .and.
+-     *    (ytype .ne. static_array) .and.
+-     *    (x1_type .ne. static_array) .and.
+-     *    (x2_type .ne. static_array)) then
+-              
+- 
+-        call cwork_gpu(y(iy), ny, nya(1), nyb(1), indy(1),
+-     *            x1(ix1), n1, nx1a(1), nx1b(1), indx1(1),
+-     *            x2(ix2), n2, nx2a(1), nx2b(1), indx2(1))
+-      
+-      else
+-
+ c----------------------------------------------------------------------------
+ c   Determine the array in which the first index of "y" is found.
+ c   This determines the order of the operand arrays in some of the
+ c   calls to low-order contraction routines.
+ c----------------------------------------------------------------------------
+-      
++
+       iseq = 2
+       do i = 1, n1
+          if (indy(1) .eq. indx1(i)) iseq = 1
+@@ -347,7 +330,6 @@ c----------------------------------------------------------------------------
+      *          and(tracelevel,contraction_trace) .ne. 0) 
+      *          print *,'cwork2422 at instruction ',current_line
+ 
+-c            print *,'cwork2422'
+             call cwork2422(y(iy), nya(1), nyb(1), nya(2), nyb(2),
+      *                     ya(1), yb(1), ya(2), yb(2),
+      *                     indy(1), indy(2), x1(ix1), 
+@@ -378,13 +360,11 @@ c---------------------------------------------------------------------------
+      *                     x1a(1), x1b(1), x1a(2), x1b(2),
+      *                     indx1(1), indx1(2),
+      *                     scr(iscr1), scr(iscr2), flopcount)
+-c            print *,'cwork2422'
+          else if (n1 .eq. 2 .and. n2 .eq. 2 .and. ncind .eq. 1) then
+             if (trace .and.
+      *          and(tracelevel, contraction_trace) .ne. 0) 
+      *          print *,'cwork2221 at instruction ',current_line,
+      *          ' iseq ',iseq
+-c            print *,'cwork2221'
+             if (iseq .eq. 1) then
+                call cwork2221(y(iy), nya(1),nyb(1), nya(2),nyb(2),
+      *              ya(1),yb(1), ya(2),yb(2),
+@@ -411,7 +391,6 @@ c            print *,'cwork2221'
+             if (trace .and.
+      *          and(tracelevel, contraction_trace) .ne. 0)
+      *          print *,'cwork2443 at instruction ',current_line
+-c            print *,'cwork2443'
+             call cwork2443(y(iy),nya(1),nyb(1),nya(2),nyb(2),
+      *                     ya(1),yb(1),ya(2),yb(2),indy(1), indy(2),
+      *                     x1(ix1),nx1a(1),nx1b(1),nx1a(2),nx1b(2),
+@@ -426,7 +405,6 @@ c            print *,'cwork2443'
+ 
+          else if (n1 .eq. 6 .and. n2 .eq. 4 .and. ncind .eq. 4) then
+ c           return 
+-c            print *,'cwork2644'
+             call cwork2644(y(iy),nya(1),nyb(1),nya(2),nyb(2),
+      *                     ya(1),yb(1),ya(2),yb(2),indy(1), indy(2),
+ 
+@@ -452,7 +430,7 @@ c            print *,'cwork2644'
+          endif
+       else if (ny .eq. 1) then
+          if ((n1 .eq. 3) .and. (n2 .eq. 2)) then
+-c            print *,'cwork1322'
++
+             call cwork1322(y(iy), nya(1), nyb(1), ya(1), yb(1),
+      *                     indy(1), x1(ix1),
+      *                     nx1a(1),nx1b(1),nx1a(2),nx1b(2),
+@@ -467,7 +445,6 @@ c            print *,'cwork1322'
+          endif
+       else if (ny .eq. 3) then
+          if ((n1 .eq. 3) .and. (n2 .eq. 2) .and. (ncind .eq. 1)) then
+-c            print *,'cwork3321'
+             call cwork3321(y(iy),nya(1),nyb(1), nya(2),nyb(2),
+      *              nya(3),nyb(3),  
+      *              ya(1),yb(1),ya(2),yb(2),ya(3),yb(3),
+@@ -484,7 +461,6 @@ c            print *,'cwork3321'
+       else if (ny .eq. 4) then
+ 
+          if ((n1 .eq. 3) .and. (n2 .eq. 3) .and. (ncind .eq. 1)) then
+-c           print *,'cwork4331'
+             call cwork4331(y(iy),nya(1),nyb(1), nya(2),nyb(2),
+      *              nya(3),nyb(3),nya(4),nyb(4),  
+      *              ya(1),yb(1),ya(2),yb(2),ya(3),yb(3),ya(4),yb(4),
+@@ -500,7 +476,6 @@ c           print *,'cwork4331'
+ 
+          elseif (n1 .eq. 6 .and. n2 .eq. 4 .and. ncind .eq. 3) then
+ c           return 
+-c           print *,'cwork4643'
+             call cwork4643(y(iy),nya(1),nyb(1), nya(2),nyb(2),
+      *              nya(3),nyb(3),nya(4),nyb(4), 
+      *              ya(1),yb(1), ya(2),yb(2),ya(3),yb(3),
+@@ -525,7 +500,6 @@ c           print *,'cwork4643'
+ 
+          elseif (n1 .eq. 6 .and. n2 .eq. 2 .and. ncind .eq. 2) then
+ c           return 
+-c            print *,'cwork4622'
+             call cwork4622(y(iy),nya(1),nyb(1), nya(2),nyb(2),
+      *              nya(3),nyb(3),nya(4),nyb(4), 
+      *              ya(1),yb(1), ya(2),yb(2),ya(3),yb(3),
+@@ -558,7 +532,7 @@ c-------------------------------------------------------------------------
+ c VFL 
+ c Make sure that the first index of  x2 is contracted.  
+ 
+-c             print *,'cwork4421'
++
+             call cwork4421(y(iy),nya(1),nyb(1), nya(2),nyb(2),
+      *              nya(3),nyb(3),nya(4),nyb(4), 
+      *              ya(1),yb(1), ya(2),yb(2),ya(3),yb(3),
+@@ -577,7 +551,7 @@ c VFL
+             if (trace .and. 
+      *          and(tracelevel, contraction_trace) .ne. 0) 
+      *         print *,'cwork4421 at instruction ',current_line
+-c            print *,'cwork4421'
++
+             call cwork4421(y(iy),nya(1),nyb(1), nya(2),nyb(2),
+      *              nya(3),nyb(3),nya(4),nyb(4), 
+      *              ya(1),yb(1), ya(2),yb(2),ya(3),yb(3),
+@@ -601,7 +575,6 @@ c   The new cwork4442 always assumes the 1st index of "y" shows up in the
+ c   first operand array.  Therefore we must call it with the proper 
+ c   sequence of operands.
+ c--------------------------------------------------------------------------
+-c            print *,'cwork4442'
+ 
+             if (iseq .eq. 1) then
+                call cwork4442(y(iy),nya(1),nyb(1), nya(2),nyb(2),
+@@ -852,7 +825,5 @@ c--------------------------------------------------------------------------
+          call abort_job()
+       endif
+ 
+-      endif
+-
+       return
+       end
+diff --git a/src/sia/sip_shared/Makefile.in b/src/sia/sip_shared/Makefile.in
+index 5260d75..6bb18b5 100644
+--- a/src/sia/sip_shared/Makefile.in
++++ b/src/sia/sip_shared/Makefile.in
+@@ -1,7 +1,5 @@
+ include ../../../GNUmakefile.chssi
+ 
+-CUDAPATH=@CUDAPATH@
+-
+ #Compilers
+ FC=@FC@
+ CC=@CC@
+@@ -22,7 +20,7 @@ LIB_DIRS= @ACESFLAGS@
+ 
+ SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
+ 
+-INCLUDE_DIRS := -I$(CUDAPATH)/include -I../include -I../sip/include -I../../aces/aces_library/a2driver/aces2/include $(INCLUDE_DIRS)
++INCLUDE_DIRS := -I../include -I../sip/include -I../../aces/aces_library/a2driver/aces2/include $(INCLUDE_DIRS)
+ LIB_DIRS:=-L../../../lib $(LIB_DIRS)
+ 
+ SIP_SHARED_LIB=../../../lib/libsip_shared.a
+diff --git a/src/sia/sip_shared/init_machine_types.F b/src/sia/sip_shared/init_machine_types.F
+index eb8e821..4bca530 100644
+--- a/src/sia/sip_shared/init_machine_types.F
++++ b/src/sia/sip_shared/init_machine_types.F
+@@ -19,14 +19,6 @@ C  in the file COPYRIGHT.
+ 
+       integer iii(2)
+       double precision x(2)
+-      integer devid
+-
+-      call init_gpu(devid)
+-      if(devid >= 0) then
+-        gpu_enabled = .true.
+-      else
+-        gpu_enabled = .false.
+-      end if
+ 
+       intsize = loc(iii(2)) - loc(iii(1))
+       bytes_per_double = loc(x(2)) - loc(x(1))
+diff --git a/src/sial_compiler/compiler/Makefile.in b/src/sial_compiler/compiler/Makefile.in
+index 6261a3b..0ab8e31 100644
+--- a/src/sial_compiler/compiler/Makefile.in
++++ b/src/sial_compiler/compiler/Makefile.in
+@@ -16,10 +16,9 @@ LIBS = @ACESLIBS@
+ LIBS:= -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 $(LIBS)
+ 
+ #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
+-LIB_DIRS:= @ACESFLAGS@ $(LIB_DIRS)
++LIB_DIRS= @ACESFLAGS@
+ 
+ SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
+-SIAL_COMPILER_LIBS:= -lcublas -lcudart $(SIAL_COMPILER_LIBS)
+ 
+ INCLUDE_DIRS := -I../../sia/include -I../sial -I../../aces/aces_library/a2driver/aces2/include/ $(INCLUDE_DIRS)
+ LIB_DIRS:=-L../../../lib $(LIB_DIRS)
+diff --git a/test_compare/Makefile.in b/test_compare/Makefile.in
+index 87afef0..df73938 100644
+--- a/test_compare/Makefile.in
++++ b/test_compare/Makefile.in
+@@ -13,10 +13,10 @@ CPPFLAGS=@CXXFLAGS@
+ 
+ #ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
+ LIBS = @ACESLIBS@
+-LIBS:= -lcublas -lcudart -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 $(LIBS)
++LIBS:= -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 $(LIBS)
+ 
+ #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
+-LIB_DIRS:= @ACESFLAGS@ $(LIB_DIRS)
++LIB_DIRS= @ACESFLAGS@
+ 
+ SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
+ 

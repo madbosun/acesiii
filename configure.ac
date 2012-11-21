@@ -17,20 +17,14 @@ fi
 if test x$CXX = x; then
 AC_PROG_CXX(mpicxx g++ cc)
 fi
-
 AC_SUBST(SIAL_COMPILER_LIBS)
 AC_SUBST(ACESLIBS)
 AC_SUBST(ACESFLAGS)
 AC_SUBST(MKLLIBS)
 AC_SUBST(MKLFLAGS)
 AC_SUBST(SERIAL_CPP)
-AC_SUBST(NVCC)
-
 #This specifies the default C++ compiler in case no other compiler is found
 SERIAL_CPP="g++"
-
-#This specifies the NVIDIA Cuda compiler
-NVCC="nvcc"
 
 #Settings for Intel MKL libraries on linux machine
 AC_ARG_ENABLE([mkl],
@@ -47,7 +41,7 @@ fi
 SERIAL_CPP="icpc"
 #Also set SIAL_COMPILER_LIBS accordingly
 if test x$SIAL_COMPILER_LIBS = x; then
-SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2 -lifcore"
+SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2  -lifcore"
 fi
 ACESLIBS=$MKLLIBS
 ACESFLAGS=$MKLFLAGS
@@ -84,7 +78,7 @@ if test x$CRAYLIBS = x; then
 fi
 
 if test x$CRAYFLAGS = x; then
-   AC_MSG_ERROR([Please specify all the library locations in variable CRAYFLAGS])
+   AC_MSG_ERROR([Please specify all the library locations in variable  CRAYFLAGS])
 fi
 #Set c++ compiler
 SERIAL_CPP=$CXX
