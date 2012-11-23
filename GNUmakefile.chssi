@@ -41,7 +41,6 @@ SERIAL_CPP=g++
 LIB_DIRS=-L/usr/lib
 LIBS=-lmpi_cxx -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lblas -llapack -lstdc++
 SIAL_COMPILER_LIBS=-lsial -lsip_shared -laces2 -lgfortranbegin -lgfortran -ldl -lsip1 -lsip2
-
 else
 FFLAGS=-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2 
 CFLAGS=-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX 
@@ -52,10 +51,9 @@ FC=mpif77
 CC=mpicc
 CPP=mpicxx
 SERIAL_CPP=icpc
-NVCC=nvcc
-INCLUDE_DIRS=-I${HPC_OPENMPI_INC} -I${HPC_MKL_INC} -I${HPC_CUDA_INC}
-LIB_DIRS=-L${HPC_MKL_LIB} -L${HPC_CUDA_LIB}
+INCLUDE_DIRS=-I$$MPIHOME/include 
+LIB_DIRS=-L/opt/intel/mkl/11.1.064/lib/em64t/ -L/opt/intel/fce/10.1.015/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -lmkl_def -lmkl_p4n -lmkl_mc
 SIAL_COMPILER_LIBS=-lsial -lsip_shared -laces2  -lifcore
-LIBS=-lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lmkl_def -lmkl_p4n -lmkl_mc -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lstdc++
+LIBS=-lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lstdc++
 endif 
 

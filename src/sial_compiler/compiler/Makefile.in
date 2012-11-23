@@ -16,10 +16,9 @@ LIBS = @ACESLIBS@
 LIBS:= -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 $(LIBS)
 
 #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
-LIB_DIRS:= @ACESFLAGS@ $(LIB_DIRS)
+LIB_DIRS= @ACESFLAGS@
 
 SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
-SIAL_COMPILER_LIBS:= -lcublas -lcudart $(SIAL_COMPILER_LIBS)
 
 INCLUDE_DIRS := -I../../sia/include -I../sial -I../../aces/aces_library/a2driver/aces2/include/ $(INCLUDE_DIRS)
 LIB_DIRS:=-L../../../lib $(LIB_DIRS)
