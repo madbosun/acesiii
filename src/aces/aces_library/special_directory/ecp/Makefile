@@ -1,4 +1,28 @@
-include ../GNUmakefile.chssi
+include ../../../../../GNUmakefile.chssi
+
+#Compilers
+FC=mpif77
+CC=mpicc
+CPP=mpicxx
+SERIAL_CPP=icpc
+
+#Compiler flags
+FFLAGS=-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -mcmodel=medium -DMPI2 -shared-intel -O2
+CFLAGS=-DMPIF2C -DC_SUFFIX -mcmodel=medium -DMPI2 -shared-intel -O2  -DCB_SUFFIX
+CPPFLAGS=-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -mcmodel=medium -DMPI2 -shared-intel -O2
+
+#ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
+LIBS = -Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -Wl,--end-group
+LIBS:= -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -lecp -ldup -lsip1 -lsip2 $(LIBS)
+
+#ACESFLAGS variable will be replaced by the autoconf script with location of libraries
+LIB_DIRS= -L.
+
+SIAL_COMPILER_LIBS= -lsial -lsip_shared -laces2  -lifcore
+
+
+INCLUDE_DIRS := -I../../../../sia/include -I../../a2driver/aces2/include $(INCLUDE_DIRS)
+LIB_DIRS:=-L../../../lib $(LIB_DIRS)
 
 FSOURCE=$(wildcard *.F)
 F_OBJS=$(FSOURCE:.F=.o)
@@ -9,26 +33,27 @@ c_OBJS:=$(cSOURCE:.c=.o)
 CPP_SOURCE=$(wildcard *.cpp)
 CPP_OBJS:=$(CPP_SOURCE:.cpp=.o)
 
-A3ECP_LIB=../lib/liba3ecp.a
+ECPLIB=../../../../../lib/libecp.a
 
-all: tabula_rasa $(A3ECP_LIB)
+all: tabula_rasa $(ECPLIB)
 
 tabula_rasa: ;
 	rm -f make.out make.err
 
-$(A3ECP_LIB): liba3ecp.a
-	cp liba3ecp.a $(A3ECP_LIB)
+$(ECPLIB): libecplib.a
+	cp libecplib.a $(ECPLIB)
+	rm -f make.out make.err
 
-liba3ecp.a: $(F_OBJS) $(f_OBJS) $(c_OBJS)
-	ar $(ARFLAGS) liba3ecp.a $(F_OBJS) $(f_OBJS) $(c_OBJS)
+libecplib.a: $(F_OBJS) $(f_OBJS) $(c_OBJS)
+	ar $(ARFLAGS) libecplib.a $(F_OBJS) $(f_OBJS) $(c_OBJS)
 
 libclean: ;
-	rm -f liba3ecp.a
+	rm -f libecplib.a
 
 ppclean clean distclean: % : tabula_rasa libclean
 	rm -f *.o
 
-rebuild: libclean $(A3ECP_LIB)
+rebuild: libclean $(FRAMELIB)
 
 binclean relink archive: % : ;
 

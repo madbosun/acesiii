@@ -66,7 +66,7 @@ C
 
       INTEGER NAOUATM2(MAX_ATOMS)
       INTEGER NAOBASIS, NAOTMP2, NP22
-      INTEGER ISHL(6)
+      INTEGER ISHL(10)
       integer idosph, idum(8)
       integer nspc(max_atoms), nCFpS(max_shells), nPFpS(max_shells)
       integer angmom(max_shells)
@@ -117,7 +117,7 @@ C
          natoms = natoms + 1
          READ(xline, 1110) ZNUC, IJUNK, NSHL,
      *       (ISHL(I),I=1,NSHL)
- 1110    FORMAT(F20.1,8I5)
+ 1110    FORMAT(F20.1,10I5)
          nspc(iatm) = 0
 C
          READ(10,1115) ATMNAM,(COORD(I),I=1,3)
@@ -273,7 +273,7 @@ C
      &          NUFCT(IUATMS), NPOP(IUATMS), NAOUATM(IUATMS),
      &          ATMNAM(IUATMS), COORD(3,IUATMS)
  
-      INTEGER ISHL(6)
+      INTEGER ISHL(10)
 C
 C Open MOL file for basis set information. The MOL file is created by
 C joda by processing user input file and basis set library.
@@ -298,7 +298,7 @@ C
       DO 10 IATM = 1, IUATMS
 C
          READ(10, 1110) ZNUC, IJUNK, NSHL,(ISHL(I),I=1,NSHL)
- 1110    FORMAT(F20.1,8I5)
+ 1110    FORMAT(F20.1,10I5)
 C
          READ(10,1115) ATMNAM(IATM),(COORD(I,IATM),I=1,3)
  1115    FORMAT(A4,3F20.12)
@@ -432,7 +432,7 @@ C
       INTEGER IXALPHA(*), IXPCOEF(*)
  
       DOUBLE PRECISION X, Y, Z 
-      INTEGER ISHL(6)
+      INTEGER ISHL(10)
 
       integer nxt_alpha, nxt_pcoef
 C     
@@ -462,7 +462,7 @@ C
       DO 10 IATM = 1, IUATMS
 C
          READ(10,1000) ZNUC, IJUNK, NSHL,(ISHL(I),I=1,NSHL)
- 1000    FORMAT(F20.1,8I5)
+ 1000    FORMAT(F20.1,10I5)
 C
          READ(10,1010) ATMNAM(IATM), X, Y, Z
  1010    FORMAT(A4,3F20.12)

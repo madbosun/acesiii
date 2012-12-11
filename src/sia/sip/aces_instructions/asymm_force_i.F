@@ -123,7 +123,7 @@ c---------------------------------------------------------------------------
         return 
       endif
          print *,'Error in return_diagonal_4: Result array ',
-     *      'must have 2 or 4 indices.'
+     *      'must have 4 indices.'
          print *,'array ',array,' has ',nindex,' indices.'
          call abort_job()
       

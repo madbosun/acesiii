@@ -34,6 +34,11 @@
       aoindex lambda = 1, norb
       aoindex sigma  = 1, norb
 #
+      aoindex m      = 1, norb
+      aoindex n      = 1, norb
+      aoindex l      = 1, norb
+      aoindex s      = 1, norb
+#
       moaindex i = baocc, eaocc
       moaindex i1= baocc, eaocc
       moaindex i2= baocc, eaocc
@@ -328,6 +333,14 @@
       scalar ncount2
       scalar rank 
 
+      scalar n_seg
+      scalar ml
+      scalar ns
+      scalar mm
+      scalar nn
+      scalar ll
+      scalar ss
+      scalar efact
 #
 # Declare Local arrays 
 # -------------------- 
@@ -2316,12 +2329,64 @@
          LP2B_ao(mu,nu) = P2B_ao(mu,nu)
       ENDDO nu
       ENDDO mu
+
+      n_seg = 0.0
+      DO mu  
+         n_seg += 1.0
+      ENDDO mu
       execute sip_barrier 
 #
       PARDO mu, nu, lambda, sigma  
 #
               WHERE mu < lambda  
               WHERE nu < sigma   
+
+                 ml = 0.0
+                 mm = 0.0
+                 ll = 0.0
+
+                 DO m
+                    if m <= mu
+                       mm += 1.0
+                    endif 
+                 ENDDO m
+
+                 DO l
+                    if l <= lambda 
+                      ll += 1.0
+                    endif
+                 ENDDO l
+
+                 etemp = ll - 1.0
+                 etemp *= n_seg
+                 ml += etemp
+
+                 ns = 0.0
+                 nn = 0.0
+
+                 DO n
+                    if n <= nu
+                       nn += 1.0
+                    endif
+                 ENDDO n
+
+                 ss = 0.0
+                 DO s
+                    if s <= sigma
+                       ss += 1.0
+                    endif
+                 ENDDO s
+
+                 etemp = ss - 1.0
+                 etemp *= n_seg
+                 ns += etemp
+
+                 efact = 1.0
+                 if ml < ns
+                    efact = 2.0
+                 endif
+
+                if ml <= ns
 #
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
@@ -2503,6 +2568,8 @@
                  Txxxx(mu,lambda,nu,sigma)   = D3(mu,lambda,sigma,nu)    
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
                  TSxxxx(mu,lambda,nu,sigma) += txxxx(mu,lambda,nu,sigma)  
+                 TSxxxx(mu,lambda,nu,sigma) *= efact
+
 #
 #                Set up integrals
 #                ----------------
@@ -2527,12 +2594,61 @@
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
 #
+          endif 
+#
       ENDPARDO mu, nu, lambda, sigma  
 #
       PARDO mu, nu, lambda, sigma  
 #
               WHERE mu == lambda  
               WHERE nu < sigma   
+
+                 ml = 0.0
+                 mm = 0.0
+                 ll = 0.0
+
+                 DO m
+                    if m <= mu
+                       mm += 1.0
+                    endif 
+                 ENDDO m
+
+                 DO l
+                    if l <= lambda 
+                      ll += 1.0
+                    endif
+                 ENDDO l
+
+                 etemp = ll - 1.0
+                 etemp *= n_seg
+                 ml += etemp
+
+                 ns = 0.0
+                 nn = 0.0
+
+                 DO n
+                    if n <= nu
+                       nn += 1.0
+                    endif
+                 ENDDO n
+
+                 ss = 0.0
+                 DO s
+                    if s <= sigma
+                       ss += 1.0
+                    endif
+                 ENDDO s
+
+                 etemp = ss - 1.0
+                 etemp *= n_seg
+                 ns += etemp
+
+                 efact = 1.0
+                 if ml < ns
+                    efact = 2.0
+                 endif
+
+                if ml <= ns
 #
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
@@ -2687,6 +2803,8 @@
                  txxxx(mu,lambda,nu,sigma)   = D3(mu,lambda,sigma,nu) 
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
                  TSxxxx(mu,lambda,nu,sigma) += txxxx(mu,lambda,nu,sigma)  
+                 TSxxxx(mu,lambda,nu,sigma) *= efact
+
 #
 #                Set up integrals
 #                ----------------
@@ -2710,6 +2828,8 @@
 #                Contract density with integral derivatives
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
+
+          endif 
 #
       ENDPARDO mu, nu, lambda, sigma  
 #
@@ -2717,6 +2837,53 @@
 #
               WHERE mu < lambda  
               WHERE nu == sigma   
+
+                 ml = 0.0
+                 mm = 0.0
+                 ll = 0.0
+
+                 DO m
+                    if m <= mu
+                       mm += 1.0
+                    endif 
+                 ENDDO m
+
+                 DO l
+                    if l <= lambda 
+                      ll += 1.0
+                    endif
+                 ENDDO l
+
+                 etemp = ll - 1.0
+                 etemp *= n_seg
+                 ml += etemp
+
+                 ns = 0.0
+                 nn = 0.0
+
+                 DO n
+                    if n <= nu
+                       nn += 1.0
+                    endif
+                 ENDDO n
+
+                 ss = 0.0
+                 DO s
+                    if s <= sigma
+                       ss += 1.0
+                    endif
+                 ENDDO s
+
+                 etemp = ss - 1.0
+                 etemp *= n_seg
+                 ns += etemp
+
+                 efact = 1.0
+                 if ml < ns
+                    efact = 2.0
+                 endif
+
+                if ml <= ns
 #
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
@@ -2857,6 +3024,8 @@
 #                Add the the nonseparable part
 #                -----------------------------
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
+                 TSxxxx(mu,lambda,nu,sigma) *= efact
+
 #
 #                Set up integrals
 #                ----------------
@@ -2880,6 +3049,8 @@
 #                Contract density with integral derivatives
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
+
+          endif 
 #
       ENDPARDO mu, nu, lambda, sigma  
 #
@@ -2887,6 +3058,53 @@
 #
               WHERE mu == lambda  
               WHERE nu == sigma   
+
+                 ml = 0.0
+                 mm = 0.0
+                 ll = 0.0
+
+                 DO m
+                    if m <= mu
+                       mm += 1.0
+                    endif 
+                 ENDDO m
+
+                 DO l
+                    if l <= lambda 
+                      ll += 1.0
+                    endif
+                 ENDDO l
+
+                 etemp = ll - 1.0
+                 etemp *= n_seg
+                 ml += etemp
+
+                 ns = 0.0
+                 nn = 0.0
+
+                 DO n
+                    if n <= nu
+                       nn += 1.0
+                    endif
+                 ENDDO n
+
+                 ss = 0.0
+                 DO s
+                    if s <= sigma
+                       ss += 1.0
+                    endif
+                 ENDDO s
+
+                 etemp = ss - 1.0
+                 etemp *= n_seg
+                 ns += etemp
+
+                 efact = 1.0
+                 if ml < ns
+                    efact = 2.0
+                 endif
+
+                if ml <= ns
 #
                  D2(mu,lambda,nu,sigma) = 0.0 
 #
@@ -2998,6 +3216,8 @@
 #                Add the the nonseparable part
 #                -----------------------------
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
+                 TSxxxx(mu,lambda,nu,sigma) *= efact
+
 #
 #                Set up integrals
 #                ----------------
@@ -3021,6 +3241,8 @@
 #                Contract density with integral derivatives
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
+
+          endif 
 #
       ENDPARDO mu, nu, lambda, sigma  
       execute sip_barrier 

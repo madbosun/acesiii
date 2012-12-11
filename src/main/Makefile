@@ -4,27 +4,27 @@ include ../../GNUmakefile.chssi
 FC=mpif77
 CC=mpicc
 CPP=mpicxx
-SERIAL_CPP=g++
+SERIAL_CPP=icpc
 
 #Compiler flags
-FFLAGS=-g
-CFLAGS=
-CPPFLAGS=
+FFLAGS=-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -mcmodel=medium -DMPI2 -shared-intel -O2
+CFLAGS=-DMPIF2C -DC_SUFFIX -mcmodel=medium -DMPI2 -shared-intel -O2  -DCB_SUFFIX
+CPPFLAGS=-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -mcmodel=medium -DMPI2 -shared-intel -O2
 
 #ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
-LIBS = 
-LIBS:= -lcublas -lcudart -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
+LIBS = -Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -Wl,--end-group
+LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -lecp -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
 
 #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
-LIB_DIRS:=  $(LIB_DIRS)
+LIB_DIRS= -L.
 
-SIAL_COMPILER_LIBS= 
+SIAL_COMPILER_LIBS= -lsial -lsip_shared -laces2  -lifcore
 
 
 
 
 INCLUDE_DIRS := -I../sia/include -I../aces/aces_library/a2driver/aces2/include -I../sia/sip/include $(INCLUDE_DIRS)
-LIB_DIRS:= -L../../lib $(LIB_DIRS)
+LIB_DIRS:=-L../../lib $(LIB_DIRS)
 
 FRAMELIB=../../lib/libframelib.a
 ERD_LIB=../../lib/liberd.a
@@ -37,6 +37,7 @@ ACES2_LIB=../../lib/libaces2.a
 GEOPT_LIB=../../lib/libgeopt.a
 SYMCOR_LIB=../../lib/libsymcor.a
 OED_LIB=../../lib/liboed.a
+ECP_LIB=../../lib/libecp.a
 DUP_LIB=../../lib/libdup.a
 INTEGRAL_OBJS=$(shell ls ../aces/aces_library/special_directory/direct_integral/*.o 2>/dev/null)
 WORKER_OBJS=$(shell ls ../sia/worker/*.o 2>/dev/null)
@@ -65,7 +66,7 @@ $(ACES3_EXE): xaces3
 	rm -f make.out make.err
 
 xaces3: $(FRAMELIB) $(ERD_LIB) $(SIP_LIB1) $(SIP_LIB2) $(LIB_SIALINST) $(SIAL_LIB) $(SIP_SHARED_LIB) \
-        $(ACES2_LIB) $(GEOPT_LIB) $(SYMCOR_LIB) $(OED_LIB) $(DUP_LIB) $(INTEGRAL_OBJS) \
+        $(ACES2_LIB) $(GEOPT_LIB) $(SYMCOR_LIB) $(OED_LIB) $(ECP_LIB) $(DUP_LIB) $(INTEGRAL_OBJS) \
         $(MAIN_OBJS) $(WORKER_OBJS) $(MANAGER_OBJS)
 	$(FC) $(FFLAGS) $(LFLAGS) -o xaces3 \
 	       $(MAIN_OBJS) $(MANAGER_OBJS) $(WORKER_OBJS) $(INTEGRAL_OBJS) \

@@ -182,10 +182,14 @@ c---------------------------------------------------------------------------
                   dd1 = end_nfps(s-1) + 1
                endif
                dd2 = end_nfps(s)
- 
 
                call find_Imax(a1,a2,b1,b2,c1,c2,d1,d2,scr(nfirst),
      *                        aa1,aa2,bb1,bb2,cc1,cc2,dd1,dd2,m,n) 
+
+            else 
+               
+               call zero_Imax(m,n) 
+
             endif
 
 30       continue 
@@ -247,7 +251,29 @@ c---------------------------------------------------------------------------
 
       delta = 10.0
 
-c     write(6,*) ' M R Imax ', m, r, Int_max
+c     write(6,*) ' M N Imax ', m, n, Int_max
+
+      return
+      end
+
+
+      subroutine zero_Imax(m,n)
+
+      implicit none
+      include 'int_gen_parms.h'
+
+      integer m, n
+
+      double precision Int_max, tmax, sz_max, delta
+
+      common /Imax_com/sz_max(max_shells,max_shells), delta
+
+      sz_max(m,n) = 0.0 
+      sz_max(n,m) = 0.0  
+
+      delta = 10.0
+
+c     write(6,*) ' SKIPPING M N Imax ', m, n, Int_max
 
       return
       end

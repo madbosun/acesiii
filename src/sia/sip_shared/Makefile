@@ -1,28 +1,26 @@
 include ../../../GNUmakefile.chssi
 
-CUDAPATH=@CUDAPATH@
-
 #Compilers
 FC=mpif77
 CC=mpicc
 CPP=mpicxx
-SERIAL_CPP=g++
+SERIAL_CPP=icpc
 
 #Compiler flags
-FFLAGS=-g
-CFLAGS=
-CPPFLAGS=
+FFLAGS=-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -mcmodel=medium -DMPI2 -shared-intel -O2
+CFLAGS=-DMPIF2C -DC_SUFFIX -mcmodel=medium -DMPI2 -shared-intel -O2  -DCB_SUFFIX
+CPPFLAGS=-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -mcmodel=medium -DMPI2 -shared-intel -O2
 
 #ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
-LIBS = 
+LIBS = -Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -Wl,--end-group
 LIBS:= -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 $(LIBS)
 
 #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
-LIB_DIRS= 
+LIB_DIRS= -L.
 
-SIAL_COMPILER_LIBS= 
+SIAL_COMPILER_LIBS= -lsial -lsip_shared -laces2  -lifcore
 
-INCLUDE_DIRS := -I$(CUDAPATH)/include -I../include -I../sip/include -I../../aces/aces_library/a2driver/aces2/include $(INCLUDE_DIRS)
+INCLUDE_DIRS := -I../include -I../sip/include -I../../aces/aces_library/a2driver/aces2/include $(INCLUDE_DIRS)
 LIB_DIRS:=-L../../../lib $(LIB_DIRS)
 
 SIP_SHARED_LIB=../../../lib/libsip_shared.a

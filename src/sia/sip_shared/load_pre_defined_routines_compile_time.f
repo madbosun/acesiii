@@ -327,6 +327,7 @@ c --------------------------------------------------------------------
 c
       dummy = load_user_sub('print_rel_info'//char(0),
      *                       0)
+      dummy = load_user_sub('temp_x'//char(0), 0)
       dummy = load_user_sub('corder'//char(0), 0)
       dummy = load_user_sub('form_fno'//char(0), 0)
       dummy = load_user_sub('form_fnob'//char(0), 0)
@@ -340,8 +341,10 @@ c
       dummy = load_user_sub('write_scfdata'//char(0), 0)
       dummy = load_user_sub('set_np2'//char(0), 0)
       dummy = load_user_sub('sdrop'//char(0), 0)
+      dummy = load_user_sub('asymm_force_a'//char(0), 0)
       dummy = load_user_sub('asymm_force_i'//char(0), 0)
       dummy = load_user_sub('symm_force_ij'//char(0), 0)
+      dummy = load_user_sub('return_h1_nodiag'//char(0), 0)
 c
 c -------------------------------------------------------------------- 
 c Watson instruction needed to write out density
@@ -360,9 +363,6 @@ c      dummy = load_user_sub('vccs_change_x'//char(0), 0)
      +                       0)
       dummy = load_user_sub('scf_atom_coeff'//char(0), 0)
 
-
-      dummy = load_user_sub('asymm_force_a'//char(0), 0)
-c
 c -------------------------------------------------------------------- 
 
 

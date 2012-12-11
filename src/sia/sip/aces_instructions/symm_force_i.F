@@ -146,7 +146,7 @@ c---------------------------------------------------------------------------
       double precision val
 
 c
-c     go to 30 
+      go to 30 
       if (atype .eq. btype .and. itype .eq. jtype) then 
       do b = b1,b2
       do a = a1,a2

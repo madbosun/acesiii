@@ -45,6 +45,7 @@ c--------------------------------------------------------------------------
       integer array_type, nindex, inda(2), indb(2)    
 
       logical direct_flag
+      logical aexist, bexist 
 
       integer i, j, k
       integer nind, nsend
@@ -59,6 +60,7 @@ c--------------------------------------------------------------------------
       integer flag
       integer stack
       integer sind  
+      integer vmax,omax,norbmax,maxhist,diis_start   
 
       double precision x(1)
       double precision dbuf(1), temp 
@@ -80,6 +82,9 @@ c--------------------------------------------------------------------------
       dptr = dshptr
       xptr = dshptr
 #endif
+
+      common /flags/ iflags
+      integer iflags(100)
 
       array       = op(c_result_array)
       direct_flag = .false. 
@@ -257,14 +262,58 @@ c    *                 x(farray), x(fbarray)) ',
 c    *                 nai_array, kin_array, ovl_array,
 c    *                 farray, fbarray 
 
-      if (.not. dryrun) 
-     *   call compute_atomscf(scalar_table(sind), 
+      if (.not. dryrun) then  
+         norbmax = inda(1) 
+         vmax    = inda(1) 
+         omax    = inda(1) 
+         maxhist = 8 
+         diis_start = 3 
+
+c---------------------------------------------------------------------------
+c Determine 
+c 1. vmax: maximum number of virtuals on atom 
+c 2. omax: maximum number of occupieds on atom 
+c 3. norbmax: maximum number of AO's on atom 
+c---------------------------------------------------------------------------
+
+c        if ((iflags(29) .gt. 1) .or. (iflags(28) .ne. 0)) then 
+c            write(66,*) ' Using CORE Hamiltonian guess '
+c            return 
+c        endif  
+
+c        call determine_atom_orb_max(omax,vmax,norbmax) 
+c        call determine_frags() 
+
+
+         if (scalar_table(sind) .lt. 0.0) then 
+
+         call read_density(scalar_table(sind), 
      *                 dbuf(integral_scr),maxblk, ibuf(ipkgscr),
      *                 dbuf(icoord),dbuf(ipcoeff),dbuf(ialpha), 
      *                 ibuf(iccbeg), ibuf(iccend), 
      *                 1, inda(1), 1,inda(2), 
      *                 x(nai_array), x(kin_array), x(ovl_array),
-     *                 x(farray), x(fbarray))
+     *                 x(farray), x(fbarray)) 
+c
+         else 
+
+         INQUIRE(file='ca.data',exist=aExist)
+         INQUIRE(file='cb.data',exist=bExist)
+
+         if (aexist) return
+         if (bexist) return
+
+         call compute_atomscf(scalar_table(sind), 
+     *                 dbuf(integral_scr),maxblk, ibuf(ipkgscr),
+     *                 dbuf(icoord),dbuf(ipcoeff),dbuf(ialpha), 
+     *                 ibuf(iccbeg), ibuf(iccend), 
+     *                 1, inda(1), 1,inda(2), 
+     *                 x(nai_array), x(kin_array), x(ovl_array),
+     *                 x(farray), x(fbarray), 
+c
+     *                 vmax,omax,norbmax,maxhist,diis_start) 
+
+         endif 
 
 c    *   call compute_atommp2(scalar_table(sind), 
 c    *                 dbuf(integral_scr),maxblk, ibuf(ipkgscr),
@@ -273,6 +322,7 @@ c    *                 ibuf(iccbeg), ibuf(iccend),
 c    *                 1, inda(1), 1,inda(2), 
 c    *                 x(nai_array), x(kin_array), x(ovl_array),
 c    *                 x(farray), x(fbarray))
+      endif 
 
 
       return

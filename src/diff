@@ -1,0 +1,291 @@
+1c1
+< Ci  Copyright (c) 2003-2010 University of Florida
+---
+> C  Copyright (c) 2003-2010 University of Florida
+61,62d60
+<       integer tmpop
+< c      integer pardo_overhead_timer, thread_server_timer
+65,76d62
+< c           Nakul
+<       integer instruction_blk_timer
+<       integer instruction_mpi_timer
+<       integer instruction_times_timer
+<       integer instruction_mpitimes_timer
+<       integer instruction_unit_timer
+<       integer instruction_allocate_timer
+<       integer instruction_total_timer
+<       integer pardo_tot_timer
+<       integer pardo_blk_timer
+< c           Nakul
+< 
+92,93d77
+< c      save pardo_overhead_timer, thread_server_timer
+< 
+101,102d84
+< c      pardo_act_timer = -10
+< c      pardo_tserver_timer = -10
+150,155d131
+< c--------------------------------------------------------------------------
+< c   Nakul
+< c--------------------------------------------------------------------------
+< 
+<          call timer_start(timer_optl)
+< 
+175,176d150
+< 
+< 
+178d151
+< 
+182,185d154
+< 
+<             
+<             call timer_start(timer_ovrhead)
+< 
+215,268d183
+<               
+< 
+< c---------------------------------------------------------------------------
+< c   Record time for stuff done in pardo - Nakul
+< c---------------------------------------------------------------------------
+<                if (do_timer) then
+<                    if (opcode .eq. endpardo_op) then
+<                       call update_timer(pardo_act_timer)
+<                       call update_timer(pardo_times_timer)
+<                       pardo_act_timer = 0
+<                       pardo_tserver_timer = 0
+<                       pardo_times_timer = 0
+< 
+< c                      pardo_act_timer = -10
+< c                      pardo_tserver_timer = -10
+< c                     print *,"Time for pardo end: ",mpi_wtime(),
+< c     *                     "for ", pardo_overhead_timer,
+< c     *                      iop,
+< c     *                     pardo_timer, pardo_block_wait_timer,
+< c     *                     optable(c_lineno,iop);
+<                    endif
+<                endif
+<            
+<               tmpop = iop                
+<               if (do_timer) then
+<                 if (opcode .eq. pardo_op) then
+< c                   pardo_tot_timer = 
+< c                            optable(c_instr_time, tmpop)
+<                   call unpack_pardo_timer(optable(c_instr_timer,tmpop),
+<      *                   pardo_tot_timer, pardo_blk_timer)
+< c                 if (pardo_tot_timer .gt. 32000)
+< c     *              print *, "problem 1 at line ",optable(c_lineno,iop)
+< c                 pardo_tserver_timer = 
+< c     *                      optable(c_pardo_tserver_timer, tmpop)
+<                   if (pardo_tot_timer .ne. 0) 
+<      *                  pardo_tserver_timer = pardo_blk_timer + 2
+< c                  call update_timer(pardo_times_timer)
+< 
+<                   endif
+<               endif
+< c---------------------------------------------------------------------------
+< c   End Record time for stuff done in pardo - Nakul
+< c---------------------------------------------------------------------------
+< 
+<                call unpack_pardo_timer(optable(c_instr_timer,tmpop),
+<      *                      pardo_tot_timer, pardo_blk_timer)
+< c                 if (pardo_tot_timer .gt. 32000)
+< c     *              print *, "problem 2 at line ",optable(c_lineno,iop)
+<                if (pardo_tot_timer .ne. 0) 
+<      *               pardo_ovrhead_timer = pardo_blk_timer + 3
+< c               pardo_times_timer = pardo_ovrhead_timer + 1
+<      *                  
+< c               call timer_start(pardo_ovrhead_timer)
+< 
+284,323d198
+< 
+< c               call update_timer(pardo_ovrhead_timer)
+<                
+<                pardo_ovrhead_timer = 0
+< 
+< c---------------------------------------------------------------------------
+< c   Record time for stuff done in pardo - Nakul
+< c---------------------------------------------------------------------------
+<            if (do_timer) then
+<                if (opcode .eq. pardo_op) then
+<                   call unpack_pardo_timer(optable(c_instr_timer,tmpop),
+<      *                     pardo_tot_timer, pardo_blk_timer)
+< c                 if (pardo_tot_timer .gt. 32000)
+< c     *              print *, "problem 3 at line ",optable(c_lineno,iop)
+< c                 pardo_act_timer = 
+< c     *                          optable(c_pardo_act_timer, tmpop)
+< c                 pardo_tserver_timer = 
+< c     *                       optable(c_pardo_tserver_timer, tmpop)
+<                   if (pardo_tot_timer .ne. 0) then
+<                     pardo_act_timer = pardo_blk_timer + 1
+<                     pardo_tserver_timer = pardo_blk_timer + 2
+<                     pardo_ovrhead_timer = pardo_blk_timer + 3
+<                     pardo_times_timer = pardo_blk_timer + 4
+<                   endif
+< 
+<                   call timer_start(pardo_act_timer)
+< 
+<                   call timer_start(pardo_times_timer)
+< 
+< c                  print *,"Time for pardo begin: ",mpi_wtime(),
+< c     *                     "for ", pardo_overhead_timer, 
+< c     *                      iop, 
+< c     *                     pardo_timer, pardo_block_wait_timer,
+< c     *                      optable(c_lineno,tmpop);
+<                endif
+<           endif
+< c---------------------------------------------------------------------------
+< c   End Record time for stuff done in pardo - Nakul
+< c---------------------------------------------------------------------------
+< 
+330d204
+< 
+338,339d211
+<             call update_timer(timer_ovrhead)
+< 
+346,349c218
+<      *          iop .gt. end_op) then 
+< c               print *,"I just skipped !!"
+<                 go to 900 
+<             endif
+---
+>      *          iop .gt. end_op) go to 900 
+358,359c227,228
+< c            if (icount .ge. timer_count) then
+< c               icount = 0
+---
+>             if (icount .ge. timer_count) then
+>                icount = 0
+372c241
+< c               if (t2-t1 .gt. timeslice) then
+---
+>                if (t2-t1 .gt. timeslice) then
+375,379d243
+< c                  if (pardo_act_timer .ne. -10) then
+<                      call update_timer(pardo_act_timer)
+<                      call timer_start(pardo_tserver_timer)
+<                      call timer_start(timer_ovrhead)
+< c                  endif 
+381,385d244
+< c                  if (pardo_act_timer .ne. -10) then
+<                     call update_timer(timer_ovrhead) 
+<                     call update_timer(pardo_tserver_timer) 
+<                     call timer_start(pardo_act_timer)
+< c                  endif
+390,391c249,250
+< c               endif
+< c            endif 
+---
+>                endif
+>             endif 
+393c252
+< c            icount = icount + 1
+---
+>             icount = icount + 1
+401,415d259
+<             instruction_timer = 0
+<             instruction_blk_timer = 0
+<             instruction_mpi_timer = 0
+<             instruction_times_timer = 0
+<             instruction_mpitimes_timer = 0
+<             instruction_unit_timer = 0
+<             instruction_allocate_timer = 0
+<             instruction_total_timer = 0
+<             current_instr_timer = 0
+<             current_instr_blk_timer = 0
+<             current_instr_mpi_timer = 0
+<             current_instr_mpino_timer = 0
+<             current_instr_unit_timer = 0
+<             current_instr_allocate_timer = 0
+< 
+419,468d262
+<                   
+< c                  if (optable(c_lineno, iop) .eq. 7626) then
+< c                      print *, '7626 :', optable(c_instr_timer, iop),
+< c     *                          'instruction_timer = ',
+< c    *                          instruction_timer
+< c                 endif
+< 
+< 
+< c                  if (instruction_timer .gt. 32000)
+< c     *              print *, "problem 4 at line ",optable(c_lineno,iop)
+< c                  if (instruction_timer .eq. 0)
+< c     *              print *, 'timer 0 at line ', optable(c_lineno,iop)
+< c                  instruction_blk_timer = optable(c_instr_blk_timer,iop)
+< c                  instruction_mpi_timer = optable(c_instr_mpi_timer,iop)
+<                   if (instruction_timer .ne. 0) then
+<                     instruction_blk_timer = instruction_timer + 1
+<                     instruction_mpi_timer = instruction_timer + 2
+<                     instruction_times_timer = instruction_timer + 3
+<                     instruction_mpitimes_timer = 
+<      *                               instruction_timer + 4
+<                     instruction_unit_timer = instruction_timer + 5
+<                     instruction_allocate_timer = instruction_timer + 6
+<                     instruction_total_timer = instruction_timer + 7
+<                     current_instr_timer = instruction_timer
+<                     current_instr_blk_timer = instruction_blk_timer
+<                     current_instr_mpi_timer = instruction_mpi_timer
+<                     current_instr_mpino_timer = 
+<      *                                   instruction_mpitimes_timer
+<                     current_instr_unit_timer = instruction_unit_timer
+<                     current_instr_allocate_timer = 
+<      *                                      instruction_allocate_timer
+<                     current_instr_total_timer = 
+<      *                                      instruction_total_timer 
+< 
+<                   endif
+< c                print *, 'current_instr_timer =', current_instr_timer,  
+< c     *                                'iop =', iop, 'line=',current_line
+<                  
+< c                  if (instruction_timer .gt. 999999 .or.
+< c     *                 instruction_timer .lt. 0) then
+< c                      print *, me, ' instruction_total_timer=',
+< c     *                 instruction_total_timer, ' instruction_timer = ',
+< c     *                 instruction_timer, ' instruction_times_timer =',
+< c     *                 instruction_times_timer, 
+< c     *                 'instruction_unit_timer =',
+< c     *                 instruction_unit_timer, ' linenum =',
+< c     *                 optable(c_lineno, iop)
+< c                  endif
+< 
+<                   call timer_start(instruction_total_timer)
+470,473d263
+< c				  print *, 'instruction_timer = ', instruction_timer
+< c				  print *,'instruction_times_timer = ',instruction_times_timer
+<                   call timer_start(instruction_times_timer)
+<                   call timer_start(instruction_unit_timer)
+477d266
+< 
+486,487d274
+< 
+< 
+489,506c276,277
+<                 if (optable(c_opcode,iop) .ne. pardo_op) then
+<                     call update_timer(instruction_timer)
+<                     call update_timer(instruction_times_timer)
+<                     call update_timer(instruction_unit_timer)
+<                     call update_timer(instruction_total_timer)
+<                     current_instr_timer = 0
+<                     current_instr_blk_timer = 0
+<                     current_instr_mpi_timer = 0
+<                     current_instr_mpino_timer = 0
+<                     current_instr_unit_timer = 0
+<                     current_instr_allocate_timer = 0
+<                     current_instr_total_timer = 0
+<                     instruction_times_timer = 0
+<                     instruction_timer=0
+<                     instruction_unit_timer=0
+<                     instruction_allocate_timer=0
+<                     instruction_total_timer=0
+<                 endif
+---
+>                 if (optable(c_opcode,iop) .ne. pardo_op)
+>      *             call update_timer(instruction_timer)
+523,530d293
+<      
+<        
+< c--------------------------------------------------------------------------
+< c   Nakul
+< c--------------------------------------------------------------------------
+< 
+<       call update_timer(timer_optl)
+<      
