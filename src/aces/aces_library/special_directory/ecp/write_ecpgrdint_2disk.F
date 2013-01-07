@@ -10,7 +10,7 @@
 
       Write(62) Ntotatoms
 
-C#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVL0
       Write(6,"(a)") "The ECP deriavative integrals"
       Do Icent = 1, Ntotatoms
 
@@ -25,7 +25,7 @@ C#ifdef _DEBUG_LVL0
             Write(6, "(a,(1x,F20.13))") "The int. check sum = ", w
          Enddo
       Enddo
-C#endif
+#endif
       Do Icent = 1, Ntotatoms
 
          Do Ixyz = 1, 3

@@ -12,7 +12,7 @@ C
 #include "ecp.par"
 #include "ecp.com"
 
-      Dimension ACS_xyz(0:Maxang,3),BCS_xyz(0:Maxang,3),
+      Dimension ACS_xyz(0:2*Maxang,3),BCS_xyz(0:2*Maxang,3),
      &          Ang2_A(0:2*Maxang,-Maxproj:Maxproj,0:2*Maxang),
      &          Ang2_B(0:2*Maxang,-Maxproj:Maxproj,0:2*Maxang),
      &          Rad2(0:2*Maxang,0:2*Maxang, 0:2*Maxang),

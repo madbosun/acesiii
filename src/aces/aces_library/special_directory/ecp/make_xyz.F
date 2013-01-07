@@ -8,7 +8,7 @@ C
 
 #include "ecp.par"
     
-      Dimension CS_xyz(0:Maxang)
+      Dimension CS_xyz(0:2*Maxang)
 
       CS_xyz(0) = 1.0D0
       CS_xyz(1) = Cxyz

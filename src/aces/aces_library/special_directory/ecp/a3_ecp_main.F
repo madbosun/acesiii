@@ -3,7 +3,7 @@
       Subroutine A3_ECP_MAIN(Iecp, Natoms, Namat, Iqmstr, Jcostr,
      &                       Nucstr, Nrcstr, Jstrt, Jrs, Expa, 
      &                       Nalpha, Cont, Npcoef, Cord, Charge,
-     &                       IGenby)
+     &                       IGenby, Nharm)
 C      
       Implicit Double Precision(A-H, O-Z)
 
@@ -26,7 +26,7 @@ C
      &          IGenby(Max_centers), Charge(Max_centers),
      &          Fcord(3,Max_centers)
 
-      Dimension Ecpint(Max_cbf*(Max_cbf+1)/2)
+      Dimension Ecpint(Max_cbf*Max_cbf), Ecpint_C(Max_cbf*Max_cbf)
 
 C ECP integrals. Except for simplifications, I have kept the original
 C form of all the input/output ECP processing routines. This was 
@@ -46,7 +46,9 @@ C - nhram is logical that tells you whether this is sperical or
 C   cartesian basis calculation (key-word driven)
 C - I must add that the names choosen for those 4 variables are dumb!!
 C   
-      nharm = (Iflags(h_IFLAGS_spherical) .EQ. 1)
+      Nharm = .False. 
+      Write(6,*) "Spherical flags", Iflags(h_IFLAGS_spherical)
+      If (Iflags(h_IFLAGS_spherical) .EQ. 1) Nharm = .True. 
 CSS      Itol  = Iflags(h_IFLAGS2_intgrl_tol)
 CSS      Tol   = Dble(10.0D+00*(-Itol))
  
@@ -105,10 +107,10 @@ c-----------------------------------------------------------------------
       Endif
 
       call prepareecp(Cord, Charge, Igenby, Natoms, Ntotatoms)
-      call A3_ecp_int_driver(Ecpint, Natoms, Ntotatoms, Igenby, Cord,
-     &                       .FALSE.)
+      call A3_ecp_int_driver(Ecpint, Ecpint_C, Natoms, Ntotatoms,
+     &                       Igenby, Cord, .FALSE., Nharm)
 
-#ifdef _DEBUG_LVLM1
+#ifdef _OBSOLETED
 c-----------------------------------------------------------------------
 c Test of numerical ECP derivative integrals. VFL 6/14/2012 
 c-----------------------------------------------------------------------

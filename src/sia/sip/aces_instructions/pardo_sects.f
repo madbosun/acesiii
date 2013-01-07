@@ -77,7 +77,7 @@ c
 
          nsects = my_company_size/vcount + 1
          if (oseg .lt. nsects) nsects = oseg
-         if (nsects .gt. 14.0) nsects = 14.0
+         if (nsects .gt. 10.0) nsects = 10.0
          if (nsects .lt. 4.0) nsects = 4.0
          x2 = nsects  
 
@@ -102,7 +102,7 @@ c
 
          nsects = my_company_size/vcount + 1
          if (oseg .lt. nsects) nsects = oseg
-         if (nsects .gt. 14.0) nsects = 14.0
+         if (nsects .gt. 10.0) nsects = 10.0
          if (nsects .lt. 4.0) nsects = 4.0
          x2 = nsects  
 

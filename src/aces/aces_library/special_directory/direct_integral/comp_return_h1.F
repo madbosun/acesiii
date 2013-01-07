@@ -72,7 +72,7 @@ c---------------------------------------------------------------------------
 
       integer ECP, ntot 
       double precision ecp_erd 
-      common /FECP/ntot, ecp_erd(1500,1500) 
+      common /FECP/ntot, ecp_erd(2500,2500) 
 
       common /flags/ iflags
       integer iflags(100)

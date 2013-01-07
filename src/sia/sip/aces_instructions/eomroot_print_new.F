@@ -74,7 +74,8 @@ c---------------------------------------------------------------------------
       array = op(c_result_array)
       evec_array = op(c_op1_array)
       if (array .eq. 0 .or. evec_array .eq. 0) then
-         print *,'Error: EIG routine requires 2 array arguments.'
+         print *,'Error: eom_root_print_new routine requires 
+     *            2 array arguments.'
          print *,(op(i),i=1,loptable_entry)
          call abort_job()
       endif
@@ -83,7 +84,8 @@ c---------------------------------------------------------------------------
       evec_type  = array_table(c_array_type, evec_array)
       if (array_type .ne. static_array .or. 
      *    evec_type .ne. static_array) then
-         print *,'Error: Both arrays in EIG routine must be static.'
+         print *,'Error: Both arrays in eom_root_print_new routine 
+     *            must be static.'
          call abort_job()
       endif
 

@@ -200,8 +200,8 @@
          GET Dhfb(mu,nu) 
          LDhfa(mu,nu) = Dhfa(mu,nu) 
          LDhfb(mu,nu) = Dhfb(mu,nu) 
-         execute dump_amp ldhfa(mu,nu)
-         execute dump_amp ldhfb(mu,nu)
+        #execute dump_amp ldhfa(mu,nu)
+        #execute dump_amp ldhfb(mu,nu)
       ENDDO nu 
       ENDDO mu 
 #

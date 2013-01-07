@@ -197,27 +197,12 @@ c-----------------------------------------------------------------------
 c     fill in common /nshell/
 c-----------------------------------------------------------------------
 
-c Doing the k's from common nshel
-      
-      if (NHARM) then
+      do l=1,Maxang
+         imin(l)=(l-1)*l*(l+1)/6+1
+         imax(l)=l*(l+1)*(l+2)/6 
+         nfcts(l)=l*(l+1)/2
+      enddo
 
-c spherical harmonics are used!
-
-        do l=1,Maxang
-           imin(l)=(l-1)*l*(l+1)/6+1
-           imax(l)=l*(l+1)*(l+2)/6 
-           nfcts(l)=2*l-1
-        enddo
-
-      else 
-
-        do l=1,Maxang
-           imin(l)=(l-1)*l*(l+1)/6+1
-           imax(l)=l*(l+1)*(l+2)/6 
-           nfcts(l)=l*(l+1)/2
-        enddo
-      endif
-     
       nbf=0
       nshll=0
       indsh=0
@@ -246,7 +231,7 @@ CSSS             mulilq=mul(indsh)
 CSSS             mulsh(nshll)=mulilq
              nprims(nshll)=numpri(iat,ilq,ijco)
              kprim(nshll)=newoff(iat,ilq,ijco)
-             nbf=nbf+ndegen(nshll)
+             nbf=nbf+ndegen(nshll)*numcon(nshll)
  
           Enddo
         Enddo

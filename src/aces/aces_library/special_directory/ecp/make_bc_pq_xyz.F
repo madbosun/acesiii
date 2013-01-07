@@ -8,9 +8,9 @@ C
 #include "ecp.par"
 #include "ecp.com"
     
-      Dimension TPQxyz(0:Maxang), PQSxyz(0:Maxang)
+      Dimension TPQxyz(0:2*Maxang), PQSxyz(0:2*Maxang)
 
-      Call Dzero(TPQxyz, Maxang)   
+      Call Dzero(TPQxyz, 2*Maxang+1)   
       
       Do Ka = 0, Nkxyz
 

@@ -10,10 +10,10 @@ C
 #include "ecp.par"
 #include "ecp.com"
     
-      Dimension TCABxyz(0:2*Maxang), CASxyz(0:Maxang), 
-     &          CBSxyz(0:Maxang)
+      Dimension TCABxyz(0:2*Maxang), CASxyz(0:2*Maxang), 
+     &          CBSxyz(0:2*Maxang)
 
-      Call Dzero(TCABxyz, Maxang)   
+      Call Dzero(TCABxyz, 2*Maxang+1)   
 
       Do Ka = 0, Nkaxyz
 

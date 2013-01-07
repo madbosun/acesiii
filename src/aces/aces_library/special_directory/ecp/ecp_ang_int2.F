@@ -7,7 +7,7 @@
 #include "ecp.par"
 #include "ecp.com"
 
-      Dimension PQS_Xyz(0:Maxang,3),TPQ_Xyz(0:Maxang,3),
+      Dimension PQS_Xyz(0:2*Maxang,3),TPQ_Xyz(0:2*Maxang,3),
      &          Ang(0:2*Maxang,-Maxproj:Maxproj,0:2*Maxang)
 
 #ifdef _DEBUG_LVLM

@@ -13,8 +13,8 @@ C
 #include "ecp.par"
 #include "ecp.com"
 
-      Dimension Coord(3,Ntotatoms), ACS_xyz(0:Maxang,3),
-     &          BCS_xyz(0:Maxang,3), Cint(Maxmem_a3)
+      Dimension Coord(3,Ntotatoms), ACS_xyz(0:2*Maxang,3),
+     &          BCS_xyz(0:2*Maxang,3), Cint(Maxmem_a3)
       Logical CA_zero, CB_zero, PC_zero, Zero_int, Rad1_zero,
      &        Rad2_zero, Grads, Zero_int_cnt(Ntotatoms)
 C

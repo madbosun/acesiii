@@ -230,6 +230,11 @@ c   If ECP add ecp derivative integrals
                   do a = a1, a2 
                   do b = b1, b2 
                      z(a,b) = z(a,b) + decp_erd(iatom, component, a, b) 
+#ifdef _DEBUG_LVL0
+                  Write(6,"(a)") "Adding ECP derivative integrals"
+                  Write(6,"(1x, 2I3, 1x,f12.7)") a, b, decp_erd(iatom,
+     *                                    component, a, b)
+#endif
                   enddo 
                   enddo 
                   endif 

@@ -1652,6 +1652,18 @@ c   o TRAP METHODS WHICH DON'T WORK YET
          end if
       end if
 
+c     Set the initial scf diis iteration and order VFL 1/2/2013 
+
+      if (ioppar(h_IOPPAR_scf_expstar).eq.0) then
+         szTmp = 'scf_expstar=2'//achar(0)
+         call asv_update_kv(szTmp,iASV,szData,0)
+      end if
+
+      if (ioppar(h_IOPPAR_scf_exporde).eq.0) then
+         szTmp = 'scf_exporde=8'//achar(0)
+         call asv_update_kv(szTmp,iASV,szData,0)
+      end if
+
 c   o If CC calc, then set MAXCYC and turn on RLE with order equal to 5
       if (ioppar(h_IOPPAR_calc).ge.5) then
          if (ioppar(h_IOPPAR_cc_maxcyc).eq.0) then

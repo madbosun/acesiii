@@ -57,8 +57,10 @@ c Read atom data from the ZMAT
   400 continue 
 
       close(23) 
- 
-      write(6,*) ' N ECP ATOMS = ', natoms 
+
+#ifdef _DEBUG_LVL0
+      write(6,*) '@set_ecp_charges: Number of ECP ATOMS = ', natoms
+#endif
 
 9000  FORMAT(a80) 
       return

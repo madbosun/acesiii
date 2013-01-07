@@ -33,6 +33,8 @@ C
 
       Common /Qstore/Alpha,Beta,Xval
      
+CSSS      Common /Ishuffle/Iorder(max_cbf),Inao(max_shells+1)
+
       Common /RadAng_sums/Rad_Sum(Maxang,Maxang), 
      &                    Ang_sum(Maxang,Maxang)
    

@@ -186,15 +186,19 @@ c-------------------------------------------------------------------------
          ipcoeff = ialpha + nalpha
 
          if (configure) then
-            call aces_to_erd(nfps, ivangmom, nshells, ispherical,
-     *                       ibuf(ierdind), dbuf(iscale_fac)) 
 
 c For ECP must renormalize/reorder 
             ECP = iflags(71) 
 
             IF (ECP .eq. 1) then 
-            call ecp_renorm(nbasis, ibuf(ierdind), dbuf(iscale_fac)) 
-            endif 
+               call ecp_to_erd(nfps, ivangmom, nshells, ispherical,
+     *                         ibuf(ierdind), dbuf(iscale_fac))
+               call ecp_renorm(nbasis, ibuf(ierdind), 
+     *                         dbuf(iscale_fac)) 
+            Else
+               call aces_to_erd(nfps, ivangmom, nshells, ispherical,
+     *                          ibuf(ierdind), dbuf(iscale_fac))
+            Endif
 
             call setup_ccbeg(dbuf(ialpha), ixalpha, dbuf(ipcoeff), 
      *                       ixpcoef, ncfps, npfps, nshells, 

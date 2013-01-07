@@ -27,6 +27,10 @@ C 5 (up to h functions in projection space).
       Parameter(Maxints_4shell=Ndico2*Maxang2)
 
       Parameter(Maxmem_a3 = 10000)
+
+      Parameter(Imap_L=((Maxang/2+1)*(Maxang/2+2)*(2*Maxang+1)))
+
+      Parameter(Dmap_L=((Maxang/2+1)*(Maxang/2+2)*(2*Maxang+1)))
    
       Parameter(Rint_cutoff = 25.32838, Eps1 = 1.0D-15, Tol=46.0561)
 #endif /* _ECP_PAR_ */

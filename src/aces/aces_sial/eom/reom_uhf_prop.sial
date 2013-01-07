@@ -31810,6 +31810,8 @@
       etemp += proot 
       execute print_rel_info etemp ca 
 #
+      execute get_my_rank rank 
+      if rank == 0.0 
       DO i
       DO a
          GET  VCE1A (a,i)
@@ -31817,11 +31819,14 @@
          EXECUTE  C1_PRINT  tai  amplthresh
       ENDDO a
       ENDDO i
+      endif 
 
       etemp = 200 
       etemp += proot 
       execute print_rel_info etemp ca 
 
+      execute get_my_rank rank 
+      if rank == 0.0 
       DO j
       DO b
          GET  VCE1B (b,j)
@@ -31829,11 +31834,14 @@
          EXECUTE  C1B_PRINT  tbj  amplthresh
       ENDDO b
       ENDDO j
+      endif 
 
       etemp = 300 
       etemp += proot 
       execute print_rel_info etemp ca 
 
+      execute get_my_rank rank 
+      if rank == 0.0 
       DO a
       DO i
       DO a1
@@ -31845,11 +31853,14 @@
       ENDDO a1
       ENDDO i
       ENDDO a
+      endif 
 
       etemp = 400 
       etemp += proot 
       execute print_rel_info etemp ca 
 
+      execute get_my_rank rank 
+      if rank == 0.0 
       DO b
       DO j
       DO b1
@@ -31861,11 +31872,14 @@
       ENDDO b1
       ENDDO j
       ENDDO b
+      endif 
 
       etemp = 500 
       etemp += proot 
       execute print_rel_info etemp ca 
 
+      execute get_my_rank rank 
+      if rank == 0.0 
       DO a
       DO i
       DO b
@@ -31877,6 +31891,7 @@
       ENDDO b
       ENDDO i
       ENDDO a
+      endif 
 
       PARDO a, i
          get VCE1A(a,i)

@@ -50,7 +50,6 @@ C     XYZTol  Tolerance for comparison of cartesian coordinates
       INTEGER CLSTYP(NORDER)
       CHARACTER*6 RESULT
 
-      iprnt = 101
       ICOMP = 0
       CALL ZERO(SCR,3*NATOM)
 c      CALL IZERO(NORD,NATOM)

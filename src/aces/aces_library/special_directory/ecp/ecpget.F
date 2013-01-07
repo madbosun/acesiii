@@ -28,7 +28,7 @@ C
 c --- look for the flag $ecp in control file fcntri and get 
 c     alternate file name if specified ---
 c
-      iunit=66
+      iunit=44
       filnam='ECPDATA'
 c
 c --- now we are ready for reading

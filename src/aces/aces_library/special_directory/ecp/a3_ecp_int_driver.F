@@ -1,5 +1,5 @@
-      subroutine A3_Ecp_int_driver(Ecpint, Natoms, Ntotatoms, IGenby, 
-     &                             Coord, Grads)
+      subroutine A3_Ecp_int_driver(Ecpint, ECpint_C, Natoms, Ntotatoms,
+     &                             IGenby, Coord, Grads, Spherical)
 c----------------------------------------------------------------------
 c     Ecp_int_driver drives the calculation of 1e-matrices in the basis of
 c     cartesian atomic orbitals using subroutine ecp_int.
@@ -18,11 +18,11 @@ C Ecpints need to be (2*Maxang+1)**2 times the square of the
 C maximum number of contracted functions per shell (currently
 C set at 20 for ECP integrals). The current Max_cbf is 1000. 
 C
-      Logical Grads, Zero_int
+      Logical Grads, Zero_int, Spherical
 
       dimension Cint(Maxmem_a3), Ecpint_4Shell(Maxints_4shell),
-     &          Ecpint(Max_cbf*(Max_cbf+1)/2), IGenby(Ntotatoms),
-     &          Coord(3,Ntotatoms)
+     &          IGenby(Ntotatoms),
+     &          Coord(3,Ntotatoms),Ecpint(Max_cbf*(Max_cbf+1)/2)
 
 c-----------------------------------------------------------------------
 #ifdef _DEBUG_LVL0
@@ -32,6 +32,7 @@ CSS      nprims(2) = 1
 #endif
 
       Iloc   = 0
+      Isoc   = 0
       Do Icent = 1, Ntotatoms
       do ishell = 1, Nshell
 CSSS      do ishell = 1, 1
@@ -51,6 +52,7 @@ CSSS      do ishell = 1, 1
 C begin loop jshell 
 
         Jloc = 0
+        Jsoc = 0
         Do Jcent = 1, Icent
         do jshell=1, Nshell
 CSSS        do jshell=1, 1
@@ -154,10 +156,13 @@ C
           Enddo
       Endif
 #endif  
-                  Call Ecp_int(Ecpint, Ecpint_4shell, La, Lb, Iloc, 
-     &                         Jloc, Numcoi, Numcoj)
+                  Call Ecp_int(Ecpint, Ecpint_4shell, 
+     &                         La, Lb, Iloc, Jloc, Isoc, Jsoc, 
+     &                         Numcoi, Numcoj, Ishell, Jshell,
+     &                         Spherical)
 C
           Jloc = Jloc + (Lb+1)*(Lb+2)*Numcoj/2
+          Jsoc = Jsoc + (2*Lb+1)*NUmcoj
 C
         Endif
         Endif
@@ -166,27 +171,31 @@ C
         Enddo
 
         Iloc = Iloc + (La+1)*(La+2)*Numcoi/2
+        Isoc = Isoc + (2*La+1)*Numcoi
 C
       Endif 
       Enddo 
       Enddo
-C 
-C#ifdef _DEBUG_LVL0
+C     
+      Ndim = Iloc
+      If (Spherical) Ndim = Isoc 
+#ifdef _DEBUG_LVL0
       w=0.0d0
       Write(6,"(a)") "@-Ecpint_Driver, The ECP integrals"
-      Write(6, "(6(1x,F10.7))") (Ecpint(I), I=1, Iloc*(Iloc+1)/2)
-      do i =1, iloc*(iloc+1)/2
+      Write(6,"(a,1x,i3)") "The dimension of ints: ", Ndim
+      Write(6, "(6(1x,F10.7))") (Ecpint(I), I=1, Ndim*(Ndim+1)/2)
+      do i =1, Ndim*(Ndim+1)/2
       W = w+ecpint(i)*ecpint(i)
       enddo
-      Write(6, "(a,(1x,F20.13))") "The int. check sum = ", w
-C#endif
+      Write(6, "(a,(1x,F20.13))") "The ecpint. check sum = ", w
+#endif
 C
       Open(unit=61, file='ecpint.dat', form='unformatted')
       Rewind 61
-      write(61) Iloc
-      Write(61) (Ecpint(i), i = 1, iloc*(iloc+1)/2)
+      write(61) Ndim
+      Write(61) (Ecpint(i), i = 1, Ndim*(Ndim+1)/2)
       Close (61)
-      Call Putrec(20, "JOBARC", "ECP1INTS", iloc*(iloc+1)/2, Ecpint)
+      Call Putrec(20, "JOBARC", "ECP1INTS", Ndim*(Ndim+1)/2, Ecpint)
 C
       return
       end

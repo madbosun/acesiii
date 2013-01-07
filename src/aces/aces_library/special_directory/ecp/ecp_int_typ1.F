@@ -8,7 +8,7 @@
 #include "ecp.par"
 #include "ecp.com"
    
-      Dimension ACS_xyz(0:Maxang,3),BCS_xyz(0:Maxang,3)
+      Dimension ACS_xyz(0:2*Maxang,3),BCS_xyz(0:2*Maxang,3)
       Dimension Rad(0:2*Maxang,0:2*Maxang), 
      &          Ang(0:2*maxang,0:2*Maxang),Cint(Maxmem_a3)
       

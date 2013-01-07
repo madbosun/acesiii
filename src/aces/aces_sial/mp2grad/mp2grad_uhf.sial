@@ -2341,53 +2341,6 @@
               WHERE mu < lambda  
               WHERE nu < sigma   
 
-                 ml = 0.0
-                 mm = 0.0
-                 ll = 0.0
-
-                 DO m
-                    if m <= mu
-                       mm += 1.0
-                    endif 
-                 ENDDO m
-
-                 DO l
-                    if l <= lambda 
-                      ll += 1.0
-                    endif
-                 ENDDO l
-
-                 etemp = ll - 1.0
-                 etemp *= n_seg
-                 ml += etemp
-
-                 ns = 0.0
-                 nn = 0.0
-
-                 DO n
-                    if n <= nu
-                       nn += 1.0
-                    endif
-                 ENDDO n
-
-                 ss = 0.0
-                 DO s
-                    if s <= sigma
-                       ss += 1.0
-                    endif
-                 ENDDO s
-
-                 etemp = ss - 1.0
-                 etemp *= n_seg
-                 ns += etemp
-
-                 efact = 1.0
-                 if ml < ns
-                    efact = 2.0
-                 endif
-
-                if ml <= ns
-#
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
 #
@@ -2568,7 +2521,6 @@
                  Txxxx(mu,lambda,nu,sigma)   = D3(mu,lambda,sigma,nu)    
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
                  TSxxxx(mu,lambda,nu,sigma) += txxxx(mu,lambda,nu,sigma)  
-                 TSxxxx(mu,lambda,nu,sigma) *= efact
 
 #
 #                Set up integrals
@@ -2594,8 +2546,6 @@
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
 #
-          endif 
-#
       ENDPARDO mu, nu, lambda, sigma  
 #
       PARDO mu, nu, lambda, sigma  
@@ -2603,53 +2553,6 @@
               WHERE mu == lambda  
               WHERE nu < sigma   
 
-                 ml = 0.0
-                 mm = 0.0
-                 ll = 0.0
-
-                 DO m
-                    if m <= mu
-                       mm += 1.0
-                    endif 
-                 ENDDO m
-
-                 DO l
-                    if l <= lambda 
-                      ll += 1.0
-                    endif
-                 ENDDO l
-
-                 etemp = ll - 1.0
-                 etemp *= n_seg
-                 ml += etemp
-
-                 ns = 0.0
-                 nn = 0.0
-
-                 DO n
-                    if n <= nu
-                       nn += 1.0
-                    endif
-                 ENDDO n
-
-                 ss = 0.0
-                 DO s
-                    if s <= sigma
-                       ss += 1.0
-                    endif
-                 ENDDO s
-
-                 etemp = ss - 1.0
-                 etemp *= n_seg
-                 ns += etemp
-
-                 efact = 1.0
-                 if ml < ns
-                    efact = 2.0
-                 endif
-
-                if ml <= ns
-#
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
 #
@@ -2803,7 +2706,6 @@
                  txxxx(mu,lambda,nu,sigma)   = D3(mu,lambda,sigma,nu) 
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
                  TSxxxx(mu,lambda,nu,sigma) += txxxx(mu,lambda,nu,sigma)  
-                 TSxxxx(mu,lambda,nu,sigma) *= efact
 
 #
 #                Set up integrals
@@ -2829,8 +2731,6 @@
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
 
-          endif 
-#
       ENDPARDO mu, nu, lambda, sigma  
 #
       PARDO mu, nu, lambda, sigma  
@@ -2838,53 +2738,6 @@
               WHERE mu < lambda  
               WHERE nu == sigma   
 
-                 ml = 0.0
-                 mm = 0.0
-                 ll = 0.0
-
-                 DO m
-                    if m <= mu
-                       mm += 1.0
-                    endif 
-                 ENDDO m
-
-                 DO l
-                    if l <= lambda 
-                      ll += 1.0
-                    endif
-                 ENDDO l
-
-                 etemp = ll - 1.0
-                 etemp *= n_seg
-                 ml += etemp
-
-                 ns = 0.0
-                 nn = 0.0
-
-                 DO n
-                    if n <= nu
-                       nn += 1.0
-                    endif
-                 ENDDO n
-
-                 ss = 0.0
-                 DO s
-                    if s <= sigma
-                       ss += 1.0
-                    endif
-                 ENDDO s
-
-                 etemp = ss - 1.0
-                 etemp *= n_seg
-                 ns += etemp
-
-                 efact = 1.0
-                 if ml < ns
-                    efact = 2.0
-                 endif
-
-                if ml <= ns
-#
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
 #
@@ -3024,7 +2877,6 @@
 #                Add the the nonseparable part
 #                -----------------------------
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
-                 TSxxxx(mu,lambda,nu,sigma) *= efact
 
 #
 #                Set up integrals
@@ -3050,8 +2902,6 @@
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
 
-          endif 
-#
       ENDPARDO mu, nu, lambda, sigma  
 #
       PARDO mu, nu, lambda, sigma  
@@ -3059,53 +2909,6 @@
               WHERE mu == lambda  
               WHERE nu == sigma   
 
-                 ml = 0.0
-                 mm = 0.0
-                 ll = 0.0
-
-                 DO m
-                    if m <= mu
-                       mm += 1.0
-                    endif 
-                 ENDDO m
-
-                 DO l
-                    if l <= lambda 
-                      ll += 1.0
-                    endif
-                 ENDDO l
-
-                 etemp = ll - 1.0
-                 etemp *= n_seg
-                 ml += etemp
-
-                 ns = 0.0
-                 nn = 0.0
-
-                 DO n
-                    if n <= nu
-                       nn += 1.0
-                    endif
-                 ENDDO n
-
-                 ss = 0.0
-                 DO s
-                    if s <= sigma
-                       ss += 1.0
-                    endif
-                 ENDDO s
-
-                 etemp = ss - 1.0
-                 etemp *= n_seg
-                 ns += etemp
-
-                 efact = 1.0
-                 if ml < ns
-                    efact = 2.0
-                 endif
-
-                if ml <= ns
-#
                  D2(mu,lambda,nu,sigma) = 0.0 
 #
                  DO i1
@@ -3216,7 +3019,6 @@
 #                Add the the nonseparable part
 #                -----------------------------
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
-                 TSxxxx(mu,lambda,nu,sigma) *= efact
 
 #
 #                Set up integrals
@@ -3241,8 +3043,6 @@
 #                Contract density with integral derivatives
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
-
-          endif 
 #
       ENDPARDO mu, nu, lambda, sigma  
       execute sip_barrier 

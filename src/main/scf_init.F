@@ -104,9 +104,12 @@ c        enddo
 
 c        natoms = 2
 c        write(6,*) ' Natoms = ', natoms 
+
          nproton = 0 
          do i = 1, natoms 
+#ifdef _DEBUG_LVL0
             write(6,*) '  ', i, icrcor(i) 
+#endif
             nproton = nproton + icrcor(i) 
          enddo 
 
@@ -120,7 +123,9 @@ c        icrcor(2) = 7
 c        nproton = 14 
 
          noff = NallPROTON - NPROTON 
+#ifdef _DEBUG_LVL0
          write(6,*) ' Nproton = ', nallproton, nproton, noff  
+#endif 
       ELSE 
       ENDIF 
 

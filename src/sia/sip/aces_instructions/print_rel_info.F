@@ -22,6 +22,11 @@ C  in the file COPYRIGHT.
 
 c--------------------------------------------------------------------------
 c Scalar value    Code    Printed  
+c          -10    SCF     exit for no convergence 
+c           -2    CCSD    exit for no convergence 
+c
+c            0    SCF     ca printed to file ca.data 
+c           -1    SCF     cb printed to file cb.data 
 c            1    SCF     iteration, energy, error 
 c            2    SCF     final energy, error 
 c            3    SCF     alpha orbital energies  
@@ -138,6 +143,57 @@ c---------------------------------------------------------------------------
      *           'between 1 and ',nscalar_table
          call abort_job()
       endif
+
+c----------------------------------------------------------------------------
+c   Exiting for no SCF convergence  
+c---------------------------------------------------------------------------
+
+      if (dabs(scalar_table(sind)+10.0) .le. 0.001) then 
+         if (me .eq. 0) then 
+         write(66,10) 
+         flush(66) 
+         call abort_job() 
+         endif 
+      endif 
+
+c----------------------------------------------------------------------------
+c   SCF Print Flag = 0 or -1 Print Ca/Cb to file   
+c---------------------------------------------------------------------------
+
+      if ((dabs(scalar_table(sind)) .le. 0.00001) .or.
+     *    (dabs(scalar_table(sind)+1.0)) .le. 0.00001) then 
+
+c----------------------------------------------------------------------------
+c   Locate the data for the input matrix which is to be analyses.
+c---------------------------------------------------------------------------
+
+      array      = op(c_op1_array)
+
+      array_type = array_table(c_array_type, array)
+      nindex     = array_table(c_nindex, array)
+
+      daddr = address_table(array)
+      iarray  = get_index_from_base(daddr, x, 2)
+
+      if (array .eq. 0) then
+         print *,'Error: The first argument in print_rel_info 
+     *            must be an array.'  
+         print *,(op(i),i=1,loptable_entry)
+         call abort_job()
+      endif
+
+      do i = 1, nindex
+         ind(i) = array_table(c_index_array1+i-1,array)
+      enddo
+
+      n1 = index_table(c_index_size, ind(1))  ! pick up length of index
+      n2 = index_table(c_index_size, ind(2))  ! pick up length of index
+
+          call print_rhf_orbitals(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      return 
+      endif 
+
 
 c----------------------------------------------------------------------------
 c   SCF Print Flag = 1, 2, 3, 4     
@@ -331,23 +387,13 @@ c---------------------------------------------------------------------------
       endif 
 
 c----------------------------------------------------------------------------
-c   Exiting for no SCF convergence  
-c---------------------------------------------------------------------------
-
-      if (dabs(scalar_table(sind)+1.0) .le. 0.001) then 
-         if (me .eq. 0) then 
-         write(66,10) 
-         call abort_job() 
-         endif 
-      endif 
-
-c----------------------------------------------------------------------------
 c   Exiting for no CCSD convergence  
 c---------------------------------------------------------------------------
 
       if (dabs(scalar_table(sind)+2.0) .le. 0.001) then 
          if (me .eq. 0) then 
          write(66,20) 
+         flush(66) 
          call abort_job() 
          endif 
       endif 
@@ -375,6 +421,7 @@ c---------------------------------------------------------------------------
           call print_cis_rhf_sheader(scalar_table(sind))
       endif 
 
+      flush(66) 
 
       return 
       end 
@@ -1380,4 +1427,65 @@ c
 
       return
       end
+
+
+      subroutine print_rhf_orbitals(array1,sval,a1,a2,b1,b2) 
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2   
+      double precision array1(a1:a2,b1:b2), sval, stemp   
+      double precision efinal, conv   
+      logical breturn 
+
+      common /orbread/breturn 
+
+       ival = sval 
+       conv = 27.21138505 
+c      if (me .eq. my_company_rank)then
+
+       if (me .eq. 0)then
+
+       if (ival .eq. 0) then  
+          write(66,100) 
+          open(111,file='ca.data') 
+          write(111,*) a2-a1+1  
+          do a = a1, a2   
+          do b = b1, b2   
+             write(111,*) array1(a,b) 
+          enddo 
+          enddo 
+          close (111) 
+       endif 
+
+       if (ival .eq. -1) then  
+          write(66,200) 
+          open(222,file='cb.data') 
+          write(222,*) a2-a1+1  
+          do a = a1, a2   
+          do b = b1, b2   
+             write(222,*) array1(a,b) 
+          enddo 
+          enddo 
+          close (222) 
+       endif 
+
+       endif 
+
+       breturn = .false.
+
+100    FORMAT(5x,'PRINTING RHF COEFFICIENTS TO FILE') 
+200    FORMAT(5x,'PRINTING UHF COEFFICIENTS TO FILE') 
+
+      return
+      end
+
 

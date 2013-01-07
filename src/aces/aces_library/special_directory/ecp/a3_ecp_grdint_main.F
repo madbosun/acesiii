@@ -2,13 +2,14 @@
       Subroutine A3_ECP_grdint_main(Iecp, Natoms, Namat, Iqmstr,
      &                              Jcostr, Nucstr, Nrcstr, Jstrt, 
      &                              Jrs, Expa, Nalpha, Cont, Npcoef, 
-     &                              Cord, Charge, IGenby)
+     &                              Cord, Charge, IGenby, Spherical)
 C
       Implicit Double Precision(A-H, O-Z)
 C
 #include "ecp.par"
 #include "ecp.com"
 C
+      Logical Spherical
       Character*2 mtype(Max_centers)
       Character*80 Cnick(Max_centers)
       Character*80 Ecpnam(Max_centers)
@@ -43,8 +44,10 @@ C
       Call Dzero(Ecpgrdint, Max_centers*3*Max_cbf*(Max_cbf+1)/2)
 
       Call A3_ECP_grdint_driver(Ecpgrdint, Ntotatoms, Natoms, 
-     &                          Nint, IGenby, Cord, .True.)
-
+     &                          Iloc, Isoc, IGenby, Cord, .True.,
+     &                          Spherical)
+      Nint = Iloc
+      If (SPherical) Nint = Isoc 
       Call write_ecpgrdint_2disk(Ntotatoms, Nint, Ecpgrdint)
 
       Return

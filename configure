@@ -3375,6 +3375,7 @@ done
           ac_config_files="$ac_config_files src/aces/aces_library/special_directory/nlo/Makefile"
 
           ac_config_files="$ac_config_files src/aces/aces_library/special_directory/erd/Makefile"
+          ac_config_files="$ac_config_files src/aces/aces_library/special_directory/ecp/Makefile"
 
           ac_config_files="$ac_config_files src/aces/aces_library/special_directory/direct_integral/Makefile"
 

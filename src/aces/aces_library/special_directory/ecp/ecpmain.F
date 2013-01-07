@@ -12,7 +12,7 @@ C
       Character*4 INP_Fname
       Character*4 ATMNAM(Max_centers), Namat(Max_centers)
     
-      Logical Cartesian, Grads
+      Logical Cartesian, Grads, Spherical
       Integer Angmom, Atomic_label
   
       DIMENSION WORK(Maxmem_a3)
@@ -132,7 +132,7 @@ c     Enddo
       Call A3_ECP_MAIN(Iecp, Ncenters, Namat, Iqmstr, Jcostr,
      &                 Nucstr, Nrcstr, Jstrt, Jrs, Work(Ialpha), 
      &                 Nalpha, Work(Ipcoef), Npcoef, Cord, 
-     &                 Charge, IGenby)
+     &                 Charge, IGenby, Spherical)
 
       If (Grads) Call A3_ECP_GRDINT_MAIN(Iecp, Ncenters, Namat,
      &                                   Iqmstr, Jcostr,
@@ -140,7 +140,7 @@ c     Enddo
      &                                   Jrs, Work(Ialpha),
      &                                   Nalpha, Work(Ipcoef), 
      &                                   Npcoef, Cord, Charge,
-     &                                   IGenby)
+     &                                   IGenby, Spherical)
       
       return  
       End

@@ -196,6 +196,13 @@ c------------------------------------------------------------------------
       scf_iter = ijunk(16)
       scf_hist = ijunk(20)
       scf_beg  = ijunk(40)
+
+c     Kluggy way of dealing with this VFL 1/2/2013 
+      if (scf_beg .ge. 8) then 
+         write(6,*) ' Resetting scf_beg to 2 '
+         scf_beg = 2 
+      endif 
+
       vib_freq_calc = .false. 
       if (ijunk(54) .ne. 0) vib_freq_calc = .true.
       vib_exact = .false.

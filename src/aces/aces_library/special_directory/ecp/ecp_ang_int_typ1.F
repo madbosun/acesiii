@@ -10,8 +10,8 @@ C
 #include "ecp.par"
 #include "ecp.com"
 
-      Dimension ACS_xyz(0:Maxang,3),BCS_xyz(0:Maxang,3),
-     &          Sum1_xyz(0:Maxang,3),Ang(0:2*Maxang,0:2*Maxang),
+      Dimension ACS_xyz(0:2*Maxang,3),BCS_xyz(0:2*Maxang,3),
+     &          Sum1_xyz(0:2*Maxang,3),Ang(0:2*Maxang,0:2*Maxang),
      &          Rad(0:2*Maxang,0:2*Maxang),Cint(Maxmem_a3)
 
       If (Grads) Then

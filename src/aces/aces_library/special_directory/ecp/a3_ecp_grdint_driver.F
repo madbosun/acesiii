@@ -1,5 +1,6 @@
       Subroutine A3_Ecp_grdint_driver(Ecpgrdint, Ntotatoms, Natoms, 
-     &                                Iloc, IGenby, Coord, Grads)
+     &                                Iloc, Isoc, IGenby, Coord, 
+     &                                Grads, Spherical)
 
 c----------------------------------------------------------------------
 c     Ecp_int_driver drives the calculation of 1e-matrices in the basis of
@@ -18,7 +19,7 @@ C Ecpints need to be (2*Maxang+1)**2 times the square of the
 C maximum number of contracted functions per shell (currently
 C set at 20 for ECP integrals). The current Max_cbf is 1000. 
 C
-      Logical Grads, Zero_int
+      Logical Grads, Zero_int, Spherical
 
       dimension Cint(Maxmem_a3), Ecpint_4Shell(Maxints_4shell),
      &          Ecpgrd_x(Maxints_4shell), Ecpgrd_y(Maxints_4shell), 
@@ -45,6 +46,7 @@ CSS      Nshell = 2
 #endif
 C
       Iloc   = 0
+      Isoc   = 0
       Do Icent = 1, Ntotatoms 
       do ishell = 1, Nshell
 CSSS      do ishell = 1, 1
@@ -65,6 +67,7 @@ C
 C begin loop jshell 
  
         Jloc = 0
+        Jsoc = 0
         Do Jcent = 1, Ntotatoms
         do jshell=1, Nshell
 CSSS        do jshell=1, 1
@@ -175,8 +178,9 @@ C
                         
                          Call Ecp_grdint(Ecpgrdint, Ecpgrd_X, Ecpgrd_Y,
      &                                   Ecpgrd_Z, La, Lb, Iloc, Jloc, 
-     &                                   Numcoi, Numcoj, Icent, Icnt,
-     &                                   Ntotatoms)
+     &                                   Isoc, Jsoc, Numcoi, Numcoj, 
+     &                                   Icent, Icnt, Ntotatoms,
+     &                                   Spherical)
 
                       Endif
                    Endif 
@@ -187,11 +191,13 @@ C
           Enddo        
 
           Jloc = Jloc + (Lb+1)*(Lb+2)*Numcoj/2
+          Jsoc = Jsoc + (2*Lb+1)*NUmcoj
 
         Endif 
         Enddo
         Enddo
         Iloc = Iloc + (La+1)*(La+2)*Numcoi/2
+        Isoc = Isoc + (2*La+1)*Numcoi
 
       Endif 
       Enddo 

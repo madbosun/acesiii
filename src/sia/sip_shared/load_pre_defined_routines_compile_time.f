@@ -16,11 +16,12 @@ C  in the file COPYRIGHT.
       implicit none
 
       integer dummy, load_user_sub
-
+c
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       0)
       dummy = load_user_sub('energy_denominator' // char(0),
      *                       0)
+      dummy = load_user_sub('udenominator'//char(0), 0)
       dummy = load_user_sub('energy_product' // char(0),
      *                       0)
       dummy = load_user_sub('energy_reg_denominator' // char(0),
@@ -89,30 +90,12 @@ C  in the file COPYRIGHT.
      *                       0)
       dummy = load_user_sub('scf_rhf'//char(0), 0)
       dummy = load_user_sub('array_copy'//char(0), 0)
-
       dummy = load_user_sub('energy_adenominator'//char(0),
      *                       0) 
       dummy = load_user_sub('energy_bdenominator'//char(0),
      *                       0) 
       dummy = load_user_sub('energy_abdenominator'//char(0),
      *                       0) 
-      dummy = load_user_sub('read_grad'//char(0), 0)
-      dummy = load_user_sub('udenominator'//char(0), 0)
-      dummy = load_user_sub('set_index'//char(0), 0)
-      dummy = load_user_sub('remove_single'//char(0), 0)
-      dummy = load_user_sub('remove_double'//char(0), 0)
-      dummy = load_user_sub('remove_single_double'//char(0), 
-     *                       0)
-      dummy = load_user_sub('remove_ssss'//char(0), 0)
-      dummy = load_user_sub('remove_dddd'//char(0), 0)
-      dummy = load_user_sub('remove_xsxs'//char(0), 0)
-      dummy = load_user_sub('remove_xxss'//char(0), 0)
-      dummy = load_user_sub('remove_xdxs'//char(0), 0)
-      dummy = load_user_sub('remove_xsxd'//char(0), 0)
-      dummy = load_user_sub('remove_xxsd'//char(0), 0)
-      dummy = load_user_sub('remove_xdxd'//char(0), 0)
-      dummy = load_user_sub('remove_xxdd'//char(0), 0)
-      dummy = load_user_sub('remove_xs'//char(0), 0)
       dummy = load_user_sub('remove_xd'//char(0), 0)
       dummy = load_user_sub('remove_ds'//char(0), 0)
       dummy = load_user_sub('remove_ss'//char(0), 0)
@@ -122,10 +105,10 @@ C  in the file COPYRIGHT.
       dummy = load_user_sub('remove_sd'//char(0), 0)
       dummy = load_user_sub('remove_sx'//char(0), 0)
       dummy = load_user_sub('remove_dx'//char(0), 0)
-      dummy = load_user_sub('copy_ab'//char(0), 0)
-      dummy = load_user_sub('copy_ba'//char(0), 0)
+c     dummy = load_user_sub('copy_ab'//char(0), copy_ab)
+c     dummy = load_user_sub('copy_ba'//char(0), copy_ba)
       dummy = load_user_sub('copy_ff'//char(0), 0)
-      dummy = load_user_sub('open_amp'//char(0), 0)
+c     dummy = load_user_sub('open_amp'//char(0), open_amp)
       dummy = load_user_sub('dump_amp'//char(0), 0)
       dummy = load_user_sub('comp_ovl3c'//char(0), 0)
       dummy = load_user_sub('check_dconf'//char(0), 0)
@@ -188,8 +171,8 @@ C  in the file COPYRIGHT.
       dummy = load_user_sub('eomroot_print'//char(0), 0)
       dummy = load_user_sub('eomroot_print_new'//char(0), 
      *                       0)
-      dummy = load_user_sub('smooth'//char(0), 0)
-      dummy = load_user_sub('smooth4'//char(0), 0)
+c     dummy = load_user_sub('smooth'//char(0), smooth)
+c     dummy = load_user_sub('smooth4'//char(0), smooth4)
       dummy = load_user_sub('eig_nonsymm'//char(0),
      *                       0)
       dummy = load_user_sub('apply_den2'//char(0), 0)
@@ -200,18 +183,18 @@ C  in the file COPYRIGHT.
       dummy = load_user_sub('energy_tdenominator'//char(0),
      *                       0)
       
-      dummy = load_user_sub('compute_aaaa_batch'//char(0),
-     *                       0)
-      dummy = load_user_sub('compute_aaab_batch'//char(0),
-     *                       0)
+c     dummy = load_user_sub('compute_aaaa_batch'//char(0),
+c    *                       compute_aaaa_batch)
+c     dummy = load_user_sub('compute_aaab_batch'//char(0),
+c    *                       compute_aaab_batch)
       dummy = load_user_sub('compute_aabb_batch'//char(0),
      *                       0)
-      dummy = load_user_sub('compute_aabc_batch'//char(0),
-     *                       0)
-      dummy = load_user_sub('compute_abab_batch'//char(0),
-     *                       0)
-      dummy = load_user_sub('compute_abac_batch'//char(0),
-     *                       0)
+c     dummy = load_user_sub('compute_aabc_batch'//char(0),
+c    *                       compute_aabc_batch)
+c     dummy = load_user_sub('compute_abab_batch'//char(0),
+c    *                       compute_abab_batch)
+c     dummy = load_user_sub('compute_abac_batch'//char(0),
+c    *                       compute_abac_batch)
       dummy = load_user_sub('compute_abcd_batch'//char(0),
      *                       0)
       dummy = load_user_sub('compute_no4c_batch'//char(0),
@@ -344,11 +327,12 @@ c
       dummy = load_user_sub('asymm_force_a'//char(0), 0)
       dummy = load_user_sub('asymm_force_i'//char(0), 0)
       dummy = load_user_sub('symm_force_ij'//char(0), 0)
-      dummy = load_user_sub('return_h1_nodiag'//char(0), 0)
+      dummy = load_user_sub('return_h1_nodiag'//char(0),
+     *                       0)
 c
-c -------------------------------------------------------------------- 
+c --------------------------------------------------------------------
 c Watson instruction needed to write out density
-c -------------------------------------------------------------------- 
+c --------------------------------------------------------------------
 c
       dummy = load_user_sub('dens2jobarc'//char(0), 0)
       dummy = load_user_sub('change_occ_dens'//char(0), 0)
@@ -356,14 +340,15 @@ c
       dummy = load_user_sub('add_scal2diag'//char(0), 0)
       dummy = load_user_sub('calc_trace'//char(0), 0)
       dummy = load_user_sub('v_nuc_nuc'//char(0), 0)
-c      dummy = load_user_sub('vccs_change_x'//char(0), 0)
+c      dummy = load_user_sub('vccs_change_x'//char(0), vccs_change_x)
       dummy = load_user_sub('write_coefficients'//char(0),
      +                       0)
       dummy = load_user_sub('read_coefficients'//char(0),
      +                       0)
       dummy = load_user_sub('scf_atom_coeff'//char(0), 0)
+c
+c --------------------------------------------------------------------
 
-c -------------------------------------------------------------------- 
 
 
       return
