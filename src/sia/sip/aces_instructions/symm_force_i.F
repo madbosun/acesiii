@@ -146,8 +146,8 @@ c---------------------------------------------------------------------------
       double precision val
 
 c
-      go to 30 
-      if (atype .eq. btype .and. itype .eq. jtype) then 
+c     go to 30 
+c     if (atype .eq. btype .and. itype .eq. jtype) then 
       do b = b1,b2
       do a = a1,a2
          do j = j1,j2
@@ -173,7 +173,7 @@ c
          enddo
       enddo
       enddo
-      endif 
+c     endif 
 30    continue 
 c
       return

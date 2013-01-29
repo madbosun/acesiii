@@ -150,12 +150,10 @@ C
       CALL OUTPUT(vib_vectors, 1, Nx, 1, Nxm6, Nx, Nxm6, 1)
       Write(6,*)
 C
-C#ifdef _DEBUG_LVLM1
-      Write(6,*) "Check for the sign convention using C3H3+"
-      Write(6,*) "Reverse the natural sign of modes 3-11" 
-CSS      Call Dscal(NX, -1.0D0, vib_vectors(4*Nx +1), 1)
-      Call Dscal(9*NX, -1.0D0, vib_vectors(2*Nx +1), 1)
-
+#ifdef _DEBUG_LVLM1
+      Write(6,*) "Check for the sign convention using CH3+"
+      Write(6,*) "Reverse the natural sign of mode 5" 
+      Call Dscal(NX, -1.0D0, vib_vectors(4*Nx +1), 1)
       Call Header("The Normal modes with revese sign", -1, 6)
       CALL OUTPUT(vib_vectors, 1, Nx, 1, Nxm6, Nx, Nxm6, 1)
       Write(6,*)
@@ -163,7 +161,7 @@ CSS      Call Dscal(NX, -1.0D0, vib_vectors(4*Nx +1), 1)
       Call Xgemm("T", "N", NXM6, NXM6, NX, 1.0D0, vib_vectors, NX,
      &            Vib_vectors, NX, 0.0D0, Vectors, NX)
       CALL OUTPUT(vectors, 1, Nxm6, 1, Nxm6, Nx, Nx, 1)
-C#endif
+#endif
 
       Call Header("The vibrational frequencies in cm^-1", -1, 6)
 C

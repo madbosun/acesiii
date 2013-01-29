@@ -45,7 +45,7 @@ C
       ISHLOFF_TMP  = IPRMFUNTSHL  + NATOMS*MAXSHELL  
       ISHLOFF      = ISHLOFF_TMP  + NATOMS
       IREORD       = ISHLOFF      + NATOMS
-      IEND1        = IREORD       + NBASP
+      IEND1        = IREORD       + NBAS
 C    
       IF (IEND1 .GE. MAXCOR) CALL INSMEM('P4_DEN_PLOTS', IEND1,
      &                                    MAXCOR)
@@ -73,7 +73,7 @@ C
      &                        ICORE(IOFFSETCON),ICORE(IOFFSETSHL),
      &                        ICORE(ISHLOFF_TMP),ICORE(ISHLOFF),
      &                        ICORE(IREORD),MAXSHELL,NUNQSHL,
-     &                        NTOTSHL,IATMCHRG,NBASP)
+     &                        NTOTSHL,IATMCHRG,NBAS)
 C
       NMOMFCT  = IEND1 
       NMOMAO   = NMOMFCT  + NATOMS*NTANGM 

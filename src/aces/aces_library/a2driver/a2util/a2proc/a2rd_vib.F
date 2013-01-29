@@ -132,7 +132,7 @@ C
 C Scale coordinates to bohr from angstrom, do not know what
 C this is at the moment, Ajith Perera, 04/2011
 C
-CSSS        call dscal(3*natoms,angtob,coord,1)
+CSSSS        call dscal(3*natoms,angtob,coord,1)
         close(unit=5,status='KEEP')
 C
       Endif

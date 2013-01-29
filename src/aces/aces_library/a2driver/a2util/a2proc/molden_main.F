@@ -85,6 +85,16 @@ c
 c--------------------------------------------------------------------------
 c basis set
 c
+      call getrec(0,'JOBARC','SCFENEG ',Ilength,Ijunk)
+      If (Ilength .LE. 0) Then
+         if (iunit.ne.6) then
+             write(iunit,*)
+             close(iunit)
+             print *, '@MOLDEN_MAIN: successfully created ',szFile
+         end if
+         Return
+      Endif
+
       write(iunit,'(a)')'[GTO]'
 
       iexp=inext 
@@ -153,12 +163,16 @@ CSSS        WRITE (*,*) 'DLABEL - ', DLABEL, LNAT_ORBS
            iener=inext
            iocc=iener+nmo*iintfp
            iorb=iocc+nmo+mod(nmo,2)
-           inext=iorb+nao*nmo*iintfp
-
+           iorbr=iorb+nao*nmo*iintfp
+           imom =iorbr+nao*iintfp
+           inext=imom+nao
+           
            if(inext-i0.gt.maxcor)call insmem('rdorb-f',inext-i0,maxcor)
 
            call molden_rdorb(icore(iener),icore(iocc),icore(iorb),
-     &       icore(inext),nao,nmo,maxcor-(inext-i0),iuhf,iexx,iunit)
+     &          icore(iorbr),icore(imom),icore(inext),nao,nmo,
+     &          maxcor-(inext-i0),iuhf,iexx,iunit)
+
         ELSE
            iener=inext
            iocc=iener+nmo*iintfp

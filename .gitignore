@@ -1,0 +1,7 @@
+*.a
+*.o
+*.sio
+xaces3
+./bin/
+./lib/
+

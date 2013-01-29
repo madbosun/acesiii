@@ -150,9 +150,9 @@ C
          Ibwd_4shell(Iatm,Ihigh(Iatm))=Ispdfgh_4atm(Iatm,Ihigh(Iatm)) 
          Ibwd_4prims(Iatm,Ihigh(Iatm))= Inprims_4atm(Iatm,Ihigh(Iatm))
          Do Jshell = Ihigh(Iatm)-1, 1, -1
-            Ibwd_4shell(Iatm,Jshell) = Ibwd_4shell(Iatm,Jshell+1) +  
+            Ibwd_4shell(Iatm,Jshell) = Ibwd_4shell(Iatm,Jshell+1) 
      &                                  + Ispdfgh_4atm(Iatm,Jshell)
-            Ibwd_4prims(Iatm,Jshell) = Ibwd_4prims(Iatm,Jshell+1) +
+            Ibwd_4prims(Iatm,Jshell) = Ibwd_4prims(Iatm,Jshell+1) 
      &                                  + Inprims_4atm(Iatm,Jshell)
          Enddo
 C

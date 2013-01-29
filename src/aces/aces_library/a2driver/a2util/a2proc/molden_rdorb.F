@@ -1,14 +1,15 @@
-      subroutine molden_rdorb(ener,iocc,orb,scr,nao,nmo,maxcor,iuhf,
-     &                        iexx,iunit)
+      subroutine molden_rdorb(ener,iocc,orb,orb_r,iang,scr,nao,nmo,
+     &                        maxcor,iuhf,iexx,iunit)
 c-----------------------------------------------------------------------
       implicit double precision (a-h,o-z)
-      double precision ener(nmo),orb(nao,nmo),scr(maxcor)
+      double precision ener(nmo),orb(nao,nmo),scr(maxcor),
+     &                 orb_r(nao)
       character*8 cscfener(2)
       character*8 cscforb(2)
       character*8 cexxcoef(2)
       character*8 cnumdrop(2)
       character*5 sptype(2)
-      integer iocc(nmo)
+      integer iocc(nmo), iang(nao)
       integer  idrppop(8),idrpvrt(8)
 
 #include "machsp.com"
@@ -156,9 +157,17 @@ C
 100       format(A)
           write(iunit,110)'  Occup=   ',iocc(imo),'.000000'
 110       format(A,I1,A)
+C
+C Reorder the F functions (perhaps g too ..), Peter Szalay identified
+C the problem and proivided the reorder routines. 
+C Ajith Perera, 06/2011.
+C
+          call getrec(-1, 'JOBARC', 'ANMOMBF0', nao, iang)
+          call reorder(orb(1, imo), orb_r, iang, nao)
           do 120 iao=1,nao
-            write(iunit,130)iao,'  ',orb(iao,imo)
-130         format(I4,A,F9.6)
+CSSS             write(iunit,130)iao,'  ',orb(iao,imo)
+            write(iunit,130)iao,'  ',orb_r(iao)
+130         format(I4,A,F12.6)
 120       continue
 80      continue 
 10    continue

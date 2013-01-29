@@ -28,7 +28,7 @@ C
 
          Else if (iang(index) .EQ. 3) Then
 c
-c handle d functions 
+c handle f functions 
 
              vecout(index)   = Vecin(index)
              vecout(index+1) = Vecin(index+6)
@@ -42,11 +42,12 @@ c handle d functions
              vecout(index+9) = Vecin(index+4)
              Index = Index + 10
          
-         Else if (iang(index) .gt. 4) Then
+         Else if (iang(index) .ge. 4) Then
           
-             Write(6, "(a,a)") "MOLDEN display of orbitals for",
-     &                         "angluar momentum higher",
-     &                         " than f functions are incorrect."
+             Write(6, "(a,a,a)") " MOLDEN display of orbitals for",
+     &                           " angluar momentum higher",
+     &                           " than f functions are incorrect."  
+             Return
          Endif
 C
       Enddo
