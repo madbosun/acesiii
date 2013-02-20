@@ -3,47 +3,36 @@ IGNORE_DROPMO=YES
 
 scf_uhf_init_aguess.sio 
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_uhf_ainit_aguess.sio 
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_uhf_binit_aguess.sio 
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_uhf_finish_aguess.sio 
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_uhf_aguess.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_rhf_aguess.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_rhf_coreh.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_uhf_coreh.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_uhf_aguess_opt.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_rhf_aguess_opt.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_aguess.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES 
 
 scf_test.sio
 IGNORE_DROPMO=YES

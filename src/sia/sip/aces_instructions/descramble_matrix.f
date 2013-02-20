@@ -103,11 +103,12 @@ c--------------------------------------------------------------------------
 
          enddo
 
-         do i = 1, na 
-         do j = 1, na 
-            write(6,*) i, j, mat(i,j)  
-         enddo 
-         enddo 
+C Commented, Ajith Perera, 2/2013
+CSSS         do i = 1, na 
+CSSS         do j = 1, na 
+CSSS            write(6,*) i, j, mat(i,j)  
+CSSS         enddo 
+CSSS         enddo 
 
       endif
 

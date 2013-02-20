@@ -35536,7 +35536,7 @@
 #
          LOGRIGHT = ONE
 
-        #CALL  PUT_IN_Lk                      # This one puts in LAMBDA
+         CALL  PUT_IN_Lk                      # This one puts in LAMBDA
          R0 = OLD_R0
          LRNORM = RNORM
          CALL  COMPUTE_DENSITY
@@ -35566,7 +35566,7 @@
          LOGRIGHT = ZERO
          R0       = 1.0
 
-         CALL  PUT_IN_Lk # Put in the current L vector
+#         CALL  PUT_IN_Lk # Put in the current L vector
          CALL  COMP_L_NORM
          EXECUTE  PRINT_SCALAR  RNORM
          EXECUTE  PRINT_SCALAR  LNORM

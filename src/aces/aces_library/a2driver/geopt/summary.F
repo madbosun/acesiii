@@ -216,7 +216,8 @@ c         o print out the Cartesian coordinate matrix (broken)
        write(6,*)
        write(66,*)
 C 
-            CALL DGETREC(20, 'JOBARC', 'COORD_OP',3*NATOMS, Q)
+            If (NCYCLE .GT. 1)
+     &      CALL DGETREC(20, 'JOBARC', 'COORD_OP',3*NATOMS, Q)
 C
             IOFF=1
             CNF=0.529177249D0
@@ -288,7 +289,8 @@ c    o print out the Cartesian coordinate matrix (broken)
             write(6,*) 
             write(66,*) 
 C      
-            CALL DGETREC(20, 'JOBARC', 'COORD_OP',3*NATOMS, Q)
+            IF (NCYCLE .GT. 1) 
+     &      CALL DGETREC(20, 'JOBARC', 'COORD_OP',3*NATOMS, Q)
 C           
             IOFF=1
             CNF = 0.529177249D0

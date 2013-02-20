@@ -6256,6 +6256,9 @@
       COLLECTIVE  LNORM += esum
 
       EXECUTE SIP_BARRIER
+
+      execute print_scalar etemp
+
       LNORM *= RNORM
       etemp = LNORM
       LNORM = 1.0 / etemp
