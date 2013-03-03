@@ -348,7 +348,9 @@ c      dummy = load_user_sub('vccs_change_x'//char(0), vccs_change_x)
       dummy = load_user_sub('scf_atom_coeff'//char(0), 0)
 c
 c --------------------------------------------------------------------
+C Ajith Perera, miscellaneous developments. 
 
+      dummy = load_user_sub('sum_2d_array'//char(0), 0)
 
 
       return

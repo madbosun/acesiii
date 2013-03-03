@@ -159,7 +159,7 @@
       local lbiaj2(b,i,a,j)
       local laibb (a,i,b,b1)
       local lbaib (b,a,i,b1)
-      local lbaij (b,a,i,j)
+      local lbaij (b,a,i,j1)
       local laiai4 (a,i2,a1,i)
       local laiai5 (a,i2,a1,i)
       local lbjbj4 (b,j2,b1,j)
@@ -338,14 +338,17 @@
       local Lxxbj(mu,nu,b,j)
       local Lxabj(mu,a,b,j)
       local Laabj(a1,a,b,j)
+      local L1aabj(a,a1,b,j)
       local Lxxxi(mu,lambda,nu,i)
       local Lxxai(mu,nu,a,i)
       local Lxbai(mu,b,a,i)
       local Lbbai(b1,b,a,i)
       local Lxaai(mu,a1,a,i)
       local Laaai(a2,a1,a,i)
+      local l1aaai (a,a2,a1,i1) 
       local Lxbbj(mu,b1,b,j)
       local Lbbbj(b2,b1,b,j)
+      local l1bbbj (b,b2,b1,j1)
       local Xbbbj(b,b2,b1,j) 
       temp tmxxxj(mu,lambda,nu,j)
       temp t1mxxxj(mu,lambda,nu,j)
@@ -1001,11 +1004,13 @@
       local Liibj(i1,i,b,j)
       local L2iibj(i1,i,b,j)
       local L1iibj(i,i1,b,j)
-      local Laiai(a1,i,a2,i1)
+      local Laiai(a,i,a1,i1)
+      local l1aiai (a,i2,a1,i1) 
       local L2aiai(a,i2,a1,i3)
       local Laiii(a1,i2,i,i1)
       local Laibj(a1,i,b,j)
-      local Lbjbj(b1,j,b2,j1)
+      local Lbjbj(b,j,b1,j1)
+      local l1bjbj (b,j2,b1,j1) 
       local L2bjbj(b,j,b2,j1)
       local L3bjbj(b,j,b2,j2)
       local VAL(jindex,kindex)
@@ -8876,7 +8881,7 @@
       PARDO  a, i
          GET         VCHACT1A (a,i)
          tai (a,i) = VCHACT1A (a,i)
-         EXECUTE  DUMP_AMP  tai
+        #EXECUTE  DUMP_AMP  tai
       ENDPARDO  a, i
       EXECUTE  SIP_BARRIER
       EXECUTE  SERVER_BARRIER
@@ -8884,7 +8889,7 @@
       PARDO  b, j
          GET         VCHACT1B (b,j)
          tbj (b,j) = VCHACT1B (b,j)
-         EXECUTE  DUMP_AMP  tbj
+        #EXECUTE  DUMP_AMP  tbj
       ENDPARDO  b, j
       EXECUTE  SIP_BARRIER
       EXECUTE  SERVER_BARRIER
@@ -8915,7 +8920,7 @@
 
          REQUEST              VCHACT2AA (a,i,a1,i1) i1
          taiai (a,i,a1,i1)  = VCHACT2AA (a,i,a1,i1)
-         EXECUTE  DUMP_AMP  taiai
+        #EXECUTE  DUMP_AMP  taiai
 
       ENDPARDO  a, i, a1, i1
       EXECUTE  SERVER_BARRIER
@@ -8946,7 +8951,7 @@
          
          REQUEST              VCHACT2BB (b,j,b1,j1) j1
          tbjbj (b,j,b1,j1)  = VCHACT2BB (b,j,b1,j1)
-         EXECUTE  DUMP_AMP  tbjbj
+        #EXECUTE  DUMP_AMP  tbjbj
       
       ENDPARDO  b, j, b1, j1
       EXECUTE  SERVER_BARRIER
@@ -8977,7 +8982,7 @@
 
          REQUEST              VCHACT2AB (a,i,b,j) j 
          taibj (a,i,b,j)   =  VCHACT2AB (a,i,b,j)
-         EXECUTE  DUMP_AMP  taibj
+        #EXECUTE  DUMP_AMP  taibj
 
       ENDPARDO  a, i, b, j
       EXECUTE  SERVER_BARRIER
@@ -9268,36 +9273,30 @@
 #
 #
 #
-      PARDO  a1, b, j
-
-         ALLOCATE  laabj (*,a1,b,j)
+      PARDO  b, j, a1 
 
          DO a
             REQUEST            HBAR_AIBC_aabb (a1,a,j,b) a
-            laabj (a,a1,b,j) = HBAR_AIBC_aabb (a1,a,j,b)
-         ENDDO a
+            tppqq (a,a1,b,j) = HBAR_AIBC_aabb (a1,a,j,b)
 
          DO i
             REQUEST  VCACT2AB (a1,i,b,j) j
             REQUEST  Vpiqj    (a1,i,b,j) j
             GET      VCACT1A  (a1,i)
-            DO a
-               t1aibj (a,i,b,j)  = laabj (a,a1,b,j) * VCACT1A (a1,i)
-               taibj  (a,i,b,j)  = t1aibj (a,i,b,j)
+            t1aibj (a,i,b,j)  = tppqq (a,a1,b,j) * VCACT1A (a1,i)
+            taibj  (a,i,b,j)  = t1aibj (a,i,b,j)
 
-               t1aibj (a,i,b,j)  = LHBAR_aa (a1,a) * VCACT2AB (a1,i,b,j)
-               taibj  (a,i,b,j) += t1aibj (a,i,b,j)
+            t1aibj (a,i,b,j)  = LHBAR_aa (a1,a) * VCACT2AB (a1,i,b,j)
+            taibj  (a,i,b,j) += t1aibj (a,i,b,j)
 
-               t1aibj (a,i,b,j)  = Vpiqj (a1,i,b,j) * LFae_a (a1,a)
-               taibj  (a,i,b,j) += t1aibj (a,i,b,j)
+            t1aibj (a,i,b,j)  = Vpiqj (a1,i,b,j) * LFae_a (a1,a)
+            taibj  (a,i,b,j) += t1aibj (a,i,b,j)
 
-               PREPARE  VCHACT2AB (a,i,b,j) += taibj (a,i,b,j)
-            ENDDO a
+            PREPARE  VCHACT2AB (a,i,b,j) += taibj (a,i,b,j)
          ENDDO i
+         ENDDO a
 
-         DEALLOCATE  laabj (*,a1,b,j)
-
-      ENDPARDO  a1, b, j
+      ENDPARDO  b, j, a1 
 #
 #
 #           __    __            __          
@@ -9313,7 +9312,8 @@
 
          DO b
             REQUEST            HBAR_AIBC_bbaa (b1,b,i,a) b
-            laibb (a,i,b,b1) = HBAR_AIBC_bbaa (b1,b,i,a)
+            tppqq (a,i,b,b1) = HBAR_AIBC_bbaa (b1,b,i,a)
+            laibb (a,i,b,b1) = tppqq (a,i,b,b1)
          ENDDO b
 
          DO j
@@ -9352,7 +9352,8 @@
 
          DO i
             REQUEST            HBAR_JKIA_aabb (i,i1,j,b) i
-            liibj (i1,i,b,j) = HBAR_JKIA_aabb (i,i1,j,b)
+            tppqq (i1,i,b,j) = HBAR_JKIA_aabb (i,i1,j,b)
+            liibj (i1,i,b,j) = tppqq (i1,i,b,j)
          ENDDO i
 
          DO a
@@ -9392,7 +9393,8 @@
 
          DO j
             REQUEST  HBAR_JKIA_bbaa (j,j1,i,a) j
-            laijj (a,i,j1,j) = HBAR_JKIA_bbaa (j,j1,i,a)
+            tppqq (a,i,j1,j) = HBAR_JKIA_bbaa (j,j1,i,a)
+            laijj (a,i,j1,j) = tppqq (a,i,j1,j)
          ENDDO j
 
          DO b
@@ -9967,24 +9969,24 @@
 #
       PARDO  i1, a1, a2
 
-         ALLOCATE  laaai (*,a2,a1,i1)
+         ALLOCATE  l1aaai (*,a2,a1,i1)
             
          DO a
             REQUEST              HBAR_ABCI_aaaa (a2,a,a1,i1) a
-            laaai (a,a2,a1,i1) = HBAR_ABCI_aaaa (a2,a,a1,i1)
+            l1aaai (a,a2,a1,i1) = HBAR_ABCI_aaaa (a2,a,a1,i1)
          ENDDO a
             
          DO i
             REQUEST              VCACT2AA (a2,i,a1,i1) i
             taaii (a2,a1,i1,i) = VCACT2AA (a2,i,a1,i1)
             DO a
-               tai (a,i)  = laaai (a,a2,a1,i1) * taaii (a2,a1,i1,i)
+               tai (a,i)  = l1aaai (a,a2,a1,i1) * taaii (a2,a1,i1,i)
                tai (a,i) *= 0.5
                PUT  VCHACT1A (a,i) += tai (a,i)
             ENDDO a
          ENDDO i
 
-         DEALLOCATE  laaai (*,a2,a1,i1)
+         DEALLOCATE  l1aaai (*,a2,a1,i1)
 
       ENDPARDO  i1, a1, a2
 #
@@ -9994,23 +9996,23 @@
 #
       PARDO  a1, b, j
 
-         ALLOCATE  laabj (*,a1,b,j)
+         ALLOCATE  l1aabj (*,a1,b,j)
 
          DO a
             REQUEST            HBAR_ABCI_aabb (a1,a,b,j) a
-            laabj (a,a1,b,j) = HBAR_ABCI_aabb (a1,a,b,j)
+            l1aabj (a,a1,b,j) = HBAR_ABCI_aabb (a1,a,b,j)
          ENDDO a
 
          DO i
             REQUEST            VCACT2AB (a1,i,b,j) i
             tpqqp (a1,b,j,i) = VCACT2AB (a1,i,b,j)
             DO a
-               tai (a,i)  = laabj (a,a1,b,j) * tpqqp (a1,b,j,i)
+               tai (a,i)  = l1aabj (a,a1,b,j) * tpqqp (a1,b,j,i)
                PUT  VCHACT1A (a,i) += tai (a,i)
             ENDDO a
          ENDDO i
 
-         DEALLOCATE  laabj (*,a1,b,j)
+         DEALLOCATE  l1aabj (*,a1,b,j)
 
       ENDPARDO  a1, b, j
 #           
@@ -10025,24 +10027,24 @@
 #
       PARDO  i1, i2, a1
 
-         ALLOCATE  laiai (*,i2,a1,i1)
+         ALLOCATE  l1aiai (*,i2,a1,i1)
 
          DO a
             REQUEST              VCACT2AA (a,i2,a1,i1) a
-            laiai (a,i2,a1,i1) = VCACT2AA (a,i2,a1,i1)
+            l1aiai (a,i2,a1,i1) = VCACT2AA (a,i2,a1,i1)
          ENDDO a
 
          DO i
             REQUEST              HBAR_IAJK_aaaa (i,i2,a1,i1) i
             tpppp (i2,a1,i1,i) = HBAR_IAJK_aaaa (i,i2,a1,i1)
             DO a
-               tai (a,i)  = laiai (a,i2,a1,i1) * tpppp (i2,a1,i1,i)
+               tai (a,i)  = l1aiai (a,i2,a1,i1) * tpppp (i2,a1,i1,i)
                tai (a,i) *= -0.5
                PUT  VCHACT1A (a,i) += tai (a,i)
             ENDDO a
          ENDDO i
 
-         DEALLOCATE  laiai (*,i2,a1,i1)
+         DEALLOCATE  l1aiai (*,i2,a1,i1)
 
       ENDPARDO  i1, i2, a1
 #
@@ -10229,24 +10231,24 @@
 #
       PARDO  j1, b1, b2
 
-         ALLOCATE  lbbbj (*,b2,b1,j1)
+         ALLOCATE  l1bbbj (*,b2,b1,j1)
 
          DO b
             REQUEST              HBAR_ABCI_bbbb (b2,b,b1,j1) b
-            lbbbj (b,b2,b1,j1) = HBAR_ABCI_bbbb (b2,b,b1,j1)
+            l1bbbj (b,b2,b1,j1) = HBAR_ABCI_bbbb (b2,b,b1,j1)
          ENDDO b
 
          DO j
             REQUEST              VCACT2BB (b2,j,b1,j1) j
             tbbjj (b2,b1,j1,j) = VCACT2BB (b2,j,b1,j1)
             DO b
-               tbj (b,j)  = lbbbj (b,b2,b1,j1) * tbbjj (b2,b1,j1,j)
+               tbj (b,j)  = l1bbbj (b,b2,b1,j1) * tbbjj (b2,b1,j1,j)
                tbj (b,j) *= 0.5
                PUT  VCHACT1B (b,j) += tbj (b,j)
             ENDDO b
          ENDDO j
 
-         DEALLOCATE  lbbbj (*,b2,b1,j1)
+         DEALLOCATE  l1bbbj (*,b2,b1,j1)
 
       ENDPARDO  j1, b1, b2
 #
@@ -10286,24 +10288,24 @@
 #
       PARDO  j1, j2, b1
 
-         ALLOCATE  lbjbj (*,j2,b1,j1)
+         ALLOCATE  l1bjbj (*,j2,b1,j1)
 
          DO b
             REQUEST              VCACT2BB (b,j2,b1,j1) b
-            lbjbj (b,j2,b1,j1) = VCACT2BB (b,j2,b1,j1)
+            l1bjbj (b,j2,b1,j1) = VCACT2BB (b,j2,b1,j1)
          ENDDO b
 
          DO j
             REQUEST              HBAR_IAJK_bbbb (j,j2,b1,j1) j
             tjbjj (j2,b1,j1,j) = HBAR_IAJK_bbbb (j,j2,b1,j1)
             DO b
-               tbj (b,j)  = lbjbj (b,j2,b1,j1) * tjbjj (j2,b1,j1,j)
+               tbj (b,j)  = l1bjbj (b,j2,b1,j1) * tjbjj (j2,b1,j1,j)
                tbj (b,j) *= -0.5
                PUT  VCHACT1B (b,j) += tbj (b,j)
             ENDDO b
          ENDDO j
 
-         DEALLOCATE  lbjbj (*,j2,b1,j1)
+         DEALLOCATE  l1bjbj (*,j2,b1,j1)
 
       ENDPARDO  j1, j2, b1
 #
@@ -35566,7 +35568,7 @@
          LOGRIGHT = ZERO
          R0       = 1.0
 
-#         CALL  PUT_IN_Lk # Put in the current L vector
+         CALL  PUT_IN_Lk # Put in the current L vector
          CALL  COMP_L_NORM
          EXECUTE  PRINT_SCALAR  RNORM
          EXECUTE  PRINT_SCALAR  LNORM
@@ -36085,7 +36087,7 @@
 # Read data from BLOCK_DATA -> to be partially replaced 
 #
 #
-      ZERO = 0.0
+      zERO = 0.0
       create HBAR_aa
       create HBAR_bb
       create HBAR_ii

@@ -211,7 +211,11 @@ c
       external add_scal2diag,calc_trace,v_nuc_nuc,vccs_change_x
       external write_coefficients,read_coefficients
       external scf_atom_coeff
-c
+c--------------------------------------------------------------------
+c Ajith Perera, miscellaneous developments.
+c-------------------------------------------------------------------
+      external sum_2d_array
+c-------------------------------------------------------------------
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
       dummy = load_user_sub('energy_denominator' // char(0),
@@ -631,6 +635,10 @@ c      dummy = load_user_sub('vccs_change_x'//char(0), vccs_change_x)
       dummy = load_user_sub('scf_atom_coeff'//char(0), scf_atom_coeff)
 c
 c -------------------------------------------------------------------- 
+c Ajith Perera, miscellaneous developments.
+c-------------------------------------------------------------------
+      dummy = load_user_sub('sum_2d_array'//char(0), sum_2d_array)
+      call set_upgrade_flag(dummy)
 
       return
       end

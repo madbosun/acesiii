@@ -1,7 +1,11 @@
 *.a
 *.o
 *.sio
+out*
+tmp*
 xaces3
 ./bin/
-./lib/
+./bin_stable/
+./lib
+./lib_stable/
 

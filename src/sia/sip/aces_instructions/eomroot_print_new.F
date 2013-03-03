@@ -37,6 +37,7 @@ c--------------------------------------------------------------------------
       include 'interpreter.h'
       include 'parallel_info.h'
       include 'trace.h'
+      include 'int_gen_parms.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -114,7 +115,10 @@ c---------------------------------------------------------------------------
       iarray = get_index_from_base(address_table(array), x, 2)
       ievec  = get_index_from_base(address_table(evec_array), x, 2)
 
-      n = index_table(c_index_size, ind(1))  ! pick up length of index
+CSSS   n = index_table(c_index_size, ind(1))  ! pick up length of index
+C Print exactly the number of roots requested in the input
+
+      n = Int(eom_roots)
       call doeomroot_print_new(x(iarray), x(ievec), n)
 
       return
