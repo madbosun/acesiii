@@ -212,6 +212,13 @@ c
       external write_coefficients,read_coefficients
       external scf_atom_coeff
 c
+c -------------------------------------------------------------------- 
+c Instructions needed in the CCSD(T) gradient and ecpgradient   
+c --------------------------------------------------------------------
+c
+      external index_match 
+      external ecp_dercont 
+c
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
       dummy = load_user_sub('energy_denominator' // char(0),
@@ -409,7 +416,6 @@ c     dummy = load_user_sub('open_amp'//char(0), open_amp)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dea'//char(0),
      *                                      place_one_dea)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dea_2'//char(0),
      *                                      place_one_dea_2)
       call set_upgrade_flag(dummy) 
@@ -631,6 +637,12 @@ c      dummy = load_user_sub('vccs_change_x'//char(0), vccs_change_x)
       dummy = load_user_sub('scf_atom_coeff'//char(0), scf_atom_coeff)
 c
 c -------------------------------------------------------------------- 
+c Instructions needed in the CCSD(T) gradient and ecpgradient   
+c --------------------------------------------------------------------
+c
+      dummy = load_user_sub('index_match'//char(0), index_match)
+      dummy = load_user_sub('ecp_dercont'//char(0), ecp_dercont)
+c
 
       return
       end

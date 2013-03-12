@@ -637,6 +637,9 @@
       local LDxx_b(mu,nu)
       local Lb(q,mu) 
 #
+      local Lxxxi(mu,nu,lambda,i) 
+      local Lxxxj(mu,nu,lambda,j) 
+#
 # Declare temporary arrays. 
 # ------------------------- 
 #
@@ -16346,363 +16349,20 @@
 #     Compute integrals and perform first two stages of the transformation.
 #     ---------------------------------------------------------------------
 #
-      PARDO mu, nu, lambda, sigma
-#
-            WHERE mu     < nu
-            WHERE lambda < sigma
-#
-#              Get the HF density arrays 
-#              ------------------------- 
-#
-              #GET                   Dhfa(lambda,sigma)
-              #GET                   Dhfb(lambda,sigma)
-              #GET                   Dhfa(lambda,nu)
-              #GET                   Dhfb(lambda,nu)
-              #GET                   Dhfa(sigma,nu)
-              #GET                   Dhfb(sigma,nu)
-              #GET                   Dhfa(lambda,mu)
-              #GET                   Dhfb(lambda,mu)
-              #GET                   Dhfa(sigma,mu)
-              #GET                   Dhfb(sigma,mu)
-#
-#              Compute the derivative integrals 
-#              -------------------------------- 
-# 
+      PARDO mu, nu, lambda
+         allocate Lxxxi(mu,nu,lambda,*) 
+         allocate Lxxxj(mu,nu,lambda,*) 
+
+         DO sigma  
                execute der2_comp saoint(mu,nu,lambda,sigma)
-#
-#              Perform first two stages of transformation 
-#              ------------------------------------------- 
-#
                DO i
-#
                   V0xxxi(mu,nu,lambda,i) = saoint(mu,nu,lambda,sigma)*ca(sigma,i)
-                  V2xxxi(mu,nu,sigma,i)  = saoint(mu,nu,lambda,sigma)*ca(lambda,i)
-#
-                  DO i1
-#
-                     Txixi(mu,i1,lambda,i)          = V0xxxi(mu,nu,lambda,i)*ca(nu,i1)
-                     prepare VXxixi(mu,i1,lambda,i) += Txixi(mu,i1,lambda,i)
-#
-                     T1xixi(mu,i1,sigma,i)          = V2xxxi(mu,nu,sigma,i)*ca(nu,i1)
-                     prepare VXxixi(mu,i1,sigma,i)  += T1xixi(mu,i1,sigma,i)
-#
-                  ENDDO i1 #
-#
-                  DO i1
-#
-                     Txixi(nu,i1,lambda,i)          = V0xxxi(mu,nu,lambda,i)*ca(mu,i1)
-                     prepare VXxixi(nu,i1,lambda,i) += Txixi(nu,i1,lambda,i)
-#
-                     T1xixi(nu,i1,sigma,i)          = V2xxxi(mu,nu,sigma,i)*ca(mu,i1)
-                     prepare VXxixi(nu,i1,sigma,i)  += T1xixi(nu,i1,sigma,i)
-#
-                  ENDDO i1
-#
-               ENDDO i
+                  Lxxxi(mu,nu,lambda,i) += V0xxxi(mu,nu,lambda,i) 
+               ENDDO i 
 #
                DO j
-#
                   V0xxxj(mu,nu,lambda,j) = saoint(mu,nu,lambda,sigma)*cb(sigma,j)
-                  V2xxxj(mu,nu,sigma,j)  = saoint(mu,nu,lambda,sigma)*cb(lambda,j)
-#
-                  DO j1
-#
-                     Txjxj(mu,j1,lambda,j)          = V0xxxj(mu,nu,lambda,j)*cb(nu,j1)
-                     prepare VXxjxj(mu,j1,lambda,j) += Txjxj(mu,j1,lambda,j)
-#
-                     T1xjxj(mu,j1,sigma,j)          = V2xxxj(mu,nu,sigma,j)*cb(nu,j1)
-                     prepare VXxjxj(mu,j1,sigma,j)  += T1xjxj(mu,j1,sigma,j)
-#
-                  ENDDO j1
-#
-                  DO j1
-#
-                     Txjxj(nu,j1,lambda,j)          = V0xxxj(mu,nu,lambda,j)*cb(mu,j1)
-                     prepare VXxjxj(nu,j1,lambda,j) += Txjxj(nu,j1,lambda,j)
-#
-                     T1xjxj(nu,j1,sigma,j)          = V2xxxj(mu,nu,sigma,j)*cb(mu,j1)
-                     prepare VXxjxj(nu,j1,sigma,j)  += T1xjxj(nu,j1,sigma,j)
-#
-                  ENDDO j1
-#
-                  DO i
-                     Txixj(mu,i,lambda,j)          = V0xxxj(mu,nu,lambda,j)*ca(nu,i)
-                     prepare VXxixj(mu,i,lambda,j) += Txixj(mu,i,lambda,j)
-#
-                     T1xixj(mu,i,sigma,j)          = V2xxxj(mu,nu,sigma,j)*ca(nu,i)
-                     prepare VXxixj(mu,i,sigma,j)  += T1xixj(mu,i,sigma,j)
-                  ENDDO i
-#
-                  DO i
-                     Txixj(nu,i,lambda,j)          = V0xxxj(mu,nu,lambda,j)*ca(mu,i)
-                     prepare VXxixj(nu,i,lambda,j) += Txixj(nu,i,lambda,j)
-#
-                     T1xixj(nu,i,sigma,j)          = V2xxxj(mu,nu,sigma,j)*ca(mu,i)
-                     prepare VXxixj(nu,i,sigma,j)  += T1xixj(nu,i,sigma,j)
-                  ENDDO i
-#
-               ENDDO j
-#
-#              Update QAxx, QBxx, and QABxx
-#              ----------------------------
-#
-               txx(lambda,sigma)   = LDhfa(lambda,sigma)
-               txx(lambda,sigma)  += LDhfb(lambda,sigma)
-#
-               t1xx(mu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfa(lambda,nu)
-               t1xx(mu,sigma)     *= -1.0
-               PUT QAxx(mu,sigma) += t1xx(mu,sigma)
-#
-               t2xx(mu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfb(lambda,nu)
-               t2xx(mu,sigma)     *= -1.0
-               PUT QBxx(mu,sigma) += t2xx(mu,sigma)
-#
-               t3xx(mu,lambda)      = saoint(mu,nu,lambda,sigma)*LDhfa(sigma,nu)
-               t3xx(mu,lambda)     *= -1.0
-               PUT QAxx(mu,lambda) += t3xx(mu,lambda)
-#
-               t4xx(mu,lambda)      = saoint(mu,nu,lambda,sigma)*LDhfb(sigma,nu)
-               t4xx(mu,lambda)     *= -1.0
-               PUT QBxx(mu,lambda) += t4xx(mu,lambda)
-#
-               t5xx(nu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfa(lambda,mu)
-               t5xx(nu,sigma)     *= -1.0
-               PUT QAxx(nu,sigma) += t5xx(nu,sigma)
-#
-               t6xx(nu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfb(lambda,mu)
-               t6xx(nu,sigma)     *= -1.0
-               PUT QBxx(nu,sigma) += t6xx(nu,sigma)
-#
-               t7xx(nu,lambda)      = saoint(mu,nu,lambda,sigma)*LDhfa(sigma,mu)
-               t7xx(nu,lambda)     *= -1.0
-               PUT QAxx(nu,lambda) += t7xx(nu,lambda)
-#
-               t8xx(nu,lambda)      = saoint(mu,nu,lambda,sigma)*LDhfb(sigma,mu)
-               t8xx(nu,lambda)     *= -1.0
-               PUT QBxx(nu,lambda) += t8xx(nu,lambda)
-#
-               t9xx(mu,nu)         = saoint(mu,nu,lambda,sigma)*txx(lambda,sigma)
-               t9xx(mu,nu)        *= 2.0
-               PUT QABxx(mu,nu)   += t9xx(mu,nu)
-#
-               txx(nu,mu)          = t9xx(mu,nu)
-               PUT QABxx(nu,mu)   += txx(nu,mu)
-#
-      ENDPARDO mu, nu, lambda, sigma
-#
-      PARDO mu, nu, lambda, sigma
-#
-            WHERE mu     == nu
-            WHERE lambda < sigma
-#
-              #GET                   Dhfa(lambda,sigma)
-              #GET                   Dhfb(lambda,sigma)
-              #GET                   Dhfa(lambda,nu)
-              #GET                   Dhfb(lambda,nu)
-              #GET                   Dhfa(sigma,nu)
-              #GET                   Dhfb(sigma,nu)
-#
-               execute der2_comp saoint(mu,nu,lambda,sigma)
-#
-               DO i
-#
-                  V0xxxi(mu,nu,lambda,i) = saoint(mu,nu,lambda,sigma)*ca(sigma,i)
-                  V2xxxi(mu,nu,sigma,i)  = saoint(mu,nu,lambda,sigma)*ca(lambda,i)
-#
-                  DO i1
-#
-                     Txixi(mu,i1,lambda,i)          = V0xxxi(mu,nu,lambda,i)*ca(nu,i1)
-                     prepare VXxixi(mu,i1,lambda,i) += Txixi(mu,i1,lambda,i)
-#
-                     T1xixi(mu,i1,sigma,i)          = V2xxxi(mu,nu,sigma,i)*ca(nu,i1)
-                     prepare VXxixi(mu,i1,sigma,i)  += T1xixi(mu,i1,sigma,i)
-#
-                  ENDDO i1
-#
-               ENDDO i
-#
-               DO j
-#
-                  V0xxxj(mu,nu,lambda,j) = saoint(mu,nu,lambda,sigma)*cb(sigma,j)
-                  V2xxxj(mu,nu,sigma,j)  = saoint(mu,nu,lambda,sigma)*cb(lambda,j)
-#
-                  DO j1
-#
-                     Txjxj(mu,j1,lambda,j)          = V0xxxj(mu,nu,lambda,j)*cb(nu,j1)
-                     prepare VXxjxj(mu,j1,lambda,j) += Txjxj(mu,j1,lambda,j)
-#
-                     T1xjxj(mu,j1,sigma,j)          = V2xxxj(mu,nu,sigma,j)*cb(nu,j1)
-                     prepare VXxjxj(mu,j1,sigma,j)  += T1xjxj(mu,j1,sigma,j)
-#
-                  ENDDO j1
-#
-                  DO i
-                     Txixj(mu,i,lambda,j)          = V0xxxj(mu,nu,lambda,j)*ca(nu,i)
-                     prepare VXxixj(mu,i,lambda,j) += Txixj(mu,i,lambda,j)
-#
-                     T1xixj(mu,i,sigma,j)          = V2xxxj(mu,nu,sigma,j)*ca(nu,i)
-                     prepare VXxixj(mu,i,sigma,j)  += T1xixj(mu,i,sigma,j)
-                  ENDDO i
-#
-               ENDDO j
-#
-#              Update QAxx, QBxx, and QABxx
-#              ----------------------------
-#
-               txx(lambda,sigma)   = LDhfa(lambda,sigma)
-               txx(lambda,sigma)  += LDhfb(lambda,sigma)
-#
-               t1xx(mu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfa(lambda,nu)
-               t1xx(mu,sigma)     *= -1.0
-               PUT QAxx(mu,sigma) += t1xx(mu,sigma)
-#
-               t2xx(mu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfb(lambda,nu)
-               t2xx(mu,sigma)     *= -1.0
-               PUT QBxx(mu,sigma) += t2xx(mu,sigma)
-#
-               t3xx(mu,lambda)      = saoint(mu,nu,lambda,sigma)*LDhfa(sigma,nu)
-               t3xx(mu,lambda)     *= -1.0
-               PUT QAxx(mu,lambda) += t3xx(mu,lambda)
-#
-               t4xx(mu,lambda)      = saoint(mu,nu,lambda,sigma)*LDhfb(sigma,nu)
-               t4xx(mu,lambda)     *= -1.0
-               PUT QBxx(mu,lambda) += t4xx(mu,lambda)
-#
-               t5xx(mu,nu)         = saoint(mu,nu,lambda,sigma)*txx(lambda,sigma)
-               t5xx(mu,nu)        *= 2.0
-               PUT QABxx(mu,nu)   += t5xx(mu,nu)
-#
-      ENDPARDO mu, nu, lambda, sigma
-#
-      PARDO mu, nu, lambda, sigma
-#
-            WHERE mu     < nu
-            WHERE lambda == sigma
-#
-              #GET                   Dhfa(lambda,sigma)
-              #GET                   Dhfb(lambda,sigma)
-              #GET                   Dhfa(lambda,nu)
-              #GET                   Dhfb(lambda,nu)
-              #GET                   Dhfa(lambda,mu)
-              #GET                   Dhfb(lambda,mu)
-#
-               execute der2_comp saoint(mu,nu,lambda,sigma)
-#
-               DO i
-#
-                  V0xxxi(mu,nu,lambda,i) = saoint(mu,nu,lambda,sigma)*ca(sigma,i)
-#
-                  DO i1
-#
-                     Txixi(mu,i1,lambda,i)          = V0xxxi(mu,nu,lambda,i)*ca(nu,i1)
-                     prepare VXxixi(mu,i1,lambda,i) += Txixi(mu,i1,lambda,i)
-#
-                     T1xixi(nu,i1,lambda,i)         = V0xxxi(mu,nu,lambda,i)*ca(mu,i1)
-                     prepare VXxixi(nu,i1,lambda,i) += T1xixi(nu,i1,lambda,i)
-#
-                  ENDDO i1
-#
-               ENDDO i
-#
-               DO j
-#
-                  V0xxxj(mu,nu,lambda,j) = saoint(mu,nu,lambda,sigma)*cb(sigma,j)
-#
-                  DO j1
-#
-                     Txjxj(mu,j1,lambda,j)          = V0xxxj(mu,nu,lambda,j)*cb(nu,j1)
-                     prepare VXxjxj(mu,j1,lambda,j) += Txjxj(mu,j1,lambda,j)
-#
-                     T1xjxj(nu,j1,lambda,j)         = V0xxxj(mu,nu,lambda,j)*cb(mu,j1)
-                     prepare VXxjxj(nu,j1,lambda,j) += T1xjxj(nu,j1,lambda,j)
-#
-                  ENDDO j1
-#
-                  DO i
-#
-                     Txixj(mu,i,lambda,j)          = V0xxxj(mu,nu,lambda,j)*ca(nu,i)
-                     prepare VXxixj(mu,i,lambda,j) += Txixj(mu,i,lambda,j)
-#
-                     T1xixj(nu,i,lambda,j)         = V0xxxj(mu,nu,lambda,j)*ca(mu,i)
-                     prepare VXxixj(nu,i,lambda,j) += T1xixj(nu,i,lambda,j)
-#
-                  ENDDO i
-#
-               ENDDO j
-#
-#              Update QAxx, QBxx, and QABxx
-#              ----------------------------
-#
-               txx(lambda,sigma)   = LDhfa(lambda,sigma)
-               txx(lambda,sigma)  += LDhfb(lambda,sigma)
-#
-               t1xx(mu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfa(lambda,nu)
-               t1xx(mu,sigma)     *= -1.0
-               PUT QAxx(mu,sigma) += t1xx(mu,sigma)
-#
-               t2xx(mu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfb(lambda,nu)
-               t2xx(mu,sigma)     *= -1.0
-               PUT QBxx(mu,sigma) += t2xx(mu,sigma)
-#
-               t3xx(nu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfa(lambda,mu)
-               t3xx(nu,sigma)     *= -1.0
-               PUT QAxx(nu,sigma) += t3xx(nu,sigma)
-#
-               t4xx(nu,sigma)      = saoint(mu,nu,lambda,sigma)*LDhfb(lambda,mu)
-               t4xx(nu,sigma)     *= -1.0
-               PUT QBxx(nu,sigma) += t4xx(nu,sigma)
-#
-               t5xx(mu,nu)         = saoint(mu,nu,lambda,sigma)*txx(lambda,sigma)
-               PUT QABxx(mu,nu)   += t5xx(mu,nu)
-#
-               txx(nu,mu)          = t5xx(mu,nu)
-               PUT QABxx(nu,mu)   += txx(nu,mu)
-#
-      ENDPARDO mu, nu, lambda, sigma
-#
-      PARDO mu, nu, lambda, sigma
-#
-            WHERE mu     == nu
-            WHERE lambda == sigma
-#
-              #GET                   Dhfa(lambda,sigma)
-              #GET                   Dhfb(lambda,sigma)
-              #GET                   Dhfa(lambda,nu)
-              #GET                   Dhfb(lambda,nu)
-#
-               execute der2_comp saoint(mu,nu,lambda,sigma)
-#
-               DO i
-#
-                  V0xxxi(mu,nu,lambda,i) = saoint(mu,nu,lambda,sigma)*ca(sigma,i)
-#
-                  DO i1
-#
-                     Txixi(mu,i1,lambda,i)          = V0xxxi(mu,nu,lambda,i)*ca(nu,i1)
-                     prepare VXxixi(mu,i1,lambda,i) += Txixi(mu,i1,lambda,i)
-#
-                  ENDDO i1
-#
-               ENDDO i
-#
-               DO j
-#
-                  V0xxxj(mu,nu,lambda,j) = saoint(mu,nu,lambda,sigma)*cb(sigma,j)
-#
-                  DO j1
-#
-                     Txjxj(mu,j1,lambda,j)          = V0xxxj(mu,nu,lambda,j)*cb(nu,j1)
-                     prepare VXxjxj(mu,j1,lambda,j) += Txjxj(mu,j1,lambda,j)
-#
-                  ENDDO j1
-#
-                  DO i
-#
-                     Txixj(mu,i,lambda,j)          = V0xxxj(mu,nu,lambda,j)*ca(nu,i)
-                     prepare VXxixj(mu,i,lambda,j) += Txixj(mu,i,lambda,j)
-#
-                  ENDDO i
-#
+                  Lxxxj(mu,nu,lambda,j) += V0xxxj(mu,nu,lambda,j) 
                ENDDO j
 #
 #              Update QAxx, QBxx, and QABxx
@@ -16722,7 +16382,30 @@
                t1xx(mu,nu)         = saoint(mu,nu,lambda,sigma)*txx(lambda,sigma)
                PUT QABxx(mu,nu)   += t1xx(mu,nu)
 #
-      ENDPARDO mu, nu, lambda, sigma
+         ENDDO sigma 
+#
+         DO i 
+             DO i1
+                Txixi(mu,i1,lambda,i)          = Lxxxi(mu,nu,lambda,i)*ca(nu,i1)
+                prepare VXxixi(mu,i1,lambda,i) += Txixi(mu,i1,lambda,i)
+            ENDDO i1
+#
+            DO j
+               Txixj(mu,i,lambda,j)          = Lxxxj(mu,nu,lambda,j)*ca(nu,i)
+               prepare VXxixj(mu,i,lambda,j) += Txixj(mu,i,lambda,j)
+            ENDDO j
+         ENDDO i
+#
+         DO j
+            DO j1
+               Txjxj(mu,j1,lambda,j)          = Lxxxj(mu,nu,lambda,j)*cb(nu,j1)
+               prepare VXxjxj(mu,j1,lambda,j) += Txjxj(mu,j1,lambda,j)
+            ENDDO j1
+         ENDDO j
+         deallocate Lxxxi(mu,nu,lambda,*) 
+         deallocate Lxxxj(mu,nu,lambda,*) 
+#
+      ENDPARDO mu, nu, lambda 
 #
       execute server_barrier
 #

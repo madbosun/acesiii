@@ -973,6 +973,28 @@ c--------------------------------------------------------------------------
          enddo
       enddo
 
+c 142536  
+      if (map(1) .eq. 1 .and. map(2) .eq. 4 .and.
+     *    map(3) .eq. 2 .and. map(4) .eq. 5 .and. 
+     *    map(5) .eq. 3 .and. map(6) .eq. 6) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,d,b,e,c,f)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
 c 152634  
       if (map(1) .eq. 1 .and. map(2) .eq. 5 .and.
      *    map(3) .eq. 2 .and. map(4) .eq. 6 .and. 
@@ -1083,7 +1105,7 @@ c 123564
          return
       endif
 
-c 142534  
+c 142536  
       if (map(1) .eq. 1 .and. map(2) .eq. 4 .and.
      *    map(3) .eq. 2 .and. map(4) .eq. 5 .and. 
      *    map(5) .eq. 3 .and. map(6) .eq. 6) then
@@ -1281,11 +1303,55 @@ c 263415
          return
       endif
 
+c 135246  
+      if (map(1) .eq. 1 .and. map(2) .eq. 3 .and.
+     *    map(3) .eq. 5 .and. map(4) .eq. 2 .and. 
+     *    map(5) .eq. 4 .and. map(6) .eq. 6) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,c,e,b,d,f)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
+c 135426  
+      if (map(1) .eq. 1 .and. map(2) .eq. 3 .and.
+     *    map(3) .eq. 5 .and. map(4) .eq. 4 .and. 
+     *    map(5) .eq. 2 .and. map(6) .eq. 6) then
+
+         do f = yf1, yf2
+         do e = ye1, ye2
+         do d = yd1, yd2
+         do c = yc1, yc2
+         do b = yb1, yb2
+            do a = ya1, ya2
+               y(a,b,c,d,e,f) = x(a,c,e,d,b,f)
+            enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+         return
+      endif
+
 c--------------------------------------------------------------------------
 c   Generic 6-dimensional transpose.
 c--------------------------------------------------------------------------
 
-      write(6,*) 'Unoptimized permutation at line#', current_line 
+c     write(6,*) 'Unoptimized permutation at line#', current_line 
 
       do i = 1, 6
          do j = 1, 6

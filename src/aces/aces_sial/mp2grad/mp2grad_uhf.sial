@@ -323,6 +323,7 @@
       temp dz4(mu,nu,lambda,sigma)
       static pinf(kiter,kptr1)
       temp tpinf(kiter,kptr1)
+      static Spq(mu,nu) 
       scalar one
       scalar two
       scalar five
@@ -1733,11 +1734,14 @@
             Tpq(mu,nu)  += DHFB(mu,nu)
             Tpq(mu,nu)  += P2A_ao(mu,nu)
             Tpq(mu,nu)  += P2B_ao(mu,nu)
+            Spq(mu,nu)   = Tpq(mu,nu) 
 #
             EXECUTE HCONT1 Tpq(mu,nu)
 #
          ENDDO nu
          ENDDO mu 
+
+         execute ecp_dercont Spq 
       endif 
 #
 # -----------------------------------------------------------------------------

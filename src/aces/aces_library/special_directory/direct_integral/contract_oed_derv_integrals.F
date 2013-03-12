@@ -66,8 +66,8 @@ c
 c ECP derivative integrals 
 c 
       integer natoms 
-      double precision decp_erd 
-      common /DECP/natoms, decp_erd(50,3,1000,1000) 
+c     double precision decp_erd 
+c     common /DECP/natoms, decp_erd(50,3,1000,1000) 
 
       common /flags/ iflags
       integer iflags(100)
@@ -226,18 +226,18 @@ c-------------------------------------------------------------------------
      *                 dbuf(dpkgscr+nfirst-1),a1,a2,b1,b2)
 c--------------------------------------------------------------------------
 c   If ECP add ecp derivative integrals  
-                  if (iflags(71) .eq. 1) then  
-                  do a = a1, a2 
-                  do b = b1, b2 
-                     z(a,b) = z(a,b) + decp_erd(iatom, component, a, b) 
+c                 if (iflags(71) .eq. 1) then  
+c                 do a = a1, a2 
+c                 do b = b1, b2 
+c                    z(a,b) = z(a,b) + decp_erd(iatom, component, a, b) 
 #ifdef _DEBUG_LVL0
-                  Write(6,"(a)") "Adding ECP derivative integrals"
-                  Write(6,"(1x, 2I3, 1x,f12.7)") a, b, decp_erd(iatom,
-     *                                    component, a, b)
+c                 Write(6,"(a)") "Adding ECP derivative integrals"
+c                 Write(6,"(1x, 2I3, 1x,f12.7)") a, b, decp_erd(iatom,
+c    *                                    component, a, b)
 #endif
-                  enddo 
-                  enddo 
-                  endif 
+c                 enddo 
+c                 enddo 
+c                 endif 
 
 c--------------------------------------------------------------------------
 c   Contract the density block with the block of integrals.

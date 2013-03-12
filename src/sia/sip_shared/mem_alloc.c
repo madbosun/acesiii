@@ -37,7 +37,7 @@ void F77_NAME(mem_alloc_init,MEM_ALLOC_INIT)(f_int *megabytes, f_int *sheap_flag
 	 assert( sizeof(long long) == sizeof(char *));  //verify assumption about size of pointers
 	 *ierr = 0;
 	 if (total_bytes == 0){  //only do this once unless free has been called to reset.
-		total_bytes = (*megabytes) * BYTES_PER_MB;
+		total_bytes = (long long)(*megabytes) * BYTES_PER_MB;
 		base_ptr = (char *)malloc(total_bytes);
 		if (base_ptr == 0)
 		{

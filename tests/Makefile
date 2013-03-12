@@ -1,4 +1,5 @@
-MACHNAME=submit1
+include ../GNUmakefile.chssi
+
 # Default variable settings
 MPIRUN="mpirun ./xaces3 >./job.out"
 RUN_COMPARE="mpirun .xtest_compare "
@@ -13,10 +14,25 @@ PBS_LINES += "\#PBS -l walltime=40:00:00"
 PBS_LINES += "\#PBS -l pmem=2000mb"
 PBS_LINES += "\#PBS -q parallel"
 SET_ACES_EXE_PATH=export ACES_EXE_PATH=
-ACES_EXE_PATH=/home/lotrich/AJITH2/acesiii/bin
-ACES3_EXE="/home/lotrich/AJITH2/acesiii/bin"
+ACES_EXE_PATH=/home/lotrich/FROM_GIT_JAN2/acesiii//bin
+ACES3_EXE="/home/lotrich/FROM_GIT_JAN2/acesiii/bin"
 MPIRUN="mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out"
 RUN_COMPARE="mpiexec --mca btl openib,self,sm ./xtest_compare"
+WORKDIR=/scratch/hpc/${USER}
+endif
+
+ifeq ($(MACHNAME),submit2)
+PBS_LINES="\#PBS -j oe"
+PBS_LINES += "\#PBS -l nodes=8:ppn=8:infiniband"
+PBS_LINES += "\#PBS -l walltime=40:00:00"
+PBS_LINES += "\#PBS -l pmem=2000mb"
+PBS_LINES += "\#PBS -q parallel"
+SET_ACES_EXE_PATH=export ACES_EXE_PATH=
+ACES_EXE_PATH=/home/lotrich/FROM_GIT_JAN2/acesiii//bin
+ACES3_EXE="/home/lotrich/FROM_GIT_JAN2/acesiii/bin"
+MPIRUN="mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out"
+RUN_COMPARE="mpiexec --mca btl openib,self,sm ./xtest_compare"
+WORKDIR=/scratch/hpc/${USER}
 endif
 
 ifeq ($(MACHNAME),chugach)
@@ -145,28 +161,29 @@ MPIRUN="mpirun -np 64 ACES_EXE_PATH=$(ACES3_EXE) ./xaces3 >job.out"
 RUN_COMPARE="mpirun -np 64 ACES_EXE_PATH=$(ACES3_EXE) ./xtest_compare "
 endif
 
-INSTALL_DIR=/scratch/hpc/lotrich/ACESIII_TESTS/
-#ACES3_EXE=$(shell pwd)/
+INSTALL_DIR=$(WORKDIR)/ACESIII_TESTS
+ACES3_EXE=$(shell pwd)/../bin
 GENBAS=./GENBAS
+runscript=./runscript 
 TESTS=1.1.1.1 1.1.2.1 1.1.2.2 1.1.3.1 1.1.3.2 1.1.4.1 1.1.4.2 \
       1.2.1.1 1.2.2.1 1.2.3.1 1.2.3.2 \
-        1.3.1.1 1.3.2.1 \
-        1.4.3.1 1.4.3.2 \
-        2.1.1.1 2.1.2.1 2.1.2.2 2.1.3.1 2.1.3.2 2.1.4.1 2.1.4.2 \
-        2.2.1.1 2.2.2.1 2.2.3.1 2.2.3.2 \
-        2.3.1.1 2.3.2.1 \
-        2.4.3.1 2.4.3.2 4.1.1.1 4.2.1.1 \ 
-####        3.1.1.1 3.1.2.1 3.1.3.1 3.1.3.2 3.1.4.1 3.1.4.2 \
-####        3.2.1.1 3.2.1.2 3.2.2.1 3.2.2.2 3.2.3.1 
+	1.3.1.1 1.3.2.1 \
+	1.4.3.1 1.4.3.2 \
+	2.1.1.1 2.1.2.1 2.1.2.2 2.1.3.1 2.1.3.2 2.1.4.1 2.1.4.2 \
+	2.2.1.1 2.2.2.1 2.2.3.1 2.2.3.2 \
+	2.3.1.1 2.3.2.1 \
+	2.4.3.1 2.4.3.2 4.1.1.1 4.2.1.1  
+#3.1.1.1 3.1.2.1 3.1.3.1 3.1.3.2 3.1.4.1 3.1.4.2 \
+#3.2.1.1 3.2.1.2 3.2.2.1 3.2.2.2 3.2.3.1
 
 all: tests scripts
 
 # Build directories of all test jobs.
 
 tests: % : ;
-#	@cp test_results $(ACES3_EXE) ;
-#	@rm -rf $(INSTALL_DIR) ; 
-#       @mkdir $(INSTALL_DIR) ; 
+	@cp test_results $(ACES3_EXE) ;
+	@rm -rf $(INSTALL_DIR) ; 
+	@mkdir $(INSTALL_DIR) ; 
 	@for mytest in $(TESTS) ; \
 	 do mkdir $(INSTALL_DIR)/$$mytest || exit 1; \
 	    cp $(GENBAS) $(ACES3_EXE)/xaces3 $(ACES3_EXE)/xtest_compare $(INSTALL_DIR)/$$mytest || exit 1; \
@@ -174,7 +191,7 @@ tests: % : ;
 	 done
 	
 scripts: % : ;
-	@echo \#!/bin/ksh >runscript 
+	@echo \#!/bin/csh >runscript 
 	@for line in $(PBS_LINES) ; \
 	   do echo $$line >>runscript ; \
 	   done
@@ -198,6 +215,7 @@ scripts: % : ;
 	      echo "$(RUN_COMPARE) $$test >>../monitor_tests" >>runscript ; \
 	      echo sleep 10 >>runscript ; \
 	   done  
+	@cp runscript $(INSTALL_DIR) ;
 
 clean: % : ;
 	@rm -rf $(INSTALL_DIR) 

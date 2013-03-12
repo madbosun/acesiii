@@ -63,6 +63,7 @@
       distributed Whfb(mu,nu) 
       local LDhfa(mu,nu) 
       local LDhfb(mu,nu) 
+      static Spq(mu,nu) 
 #
 # Declare temporary arrays 
 # ------------------------ 
@@ -222,9 +223,12 @@
             GET           DHFB(mu,nu)
             Tpq(mu,nu)  = DHFA(mu,nu)
             Tpq(mu,nu) += DHFB(mu,nu)
+            Spq(mu,nu)  = Tpq(mu,nu) 
             EXECUTE HCONT1 Tpq(mu,nu)
          ENDDO nu
          ENDDO mu
+
+         execute ecp_dercont Spq 
        endif 
 #
 # -----------------------------------------------------------------------------

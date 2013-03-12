@@ -236,6 +236,7 @@
 # Declare static arrays
 # ---------------------
 #
+      static Spq(mu,nu) 
       distributed t1a_old(a,i)
       distributed t1b_old(b,j)
       distributed l1a_old(i,a)
@@ -10406,9 +10407,12 @@
             GET           DHF(mu,nu)
             Tpq(mu,nu)  = Dpq(mu,nu)
             Tpq(mu,nu) += DHF(mu,nu)
+            Spq(mu,nu)  = Tpq(mu,nu) 
             EXECUTE HCONT1 Tpq(mu,nu)
          ENDDO nu
          ENDDO mu
+
+         execute ecp_dercont Spq 
       endif
 #
 # -----------------------------------------------------------------------------

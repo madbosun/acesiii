@@ -36,17 +36,15 @@ C      1     - yes
       include 'machine_types.h'
       include 'parallel_info.h'
       include 'trace.h'
-      include 'scflindep.h'
 
-      integer junk, n, sort, dosq, doinv,NLINDEP  
-      double precision a(n,n),b(n,n),tresh,qqq
+      integer junk, n, sort, dosq, doinv  
+      double precision a(n,n),b(n,n)
 
       integer i, j
 
 c ----------------------------------------------------------------------
 c   Call the ACESII "eig" routine.
 c-----------------------------------------------------------------------
-      tresh = 10**(-1.d0*lindep_tol)
 
       call eig(a,b,junk,n,sort)
 c
@@ -54,10 +52,9 @@ c take the square root if desired
 c ------------------------------- 
 c
       if (dosq .eq. 1) then  
-c  
-
-         do i = 1, n
-            a(i,i) = dsqrt(a(i,i))
+c
+         do i = 1, n 
+            a(i,i) = dsqrt(a(i,i)) 
          enddo 
 c
       endif 
@@ -66,34 +63,11 @@ c take the inverse if desired
 c --------------------------- 
 c
       if (doinv .eq. 1) then  
-
-
-      if(me.eq.0) then
-      write(6,*) '-------------------------------------------'          
-      write(6,*) 'Linear dependency threshold',tresh
-      write(6,*) '-------------------------------------------'
-      endif
-
-      NLINDEP = 0
-c------------------------------------------------------------------
-         do i = 1, n
-            qqq = a(i,i)*a(i,i) 
-            IF(dabs(qqq).ge.tresh) then 
+c
+         do i = 1, n 
             a(i,i) = 1.0d0/a(i,i) 
-            ELSE
-            a(i,i) = 0.d0
-            NLINDEP = NLINDEP + 1
-            ENDIF
          enddo 
-c------------------------------------------------------------------
-
-        if(me.eq.0) then
-         write(6,*)'==================================================='
-         write(6,*) 'Basis of atomic orbitals contains', NLINDEP, 
-     & 'linear dependecies'
-        write(6,*)'===================================================='
-        ENDIF
-
+c
       endif 
 c 
       return

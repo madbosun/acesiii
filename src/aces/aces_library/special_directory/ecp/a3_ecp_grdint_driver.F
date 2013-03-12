@@ -201,6 +201,22 @@ C
 
       Endif 
       Enddo 
+
+cVFL start 
+c       Nint = Iloc
+c       If (SPherical) Nint = Isoc 
+c       Ldim = Nint*(Nint+1)/2 
+
+c       DO Ixyz = 1, 3 
+c          DO I = 1, Nint 
+c             Ecpgrdint(Icent,Ixyz,i*(i+1)/2) = 2.0D0*Ecpgrdint(Icent,
+c    &                                                 Ixyz,i*(i+1)/2)
+c          Enddo
+
+c          Write(62) Nint
+c          Write(62) (Ecpgrdint(Icent,Ixyz,jj), JJ=1, Ldim)
+c       Enddo
+cVFL end  
       Enddo
 
       return

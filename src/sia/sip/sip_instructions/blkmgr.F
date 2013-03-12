@@ -53,7 +53,7 @@ c-------------------------------------------------------------------------
       integer size, ierr
       integer nblocks_stack, wsum
       integer*8 indblk
-      integer stk_weights(10)
+      integer stk_weights(13)
       integer*8 addr
       integer k
       integer iii

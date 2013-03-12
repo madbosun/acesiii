@@ -181,6 +181,11 @@ c---------------------------------------------------------------------
          nstacks = 7
       endif
 
+c---------------------------------------------------------------------
+c   experimental stack setup  
+c---------------------------------------------------------------------
+      nstacks = 10  
+
       nocc_orbitals = noccupied
       naocc_orbitals = nalpha_occupied
       if (nbeta_occupied .ne. 0) then
@@ -302,14 +307,11 @@ c----------------------------------------------------------------------------
      *                       intsize)
 
 c------------------------------------------------------------------------
-c   Print all the symbolic constants
-c------------------------------------------------------------------------
-       if (me .eq. 0) call print_symbolic_constants()
-
-
-c------------------------------------------------------------------------
 c   Initialize all the tables.
 c------------------------------------------------------------------------
+
+       if (me .eq. 0) call print_symbolic_constants()  
+      
 
        call vtdemo_init(optable(iopt), noptable, 
      *                    array_table(iarray), narray_table,

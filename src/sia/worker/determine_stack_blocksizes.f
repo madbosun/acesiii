@@ -101,6 +101,49 @@ c----------------------------------------------------------------------------
 
       if (dbg) print *,'allmax, occmax, virtmax = ',
      *                  allmax,occmax,virtmax
+
+c----------------------------------------------------------------------------
+c    Experimental stack allocation: VFL Geb. 25, 2013   
+c----------------------------------------------------------------------------
+c     if (nstacks .eq. 13) then 
+c        stack_blocksizes(1) = allmax
+c        stack_blocksizes(2) = occmax * occmax
+c        stack_blocksizes(3) = occmax * allmax
+c        stack_blocksizes(4) = allmax * allmax
+c        stack_blocksizes(5) = occmax**3  
+c        stack_blocksizes(6) = occmax**2 * virtmax    
+c        stack_blocksizes(7) = occmax * virtmax**2    
+c        stack_blocksizes(8) = virtmax**3    
+
+c        stack_blocksizes(9) = occmax*occmax*occmax*occmax 
+c        stack_blocksizes(10) = occmax*occmax*occmax*virtmax 
+
+c        stack_blocksizes(11) = occmax*occmax*virtmax*virtmax
+c        stack_blocksizes(12) = occmax*virtmax*virtmax*virtmax
+c        stack_blocksizes(13) = virtmax*virtmax*virtmax*virtmax
+c        go to 77 
+c     endif 
+
+c----------------------------------------------------------------------------
+c    Experimental stack allocation: VFL NOV.29, 2012   
+c----------------------------------------------------------------------------
+      if (nstacks .eq. 10) then
+         stack_blocksizes(1) = allmax * allmax
+         stack_blocksizes(2) = occmax**3
+         stack_blocksizes(3) = occmax**2 * virtmax
+         stack_blocksizes(4) = occmax * virtmax**2
+         stack_blocksizes(5) = virtmax**3
+
+         stack_blocksizes(6) = occmax*occmax*occmax*occmax
+         stack_blocksizes(7) = occmax*occmax*occmax*virtmax
+
+         stack_blocksizes(8) = occmax*occmax*virtmax*virtmax
+         stack_blocksizes(9) = occmax*virtmax*virtmax*virtmax
+         stack_blocksizes(10) = virtmax*virtmax*virtmax*virtmax
+         go to 77
+      endif
+
+
       if (vvvi_stack) then
          if (nstacks .lt. 9) then
             print *,'Error: VVVI_STACK is set in sial_config.  '
@@ -140,6 +183,7 @@ c----------------------------------------------------------------------------
      *             (stack_blocksizes(6)+stack_blocksizes(4))/2
       endif
 
+77    continue 
       if (dbg) print *,'stack blocksizes: ',
      *                   (stack_blocksizes(i),i=1,nstacks)
 

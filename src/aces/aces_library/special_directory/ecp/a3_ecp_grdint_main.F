@@ -41,11 +41,27 @@ C
 #endif
 C
       Ntotatoms = Natoms
+
+cVFL start 
+c     Open(Unit=62, File="decpint.dat", Form="unformatted")
+c     Rewind(62)
+
+c     Write(62) Ntotatoms
+cVFL end  
+
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") "The ECP deriavative integrals" 
+#endif
       Call Dzero(Ecpgrdint, Max_centers*3*Max_cbf*(Max_cbf+1)/2)
 
       Call A3_ECP_grdint_driver(Ecpgrdint, Ntotatoms, Natoms, 
      &                          Iloc, Isoc, IGenby, Cord, .True.,
      &                          Spherical)
+
+cVFL start 
+c     close(62)
+cVFL end  
+
       Nint = Iloc
       If (SPherical) Nint = Isoc 
       Call write_ecpgrdint_2disk(Ntotatoms, Nint, Ecpgrdint)

@@ -142,6 +142,8 @@ c------------------------------------------------------------------------
          call mpi_waitall(niocompany, request, statuses, 
      *                    ierr)
       endif 
+      if (dbg) print *,'Task ',me,' Completed server response at line ',
+     *     current_line 
 
 c---------------------------------------------------------------------------
 c   Reset all persistent blocks  of all arrays which have had a "PREPARE"
@@ -156,6 +158,8 @@ c---------------------------------------------------------------------------
      *               index_table, nindex_table, block_map_table)
          endif
       enddo
+      if (dbg) print *,'Task ',me,' Completed free persistnt blocks at 
+     *                  line ', current_line 
 
 c--------------------------------------------------------------------------
 c   Force all processors to await acknowledgement that the servers have
