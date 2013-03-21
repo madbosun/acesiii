@@ -56,10 +56,10 @@
       Index Indone   = 1, 1
       Index Triplet  = 1, 12
       Index Singlet  = 1, 12
+      INdex Secmom   = 1, 6
 
       distributed  LEE (kroot,indone)
       distributed  REE (kroot,indone)
-      distributed  LEE_resid (kroot,indone)
 
       distributed  R1A_VECS (a,i,kindex12)
       distributed  R1B_VECS (b,j,kindex12)
@@ -81,28 +81,30 @@
       DISTRIBUTED  R1A (a,i)
       DISTRIBUTED  R1B (b,j)
 
-      LOCAL        LA1A (i,a)
-      LOCAL        LA1B (j,b)
-      LOCAL        LT1A (a,i)
-      LOCAL        LT1B (b,j)
-      LOCAL        laiai4(a,i2,a1,i)
-      LOCAL        laiai5(a,i2,a1,i)
-      LOCAL        laibj4(a,j,b,i)
-      LOCAL        laibj5(a,j,b,i)
-      LOCAL        Laiai(a1,i,a2,i1)
-      LOCAL        laibj(a1,i,b,j)
-      LOCAL        laiai2(a,i,a1,i1) 
-      LOCAL        laibj2(a,i,b1,j1)
-      LOCAL        lbjbj4(b,j2,b1,j)
-      LOCAL        lbjbj5(b,j2,b1,j)
-      LOCAL        laibj3(a,i,b1,j1)
-      LOCAL        lbjbj2(b,j,b1,j1)
-      LOCAL        Lbjbj(b1,j,b2,j1)
-      LOCAL        lbiaj(b,i,a,j)
-      LOCAL        lbiaj2(b,i,a,j)
-      LOCAL        Troot(kindex12)
-      LOCAL        Sroot(kindex12)
-
+      LOCAL  LA1A (i,a)
+      LOCAL  LA1B (j,b)
+      LOCAL  LT1A (a,i)
+      LOCAL  LT1B (b,j)
+      LOCAL  laiai4(a,i2,a1,i)
+      LOCAL  laiai5(a,i2,a1,i)
+      LOCAL  laibj4(a,j,b,i)
+      LOCAL  laibj5(a,j,b,i)
+      LOCAL  Laiai(a1,i,a2,i1)
+      LOCAL  laibj(a1,i,b,j)
+      LOCAL  laiai2(a,i,a1,i1) 
+      LOCAL  laibj2(a,i,b1,j1)
+      LOCAL  lbjbj4(b,j2,b1,j)
+      LOCAL  lbjbj5(b,j2,b1,j)
+      LOCAL  laibj3(a,i,b1,j1)
+      LOCAL  lbjbj2(b,j,b1,j1)
+      LOCAL  Lbjbj(b1,j,b2,j1)
+      LOCAL  lbiaj(b,i,a,j)
+      LOCAL  lbiaj2(b,i,a,j)
+      LOCAL  Troot(kindex12)
+      LOCAL  Sroot(kindex12)
+      LOCAL  GRDSECM (secmom,indone)
+      LOCAL  EXCSECM (secmom,indone)
+      LOCAL  GRDQUAD (secmom,indone)
 
       DISTRIBUTED  DENS_VV_A (a,a1)
       DISTRIBUTED  DENS_OO_A (i,i1)
@@ -129,13 +131,13 @@
       DISTRIBUTED  AO_DENS (mu,nu)
       DISTRIBUTED  DHF (mu,nu)
 
-      served       R2AA_VECS (a,i,a1,i1,kindex12)
-      served       R2BB_VECS (b,j,b1,j1,kindex12)
-      served       R2AB_VECS (a,i,b ,j ,kindex12)
+      served R2AA_VECS (a,i,a1,i1,kindex12)
+      served R2BB_VECS (b,j,b1,j1,kindex12)
+      served R2AB_VECS (a,i,b ,j ,kindex12)
 
-      served       L2AA_VECS (a,i,a1,i1,kroot)
-      served       L2BB_VECS (b,j,b1,j1,kroot)
-      served       L2AB_VECS (a,i,b,j,kroot)
+      served L2AA_VECS (i1,a1,i2,a2,kindex12)
+      served L2BB_VECS (j1,b1,j2,b2,kindex12)
+      served L2AB_VECS (i1,a1,j1,b1,kindex12)
   
       served VCE2AA(a,i,a1,i1)
       served VCE2BB(b,j,b1,j1)
@@ -148,6 +150,9 @@
       SERVED  L2AA (i,a,i1,a1)
       SERVED  L2BB (j,b,j1,b1)
       SERVED  L2AB (i,a,j,b)
+      SERVED  A2AA (i,a,i1,a1)
+      SERVED  A2BB (j,b,j1,b1)
+      SERVED  A2AB (i,a,j,b)
 
       served VSpipi(p1,i,p,i1)
       served Viaai(i,a1,a,i1)
@@ -250,6 +255,8 @@
       SCALAR  sum3
       SCALAR  sum4
       SCALAR  sum5
+      SCALAR  IMOMCOUNT 
+      SCALAR  SECONDMOM
       SCALAR  ASUM
       SCALAR  BSUM
       SCALAR  A_SUM
@@ -265,11 +272,12 @@
       PROC  READ_AMP
 #     ------------------
       execute list_to_blocks REE
+
       execute list_to_blocks R1A_VECS
       execute list_to_blocks R1B_VECS
       execute list_to_blocks R2AA_VECS
-      execute list_to_blocks R2AB_VECS
       execute list_to_blocks R2BB_VECS
+      execute list_to_blocks R2AB_VECS
 
       execute list_to_blocks HBAR_ia
       execute list_to_blocks HBAR_jb
@@ -280,39 +288,140 @@
       execute list_to_blocks T2ab
       execute list_to_blocks T2bb
 
-      execute list_to_blocks L1a
-      execute list_to_blocks L1b
-      execute list_to_blocks L2aa
-      execute list_to_blocks L2ab
-      execute list_to_blocks L2bb 
+      execute list_to_blocks A1a
+      execute list_to_blocks A1b
+      execute list_to_blocks A2aa
+      execute list_to_blocks A2ab
+      execute list_to_blocks A2bb 
 
       execute list_to_blocks LEE
       execute list_to_blocks L1A_VECS
       execute list_to_blocks L1B_VECS
       execute list_to_blocks L2AA_VECS
-      execute list_to_blocks L2AB_VECS
       execute list_to_blocks L2BB_VECS
+      execute list_to_blocks L2AB_VECS
 
       execute list_to_blocks VSpipi(p,i,p1,i1)
       execute list_to_blocks VSqjqj(q,j,q1,j1)
       execute list_to_blocks Vpiqj(p,i,q,j)
 
-      execute list_to_blocks Vaaii
-      execute list_to_blocks Vbbjj
-      execute list_to_blocks Vaajj
-      execute list_to_blocks Vbbii
-      execute list_to_blocks Viaai
-      execute list_to_blocks Vjbbj
-      execute list_to_blocks Viabj
-      execute list_to_blocks Vaabj
-      execute list_to_blocks Vbbai
+#      execute list_to_blocks Vaaii
+#      execute list_to_blocks Vbbjj
+#      execute list_to_blocks Vaajj
+#      execute list_to_blocks Vbbii
+#      execute list_to_blocks Viaai
+#      execute list_to_blocks Vjbbj
+#      execute list_to_blocks Viabj
+#      execute list_to_blocks Vaabj
+#      execute list_to_blocks Vbbai
 
-      execute server_barrier
       execute read_list_to_blocks
+      execute server_barrier
 #    
       ENDPROC READ_AMP 
 #     ----------------
+#----------------------------------------------------------------
+#
+      PROC CREATE_XARRAYS
+#     -------------------
+#
+      ALLOCATE  GRDSECM (*,*)
+      ALLOCATE  EXCSECM (*,*)
 
+      ALLOCATE LT1A(*,*)
+      ALLOCATE LT1B(*,*)
+      ALLOCATE LA1A(*,*)
+      ALLOCATE LA1B(*,*)
+
+      CREATE T1A
+      CREATE T1B
+
+      CREATE REE
+      CREATE LEE
+
+      CREATE R1A_VECS
+      CREATE R1B_VECS
+
+      CREATE L1A_VECS
+      CREATE L1B_VECS
+
+      CREATE HBAR_ia
+      CREATE HBAR_jb
+
+      CREATE  A1A
+      CREATE  A1B
+
+      CREATE  R1A
+      CREATE  R1B
+
+      CREATE  L1A
+      CREATE  L1B
+
+      CREATE  DENS_VV_A
+      CREATE  DENS_VV_B
+
+      CREATE  DENS_OO_A
+      CREATE  DENS_OO_B
+
+      CREATE  DENS_OV_A
+      CREATE  DENS_OV_B
+
+      CREATE  DENS_VO_A
+      CREATE  DENS_VO_B
+
+      CREATE  AO_DENS
+      CREATE  DHF
+      CREATE T2L2_VV_A
+      CREATE T2L2_VV_B
+      CREATE R2L2_VV_A
+      CREATE R2L2_VV_B
+      CREATE DENS_INT_OV_A
+      CREATE DENS_INT_OV_B
+      CREATE T1L1_OO_A
+      CREATE T1L1_OO_B
+      CREATE T2L2_OO_A
+      CREATE T2L2_OO_B
+      CREATE R2L2_OO_A
+      CREATE R2L2_OO_B
+
+      EXECUTE SIP_BARRIER
+
+      DO a
+      DO i
+         GET         T1A(a,i)
+         LT1A(a,i) = T1A(a,i)
+      ENDDO i
+      ENDDO a
+
+      DO a
+      DO i
+         GET         A1A(i,a)
+         LA1A(i,a) = A1A(i,a)
+      ENDDO i
+      ENDDO a
+
+      DO b
+      DO j
+         GET         T1B(b,j)
+         LT1B(b,j) = T1B(b,j)
+      ENDDO j
+      ENDDO b
+
+      DO b
+      DO j
+         GET         A1B(j,b)
+         LA1B(j,b) = A1B(j,b)
+      ENDDO j
+      ENDDO b
+
+      EXECUTE  SERVER_BARRIER
+
+#    
+      ENDPROC CREATE_XARRAYS
+#     ----------------------
+#
+#------------------------------------------------------------------    
+#
       PROC HF_DENSITY
 #     --------------
 
@@ -341,6 +450,7 @@
  
       PROC COMPUTE_DENSITY
 #     --------------------
+      execute load_balance_on
 
       PARDO  a, a1
 
@@ -451,6 +561,8 @@
          PUT  R2L2_OO_B (j,j1) = tjj (j,j1)
 
       ENDPARDO  j, j1
+
+      EXECUTE  SIP_BARRIER
 #
 # Alpha density occupied-occupied
 #
@@ -1163,6 +1275,7 @@
       PARDO  b, a, j, i
 
             REQUEST  T2AB (a,i,b,j) b
+            tqppq(b,i,a,j) = T2AB(a,i,b,j)
   
             DO b1
 
@@ -1577,8 +1690,44 @@
 
       PROC PUT_IN_RK
 #     --------------
+#
+      IF GROUNDSTATE == ONE
 
-# Grab the corresponding root
+          PARDO  a, i
+                 GET  T1A(a,i)
+                 tai (a,i) = T1A (a,i)
+                 PUT  R1A (a,i) = tai (a,i)
+          ENDPARDO  a, i
+
+          PARDO  b, j
+                 GET  T1B(b,j)
+                 tbj (b,j) = T1B(b,j)
+                 PUT  R1B (b,j) = tbj (b,j)
+          ENDPARDO  b, j
+
+          PARDO  a, i, a1, i1
+                 REQUEST  T2AA(a,i,a1,i1) i1
+                 taiai (a,i,a1,i1) = T2AA(a,i,a1,i1)
+                 PREPARE  R2AA (a,i,a1,i1) = taiai (a,i,a1,i1)
+          ENDPARDO  a, i, a1, i1
+
+          PARDO  b, j, b1, j1
+                 REQUEST  T2BB (b,j,b1,j1) j1
+                 tbjbj (b,j,b1,j1) = T2BB(b,j,b1,j1) 
+                 PREPARE  R2BB (b,j,b1,j1) = tbjbj (b,j,b1,j1)
+          ENDPARDO  b, j, b1, j1
+
+          PARDO  a, i, b, j
+                 REQUEST  T2AB(a,i,b,j) j
+                 taibj (a,i,b,j) = T2AB (a,i,b,j)
+                 PREPARE  R2AB (a,i,b,j) = taibj (a,i,b,j)
+          ENDPARDO  a, i, b, j
+
+         EXECUTE  SERVER_BARRIER
+
+      ENDIF
+
+# If excited states grab the corresponding root
 
          IF Trp_count > ZERO
 
@@ -1589,6 +1738,8 @@
                T_COUNT += 1
   
                  IF T_COUNT == TRIPLET_STATE
+                    
+                    EXECUTE PRINT_SCALAR T_COUNT
 
                     PARDO  a, i
                            GET  R1A_VECS (a,i,TRIPLET)
@@ -1619,14 +1770,45 @@
                            taibj (a,i,b,j) = R2AB_VECS (a,i,b,j,TRIPLET)
                            PREPARE  R2AB (a,i,b,j) = taibj (a,i,b,j)
                     ENDPARDO  a, i, b, j
+                    
 
                  ENDIF
+#Debug printing
+     execute server_barrier
+     pardo a, i
+        get r1a(a,i)
+        execute dump_amp  r1a(a,i)
+     endpardo a,i
+#enddebug printing 
+#
+# Get the corresponding excitation enegry
+#
+                 T_COUNT = ZERO
+
+                 DO INDONE 
+                    
+                     GET REE(TRIPLET, INDONE)
+                     TEE(TRIPLET, INDONE) = REE(TRIPLET, INDONE)
+
+                     T_COUNT += 1
+                     IF T_COUNT == TRIPLET_STATE
+                        EXECUTE  RETURN_SVAL  TEE  OMEGA
+                     ENDIF
+
+                 ENDDO INDONE
+
+                 EXIT 
 
             ENDDO TRIPLET 
 
          ENDIF # Trp_count > 0
 
          EXECUTE  SERVER_BARRIER
+
+#Debug Printing
+
+      EXECUTE  PRINT_SCALAR  OMEGA
+#enddebug 
 
       ENDPROC PUT_IN_RK
 #     -----------------
@@ -1638,30 +1820,32 @@
       IF  LOGRIGHT == ONE
 
          PARDO  a, i
-                 tia (i,a) = L1A (i,a)
+                 GET A1A(i,a)
+                 tia (i,a) = A1A (i,a)
             PUT  L1A (i,a) = tia (i,a)
          ENDPARDO  a, i
 
          PARDO b, j
-                 tjb (j,b) = L1B (j,b)
+                 GET A1B(j,b)
+                 tjb (j,b) = A1B (j,b)
             PUT  L1B (j,b) = tjb (j,b)
          ENDPARDO b, j
 
          PARDO a, i, a1, i1
-            REQUEST                      L2AA  (i,a,i1,a1) a1
-                     tiaia (i,a,i1,a1) = L2AA  (i,a,i1,a1)
+            REQUEST                      A2AA  (i,a,i1,a1) a1
+                     tiaia (i,a,i1,a1) = A2AA  (i,a,i1,a1)
             PREPARE  L2AA  (i,a,i1,a1) = tiaia (i,a,i1,a1)
          ENDPARDO a, i, a1, i1
 
          PARDO b, j, b1, j1
-            REQUEST                      L2BB  (j,b,j1,b1) b1
-                     tjbjb (j,b,j1,b1) = L2BB  (j,b,j1,b1)
+            REQUEST                      A2BB  (j,b,j1,b1) b1
+                     tjbjb (j,b,j1,b1) = A2BB  (j,b,j1,b1)
             PREPARE  L2BB  (j,b,j1,b1) = tjbjb (j,b,j1,b1)
          ENDPARDO b, j, b1, j1
 
          PARDO a, i, b, j
-            REQUEST                    L2AB  (i,a,j,b) b
-                     tiajb (i,a,j,b) = L2AB  (i,a,j,b)
+            REQUEST                    A2AB  (i,a,j,b) b
+                     tiajb (i,a,j,b) = A2AB  (i,a,j,b)
             PREPARE  L2AB  (i,a,j,b) = tiajb (i,a,j,b)
          ENDPARDO a, i, b, j
 
@@ -1683,20 +1867,20 @@
                 
                 
                      PARDO a, i, a1, i1
-                           REQUEST   L2AA_VECS(a,i,a1,i1,SINGLET) SINGLET
-                           tpppp  (i,a,i1,a1)  = L2AA_VECS(a,i,a1,i1,SINGLET)
+                           REQUEST   L2AA_VECS(i,a,i1,a1,SINGLET) SINGLET
+                           tpppp  (i,a,i1,a1)  = L2AA_VECS(i,a,i1,a1,SINGLET)
                            PREPARE L2AA(i,a,i1,a1) = tpppp (i,a,i1,a1)
                      ENDPARDO a, i, a1, i1
 
                      PARDO b, j, b1, j1
-                           REQUEST   L2BB_VECS(b,j,b1,j1,SINGLET) SINGLET
-                           tqqqq  (j,b,j1,b1)  = L2BB_VECS(b,j,b1,j1,SINGLET)
+                           REQUEST   L2BB_VECS(j,b,j1,b1,SINGLET) SINGLET
+                           tqqqq  (j,b,j1,b1)  = L2BB_VECS(j,b,j1,b1,SINGLET)
                            PREPARE L2BB(j,b,j1,b1) = tqqqq (j,b,j1,b1)
                      ENDPARDO b, j, b1, j1
 
                      PARDO a, i, b, j
-                           REQUEST    L2AB_VECS(a,i,b,j,SINGLET) SINGLET
-                           tiajb (i,a,j,b)  = L2AB_VECS(a,i,b,j,SINGLET)
+                           REQUEST    L2AB_VECS(i,a,j,b,SINGLET) SINGLET
+                           tiajb (i,a,j,b)  = L2AB_VECS(i,a,j,b,SINGLET)
                            PREPARE L2AB(i,a,j,b) = tiajb(i,a,j,b)
                      ENDPARDO a, i, b, j
 
@@ -2193,28 +2377,61 @@
 
       ENDPROC  COMP_L_NORM
 #     --------------------
+#---------------------------------------------------------------------
+# 
+      PROC  COMPUTE_MOMENTS
+#     ---------------------        
+      EXECUTE  PRINT_SCALAR  ZERO
+      imomcount = 0.0
+      DO indone
+      DO secmom
+         imomcount += 1
+
+         sum1      = 0.0
+         SECONDMOM = 0.0
+         PARDO  mu, nu
+
+            txx (mu,nu) = 0.0
+            GET  AO_DENS (mu,nu)
+            EXECUTE  RETURN_2ND_MOM  txx  imomcount
+            etemp  = AO_DENS (mu,nu) * txx (mu,nu)
+            sum1  += etemp
+
+         ENDPARDO  mu, nu
+
+         EXECUTE  SIP_BARRIER
+         COLLECTIVE  SECONDMOM += sum1
+         EXECUTE  SIP_BARRIER
+
+         EXECUTE  PRINT_SCALAR  SECONDMOM
+         IF GROUNDSTATE == ONE
+            GRDSECM (secmom,indone) = SECONDMOM
+         ENDIF
+
+         IF EXCITESTATE == ONE
+            EXCSECM (secmom,indone) = SECONDMOM
+         ENDIF
+
+      ENDDO secmom
+      ENDDO indone
+#
+      ENDPROC  COMPUTE_MOMENTS
+#     ------------------------
+
 #-------------------------------------------------------------------------
 # ----------------------------------------------------------
 # Begin the main program. Read the block data file to load
 # R1,R2,L1 and L2 for k states. 
 # -----------------------------------------------------------
 #
-      ZERO = 0.0
-      CREATE T1A
-      CREATE T1B
-      CREATE REE
-      CREATE LEE
-      CREATE R1A_VECS
-      CREATE R1B_VECS
-      CREATE L1A_VECS
-      CREATE L1B_VECS
-      CREATE HBAR_ia
-      CREATE HBAR_jb
-      CREATE T1A
-      CREATE T1B
-      CREATE L1A
-      CREATE L1B
-   
+      ZERO    = 0.0
+      ONE     = 1.0
+      TWO     = 2.0
+      THREE   = 3.0
+      ONEHALF = 0.5
+
+      CALL  CREATE_XARRAYS
+
       CALL READ_AMP
  
       CALL HF_DENSITY
@@ -2223,12 +2440,33 @@
 
       LOGRIGHT = ONE
       CALL PUT_IN_LK
-      TRIPLET_STATE = 1
+
+      GROUNDSTATE = ONE
+      EXCITESTATE = ONE
+      TRP_COUNT   = ZERO
+
+      CALL PUT_IN_RK
+      R0  = ONE
+
+      CALL COMPUTE_DENSITY
+      CALL BACK_TRANS_DPQ
+      CALL COMPUTE_MOMENTS
+#
+      GROUNDSTATE   = ZERO
+      TRP_COUNT     = TWO
+      SING_COUNT    = TWO
+      TRIPLET_STATE = ONE
+      SINGLET_STATE = ONE
+      LOGRIGHT      = ONE
+      EXCITESTATE   = ONE
+
+      CALL PUT_IN_LK
       CALL PUT_IN_RK
       CALL R0_COMPUTE
       CALL COMP_R_NORM
       CALL COMPUTE_DENSITY
       CALL BACK_TRANS_DPQ
+      CALL COMPUTE_MOMENTS
 
 #      DO KROOT
 #         CALL FIND_TRIPLETS

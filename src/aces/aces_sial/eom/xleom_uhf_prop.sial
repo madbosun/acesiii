@@ -32818,7 +32818,14 @@
             ENDPARDO  a, i, b, j
 
             EXECUTE  SERVER_BARRIER
-
+#Debug printing
+#     execute server_barrier
+#     pardo a, i
+#        get r1a(a,i)
+#        execute dump_amp  r1a(a,i)
+#     endpardo a,i
+#enddebug printing
+#
          ENDIF # ncount > 0
 #
 #
@@ -35714,7 +35721,7 @@
       DO a
          GET         VCE1A (a,i)
          tai (a,i) = VCE1A (a,i)
-         EXECUTE  C1_PRINT  tai  amplthresh
+#         EXECUTE  C1_PRINT  tai  amplthresh
       ENDDO a
       ENDDO i
 
@@ -35722,7 +35729,7 @@
       DO b
          GET         VCE1B (b,j)
          tbj (b,j) = VCE1B (b,j)
-         EXECUTE  C1B_PRINT  tbj  amplthresh
+#         EXECUTE  C1B_PRINT  tbj  amplthresh
       ENDDO b
       ENDDO j
 
@@ -35732,7 +35739,7 @@
       DO b
          REQUEST           VCE2AB (a,i,b,j) b
          taibj (a,i,b,j) = VCE2AB (a,i,b,j)
-         EXECUTE  C2AB_PRINT  taibj  amplthresh
+#         EXECUTE  C2AB_PRINT  taibj  amplthresh
       ENDDO b
       ENDDO a
       ENDDO j
@@ -35744,7 +35751,7 @@
       DO a1
          REQUEST             VCE2AA (a,i,a1,i1) a1
          taiai (a,i,a1,i1) = VCE2AA (a,i,a1,i1)
-         EXECUTE  C2AA_PRINT  taiai  amplthresh
+#         EXECUTE  C2AA_PRINT  taiai  amplthresh
       ENDDO a1
       ENDDO a
       ENDDO i1
@@ -35756,7 +35763,7 @@
       DO b1
          REQUEST             VCE2BB (b,j,b1,j1) b1
          tbjbj (b,j,b1,j1) = VCE2BB (b,j,b1,j1)
-         EXECUTE  C2BB_PRINT  tbjbj  amplthresh
+#         EXECUTE  C2BB_PRINT  tbjbj  amplthresh
       ENDDO b1
       ENDDO b
       ENDDO j1

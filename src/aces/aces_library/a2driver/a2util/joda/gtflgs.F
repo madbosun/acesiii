@@ -237,7 +237,6 @@ c COMMON BLOCKS
 #define MONSTER_FLAGS /* use ioppar */
 #include "jodaflags.com"
 #include "machsp.com"
-
 c ----------------------------------------------------------------------
 
 c DECLARATIONS AND DATA STATEMENTS

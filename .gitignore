@@ -5,7 +5,5 @@ out*
 tmp*
 xaces3
 ./bin/
-./bin_stable/
 ./lib
-./lib_stable/
 
