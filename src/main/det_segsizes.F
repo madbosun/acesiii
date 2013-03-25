@@ -301,12 +301,22 @@ c ----------------------------------------------------------------------
          m(i) = mass(i)
       end do
 
-      if (sml.lt.1.or.iSegSize.lt.lrg) then
+      if (iSegSize .lt. lrg) iSegSize = lrg + 1 
+
+      if (sml.lt.1) then
          print *,'Error in binpack_cost: Shells must have a mass > 0,'
          print *,'and the group limit (',iSegSize,
      *           ') must be >= the largest shell size (',lrg,').'
+         print *, ' VFL WHAT??' 
          call abort_job()
       end if
+
+c     if (sml.lt.1.or.iSegSize.lt.lrg) then
+c        print *,'Error in binpack_cost: Shells must have a mass > 0,'
+c        print *,'and the group limit (',iSegSize,
+c    *           ') must be >= the largest shell size (',lrg,').'
+c        call abort_job()
+c     end if
 
 c   o sort the masses in descending order
       call isort(m,0,nShells,-1)

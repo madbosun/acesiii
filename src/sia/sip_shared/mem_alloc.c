@@ -70,7 +70,7 @@ void F77_NAME(mem_alloc,MEM_ALLOC)
 	assert (total_bytes != 0);
 	*ierr = 0;
     f_int esize = *element_size;
-	long long nbytes = (*nwords) * esize;
+	long long nbytes = (long long) *nwords * esize;
 	long long fiddle = ALIGN-1;
 	long long nxt_int = (long long)nxt_ptr;
 //        printf("mem_alloc called with nwords %d and esize %d, previous nxt_int is %lld.\n",*nwords,esize,nxt_int);
