@@ -12,7 +12,7 @@
 #
 #  The GNU General Public License is included in this distribution
 #  in the file COPYRIGHT.
-                       SIAL SPNORBT_CC_UHF_2P
+                       SIAL ONE_GRAD_CO       
 #
 # This SIAL program computes the two particle density 
 # matrice but only stores one piece at a time similar to dens6.sial. 
@@ -23,7 +23,7 @@
 # Contributions coming from Vabcd --> Iai are computed in AO basis and CHECKED. 
 #
 # This version also computes Dai iteratively in the final step --> Tested and Working 
-#
+# 
 # Iij_aa --> matches aces 
 # Iij_bb --> matches aces 
 #
@@ -116,9 +116,6 @@
       INDEX  kroot    = 1, 12
       INDEX  j20      = 1, 20
       INDEX  j21      = 1, 21
-      Index Triplet   = 1, 12
-      Index Singlet   = 1, 12
-
 #
 #     Intermediate arrays used in Xi and Density
 #
@@ -1863,21 +1860,9 @@
       scalar enew 
       scalar ecrit 
       scalar ediff 
+#-------------------------------------------------------------------------
 
-      scalar Csum_xai
-      scalar Ctmp_xai
-      scalar tmp
-      scalar Atmp
-      scalar Ctmp
-      
-      SCALAR  TRP_COUNT
-      SCALAR  SING_COUNT
-      SCALAR  TRIPLET_STATE
-      SCALAR  SINGLET_STATE
-      SCALAR  EXCITESTATE
-      SCALAR  T_COUNT
-      SCALAR  S_COUNT
-      SCALAR  LOGRIGHT
+
 
 #-------------------------------------------------------------------------
 #
@@ -1902,7 +1887,7 @@
          etemp = tpppp (a,a2,a1,i) * tpppp (a,a2,a1,i)
          etemp *= 0.5
          esum1 += etemp
-#         EXECUTE  DUMP_AMP  tpppp
+         EXECUTE  DUMP_AMP  tpppp
       ENDPARDO  a, a2, a1, i
       EXECUTE  SERVER_BARRIER
       PARDO  b, b2, b1, j
@@ -1911,7 +1896,7 @@
          etemp = tqqqq (b,b2,b1,j) * tqqqq (b,b2,b1,j)
          etemp *= 0.5
          esum2 += etemp
-#         EXECUTE  DUMP_AMP  tqqqq
+         EXECUTE  DUMP_AMP  tqqqq
       ENDPARDO  b, b2, b1, j
       EXECUTE  SERVER_BARRIER
       PARDO  a, b2, a1, j
@@ -1919,7 +1904,7 @@
          Tpqpq (a,b2,a1,j) = Dabci_abab (a,b2,a1,j)
          etemp = Tpqpq (a,b2,a1,j) * Tpqpq (a,b2,a1,j)
          esum3 += etemp
-#         EXECUTE  DUMP_AMP  Tpqpq
+         EXECUTE  DUMP_AMP  Tpqpq
       ENDPARDO  a, b2, a1, j
       EXECUTE  SERVER_BARRIER
       PARDO  b, a2, b1, i
@@ -1927,7 +1912,7 @@
          Tqpqp (b,a2,b1,i) = Dabci_baba (b,a2,b1,i)
          etemp = Tqpqp (b,a2,b1,i) * Tqpqp (b,a2,b1,i)
          esum4 += etemp
-#         EXECUTE  DUMP_AMP  Tqpqp
+         EXECUTE  DUMP_AMP  Tqpqp
       ENDPARDO  b, a2, b1, i
       EXECUTE  SERVER_BARRIER
 
@@ -1982,7 +1967,7 @@
          etemp = tpppp (i,i1,i2,a) * tpppp (i,i1,i2,a)
          etemp *= 0.5
          esum1 += etemp
-#         EXECUTE  DUMP_AMP  tpppp
+         EXECUTE  DUMP_AMP  tpppp
       ENDPARDO  i, i1, i2, a
       EXECUTE  SERVER_BARRIER
       PARDO  j, j1, j2, b    
@@ -1991,7 +1976,7 @@
          etemp = tqqqq (j,j1,j2,b) * tqqqq (j,j1,j2,b)
          etemp *= 0.5
          esum2 += etemp
-#         EXECUTE  DUMP_AMP  tqqqq
+         EXECUTE  DUMP_AMP  tqqqq
       ENDPARDO  j, j1, j2, b
       EXECUTE  SERVER_BARRIER
       PARDO  i, j1, i2, b
@@ -1999,7 +1984,7 @@
          tpqpq (i,j1,i2,b) = Dijka_abab (i,j1,i2,b)
          etemp = tpqpq (i,j1,i2,b) * tpqpq (i,j1,i2,b)
          esum3 += etemp
-#         EXECUTE  DUMP_AMP  tpqpq
+         EXECUTE  DUMP_AMP  tpqpq
       ENDPARDO  i, j1, i2, b
       EXECUTE  SERVER_BARRIER
       PARDO  j, i1, j2, a
@@ -2007,7 +1992,7 @@
          tqpqp (j,i1,j2,a) = Dijka_baba (j,i1,j2,a)
          etemp = tqpqp (j,i1,j2,a) * tqpqp (j,i1,j2,a)
          esum4 += etemp
-#         EXECUTE  DUMP_AMP  tqpqp
+         EXECUTE  DUMP_AMP  tqpqp
       ENDPARDO  j, i1, j2, a
       EXECUTE  SERVER_BARRIER
 
@@ -2088,7 +2073,7 @@
 
       EXECUTE  PRINT_SCALAR  energy_ab
       EXECUTE  PRINT_SCALAR  energy_aa
-#      EXECUTE  PRINT_SCALAR  energy_bb
+     #EXECUTE  PRINT_SCALAR  energy_bb
       EXECUTE  PRINT_SCALAR  energy
 #
 #
@@ -2120,7 +2105,7 @@
          etemp  = tiiii (i,i1,i2,i3) * tiiii (i,i1,i2,i3)
          etemp *= 0.25
          esum1 += etemp
-#         EXECUTE  DUMP_AMP  tiiii
+         EXECUTE  DUMP_AMP  tiiii
       ENDPARDO  i, i1, i2, i3
       EXECUTE  SERVER_BARRIER
       PARDO  i, j1, i2, j3
@@ -2128,7 +2113,7 @@
          Tijij (i,j1,i2,j3)  = Dijkl_ab (i,j1,i2,j3)
          etemp  = Tijij (i,j1,i2,j3) * Tijij (i,j1,i2,j3)
          esum2 += etemp
-#         EXECUTE  DUMP_AMP  Tijij
+         EXECUTE  DUMP_AMP  Tijij
       ENDPARDO  i, j1, i2, j3
       EXECUTE  SERVER_BARRIER
 
@@ -2179,7 +2164,7 @@
          tpppp (i,a,i1,a1) = Dibja_aaaa (i,a,i1,a1)
          etemp = tpppp (i,a,i1,a1) * tpppp (i,a,i1,a1)
          esum1 += etemp
-#         EXECUTE  DUMP_AMP  tpppp
+         EXECUTE  DUMP_AMP  tpppp
       ENDPARDO  i, a, i1, a1
       EXECUTE  SERVER_BARRIER
       PARDO  i, b, i1, b1
@@ -2187,7 +2172,7 @@
          tpqpq (i,b,i1,b1) = Dibja_abab (i,b,i1,b1)
          etemp = tpqpq (i,b,i1,b1) * tpqpq (i,b,i1,b1)
          esum2 += etemp
-#         EXECUTE  DUMP_AMP  tpqpq
+         EXECUTE  DUMP_AMP  tpqpq
       ENDPARDO  i, b, i1, b1
       EXECUTE  SERVER_BARRIER
       PARDO  i, a, j1, b1
@@ -2195,7 +2180,7 @@
          tqppq (j1,a,i,b1)  = Dibja_abba (i,b1,j1,a)
          etemp = tqppq (j1,a,i,b1) * tqppq (j1,a,i,b1)
          esum4 += etemp
-#         EXECUTE  DUMP_AMP  tqppq
+         EXECUTE  DUMP_AMP  tqppq
       ENDPARDO  i, a, j1, b1
       EXECUTE  SERVER_BARRIER
 
@@ -3298,6 +3283,12 @@
      ENDPROC TRAN_UHF 
 #
 #    ------------------------------------------------------------------------ 
+
+
+
+
+#
+#    ------------------------------------------------------------------------
 #
       PROC HBAR_AB
 #     ------------
@@ -7965,6 +7956,7 @@
          PREPARE  Dijab_ab (i,j1,a,b1) += tijab (i,j1,a,b1)
       ENDPARDO  a, i, b1, j1
 #
+#
 #      Here I am inserting an artifical N^5 step.
 #      I do this because I want to avoid barriers as much as possible.
 #
@@ -8115,11 +8107,6 @@
          ENDDO i1
          ENDDO a1
       ENDPARDO  a2, b, j
-
-      ENDPROC DIJAB_EOM
-
-      PROC JUNK
-
 #
 #
 #       ab           e  m        ef  mn    ab           a  m        af  mn    eb
@@ -8604,14 +8591,12 @@
          DEALLOCATE  Ljaja  (*,a2,j2,a)
          DEALLOCATE  L1jaja (*,a2,j2,a)
       ENDPARDO  b1, a2, j2, a
-
-      ENDPROC JUNK
 #
 #
 #          ...ready!
 #     
 #     
-#      ENDPROC  DIJAB_EOM
+      ENDPROC  DIJAB_EOM
 #-------------------------------------------------------------------------
 
 
@@ -8630,9 +8615,9 @@
 #
 #
            CALL DIJAB_EOM
-#           CALL DIJABAA 
-#           CALL DIJABBB 
-#           CALL DIJABAB 
+           CALL DIJABAA 
+           CALL DIJABBB 
+           CALL DIJABAB 
 #
       ENDPROC DIJAB 
 #     ------------- 
@@ -23470,7 +23455,7 @@
          t3aa (a,a1) = DIS_VV4_A (a,a1)
          LR2L2_aa (a,a1) =  taa  (a,a1)
          LT2L2_aa (a,a1) =  t1aa (a,a1)
-#         EXECUTE  DUMP_AMP  t1aa
+         EXECUTE  DUMP_AMP  t1aa
          L_Y_aa   (a,a1) =  taa2 (a,a1)
          L_Z_aa   (a,a1) =  t3aa (a,a1)
       ENDDO a1
@@ -26587,28 +26572,465 @@
 #
       ENDPROC PDCONT 
 # -----------------------------------------------------------------------------
+
+
+
+#-----------------------------------------------------------------------
+#
+#     -----------------
+      PROC  GET_RL_AMPS
+#     -----------------
+#
+#
+#
+#
+      rootcount = 0.0
+
+      DO indone
+      DO kroot
+
+         GET  REE (kroot,indone)
+         tee (kroot,indone) = REE (kroot,indone)
+
+         rootcount += 1.0
+         IF rootcount == iroot
+            EXECUTE  RETURN_SVAL  tee  OMEGA
+         ENDIF
+
+      ENDDO kroot
+      ENDDO indone
+
+      EXECUTE  SIP_BARRIER
+
+      ncount    = 0.0
+      rootcount = 0.0
+      DO indone
+      DO kroot
+
+         GET                  LEE (kroot,indone)
+         tee (kroot,indone) = LEE (kroot,indone)
+         EXECUTE  RETURN_SVAL  tee  L_OMEGA
+         etemp = L_OMEGA - OMEGA
+         IF etemp < 0.0
+            etemp *= -1.0
+         ENDIF
+
+         rootcount += 1.0
+         IF etemp < root_thresh
+            ncount = rootcount
+            EXIT
+         ENDIF
+
+      ENDDO kroot
+      ENDDO indone
+
+      EXECUTE  PRINT_SCALAR  OMEGA
+      EXECUTE  PRINT_SCALAR  L_OMEGA
+      EXECUTE  PRINT_SCALAR  ncount
+
+      EXECUTE  SIP_BARRIER
+#
+#
+#          ...Grab an R  array...
+#                      k
+#
+#     
+      PARDO  a, i
+         rootcount = 0.0
+         DO kroot
+            GET  R1A_VECS (a,i,kroot)
+            rootcount += 1.0
+            IF  rootcount == iroot
+                tai (a,i) = R1A_VECS (a,i,kroot)
+                PUT  R1A (a,i) = tai (a,i)
+            ENDIF             
+         ENDDO kroot
+      ENDPARDO  a, i
+         
+      PARDO  b, j
+         rootcount = 0.0
+         DO kroot
+            GET  R1B_VECS (b,j,kroot)
+            rootcount += 1.0
+            IF  rootcount == iroot
+                tbj (b,j) = R1B_VECS (b,j,kroot)
+                PUT  R1B (b,j) = tbj (b,j)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  b, j
+
+      PARDO  a, i, a1, i1
+         rootcount = 0.0
+         DO kroot
+            REQUEST  R2AA_VECS (a,i,a1,i1,kroot) kroot
+            rootcount += 1.0
+            IF  rootcount == iroot
+                taiai (a,i,a1,i1) = R2AA_VECS (a,i,a1,i1,kroot)
+                PREPARE  R2AA (a,i,a1,i1) = taiai (a,i,a1,i1)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  a, i, a1, i1
+      
+      PARDO  b, j, b1, j1
+         rootcount = 0.0
+         DO kroot
+            REQUEST  R2BB_VECS (b,j,b1,j1,kroot) kroot
+            rootcount += 1.0
+            IF  rootcount == iroot
+                tbjbj (b,j,b1,j1) = R2BB_VECS (b,j,b1,j1,kroot)
+                PREPARE  R2BB (b,j,b1,j1) = tbjbj (b,j,b1,j1)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  b, j, b1, j1
+
+      PARDO  a, i, b, j
+         rootcount = 0.0
+         DO kroot
+            REQUEST  R2AB_VECS (a,i,b,j,kroot) kroot
+            rootcount += 1.0
+            IF  rootcount == iroot
+                taibj (a,i,b,j) = R2AB_VECS (a,i,b,j,kroot)
+                PREPARE  R2AB (a,i,b,j) = taibj (a,i,b,j)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  a, i, b, j
+#
+#
+#          ...Grab the corresponding L  array...
+#                                     k
+#
+#
+#
+#
+#          We found a matching excitation energy, so grab
+#          the corresponding root!
+#
+#
+      IF ncount > ZERO
+
+         PARDO  i, a
+            rootcount = 0.0
+            DO kroot
+               GET  L1A_VECS (i,a,kroot)
+               rootcount += 1.0
+               IF  rootcount == ncount
+                   tia (i,a) = L1A_VECS (i,a,kroot)
+                   PUT  L1A (i,a) = tia (i,a)
+               ENDIF
+            ENDDO kroot
+         ENDPARDO  i, a
+
+         PARDO  j, b
+            rootcount = 0.0
+            DO kroot
+               GET  L1B_VECS (j,b,kroot)
+               rootcount += 1.0
+               IF  rootcount == ncount
+                   tjb (j,b) = L1B_VECS (j,b,kroot)
+                   PUT  L1B (j,b) = tjb (j,b)
+               ENDIF
+            ENDDO kroot
+         ENDPARDO  j, b
+
+         PARDO  i, a, i1, a1
+            rootcount = 0.0
+            DO kroot
+               REQUEST  L2AA_VECS (i,a,i1,a1,kroot) kroot
+               rootcount += 1.0
+               IF  rootcount == ncount
+                   tiaia (i,a,i1,a1) = L2AA_VECS (i,a,i1,a1,kroot)
+                   PREPARE  L2AA (i,a,i1,a1) = tiaia (i,a,i1,a1)
+               ENDIF
+            ENDDO kroot
+         ENDPARDO  i, a, i1, a1
+
+         PARDO  j, b, j1, b1
+            rootcount = 0.0
+            DO kroot
+               REQUEST  L2BB_VECS (j,b,j1,b1,kroot) kroot
+               rootcount += 1.0
+               IF  rootcount == ncount
+                   tjbjb (j,b,j1,b1) = L2BB_VECS (j,b,j1,b1,kroot)
+                   PREPARE  L2BB (j,b,j1,b1) = tjbjb (j,b,j1,b1)
+               ENDIF
+            ENDDO kroot
+         ENDPARDO  j, b, j1, b1
+
+         PARDO  i, a, j, b
+            rootcount = 0.0
+            DO kroot
+               REQUEST  L2AB_VECS (i,a,j,b,kroot) kroot
+               rootcount += 1.0
+               IF  rootcount == ncount
+                  tiajb (i,a,j,b) = L2AB_VECS (i,a,j,b,kroot)
+                  PREPARE  L2AB (i,a,j,b) = tiajb (i,a,j,b)
+               ENDIF
+            ENDDO kroot
+         ENDPARDO  i, a, j, b
+
+      ENDIF # ncount > 0
+#                  
+#                  
+#          In the event that none of the L excitation energies
+#          match the the current R excitation energy, we need
+#          to bomb!
+#                  
+#                  
+      IF ncount == ZERO
+            
+         PARDO  p, p1 
+            GET  BOMB_SHELL (p,p1) # never created array to force crash
+         ENDPARDO  p, p1
+            
+      ENDIF 
+#              
+#              
+#      ...ready!
+#                  
+#                  
+      ENDPROC  GET_RL_AMPS
+#-------------------------------------------------------------------------
+
+
+
+
+
+
+#-----------------------------------------------------------------------
+#
+#     ------------------
+      PROC  COMP_LR_NORM
+#     ------------------
+#
+#
+#          ...Compute the contributions...
+#
+#
+      R0 = 0.0
+      IG2R2  = 0.0
+      IL2R2  = 0.0
+      el2r2  = 0.0
+      esum   = 0.0
+
+      etemp1 = 0.0
+      etemp2 = 0.0
+      etemp3 = 0.0
+      etemp4 = 0.0
+      etemp5 = 0.0
+      sum1 = 0.0
+      sum2 = 0.0
+      sum3 = 0.0
+      sum4 = 0.0
+      sum5 = 0.0
+
+      PARDO  a, i
+         GET  HBAR_ia (i,a)
+         GET  R1A (a,i)
+         etemp = HBAR_ia (i,a) * R1A (a,i)
+         sum1 += etemp
+      ENDPARDO  a, i
+
+      PARDO  b, j
+         GET  HBAR_jb (j,b)
+         GET  R1B (b,j)
+         etemp = HBAR_jb (j,b) * R1B (b,j)
+         sum1 += etemp
+      ENDPARDO  b, j
+
+      PARDO  a, a1, i, i1
+         REQUEST  R2AA   (a,i,a1,i1) i1
+         REQUEST  VSpipi (a,i,a1,i1) i1
+         etemp  = R2AA (a,i,a1,i1) * VSpipi (a,i,a1,i1)
+         etemp *= 0.25
+         sum2  += etemp
+      ENDPARDO  a, a1, i, i1
+
+      PARDO  b, b1, j, j1
+         REQUEST  R2BB   (b,j,b1,j1) j1
+         REQUEST  VSqjqj (b,j,b1,j1) j1
+         etemp  = R2BB (b,j,b1,j1) * VSqjqj (b,j,b1,j1)
+         etemp *= 0.25
+         sum2  += etemp
+      ENDPARDO  b, b1, j, j1
+
+      PARDO  a, i, b, j
+         REQUEST  R2AB (a,i,b,j) j
+         REQUEST  Vpiqj (a,i,b,j) j
+         etemp  = R2AB (a,i,b,j) * Vpiqj (a,i,b,j)
+         sum2  += etemp
+      ENDPARDO  a, i, b, j
+
+      EXECUTE  SERVER_BARRIER
+      
+      collective  etemp1 += sum1
+      collective  etemp2 += sum2
+      
+      R0 += etemp1
+      R0 += etemp2
+#     
+# EOM GRADIENTS
+      IG2R2 += etemp2 
+
+      execute print_scalar etemp2
+
+      EXECUTE  SIP_BARRIER
+
+      IRHBAR = R0
+
+      R0      = R0 / OMEGA
+      OMEGA2  = TWO / THREE
+      OMEGA2 *= OMEGA 
+#        
+# Right Norm 
+#     
+      RNORM  = R0
+      RNORM *= R0
+      esum1  = 0.0
+
+      PARDO  i, a
+         GET         R1A (a,i)
+         tai (a,i) = R1A (a,i)
+         etemp  = tai (a,i) * tai (a,i)
+         esum1 += etemp
+      ENDPARDO  i, a
+
+      PARDO  j, b
+         GET         R1B (b,j)
+         tbj (b,j) = R1B (b,j)
+         etemp  = tbj (b,j) * tbj (b,j)
+         esum1 += etemp
+      ENDPARDO  j, b
+
+      PARDO  a, i, a1, i1
+         REQUEST             R2AA (a,i,a1,i1) a
+         taiai (a,i,a1,i1) = R2AA (a,i,a1,i1)
+         etemp  = taiai (a,i,a1,i1) * taiai (a,i,a1,i1)
+         etemp *= 0.25
+         esum1 += etemp
+      ENDPARDO  a, i, a1, i1
+
+      PARDO  b, j, b1, j1
+         REQUEST             R2BB (b,j,b1,j1) b
+         tbjbj (b,j,b1,j1) = R2BB (b,j,b1,j1)
+         etemp  = tbjbj (b,j,b1,j1) * tbjbj (b,j,b1,j1)
+         etemp *= 0.25
+         esum1 += etemp
+      ENDPARDO  b, j, b1, j1
+
+      PARDO  a, i, b, j
+         REQUEST           R2AB (a,i,b,j) a
+         taibj (a,i,b,j) = R2AB (a,i,b,j)
+         etemp  = taibj (a,i,b,j) * taibj (a,i,b,j)
+         esum1 += etemp
+      ENDPARDO  a, i, b, j
+
+      EXECUTE  SIP_BARRIER
+      EXECUTE  SERVER_BARRIER
+
+      COLLECTIVE  RNORM += esum1
+      
+      EXECUTE SIP_BARRIER
+      EXECUTE  SQUARE_ROOT  RNORM  ONEHALF
+      
+      RNORM  = 1.0 / RNORM
+         
+#        
+# Leftp norm 
+#        
+      LNORM  = 0.0
+      esum1  = 0.0
+      
+      PARDO  i, a
+         GET         R1A (a,i)
+         GET         L1A (i,a)
+         tai (a,i) = R1A (a,i)
+         etemp  = tai (a,i) * L1A (i,a)
+         esum1 += etemp
+      ENDPARDO  i, a
+      
+      PARDO  j, b
+         GET         R1B (b,j)
+         GET         L1B (j,b)
+         tbj (b,j) = R1B (b,j)
+         etemp  = tbj (b,j) * L1B (j,b)
+         esum1 += etemp
+      ENDPARDO  j, b
+
+      PARDO  i, a, i1, a1
+         REQUEST             R2AA (a,i,a1,i1) i
+         REQUEST             L2AA (i,a,i1,a1) i
+         taiai (a,i,a1,i1) = R2AA (a,i,a1,i1)
+         etemp  = taiai (a,i,a1,i1) * L2AA (i,a,i1,a1)
+         etemp *= 0.25
+         esum1 += etemp
+         el2r2 += etemp
+      ENDPARDO  i, a, i1, a1
+      
+      PARDO  j, b, j1, b1
+         REQUEST             R2BB (b,j,b1,j1) j
+         REQUEST             L2BB (j,b,j1,b1) j
+         tbjbj (b,j,b1,j1) = R2BB (b,j,b1,j1)
+         etemp  = tbjbj (b,j,b1,j1) * L2BB (j,b,j1,b1)
+         etemp *= 0.25
+         esum1 += etemp
+         el2r2 += etemp
+      ENDPARDO  j, b, j1, b1
+
+      PARDO  i, a, j, b
+         REQUEST           R2AB (a,i,b,j) i
+         REQUEST           L2AB (i,a,j,b) i
+         taibj (a,i,b,j) = R2AB (a,i,b,j)
+         etemp  = taibj (a,i,b,j) * L2AB (i,a,j,b)
+         esum1 += etemp
+         el2r2 += etemp
+      ENDPARDO  i, a, j, b
+
+      EXECUTE  SIP_BARRIER
+      EXECUTE  SERVER_BARRIER
+
+      COLLECTIVE  LNORM += esum1
+      COLLECTIVE  IL2R2 += el2r2
+
+      EXECUTE SIP_BARRIER
+      LNORM *= RNORM
+      etemp = LNORM
+      LNORM = 1.0 / etemp
+      LRNORM = LNORM * RNORM
+#
+      execute print_scalar R0
+      execute print_scalar rnorm
+      execute print_scalar lnorm
+      execute print_scalar lrnorm
+      execute print_scalar IL2R2
+      execute print_scalar IG2R2
+#
+#
+#      ...ready!
+#
+#
+      ENDPROC  COMP_LR_NORM
+#-------------------------------------------------------------------------
+
+
+
+
+
+#------------------------------------------------------------------------
 #
 #     -----------------
       PROC  PRINT_XI_AB
 #     --------------
 #
 #
-      Csum_xai = 0.0
-      Ctmp_xai = 0.0
       EXECUTE  SERVER_BARRIER
       EXECUTE  PRINT_SCALAR  ZERO
       PARDO  a, i, b1, j1
          REQUEST             XI2_AB (a,i,b1,j1) a
          taibj (a,i,b1,j1) = XI2_AB (a,i,b1,j1)
-         tmp = XI2_AB (a,i,b1,j1)*XI2_AB (a,i,b1,j1)
-         Ctmp_xai += tmp 
-#         EXECUTE  DUMP_AMP  taibj
+         EXECUTE  DUMP_AMP  taibj
       ENDPARDO  a, i, b1, j1
       EXECUTE  SERVER_BARRIER
-      collective Csum_xai += ctmp_xai
-      EXECUTE  SERVER_BARRIER
 #
-      execute print_scalar Csum_xai
 #
 #     ...ready!
 #
@@ -26624,23 +27046,15 @@
       PROC  PRINT_XI_AA
 #     --------------
 #
-      Csum_xai = 0.0
-      Ctmp_xai = 0.0
 #
       EXECUTE  SERVER_BARRIER
       EXECUTE  PRINT_SCALAR  ZERO
       PARDO  a, i, a1, i1
          REQUEST             XI2_AA (a,i,a1,i1) a
          taiai (a,i,a1,i1) = XI2_AA (a,i,a1,i1)
-         tmp = XI2_AA (a,i,a1,i1)*XI2_AA (a,i,a1,i1)
-         Ctmp_xai += tmp
-#         EXECUTE  DUMP_AMP  taiai
+         EXECUTE  DUMP_AMP  taiai
       ENDPARDO  a, i, a1, i1
       EXECUTE  SERVER_BARRIER
-      collective Csum_xai += ctmp_xai
-      EXECUTE  SERVER_BARRIER
-
-      execute print_scalar Csum_xai
 #
 #
 #     ...ready!
@@ -26658,21 +27072,14 @@
 #     -----------------
 #
 #     
-      Csum_xai = 0.0
-      Ctmp_xai = 0.0
       EXECUTE  SERVER_BARRIER
       EXECUTE  PRINT_SCALAR  ZERO
       PARDO  b, j, b1, j1    
          REQUEST             XI2_BB (b,j,b1,j1) b
          tbjbj (b,j,b1,j1) = XI2_BB (b,j,b1,j1)
-         tmp = XI2_BB (b,j,b1,j1)*XI2_BB (b,j,b1,j1)
-         ctmp_xai += tmp
-#         EXECUTE  DUMP_AMP  tbjbj
+         EXECUTE  DUMP_AMP  tbjbj
       ENDPARDO  b, j, b1, j1
       EXECUTE  SERVER_BARRIER
-      collective Csum_xai += ctmp_xai
-      EXECUTE  SERVER_BARRIER
-      execute print_scalar Csum_xai
 #
 #
 #     ...ready!
@@ -26690,38 +27097,21 @@
 #     ----------------
 #
 #
-      Csum_xai = 0.0
-      Ctmp_xai = 0.0
       EXECUTE  SERVER_BARRIER
       EXECUTE  PRINT_SCALAR  ZERO
       PARDO  a, i
          GET         XI1_A (a,i)
          tai (a,i) = XI1_A (a,i)
-          tmp = XI1_A (a,i)* XI1_A (a,i)
-          ctmp_xai += tmp
-#         EXECUTE  DUMP_AMP  tai
+         EXECUTE  DUMP_AMP  tai
       ENDPARDO  a, i
       EXECUTE  SERVER_BARRIER
-      collective Csum_xai += ctmp_xai
-      EXECUTE  SERVER_BARRIER
-      EXECUTE  PRINT_SCALAR Csum_xai 
-
-      Csum_xai = 0.0
-      Ctmp_xai = 0.0
+      EXECUTE  PRINT_SCALAR  ZERO
       PARDO  b, j
          GET         XI1_B (b,j)
          tbj (b,j) = XI1_B (b,j)
-         tmp = XI1_B (b,j) * XI1_B (b,j) 
-         ctmp_xai += tmp
-#         EXECUTE  DUMP_AMP  tbj
+         EXECUTE  DUMP_AMP  tbj
       ENDPARDO  b, j
       EXECUTE  SERVER_BARRIER
-      collective Csum_xai += ctmp_xai
-      EXECUTE  SERVER_BARRIER
-
-#      EXECUTE  SQUARE_ROOT   Csum_xai  ONEHALF
-      EXECUTE  PRINT_SCALAR  Csum_xai  
-
 #
 #
 #     ...ready!
@@ -29901,13 +30291,10 @@
       DELETE  D2aa
       DELETE  D2bb
 
-     ctmp_xai = 0.0
-     Csum_xai = 0.0
-    
-     CALL  PRINT_XI_AB
-     CALL  PRINT_XI_AA
-     CALL  PRINT_XI_BB
-     CALL  PRINT_XI
+     #CALL  PRINT_XI_AB
+     #CALL  PRINT_XI_AA
+     #CALL  PRINT_XI_BB
+     #CALL  PRINT_XI
 #
 #
 #     ...ready!
@@ -31508,7 +31895,7 @@
 
 
 # ----------------------------------------------------------------------------- 
-      PROC DMAIN
+      PROC DGRAD
 #     ----------
 #
 # Create single particle intermediates GAE and GMI and DAB, DIJ arrays 
@@ -31777,24 +32164,6 @@
 # Form DABCI 
 # ---------- 
          CALL DABCI # gamma5 
-
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-           CALL  PRINT_DIJAB # Watson, works!
-           CALL  PRINT_DIJKL # Watson, works!
-           CALL  PRINT_DIBJA # Watson, works!
-           CALL  PRINT_DIJKA # Watson, works!
-          CALL  PRINT_DAIBC # Watson, works!
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-
-         ENDPROC DMAIN
-
-         PROC DEBUG
 #
 # Compute 'Direct' contributions to Iab coming from Vabcd  
 # ------------------------------------------------------- 
@@ -31823,11 +32192,11 @@
          EXECUTE  PRINT_SCALAR  ZERO
          EXECUTE  PRINT_SCALAR  ZERO
          EXECUTE  PRINT_SCALAR  ZERO
-           CALL  PRINT_DIJAB # Watson, works!
-           CALL  PRINT_DIJKL # Watson, works!
-           CALL  PRINT_DIBJA # Watson, works!
-           CALL  PRINT_DIJKA # Watson, works!
-          CALL  PRINT_DAIBC # Watson, works!
+            CALL  PRINT_DIJAB # Watson, works!
+            #CALL  PRINT_DIJKL # Watson, works!
+            #CALL  PRINT_DIBJA # Watson, works!
+            #CALL  PRINT_DIJKA # Watson, works!
+            #CALL  PRINT_DAIBC # Watson, works!
          EXECUTE  PRINT_SCALAR  ZERO
          EXECUTE  PRINT_SCALAR  ZERO
          EXECUTE  PRINT_SCALAR  ZERO
@@ -31874,447 +32243,13 @@
 #
       CALL  PDCONT
 
-      ENDPROC DEBUG
-#---------------------------------------------------------------------
+      ENDPROC DGRAD
+#-------------------------------------------------------------------------
 
-      PROC PUT_IN_RK
-#     --------------
-#
-# If excited states grab the corresponding root
 
-         IF Trp_count > ZERO
 
-            T_COUNT = ZERO
 
-            DO TRIPLET 
 
-               T_COUNT += 1
-  
-                 IF T_COUNT == TRIPLET_STATE
-                    
-                    PARDO  a, i
-                           GET  R1A_VECS (a,i,TRIPLET)
-                           tai (a,i) = R1A_VECS (a,i,TRIPLET)
-                           PUT  R1A (a,i) = tai (a,i)
-                    ENDPARDO  a, i
-
-                    PARDO  b, j
-                           GET  R1B_VECS (b,j,TRIPLET)
-                           tbj (b,j) = R1B_VECS (b,j,TRIPLET)
-                           PUT  R1B (b,j) = tbj (b,j)
-                    ENDPARDO  b, j
-
-                    PARDO  a, i, a1, i1
-                           REQUEST  R2AA_VECS (a,i,a1,i1,TRIPLET) TRIPLET
-                           taiai (a,i,a1,i1) = R2AA_VECS (a,i,a1,i1,TRIPLET)
-                           PREPARE  R2AA (a,i,a1,i1) = taiai (a,i,a1,i1)
-                    ENDPARDO  a, i, a1, i1
-
-                    PARDO  b, j, b1, j1
-                           REQUEST  R2BB_VECS (b,j,b1,j1,TRIPLET) TRIPLET
-                           tbjbj (b,j,b1,j1) = R2BB_VECS (b,j,b1,j1,TRIPLET)
-                           PREPARE  R2BB (b,j,b1,j1) = tbjbj (b,j,b1,j1)
-                    ENDPARDO  b, j, b1, j1
-
-                    PARDO  a, i, b, j
-                           REQUEST  R2AB_VECS (a,i,b,j,TRIPLET) TRIPLET
-                           taibj (a,i,b,j) = R2AB_VECS (a,i,b,j,TRIPLET)
-                           PREPARE  R2AB (a,i,b,j) = taibj (a,i,b,j)
-                    ENDPARDO  a, i, b, j
-                    
-
-                 ENDIF
-            ENDDO  TRIPLET
-#Debug printing
-#     execute server_barrier
-#     pardo a, i
-#        get r1a(a,i)
-#        execute dump_amp  r1a(a,i)
-#     endpardo a,i
-#enddebug printing 
-#
-# Get the corresponding excitation enegry
-#
-           T_COUNT = ZERO
-
-            DO INDONE
-
-                 DO TRIPLET
-                    
-                     T_COUNT += 1
-
-                     IF T_COUNT == TRIPLET_STATE
-
-                        GET REE(TRIPLET, INDONE)
-                        TEE(TRIPLET, INDONE) = REE(TRIPLET, INDONE)
-
-                        EXECUTE  RETURN_SVAL  TEE  OMEGA
-                     ENDIF
-                 ENDDO TRIPLET
-
-            ENDDO INDONE
-
-         ENDIF # Trp_count > 0
-
-         EXECUTE  SERVER_BARRIER
-
-#Debug Printing
-
-      EXECUTE  PRINT_SCALAR  OMEGA
-#enddebug 
-
-      ENDPROC PUT_IN_RK
-#     -----------------
-#----------------------------------------------------------------------
-#
-      PROC PUT_IN_LK
-#     -------------- 
-
-      IF  LOGRIGHT == ONE
-
-         PARDO  a, i
-                 GET A1A_old(i,a)
-                 tia (i,a) = A1A_old (i,a)
-            PUT  L1A (i,a) = tia (i,a)
-         ENDPARDO  a, i
-
-         PARDO b, j
-                 GET A1B_old(j,b)
-                 tjb (j,b) = A1B_old (j,b)
-            PUT  L1B (j,b) = tjb (j,b)
-         ENDPARDO b, j
-
-         PARDO a, i, a1, i1
-            REQUEST                      A2old_AA  (i,a,i1,a1) a1
-                     tiaia (i,a,i1,a1) = A2old_AA  (i,a,i1,a1)
-            PREPARE  L2AA  (i,a,i1,a1) = tiaia (i,a,i1,a1)
-         ENDPARDO a, i, a1, i1
-
-         PARDO b, j, b1, j1
-            REQUEST                      A2old_BB  (j,b,j1,b1) b1
-            tjbjb (j,b,j1,b1) = A2old_BB  (j,b,j1,b1)
-            PREPARE  L2BB  (j,b,j1,b1) = tjbjb (j,b,j1,b1)
-         ENDPARDO b, j, b1, j1
-
-         PARDO a, i, b, j
-            REQUEST                    A2old_AB  (i,a,j,b) b
-                     tiajb (i,a,j,b) = A2old_AB  (i,a,j,b)
-            PREPARE  L2AB  (i,a,j,b) = tiajb (i,a,j,b)
-         ENDPARDO a, i, b, j
-
-         EXECUTE  SERVER_BARRIER
-
-      ENDIF  # LOGRIGHT == ONE #
-
-      IF  LOGRIGHT == ZERO
-
-         IF SING_COUNT > ZERO
-
-            S_COUNT = ZERO
-
-            DO SINGLET
-
-               S_COUNT += 1
-  
-                 IF S_COUNT == SINGLET_STATE
-                
-                     EXECUTE PRINT_SCALAR S_COUNT 
-
-                     PARDO a, i, a1, i1
-                           REQUEST   L2AA_VECS(i,a,i1,a1,SINGLET) SINGLET
-                           tpppp  (i,a,i1,a1)  = L2AA_VECS(i,a,i1,a1,SINGLET)
-                           PREPARE L2AA(i,a,i1,a1) = tpppp (i,a,i1,a1)
-                     ENDPARDO a, i, a1, i1
-
-                     PARDO b, j, b1, j1
-                           REQUEST   L2BB_VECS(j,b,j1,b1,SINGLET) SINGLET
-                           tqqqq  (j,b,j1,b1)  = L2BB_VECS(j,b,j1,b1,SINGLET)
-                           PREPARE L2BB(j,b,j1,b1) = tqqqq (j,b,j1,b1)
-                     ENDPARDO b, j, b1, j1
-
-                     PARDO a, i, b, j
-                           REQUEST    L2AB_VECS(i,a,j,b,SINGLET) SINGLET
-                           tiajb (i,a,j,b)  = L2AB_VECS(i,a,j,b,SINGLET)
-                           PREPARE L2AB(i,a,j,b) = tiajb(i,a,j,b)
-                     ENDPARDO a, i, b, j
-
-                     PARDO a, i
-                           GET  L1A_VECS(i,a,SINGLET)
-                           tia (i,a)  = L1A_VECS(i,a,SINGLET)
-                           PUT L1A(i,a) = tia (i,a)
-                     ENDPARDO a, i
-
-                     PARDO b, j
-                           GET  L1B_VECS(j,b,SINGLET)
-                           tjb (j,b)    = L1B_VECS(j,b,SINGLET)
-                           PUT L1B(j,b) = tjb (j,b)
-                     ENDPARDO b, j
-                 ENDIF
-            ENDDO SINGLET
-         ENDIF
-      ENDIF  # LOGRIGHT == ZERO #
-
-      EXECUTE SERVER_BARRIER 
-#
-#Debug printing
-#     pardo a, i
-#        get l1a(i,a)
-#        execute dump_amp  l1a(i,a)
-#     endpardo a,i
-#enddebug printing
-#
-      ENDPROC  PUT_IN_LK
-#     --------------------
-# ------------------------------------------------------------------------
-
-      PROC R0_COMPUTE
-#     ---------------
-#
-#  Compute R  due to the formula
-#           0
-#           _               -1
-#  R  = <0|(H R) |0> * omega
-#   0           c
-#
-      R0    = 0.0
-      IG2R2 = 0.0
-
-      etemp1 = 0.0
-      etemp2 = 0.0
-      etemp3 = 0.0
-      etemp4 = 0.0
-      etemp5 = 0.0
-      sum1 = 0.0
-      sum2 = 0.0
-      sum3 = 0.0
-      sum4 = 0.0
-      sum5 = 0.0
-
-      PARDO  a, i
-
-         GET  HBAR_ia (i,a)
-         GET  R1A     (a,i)
-         tai (a,i) = R1A (a,i)
-         etemp = HBAR_ia (i,a) * R1A (a,i)
-         sum1 += etemp
-
-      ENDPARDO  a, i
-
-      PARDO  b, j
-
-         GET  HBAR_jb (j,b)
-         GET  R1B     (b,j)
-         etemp = HBAR_jb (j,b) * R1B (b,j)
-         sum1 += etemp
-
-      ENDPARDO  b, j
-
-      PARDO  a, a1, i, i1
-
-         REQUEST  R2AA   (a,i,a1,i1) i1
-         REQUEST  VSpipi (a,i,a1,i1) i1
-         etemp = R2AA (a,i,a1,i1) * VSpipi (a,i,a1,i1)
-         etemp *= 0.25
-         sum2 += etemp
-
-      ENDPARDO  a, a1, i, i1
-
-      PARDO  b, b1, j, j1
-
-         REQUEST  R2BB   (b,j,b1,j1) j1
-         REQUEST  VSqjqj (b,j,b1,j1) j1
-         etemp = R2BB (b,j,b1,j1) * VSqjqj (b,j,b1,j1)
-         etemp *= 0.25
-         sum2 += etemp
-     ENDPARDO  b, b1, j, j1
-
-     PARDO  a, i, b, j
-
-         REQUEST  R2AB  (a,i,b,j) j
-         REQUEST  Vpiqj (a,i,b,j) j
-         etemp = R2AB (a,i,b,j) * Vpiqj (a,i,b,j)
-         sum2 += etemp
-
-      ENDPARDO  a, i, b, j
-
-      EXECUTE  SERVER_BARRIER
-
-      collective  etemp1 += sum1
-      collective  etemp2 += sum2
-      
-      R0 += etemp1
-      R0 += etemp2
-      execute print_scalar etemp2
-      IG2R2  += etemp2
-      IRHBAR  = R0
-
-      EXECUTE  SIP_BARRIER
-
-      R0      = R0 / OMEGA
-      OMEGA2  = TWO / THREE
-      OMEGA2 *= OMEGA
-
-      ENDPROC  R0_COMPUTE
-#     -------------------
-# ---------------------------------------------------------------------
-#
-      PROC COMP_R_NORM
-#     ----------------
-
-      RNORM  = R0
-      RNORM *= R0
-      esum   = 0.0
-
-      PARDO  i, a
-         GET         R1A (a,i)
-         tai (a,i) = R1A (a,i)
-         etemp  = tai (a,i) * tai (a,i)
-         esum  += etemp
-      ENDPARDO  i, a
-
-      PARDO  j, b
-         GET         R1B (b,j)
-         tbj (b,j) = R1B (b,j)
-         etemp  = tbj (b,j) * tbj (b,j)
-         esum  += etemp
-      ENDPARDO  j, b
-
-      PARDO  a, i, a1, i1
-         REQUEST             R2AA (a,i,a1,i1) i1
-         taiai (a,i,a1,i1) = R2AA (a,i,a1,i1)
-         etemp  = taiai (a,i,a1,i1) * taiai (a,i,a1,i1)
-         etemp *= 0.25
-         esum  += etemp
-      ENDPARDO  a, i, a1, i1
-
-      PARDO  b, j, b1, j1
-         REQUEST             R2BB (b,j,b1,j1) j1
-         tbjbj (b,j,b1,j1) = R2BB (b,j,b1,j1)
-         etemp  = tbjbj (b,j,b1,j1) * tbjbj (b,j,b1,j1)
-         etemp *= 0.25
-         esum  += etemp
-      ENDPARDO  b, j, b1, j1
-
-      PARDO  a, i, b, j
-
-         REQUEST           R2AB (a,i,b,j) j
-         taibj (a,i,b,j) = R2AB (a,i,b,j)
-         etemp  = taibj (a,i,b,j) * taibj (a,i,b,j)
-         esum  += etemp
-
-      ENDPARDO  a, i, b, j
-
-      EXECUTE  SIP_BARRIER
-      EXECUTE  SERVER_BARRIER
-
-      COLLECTIVE  RNORM += esum
-
-      EXECUTE SIP_BARRIER
-      EXECUTE  SQUARE_ROOT  RNORM  ONEHALF
-
-      RNORM  = 1.0 / RNORM
-#
-      ENDPROC  COMP_R_NORM
-#     -------------------
-#--------------------------------------------------------------------------
-
-      PROC  COMP_L_NORM
-#    --------------------
-
-      LNORM  = 0.0
-      esum   = 0.0
-      el2r2  = 0.0
-      IL2R2  = 0.0
-
-      PARDO  i, a
-         GET         R1A (a,i)
-         GET         L1A (i,a)
-         tai (a,i) = R1A (a,i)
-         tia (i,a) = L1A (i,a)
-         etemp  = tai (a,i) * tia (i,a)
-         esum  += etemp
-      ENDPARDO  i, a
-
-      PARDO  j, b
-         GET         R1B (b,j)
-         GET         L1B (j,b)
-         tbj (b,j) = R1B (b,j)
-         tjb (j,b) = L1B (j,b)
-         etemp  = tbj (b,j) * tjb (j,b)
-         esum  += etemp
-      ENDPARDO  j, b
-
-      PARDO  i, a, i1, a1
-         REQUEST             R2AA (a,i,a1,i1) i1
-         REQUEST             L2AA (i1,a1,i,a) a1
-         taiai (a,i,a1,i1) = R2AA (a,i,a1,i1)
-         tiaia (i1,a1,i,a) = L2AA (i1,a1,i,a)
-         etemp  = taiai (a,i,a1,i1) * tiaia (i1,a1,i,a)
-         etemp *= 0.25
-         esum  += etemp
-         el2r2 += etemp
-      ENDPARDO  i, a, i1, a1
-
-      PARDO  j, b, j1, b1
-         REQUEST             R2BB (b,j,b1,j1) j1
-         REQUEST             L2BB (j1,b1,j,b) b1
-         tbjbj (b,j,b1,j1) = R2BB (b,j,b1,j1)
-         tjbjb (j1,b1,j,b) = L2BB (j1,b1,j,b)
-         etemp  = tbjbj (b,j,b1,j1) * tjbjb (j1,b1,j,b)
-         etemp *= 0.25
-         esum  += etemp
-         el2r2 += etemp
-      ENDPARDO  j, b, j1, b1
-
-      PARDO  i, a, j, b
-         REQUEST           R2AB (a,i,b,j) j
-         REQUEST           L2AB (i,a,j,b) b
-         taibj (a,i,b,j) = R2AB (a,i,b,j)
-         tjbia (j,b,i,a) = L2AB (i,a,j,b)
-         etemp  = taibj (a,i,b,j) * tjbia (j,b,i,a)
-         esum  += etemp
-         el2r2 += etemp
-      ENDPARDO  i, a, j, b
-
-      EXECUTE  SIP_BARRIER
-      EXECUTE  SERVER_BARRIER
-
-      COLLECTIVE  LNORM += esum
-      COLLECTIVE  IL2R2 += el2r2
-
-      EXECUTE SIP_BARRIER
-      LNORM *= RNORM
-
-      etemp = LNORM
-      if etemp < 0.0
-         etemp *= -1.0
-      endif
-      if etemp < root_thresh
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         EXECUTE  PRINT_SCALAR  ZERO
-         LNORM = 1.0
-      endif
-
-      LNORM  = 1.0 / LNORM
-      LRNORM = LNORM*RNORM
-
-      execute print_scalar R0
-      execute print_scalar rnorm
-      execute print_scalar lnorm
-      execute print_scalar lrnorm
-      execute print_scalar IL2R2
-      execute print_scalar IG2R2
-
-      ENDPROC  COMP_L_NORM
-#     --------------------
 #-------------------------------------------------------------------------
 #                                                                        #
 #                      \--------------------------/                      #
@@ -32325,6 +32260,12 @@
 #                                                                        #
 #                                                                        #
 #                                                                        #
+      idebug = -1.0
+      iroot = eom_roots      # always get the last vector!
+      root_thresh = eom_tol  # tolerance to distinguish roots
+      EXECUTE  PRINT_SCALAR  iroot
+      EXECUTE  PRINT_SCALAR  root_thresh
+
       ONEHALF =  0.5
       ZERO    =  0.0
       ONE     =  1.0
@@ -32359,26 +32300,43 @@
 # --------------------------------------- 
 #
       CALL READ_2EL 
-      CALL TRAN_UHF
-      CREATE HBAR_ia
-      CREATE HBAR_jb
+      CALL  TRAN_UHF
       EXECUTE  SERVER_BARRIER
-      CALL HBAR
+      CREATE  HBAR_ia
+      CREATE  HBAR_jb
 
-# LOGRIGHT = 0 will pick up the L_k for the state k
+      CALL  GET_RL_AMPS
+      EXECUTE  SERVER_BARRIER
+      CALL  HBAR
 
-      LOGRIGHT      = 0
-      TRP_COUNT     = TWO
-      SING_COUNT    = TWO
-      TRIPLET_STATE = TWO
-      SINGLET_STATE = TWO
+      DELETE  R1A_VECS
+      DELETE  R1B_VECS
+      DELETE  L1A_VECS
+      DELETE  L1B_VECS
+     #DESTROY  R2AA_VECS
+     #DESTROY  R2AB_VECS
+     #DESTROY  L2AA_VECS
+     #DESTROY  L2AB_VECS
 
-      CALL PUT_IN_RK
-      CALL PUT_IN_LK
-      CALL R0_COMPUTE
-      CALL COMP_R_NORM
-      CALL COMP_L_NORM
-
+#
+#
+#     To make things numerically stable and avoid
+#     multiplication by LRNORM everywhere, it is 
+#     much easier to normalize L against R!
+#
+#
+      CALL COMP_LR_NORM
+      EXECUTE  SERVER_BARRIER
+#    
+#
+#     To make things numerically stable and avoid
+#     multiplication by LRNORM everywhere, it is 
+#     much easier to normalize L against R!
+#
+#
+      CALL COMP_LR_NORM
+      EXECUTE  SERVER_BARRIER
+      execute print_scalar lrnorm
       PARDO  a, i, a1, i1
          REQUEST              L2AA (i,a,i1,a1) a
          tiaia (i,a,i1,a1)  = L2AA (i,a,i1,a1) 
@@ -32447,15 +32405,17 @@
       ENDPARDO  b, j
 
       EXECUTE  SERVER_BARRIER
+     #DESTROY  L2AA_NORM
+     #DESTROY  L2AB_NORM
 
+      CALL  COMP_LR_NORM
+      EXECUTE  SERVER_BARRIER
+#
+#
 #     Now with Hbar and MO integrals, we need to
 #     compute Xi and then Zeta for the EOM gradients!
 #
 #
-      CALL R0_COMPUTE
-      CALL COMP_R_NORM
-      CALL COMP_L_NORM
-
       CREATE  Niijj
       CREATE  Niiii
       CREATE  Njjjj
@@ -32502,57 +32462,20 @@
       DELETE  VCH1A
       DELETE  VTEMP1A
 
-      CALL DMAIN
-
+     #DELETE  Niijj
+     #DELETE  Niiii   
+     #DELETE  VCONV1A 
+     #DELETE  VCACT1A
+     #DELETE  VCHACT1A
+#
 #     
-#      TRP_COUNT     = TWO
-#      SING_COUNT    = TWO
-#      TRIPLET_STATE = ONE
-#      SINGLET_STATE = ONE
-#      EXCITESTATE   = ONE
-#      LOGRIGHT      = ONE
-#
-# LOGRIGHT = 1 will pick up the Lambda for the ground state
-#
-#      CALL PUT_IN_RK
-#      CALL PUT_IN_LK
-#      CALL R0_COMPUTE
-#      CALL COMP_R_NORM
-#      CALL COMP_L_NORM
+#     Now form the one and two particle density
+#     matrices, including relaxed contribution
+#     and contract in to the gradient array!
+#     
+#     
+      CALL DGRAD
 
-#      EXECUTE  PRINT_SCALAR  RNORM
-#      EXECUTE  PRINT_SCALAR  LNORM
-#      EXECUTE  PRINT_SCALAR  R0
-
-#      CALL DMAIN
- 
-#      LOGRIGHT = ONE
-#      LRNORM   = LNORM * RNORM 
-
-# LOGRIGHT=ONE, Pick up Lambda to build <0|(1+Lambda)exp(-T){P+qrs}exp(T)R_k|0>
-
-       LOGRIGHT = ONE
-#       CALL PUT_IN_LK
-#       CALL COMPUTE_DENSITY
-
-#       DO KROOT
-#          CALL FIND_TRIPLETS
-
-#               IF TRP_COUNT > 0
-#                  TRIPLET == TROOT(KROOT)
-
-#                   IF TRIPLET ! 0
-
-# Pick up the Rk for triplet states
-
-#                      CALL PUT_IN_RK
-#                      CALL R0_COMPUTE
-#                      CALL COMP_R_NORM
-#                      CALL COMPUTE_DENSITY
-#
-#               ENDIF
-#          ENDIF
-#        ENDDO
 
       etemp = 13.0
       execute print_rel_info etemp ca 
@@ -32572,7 +32495,7 @@
 #     CALL S2ABCI  # --> symmetric Matches Aces  
 #     CALL S2DIJAB # --> symmetric Matches Aces  
 # 
-                    ENDSIAL SPNORBT_CC_UHF_2P
+                    ENDSIAL ONE_GRAD_CO       
 # 
 # ----------------------------------------------------------------------------------------
 #

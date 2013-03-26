@@ -2035,8 +2035,6 @@
 
                  ENDDO INDONE
 
-                 EXIT 
-
             ENDDO TRIPLET 
 
          ENDIF # Trp_count > 0
