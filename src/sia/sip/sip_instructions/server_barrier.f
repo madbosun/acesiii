@@ -43,9 +43,9 @@ C  in the file COPYRIGHT.
       integer company_comm, pst_get_company_comm
       integer pst_get_company
       integer niocompany
-      integer request(10000)
+      integer request(max_procsx)
       integer msg(5)
-      integer statuses(MPI_STATUS_SIZE,10000)
+      integer statuses(MPI_STATUS_SIZE,max_procsx)
       integer status(MPI_STATUS_SIZE)
 
       if (dbg) then

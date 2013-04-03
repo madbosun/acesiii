@@ -32,6 +32,7 @@ C  in the file COPYRIGHT.
       include 'where_table.h'
       include 'context.h'
       include 'checkpoint_data.h'
+      include 'restrict_pardo.h'
 
       common /load_balance/load_balance
       logical load_balance
@@ -97,7 +98,8 @@ c      save pardo_overhead_timer, thread_server_timer
       call mpi_comm_size(comm, my_company_size, ierr)
 
       trace = .false.
-      load_balance = .true.
+c     load_balance = .true.
+      load_balance = .false.
 c      pardo_act_timer = -10
 c      pardo_tserver_timer = -10
 
@@ -217,21 +219,16 @@ c            endif
 c---------------------------------------------------------------------------
 c   Record time for stuff done in pardo - Nakul
 c---------------------------------------------------------------------------
-               if (do_timer) then
-                   if (opcode .eq. endpardo_op) then
+               if (opcode .eq. endpardo_op) then
+
+                   call reset_do_prestrict()
+
+                   if (do_timer) then
                       call update_timer(pardo_act_timer)
                       call update_timer(pardo_times_timer)
                       pardo_act_timer = 0
                       pardo_tserver_timer = 0
                       pardo_times_timer = 0
-
-c                      pardo_act_timer = -10
-c                      pardo_tserver_timer = -10
-c                     print *,"Time for pardo end: ",mpi_wtime(),
-c     *                     "for ", pardo_overhead_timer,
-c     *                      iop,
-c     *                     pardo_timer, pardo_block_wait_timer,
-c     *                     optable(c_lineno,iop);
                    endif
                endif
            
@@ -538,3 +535,26 @@ c--------------------------------------------------------------------------
       return
  2100 format('Heartbeat: line ',i6)
       end
+
+      subroutine reset_do_prestrict()
+      implicit none
+      include 'interpreter.h'
+      include 'trace.h'
+      include 'parallel_info.h'
+      include 'pst_functions.h'
+      include 'int_gen_parms.h'
+      include 'restrict_pardo.h'
+
+      integer i
+
+      do i = 1, nprocs
+          if (pst_get_company(i-1) .eq. io_company_id) then
+              do_prestrict(i) = 0
+          else
+              do_prestrict(i) = 1
+          endif
+      enddo
+
+      return
+      end
+

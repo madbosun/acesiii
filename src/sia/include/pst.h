@@ -15,6 +15,6 @@ c-----------------------------------------------------------------------
 
       integer maxprocs
       integer pst
-      parameter (maxprocs = 10000)
+      parameter (maxprocs = 150000)
       common /pst/pst(maxprocs, r_last)
 

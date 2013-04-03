@@ -34,6 +34,7 @@ C  in the file COPYRIGHT.
       include 'timerz.h'
       include 'machine_types.h'
       include 'where_table.h'
+      include 'restrict_pardo.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -1173,16 +1174,17 @@ c     *                  optable(c_instr_timer,i)
       enddo
 
 
-c      do i = 1, noptable
-c          if (optable(c_lineno, i) .eq. 7626) then
-c              if (optable(c_opcode, i) .eq. pardo_op) then
-c                  print *, '7627 is a pardo!!'
-c
-c              endif
-c              print *, '7626 :', optable(c_instr_timer, i)    
-c          endif
-c
-c      enddo
+c-------------------------------------------------------------------------
+c   Initialize Pardo Restriction Tables
+c-------------------------------------------------------------------------
+
+      do i = 1, nprocs
+         if (pst_get_company(i-1) .eq. io_company_id) then
+            do_prestrict(i) = 0
+         else
+            do_prestrict(i) = 1
+         endif
+      enddo
 
 
 c      if (my_company_rank .eq. 0) then

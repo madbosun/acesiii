@@ -389,6 +389,7 @@ c--------------------------------------------------------------------------
       include 'parallel_info.h'
       include 'trace.h'
       include 'where_table.h'
+      include 'restrict_pardo.h'
 
       integer ierr
 
@@ -396,11 +397,28 @@ c--------------------------------------------------------------------------
       integer my_proc, first_batch, last_batch, nbatch
       integer nbatch_total, nbatch_proc, nbatch_left
       integer next_batch, current_batch
+      integer restricted_company_rank
+      integer restricted_company_size
 
-      my_proc = my_company_rank
+      restricted_company_rank = 0
+      restricted_company_size = 0 
 
-      nbatch_proc = nbatch_total / my_company_size
-      nbatch_left = nbatch_total - my_company_size * nbatch_proc
+      do i=1, me
+          if (do_prestrict(i) .eq. 1) then
+              restricted_company_rank = restricted_company_rank + 1
+          endif
+      enddo
+
+      do i=1, nprocs
+          if (do_prestrict(i) .eq. 1) then
+              restricted_company_size = restricted_company_size + 1
+          endif
+      enddo
+
+      my_proc = restricted_company_rank
+
+      nbatch_proc = nbatch_total / restricted_company_size
+      nbatch_left = nbatch_total - restricted_company_size * nbatch_proc 
 
       if (my_proc .lt. nbatch_left) then
 
@@ -421,8 +439,16 @@ c--------------------------------------------------------------------------
      *                  nbatch_left + 1
          last_batch = first_batch + nbatch_proc - 1
       endif
+
+c Disables processing of the pardo if this worker is
+c not part of the restriction
+      if (do_prestrict(me+1) .eq. 0)  then
+         last_batch = 1
+         first_batch = last_batch + 1
+      endif
+ 
           
-      nbatch = last_batch - first_batch + 1
+c     nbatch = last_batch - first_batch + 1
       return
       end
 

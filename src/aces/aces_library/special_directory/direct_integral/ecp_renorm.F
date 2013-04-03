@@ -70,9 +70,6 @@ c     common /DECP/natoms, decp_erd(50,3,1000,1000)
       read(77) (etemp(i), i=1, ndim*(ndim+1)/2)  
       close(77) 
 
-      else 
-           return 
-
       endif ! bexist 
 
 #ifdef _DEBUG_LVL0

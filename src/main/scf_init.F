@@ -22,6 +22,7 @@ c-------------------------------------------------------------------------
       include 'int_gen_parms.h'
       include 'machine_types.h'
       include 'mxatms.par' 
+      include 'scflindep.h'
 
       integer ierr
       common /flags/ iflags
@@ -49,6 +50,12 @@ c-------------------------------------------------------------------------
          call joda_main()
          print *,'Initial xjoda is complete...'
          call c_flush_stdout()
+      else 
+
+c Sets the linear dependence tolerance in cases when JOBARC exists so that 
+c it does not become 1.0!! 
+          lindep_tol = 9 
+
       endif
 
 c---------------------------------------------------------------------------
