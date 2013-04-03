@@ -98,7 +98,11 @@ C  in the file COPYRIGHT.
 
       trace = .false.
 
+#ifdef DYNAMIC_LOAD_BALANCE
+      load_balance = .true.
+#else
       load_balance = .false.
+#endif
 
       call determine_timeslice(timeslice, timer_count)
 
@@ -221,6 +225,9 @@ c---------------------------------------------------------------------------
 
                    if (do_timer) then
                       call update_timer(pardo_act_timer)
+#ifdef DETAILED_TIMERS                      
+                      call update_timer(pardo_times_timer)
+#endif                      
                       pardo_act_timer = 0
                       pardo_tserver_timer = 0
                       pardo_times_timer = 0
@@ -279,6 +286,9 @@ c                  endif
 
                     call timer_start(pardo_act_timer)
                   
+#ifdef DETAILED_TIMERS
+                    call timer_start(pardo_times_timer)
+#endif                  
 
                   endif
                endif
@@ -326,9 +336,15 @@ c---------------------------------------------------------------------------
                endif
 
                call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               call timer_start(pardo_tserver_timer)
+#endif
                call timer_start(timer_ovrhead)
                call exec_thread_server(0)
                call update_timer(timer_ovrhead) 
+#ifdef VERY_DETAILED_TIMERS               
+               call update_timer(pardo_tserver_timer) 
+#endif               
                call timer_start(pardo_act_timer)
 
                   t1 = mpi_wtime()   ! reset timer
@@ -384,6 +400,9 @@ c Assigned to timers shared via a common block
      *                                      instruction_total_timer 
 
                   endif
+#ifdef VERY_DETAILED_TIMERS
+                  call timer_start(instruction_total_timer)
+#endif                  
                   call timer_start(instruction_timer)
                   call timer_start(instruction_times_timer)
                   call timer_start(instruction_unit_timer)
@@ -406,6 +425,9 @@ c Assigned to timers shared via a common block
                     call update_timer(instruction_timer)
                     call update_timer(instruction_times_timer)
                     call update_timer(instruction_unit_timer)
+#ifdef VERY_DETAILED_TIMERS
+                    call update_timer(instruction_total_timer)
+#endif
                     current_instr_timer = 0
                     current_instr_blk_timer = 0
                     current_instr_mpi_timer = 0

@@ -35,7 +35,29 @@ c---------------------------------------------------------------------------
 
       implicit none
       include 'timerz.h'
+      include 'sip_tables.h'
+      include 'dbugcom.h'
       integer i
+      integer old_max_timers
+
+      old_max_timers = max_allocated_timers 
+
+      max_timers = mx_noptable
+
+#if defined VERY_DETAILED_TIMERS
+      max_timers = max_timers * 8
+#elif defined DETAILED_TIMERS 
+      max_timers = max_timers * 5
+#else
+      max_timers = max_timers * 4
+#endif
+      max_timers = max_timers + 5
+      if (max_timers .gt. old_max_timers) then
+          print *, 'max_timers ', max_timers, ' gt ', old_max_timers
+          call abort_job()
+      endif
+
+      if (dbg) print *,'max_timers set to ', max_timers
 
       do i = 1, max_timers
          tdesc(i) = ' '

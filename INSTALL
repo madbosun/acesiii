@@ -1,0 +1,109 @@
+BUILDING
+===========
+
+We are using standard GNU autoconf scripts, but since we rely on
+MPI, BLAS, LAPACK and other non-standard libraries most machines
+require options passed to configure and build. 
+
+
+SAMPLE CONFIGURE EXAMPLES
+==========================
+
+Examples for config commands are given below. Please note that you 
+may have to change the specified library paths and compiler flags 
+depending on your system. In addition to the parameters shown below,
+you may specify any special compilers to be used.  You can set 
+CC,FC and CXX to specify C,FROTRAN and C++ compilers in the call to 
+the configure script.
+
+To enable Detailed Timers, add the flag
+ -DDETAILED_TIMERS
+to FCFLAGS
+Detailed timers include
+1. Time spent in allocating blocks
+2. Overhead for pardo (time spent in dynamic load balancing)
+3. Number of times pardo was done
+
+
+To enable Very Detailed Timers, add the flag
+ -DVERY_DETAILED_TIMERS 
+to FCFLAGS
+Very detailed timers include
+1. Time spent in calls to exec_thread_server
+2. Number of times exec_thread_server was called
+
+Add flag
+DYNAMIC_LOAD_BALANCE
+to FCFLAGS 
+to enable default dynamic load balancing. This can be overriden throught the SIAL file.
+Without this flag, the default is static (or restricted) load balancing.
+
+
+  o  Linux cluster:
+
+
+     :- using GCC and system default BLAS and LAPACK
+    
+./configure --enable-gnu \
+   GNULIBS="-lmpi_cxx -lblas -llapack -lstdc++" \
+   GNUFLAGS="-L/usr/lib" \
+   FCFLAGS="-D__fortran -D__fortran77 -fPIC -DMPIF2C -DMPI2 -malign-double -ffast-math -mtune=native -mfpmath=sse -msse3 -Wall -lmpi_f90 -lmpi -O2" \
+   CFLAGS="-DMPIF2C -DMPI2 -DC_SUFFIX -DCB_SUFFIX -DMPI2 -DINTEL -O2" \
+   CXXFLAGS="-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -DMPI2 -Wall -O2"
+      
+ 
+     :- with Intel MKL installed (On UFHPC with RHEL5):
+
+./configure --enable-mkl \
+   MKLLIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lmkl_sequential -lmkl_core  -lmkl_def -lmkl_p4n -lmkl_mc" \
+   MKLFLAGS="-L/opt/intel/mkl/11.1.064/lib/em64t/ -L/opt/intel/fce/10.1.015/lib" \
+   FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2" \
+   CFLAGS="-DMPIF2C -DC_SUFFIX  -DCB_SUFFIX" \
+   CXXFLAGS="-DMPIF2C -DC_SUFFIX -DCB_SUFFIX"
+
+     
+     :- with Intel MKL installed (On UFHPC with RHEL6):
+     
+    do:
+        module load intel
+        module load mkl
+        module load openmpi
+    run configure with these arguments:
+        ./configure --enable-mkl  \
+        MKLLIBS="-Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -Wl,--end-group"  \
+        MKLFLAGS="-L."    \
+        FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2"  \
+        CFLAGS="-DMPIF2C -DC_SUFFIX -O2  -DCB_SUFFIX" \
+        CXXFLAGS="-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -O2"
+
+
+     :- with Intel MKL installed, with GPU enabled contractions (On UFHPC with RHEL6):
+     
+    do:
+        module load intel
+        module load mkl
+        module load openmpi
+        module load cuda
+    run configure with these arguments:
+        ./configure --enable-mkl  --enable-gpu  \
+        MKLLIBS="-Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -Wl,--end-group"  \
+        MKLFLAGS="-L."    \
+        FCFLAGS="-D__fortran -D__fortran77 -DMPIF2C -Zp8 -zero -traceback -O2"  \
+        CFLAGS="-DMPIF2C -DC_SUFFIX -O2  -DCB_SUFFIX"  \
+        CXXFLAGS="-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -O2"  \
+        CUDAPATH="/opt/cuda"
+
+
+
+  o  Cray-XT systems:
+	For a cray system, it is highly recommended to set the C,C++ and FORTRAN compiler correctly. In the lines below, please change the compiler names accordingly.
+
+./configure --enable-cray \
+   CRAYLIBS="-lacml" \
+   CRAYFLAGS="-L/opt/pgi/10.9.0/linux86-64/10.9/lib" \
+   FCFLAGS="-fastsse -Mcache_align -O3 -D_PORTGRP -DXT3 -D__fortran -D__fortran77 -DMPI2 -DNO_MPI_IO" \
+   CFLAGS="-fastsse -Mcache_align -O3 -D_PORTGRP -DC_SUFFIX -DCB_SUFFIX -DXT3 -DMPI2 -DNO_MPI_IO" \
+   CXXFLAGS="-Mcache_align -D_PORTGRP -DC_SUFFIX -DCB_SUFFIX -DXT3 -DMPI2 -DNO_MPI_IO" \
+   SIAL_COMPILER_LIBS="-lsial -lsip_shared -laces2 -lpgf90 -lpghpf_mpi -lmpichf90 -lpghpf -lpghpf2 -lpgftnrtl -lrt" \
+   CC="cc" FC="ftn" CXX="CC"
+

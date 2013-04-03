@@ -1,4 +1,5 @@
       integer max_timers
+      integer max_allocated_timers
       integer current_last_timer
       integer max_timer_desc_len
       integer cpu_timer
@@ -6,7 +7,7 @@
       integer times_exec_timer
       integer average_unit_timer
 
-      parameter (max_timers = 999999)
+      parameter (max_allocated_timers = 100000)
       parameter (max_timer_desc_len = 40)
       parameter (cpu_timer = 1)
       parameter (elapsed_time_timer = 2)
@@ -20,11 +21,14 @@
       character*(max_timer_desc_len) tdesc
       logical do_timer
 
-      common /timerz/timers(max_timers), 
-     *               tmark(max_timers), itmark(max_timers),
-     *               tdesc(max_timers), timer_type(max_timers),
-     *               timer_times(max_timers), 
-     *               interim_timers(max_timers),
-     *               interim_start_timers(max_timers),
-     *               do_timer, timer_optl, timer_ovrhead,
-     *               current_last_timer
+      common /timerz/tdesc(max_allocated_timers),
+     *               timers(max_allocated_timers),
+     *               interim_timers(max_allocated_timers),
+     *               interim_start_timers(max_allocated_timers),
+     *               tmark(max_allocated_timers),
+     *               itmark(max_allocated_timers),
+     *               timer_type(max_allocated_timers),
+     *               timer_times(max_allocated_timers),
+     *               timer_optl, timer_ovrhead,
+     *               current_last_timer, do_timer,
+     *               max_timers
