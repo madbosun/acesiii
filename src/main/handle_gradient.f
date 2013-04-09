@@ -122,7 +122,7 @@ c--------------------------------------------------------------------------
         enddo ! i 
 
 
-      if (do_summary_print) then ! .eq. .true.) then 
+      if (do_summary_print) then !  .eq. .true.) then 
       write(66,*) ' '
       write(66,10)
       write(66,11)

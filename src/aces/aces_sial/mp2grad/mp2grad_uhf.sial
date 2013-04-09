@@ -34,6 +34,11 @@
       aoindex lambda = 1, norb
       aoindex sigma  = 1, norb
 #
+      aoindex m      = 1, norb
+      aoindex n      = 1, norb
+      aoindex l      = 1, norb
+      aoindex s      = 1, norb
+#
       moaindex i = baocc, eaocc
       moaindex i1= baocc, eaocc
       moaindex i2= baocc, eaocc
@@ -318,6 +323,7 @@
       temp dz4(mu,nu,lambda,sigma)
       static pinf(kiter,kptr1)
       temp tpinf(kiter,kptr1)
+      static Spq(mu,nu) 
       scalar one
       scalar two
       scalar five
@@ -326,7 +332,16 @@
       scalar eleven 
       scalar ncount1
       scalar ncount2
+      scalar rank 
 
+      scalar n_seg
+      scalar ml
+      scalar ns
+      scalar mm
+      scalar nn
+      scalar ll
+      scalar ss
+      scalar efact
 #
 # Declare Local arrays 
 # -------------------- 
@@ -1705,7 +1720,10 @@
 # Contract with the derivative integrals
 # --------------------------------------
 #
-      PARDO mu, nu
+      execute get_my_rank rank 
+      if rank == 0.0 
+         DO mu 
+         DO nu
 #
             GET            P2A_ao(mu,nu)
             GET            P2B_ao(mu,nu)
@@ -1716,10 +1734,15 @@
             Tpq(mu,nu)  += DHFB(mu,nu)
             Tpq(mu,nu)  += P2A_ao(mu,nu)
             Tpq(mu,nu)  += P2B_ao(mu,nu)
+            Spq(mu,nu)   = Tpq(mu,nu) 
 #
             EXECUTE HCONT1 Tpq(mu,nu)
 #
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu 
+
+         execute ecp_dercont Spq 
+      endif 
 #
 # -----------------------------------------------------------------------------
 #
@@ -2310,13 +2333,18 @@
          LP2B_ao(mu,nu) = P2B_ao(mu,nu)
       ENDDO nu
       ENDDO mu
+
+      n_seg = 0.0
+      DO mu  
+         n_seg += 1.0
+      ENDDO mu
       execute sip_barrier 
 #
       PARDO mu, nu, lambda, sigma  
 #
               WHERE mu < lambda  
               WHERE nu < sigma   
-#
+
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
 #
@@ -2497,6 +2525,7 @@
                  Txxxx(mu,lambda,nu,sigma)   = D3(mu,lambda,sigma,nu)    
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
                  TSxxxx(mu,lambda,nu,sigma) += txxxx(mu,lambda,nu,sigma)  
+
 #
 #                Set up integrals
 #                ----------------
@@ -2527,7 +2556,7 @@
 #
               WHERE mu == lambda  
               WHERE nu < sigma   
-#
+
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
 #
@@ -2681,6 +2710,7 @@
                  txxxx(mu,lambda,nu,sigma)   = D3(mu,lambda,sigma,nu) 
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
                  TSxxxx(mu,lambda,nu,sigma) += txxxx(mu,lambda,nu,sigma)  
+
 #
 #                Set up integrals
 #                ----------------
@@ -2704,14 +2734,14 @@
 #                Contract density with integral derivatives
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
-#
+
       ENDPARDO mu, nu, lambda, sigma  
 #
       PARDO mu, nu, lambda, sigma  
 #
               WHERE mu < lambda  
               WHERE nu == sigma   
-#
+
                  D2(mu,lambda,nu,sigma) = 0.0 
                  D3(mu,lambda,sigma,nu) = 0.0 
 #
@@ -2851,6 +2881,7 @@
 #                Add the the nonseparable part
 #                -----------------------------
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
+
 #
 #                Set up integrals
 #                ----------------
@@ -2874,14 +2905,14 @@
 #                Contract density with integral derivatives
 #                ------------------------------------------
                  execute DCONT2 TSxxxx(mu,lambda,nu,sigma)
-#
+
       ENDPARDO mu, nu, lambda, sigma  
 #
       PARDO mu, nu, lambda, sigma  
 #
               WHERE mu == lambda  
               WHERE nu == sigma   
-#
+
                  D2(mu,lambda,nu,sigma) = 0.0 
 #
                  DO i1
@@ -2992,6 +3023,7 @@
 #                Add the the nonseparable part
 #                -----------------------------
                  TSxxxx(mu,lambda,nu,sigma) += D2(mu,lambda,nu,sigma)  
+
 #
 #                Set up integrals
 #                ----------------

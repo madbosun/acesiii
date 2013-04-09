@@ -182,6 +182,7 @@ c PARAMETERS
 #include "io_units.par"
 #include "fnamelen.par"
 #include "linelen.par"
+#include "scflindep.h"
       integer    dim_iflags,     dim_iflags2
       parameter (dim_iflags=100, dim_iflags2=500)
       INTEGER    nParam
@@ -325,6 +326,8 @@ c   o only print the logs and summaries on the first run
       else
          bVerbose = .true.
       end if
+
+      lindep_tol = 9 
 
 c   o nIrrps tracks the number of irreps in all of the user's value
 c     tokens. Originally, we would load COMPNIRR from JOBARC, but this
@@ -761,6 +764,18 @@ c         o BASIS
                end if
                goto 101
             end if
+
+c---------Basis linear dependency threshold-----------------------------
+            if (iASV.eq.h_IOPPAR_lindep_tol) then
+            lindep_tol = ioppar(h_IOPPAR_lindep_tol)
+            goto 101
+            endif
+
+c---------Integral threshold--------------------------------------------
+            if (iASV.eq.h_IOPPAR_intgrl_tol) then
+            intgrl_tol = ioppar(h_IOPPAR_intgrl_tol)
+            goto 101
+            endif
 
 c YAU - add a conditional for SUBGROUP that sets nIrrps
 
@@ -1677,6 +1692,16 @@ c   o TRAP METHODS WHICH DON'T WORK YET
             call errex
          end if
       end if
+
+c   Set the scf_expstar = 2 and scf_exporde = 8 VFL 1/2/2013  
+         if (ioppar(h_IOPPAR_scf_exporde).eq.0) then
+            szTmp = 'scf_exporde=8'//achar(0)
+            call asv_update_kv(szTmp,iASV,szData,0)
+         end if
+         if (ioppar(h_IOPPAR_scf_expstar).eq.0) then
+            szTmp = 'scf_expstar=2'//achar(0)
+            call asv_update_kv(szTmp,iASV,szData,0)
+         end if
 
 c   o If CC calc, then set MAXCYC and turn on RLE with order equal to 5
       if (ioppar(h_IOPPAR_calc).ge.5) then

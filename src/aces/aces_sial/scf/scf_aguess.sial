@@ -46,6 +46,7 @@
       scalar etemp 
       scalar one 
       scalar two 
+      scalar rank 
 #
 # ---------------------------------------------------------------------------- 
 #
@@ -72,6 +73,8 @@
        ENDPARDO mu, nu 
 #
       execute sip_barrier 
+     #execute get_my_rank rank 
+     #if rank == 0.0 
       PARDO katom  
         DO jatom 
          IF katom == jatom  
@@ -84,6 +87,7 @@
          ENDIF # katom == jatom  
         ENDDO jatom 
       ENDPARDO katom   
+     #endif 
 #
       ENDPROC IGUESS   
 #     -------------- 
@@ -103,7 +107,9 @@
       ENDDO mu  
       execute sip_barrier 
 #
-      CALL IGUESS  
+      IF Natoms > 3 
+         CALL IGUESS  
+      ENDIF 
       create Da 
       create Db 
       create Nai_d  

@@ -1,0 +1,35 @@
+CH2; DEA (Singlet):
+C
+H 1 RCH
+H 1 RCH 2 ACHH
+
+RCH  =     1.1089054029
+ACHH =   101.6763177342
+
+*ACES2
+symmetry=off
+SPHERICAL=ON
+BASIS=6-311++G**
+SCF_CONV=6
+CALC=CCSD
+CC_CONV=6
+REF=RHF
+CHARGE=2
+
+*SIP
+MAXMEM=1500
+IMERS=NO
+SIP_MX_SEGSIZE = 30
+SIP_MX_OCC_SEGSIZE = 14
+SIP_MX_VIRT_SEGSIZE = 37
+TIMERS = YES
+SIAL_PROGRAM = scf_aguess.sio
+SIAL_PROGRAM = scf_qrhf_aguess.sio
+#SIAL_PROGRAM = cis_rhf_gcheck.sio
+#SIAL_PROGRAM = scf_np2.sio
+SIAL_PROGRAM = diptran_uhf_ao_sv1.sio
+SIAL_PROGRAM = qccsd_uhf_ao_sv1_diis5.sio
+SIAL_PROGRAM = qhbar_uhf_ao_ap.sio
+SIAL_PROGRAM = eom_dea_singlets.sio
+#SIAL_PROGRAM = eom_dea_triplets.sio
+

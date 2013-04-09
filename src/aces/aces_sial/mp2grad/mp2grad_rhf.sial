@@ -186,6 +186,7 @@
       scalar ss
       scalar efact
       scalar eleven 
+      scalar rank 
 #
 # End Arrays used in transformation for AO2 algorithm
 # --------------------------------------------------- 
@@ -309,6 +310,7 @@
       temp dz4(mu,nu,lambda,sigma)
       static pinf(kiter,kptr1)
       temp tpinf(kiter,kptr1)
+      static Spq(mu,nu) 
       scalar one
       scalar two
       scalar five
@@ -1003,7 +1005,10 @@
 # Contract with the derivative integrals
 # --------------------------------------
 #
-      PARDO mu, nu
+      execute get_my_rank rank 
+      if rank == 0.0 
+         DO mu 
+         DO nu
 #
             GET            P2A_ao(mu,nu)
             GET            DHFA(mu,nu)
@@ -1011,10 +1016,15 @@
             Tpq(mu,nu)   = DHFA(mu,nu)
             Tpq(mu,nu)  += P2A_ao(mu,nu)
             Tpq(mu,nu)  *= 2.0  
+            Spq(mu,nu)   = Tpq(mu,nu) 
 #
             EXECUTE HCONT1 Tpq(mu,nu)
 #
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu 
+
+         execute ecp_dercont Spq 
+      endif 
 #
 # -----------------------------------------------------------------------------
 #

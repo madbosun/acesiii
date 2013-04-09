@@ -53,7 +53,7 @@ c---------------------------------------------------------------------------
       integer ind(2)
       integer ierr 
       integer newcenters, watom  
-      double precision acharge(ncenters) 
+      double precision acharge(ncenters)
 
       integer flopcount
       logical spherical
@@ -68,8 +68,12 @@ c---------------------------------------------------------------------------
      *                 zn(max_centers)
       double precision x1,y1,z1,x2,y2,z2, y
 
-      common /d2int_com/jatom, jx, jcenter
-      integer jatom, jx, jcenter, dcoord
+      integer ECP, ntot
+      double precision ecp_erd
+      common /FECP/ntot, ecp_erd(2500,2500)
+
+      common /flags/ iflags
+      integer iflags(100)
 
 #ifdef ALTIX
       iptr = ishptr
@@ -83,6 +87,8 @@ c---------------------------------------------------------------------------
 c----------------------------------------------------------------------------
 c   Clear the output array.
 c----------------------------------------------------------------------------
+
+      ECP = iflags(71) 
 
       do b = db1,db2
       do a = da1,da2
@@ -135,12 +141,21 @@ c      write(6,*) ' WATOM = ', watom
          endif 
       enddo
 
+      m1 = 1 
+      m2 = nshells 
+      n1 = 1 
+      n2 = nshells 
+
 c-------------------------------------------------------------------------
 c   Calculate the integrals over the necessary shell blocks.
 c-------------------------------------------------------------------------
 
        do m = m1, m2
+         iatom = atom(m)
+         if (iatom .eq. watom) then 
        do n = n1, n2
+         iatom = atom(n)
+         if (iatom .eq. watom) then 
 
             ncsum = ncfps(m) + ncfps(n) 
             x1 = dbuf(icoord+3*(m-1))
@@ -203,6 +218,7 @@ c ------------------------------------------------------------------------
      *                 dbuf(dpkgscr))
 
                if (nints .gt. 0) then
+
                   a2 = end_nfps(m)
                   if (m .eq. 1) then
                      a1 = 1
@@ -222,7 +238,19 @@ c ------------------------------------------------------------------------
 
                endif ! nints 
 
+               IF (ECP .eq. 1) then 
+c                 write(6,*) ' WATOM:', watom 
+                  do a = a1, a2 
+                  do b = b1, b2 
+c                    write(6,*) '  ', a,b, ecp_erd(a,b) 
+                     z(a,b) = z(a,b)+ecp_erd(a,b)
+                  enddo 
+                  enddo 
+               endif 
+
+            endif 
          enddo   ! n shells
+            endif 
          enddo   ! m shells
 
       return

@@ -40,7 +40,7 @@ c--------------------------------------------------------------------------
 
       if (nindex2 .ne. 0) then
          print *,'Error: return_sval at line ',current_line,' not ',
-     *           'called with scalar in 2nd arg.'
+     *           'called with scalar in 2nd arg. nindex2 =', nindex2 
          call abort_job()
       endif
 

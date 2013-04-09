@@ -1,33 +1,54 @@
 scf_uhf_isymm_diis10.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
+
+scf_uhf_init_aguess.sio 
+IGNORE_DROPMO=YES
+NO_SERVERS=YES 
+
+scf_uhf_ainit_aguess.sio 
+IGNORE_DROPMO=YES
+NO_SERVERS=YES 
+
+scf_uhf_binit_aguess.sio 
+IGNORE_DROPMO=YES
+NO_SERVERS=YES 
+
+scf_uhf_finish_aguess.sio 
+IGNORE_DROPMO=YES
+NO_SERVERS=YES 
 
 scf_uhf_aguess.sio
-NO_SERVERS=YES 
 IGNORE_DROPMO=YES
+NO_SERVERS=YES 
 
 scf_rhf_aguess.sio
-NO_SERVERS=YES  
 IGNORE_DROPMO=YES
+NO_SERVERS=YES 
+
+scf_rhf_coreh.sio
+IGNORE_DROPMO=YES
+NO_SERVERS=YES 
+
+scf_uhf_coreh.sio
+IGNORE_DROPMO=YES
+NO_SERVERS=YES 
 
 scf_uhf_aguess_opt.sio
-NO_SERVERS=YES 
 IGNORE_DROPMO=YES
+NO_SERVERS=YES 
 
 scf_rhf_aguess_opt.sio
-NO_SERVERS=YES 
 IGNORE_DROPMO=YES
+NO_SERVERS=YES 
 
 scf_aguess.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
+NO_SERVERS=YES 
 
 scf_test.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
 
 scf_lbo_test.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
 
 scf_rhf_fast.sio
@@ -37,49 +58,40 @@ scf_uhf_fast.sio
 IGNORE_DROPMO=YES
 
 scf_rhf_new.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
 
 scf_uhf_new.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
 
 mp2_rhf_sp.sio
-NO_SERVERS=YES
+NO_SERVERS=YES 
 
 mp2_uhf_sp.sio
-NO_SERVERS=YES
+NO_SERVERS=YES 
 
 scf_rhf_isymm_diis10.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
 
 scf_uhf_test.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
 
 scf_rhf_test.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
 
 scf_uhf_init.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES
 
 scf_uhf_finish.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES
 
 guess_scf_uhf_finish.sio
 IGNORE_DROPMO=YES
-NO_SERVERS=YES
 
 scf_rud_model.sio
-NO_SERVERS=YES
 IGNORE_DROPMO=YES
 
 mp2_n6_uhf.sio
-NO_SERVERS=YES
+NO_SERVERS=YES 
 
 hess_rohf_ao1_sv.sio
 SECOND_DERIVATIVE_INTEGRALS=YES
@@ -222,6 +234,9 @@ IGNORE_DROPMO=NO
 tran_uhf_expanded.sio
 IGNORE_DROPMO=YES
 
+tran_uhf_expanded_lincc.sio
+IGNORE_DROPMO=YES
+
 one_grad_uhf_ao_sv1_dropmo_diis5.sio
 IGNORE_DROPMO=YES
 
@@ -240,6 +255,9 @@ IGNORE_DROPMO=NO
 tran_rhf_expanded.sio
 IGNORE_DROPMO=YES
 
+tran_rhf_expanded_lincc.sio
+IGNORE_DROPMO=YES
+
 one_grad_rhf_ao_sv1_dropmo.sio
 IGNORE_DROPMO=YES
 
@@ -254,6 +272,9 @@ IGNORE_DROPMO=YES
 
 lambda_uhf_dropmo_new.sio
 IGNORE_DROPMO=NO
+
+instab_scf_uhf_mo_ao.sio
+IGNORE_DROPMO=YES
 
 expand_lccd_rhf.sio
 IGNORE_DROPMO=NO
@@ -315,45 +336,5 @@ VVVI_STACK=YES
 urccsdpt_bbb.sio
 VVVI_STACK=YES
 
-scf_nj_networkfirst.sio
-NO_SERVERS=YES
 
-scftest_1a.sial  
-NO_SERVERS=YES
-
-scftest_2a.sial  
-NO_SERVERS=YES
-
-scftest_2d.sial  
-NO_SERVERS=YES
-
-scftest_1b.sial  
-NO_SERVERS=YES
-
-scftest_2b.sial  
-NO_SERVERS=YES
-
-scftest_2e.sial  
-NO_SERVERS=YES
-
-scftest_nop.sial
-NO_SERVERS=YES
-
-scf_nj_onlynetwork.sial  
-NO_SERVERS=YES
-
-scftest_0.sial               
-NO_SERVERS=YES
-
-scftest_1c.sial  
-NO_SERVERS=YES
-
-scftest_2c.sial  
-NO_SERVERS=YES
-
-scftest_2f.sial  
-NO_SERVERS=YES
-
-scftest_xx.sial
-NO_SERVERS=YES
 

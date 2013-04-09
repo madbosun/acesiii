@@ -15,7 +15,7 @@ C  in the file COPYRIGHT.
       SUBROUTINE simple_INSPECT_MOL(fname, MAX_ATOMS, max_shells,
      &                natoms, nshells, nspc, cartesian, ITFCT, LNP1,
      &                lnpo, nfct, nufct, nbasis, NAOBASIS, nCFpS, 
-     &                nPFpS, NAOATM, angmom, atomic_label, vnn)
+     &                nPFpS, NAOATM, angmom, atomic_label)
 C
 C   Simple version of Ajith Perera's INSPECT_MOL routine.  This version 
 C   scans the MOL file to determine the number of atoms.  It also assumes
@@ -66,7 +66,7 @@ C
 
       INTEGER NAOUATM2(MAX_ATOMS)
       INTEGER NAOBASIS, NAOTMP2, NP22
-      INTEGER ISHL(6)
+      INTEGER ISHL(10)
       integer idosph, idum(8)
       integer nspc(max_atoms), nCFpS(max_shells), nPFpS(max_shells)
       integer angmom(max_shells)
@@ -117,7 +117,7 @@ C
          natoms = natoms + 1
          READ(xline, 1110) ZNUC, IJUNK, NSHL,
      *       (ISHL(I),I=1,NSHL)
- 1110    FORMAT(F20.1,8I5)
+ 1110    FORMAT(F20.1,10I5)
          nspc(iatm) = 0
 C
          READ(10,1115) ATMNAM,(COORD(I),I=1,3)
@@ -218,7 +218,7 @@ C
 C Compute the Nuclear-Nuclear repulsion energy
 C --------------------------------------------
 C
-      vnn = nuclear_nuclear_repulsion_energy(natoms)
+c     vnn = nuclear_nuclear_repulsion_energy(natoms)
 
       close(10)
       RETURN
@@ -273,7 +273,7 @@ C
      &          NUFCT(IUATMS), NPOP(IUATMS), NAOUATM(IUATMS),
      &          ATMNAM(IUATMS), COORD(3,IUATMS)
  
-      INTEGER ISHL(6)
+      INTEGER ISHL(10)
 C
 C Open MOL file for basis set information. The MOL file is created by
 C joda by processing user input file and basis set library.
@@ -298,7 +298,7 @@ C
       DO 10 IATM = 1, IUATMS
 C
          READ(10, 1110) ZNUC, IJUNK, NSHL,(ISHL(I),I=1,NSHL)
- 1110    FORMAT(F20.1,8I5)
+ 1110    FORMAT(F20.1,10I5)
 C
          READ(10,1115) ATMNAM(IATM),(COORD(I,IATM),I=1,3)
  1115    FORMAT(A4,3F20.12)
@@ -432,7 +432,7 @@ C
       INTEGER IXALPHA(*), IXPCOEF(*)
  
       DOUBLE PRECISION X, Y, Z 
-      INTEGER ISHL(6)
+      INTEGER ISHL(10)
 
       integer nxt_alpha, nxt_pcoef
 C     
@@ -462,7 +462,7 @@ C
       DO 10 IATM = 1, IUATMS
 C
          READ(10,1000) ZNUC, IJUNK, NSHL,(ISHL(I),I=1,NSHL)
- 1000    FORMAT(F20.1,8I5)
+ 1000    FORMAT(F20.1,10I5)
 C
          READ(10,1010) ATMNAM(IATM), X, Y, Z
  1010    FORMAT(A4,3F20.12)
@@ -524,10 +524,10 @@ C
 C
                   DO 38 I = 1, NP1
 c                    SPCOEF((INAO-1)*NP1+I)= SPCOEF((INAO-1)*NP1+I)*
-c     &                                       XNORM*PICNST*
-c     &                                       (4.D+00*SALPHA(I))**
-c     &                                       (0.5D+00*REAL(LL)+
-c     &                                        0.25D+00)
+c    &                                       XNORM*PICNST*
+c    &                                       (4.D+00*SALPHA(I))**
+c    &                                       (0.5D+00*REAL(LL)+
+c    &                                        0.25D+00)
                      SPCOEF((INAO-1)*NP1+I)= SPCOEF((INAO-1)*NP1+I)*
      &                                       XNORM
  38               CONTINUE

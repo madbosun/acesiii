@@ -57,6 +57,8 @@ c      subroutine beta()
       integer status(MPI_STATUS_SIZE)
       integer company_id
       integer saveocc, savevirt, saveao
+      integer ndim 
+      integer Iostat, Ierror 
 
       character*20 logfile
       character*80 sial_program
@@ -86,6 +88,7 @@ c      subroutine beta()
       logical do_restart, file_exist
       logical flag
       logical do_write 
+      logical do_ecp  
 
       double precision t1, t2
       double precision vnn, diff, avg
@@ -93,6 +96,9 @@ c      subroutine beta()
 
       integer i1, i2
       integer*8 mpierr8, nprocs8
+
+       common /flags/ iflags
+       integer iflags(100) 
 
 #ifdef ALTIX
       pointer (dptr, dbuf)
@@ -137,10 +143,20 @@ c---------------------------------------------------------------------------
       call mpi_bcast(maxmem, 1, mpi_integer, 0,
      *               mpi_comm_world, mpierr)
       if (maxmem .eq. 0) maxmem = check_malloc() * 0.8
+999   continue 
       call mem_alloc_init(maxmem, sheap_flag, ierr)
       if (ierr .lt. 0) then
-         print *,'MEMORY ALLOCATION ERROR: maxmem = ',maxmem
+         print *,'MEMORY ALLOCATION ERROR: maxmem = ',maxmem, 'PROC', me 
+c        maxmem = maxmem - 100 
+c        if (maxmem .lt. 500) then 
+c           write(6,*) ' Too little memory available:', maxmem, 'ME', me 
+c        call abort_job()
+c        endif 
+c        go to 999 
          call abort_job()
+      else 
+         print *,'MEMORY ALLOCATION Sucessfull: maxmem = ',maxmem, 
+     *           'PROC', me 
       endif
 #ifdef ALTIX
       dptr = dshptr    ! set dbuf pointer to shared mem.
@@ -157,7 +173,7 @@ c   Do we have an existing JOBARC file?  If not, we are doing an SCF
 c   from scratch.
 c-------------------------------------------------------------------------
 
-         call scf_init()
+         call scf_init(vnn)
 
 c-------------------------------------------------------------------------
 c   Verify that we have valid combinations of parameters from the *ACES2
@@ -693,6 +709,13 @@ c-------------------------------------------------------------------
            stack_algorithm_type = 1
          endif
 
+c-------------------------------------------------------------------
+c Always set the stack_algorithm_typr to 2 -> extra blocks allocated 
+c based on usage.  
+c-------------------------------------------------------------------
+
+         stack_algorithm_type = 2
+
          first = .false.
          call init_data()
          call joda_prep()
@@ -849,6 +872,25 @@ c          go to 333
       else
          call aces_init_rte()     ! initialize some aces common blocks
       endif
+
+      if (me .eq. 0) then
+         WRITE(6,*) 'VFL NAME :', sial_program 
+         WRITE(6,*) 'VFL NAME :', dryrun  
+      if (sial_program(1:10) .eq. 'scf_aguess') then
+      if (dryrun) then
+         write(6,*) ' Skipping Calling ECP main ' 
+
+      else 
+
+         if (iflags(71) .eq. 1) then 
+            write(6,*) ' Calling ECP main ' 
+            call ecpmain() 
+            write(6,*) ' Out Of Calling ECP main ' 
+         endif 
+
+      endif 
+      endif 
+      endif 
 
 c----------------------------------------------------------------------
 c   Wait for rank 0 before proceeding.

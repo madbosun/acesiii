@@ -326,6 +326,56 @@ C
        BasNam(1)=BasNam(2)
        BasNam(2)=ScrBas
       EndIf
+C
+C DEAL WITh ECPs
+C
+      IF (IECP.EQ.1) THEN
+csb        IF (IBASIS.EQ.0) THEN
+C
+C  NOW READ THE NAMES OF THE ECPS. JODA TRIES TO READ THEM FROM
+C  THE ZMAT FILE. THE USE OF ECPS REQUIRES "BASIS = SPECIAL"
+C
+
+        DO 255 I = 1, NATMS
+          ECPNAM(I) = BLNKBN
+          IF (ATNR(i) .NE. 0 .AND. IBASIS .EQ. 0) THEN
+            READ (LUZ, '(A)', ERR=8500, END=8510, IOSTAT=IOS)
+     &           ECPNAM(I)
+csb
+          ElseIf(AtNr(i) .ne. 0 .and. IBasis .ne. 0)then
+            EcpNam(i)=BasName
+
+          ENDIF
+  255   CONTINUE
+        IF(IBASIS.EQ.0)READ (LUZ,'(A)', ERR=8500, END=8510) WRK
+C ADDITION (JFS,4/90)
+C Now take care of situation which occurs when 2--1--3 Z-matrix
+C  specification and nonstandard basis set input is used.  In this case,
+C  the basis sets for atoms #1 and #2 must be switched.
+C
+        IF(BAD123.AND.IBASIS.EQ.0) THEN
+          SCRBAS=ECPNAM(1)
+          ECPNAM(1)=ECPNAM(2)
+          ECPNAM(2)=SCRBAS
+        ENDIF
+C
+C NOW CORRECT THE CHARGES OF THE ATOMS BY THE CORE-ELECTRONS
+C DESCRIBED BY THE ECP
+C
+        CALL CORCHR(ECPNAM,ATNR,ICRCOR,NATMS)
+        DO 94 I=1,NATMS
+          IF (ATNR(I).NE.0) THEN
+            ICRCOR(i)=ATNR(I)-ICRCOR(i)
+          ENDIF
+   94   CONTINUE
+        CALL PUTREC(10,'JOBARC','ECPNAM',80*NATMS,ECPNAM)
+        CALL PUTREC(10,'JOBARC','NATOLD',1,NATMS)
+csb        ELSE
+csb          WRITE(*,*) 'INCOMPATIBLE KEYWORDS IN MKVMOL!'
+csb          CALL ERREX
+csb        ENDIF
+      ENDIF
+CCH END OF READING ECP NAMES
 
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C

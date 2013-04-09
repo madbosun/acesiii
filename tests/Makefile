@@ -5,7 +5,35 @@ MPIRUN="mpirun ./xaces3 >./job.out"
 RUN_COMPARE="mpirun .xtest_compare "
 ENV_VARS=" "
 
-WORKDIR=./acestest
+# Machine-specific variable settings
+
+ifeq ($(MACHNAME),submit1)
+PBS_LINES="\#PBS -j oe"
+PBS_LINES += "\#PBS -l nodes=8:ppn=8:infiniband"
+PBS_LINES += "\#PBS -l walltime=40:00:00"
+PBS_LINES += "\#PBS -l pmem=2000mb"
+PBS_LINES += "\#PBS -q parallel"
+SET_ACES_EXE_PATH=export ACES_EXE_PATH=
+ACES_EXE_PATH=/home/lotrich/FROM_GIT_JAN2/acesiii//bin
+ACES3_EXE="/home/lotrich/FROM_GIT_JAN2/acesiii/bin"
+MPIRUN="mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out"
+RUN_COMPARE="mpiexec --mca btl openib,self,sm ./xtest_compare"
+WORKDIR=/scratch/hpc/${USER}
+endif
+
+ifeq ($(MACHNAME),submit2)
+PBS_LINES="\#PBS -j oe"
+PBS_LINES += "\#PBS -l nodes=8:ppn=8:infiniband"
+PBS_LINES += "\#PBS -l walltime=40:00:00"
+PBS_LINES += "\#PBS -l pmem=2000mb"
+PBS_LINES += "\#PBS -q parallel"
+SET_ACES_EXE_PATH=export ACES_EXE_PATH=
+ACES_EXE_PATH=/home/lotrich/FROM_GIT_JAN2/acesiii//bin
+ACES3_EXE="/home/lotrich/FROM_GIT_JAN2/acesiii/bin"
+MPIRUN="mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out"
+RUN_COMPARE="mpiexec --mca btl openib,self,sm ./xtest_compare"
+WORKDIR=/scratch/hpc/${USER}
+endif
 
 ifeq ($(MACHNAME),chugach)
 PBS_LINES="\#PBS -j oe"
@@ -136,6 +164,7 @@ endif
 INSTALL_DIR=$(WORKDIR)/ACESIII_TESTS
 ACES3_EXE=$(shell pwd)/../bin
 GENBAS=./GENBAS
+runscript=./runscript 
 TESTS=1.1.1.1 1.1.2.1 1.1.2.2 1.1.3.1 1.1.3.2 1.1.4.1 1.1.4.2 \
       1.2.1.1 1.2.2.1 1.2.3.1 1.2.3.2 \
 	1.3.1.1 1.3.2.1 \
@@ -143,9 +172,9 @@ TESTS=1.1.1.1 1.1.2.1 1.1.2.2 1.1.3.1 1.1.3.2 1.1.4.1 1.1.4.2 \
 	2.1.1.1 2.1.2.1 2.1.2.2 2.1.3.1 2.1.3.2 2.1.4.1 2.1.4.2 \
 	2.2.1.1 2.2.2.1 2.2.3.1 2.2.3.2 \
 	2.3.1.1 2.3.2.1 \
-	2.4.3.1 2.4.3.2 \
-	3.1.1.1 3.1.2.1 3.1.3.1 3.1.3.2 3.1.4.1 3.1.4.2 \
-	3.2.1.1 3.2.1.2 3.2.2.1 3.2.2.2 3.2.3.1
+	2.4.3.1 2.4.3.2 4.1.1.1 4.2.1.1  
+#3.1.1.1 3.1.2.1 3.1.3.1 3.1.3.2 3.1.4.1 3.1.4.2 \
+#3.2.1.1 3.2.1.2 3.2.2.1 3.2.2.2 3.2.3.1
 
 all: tests scripts
 
@@ -177,6 +206,8 @@ scripts: % : ;
 	   do echo >>runscript  ; \
 	      echo \#\#\# Test $$test \#\#\# >>runscript ; \
 	      echo cd $(INSTALL_DIR)/$$test >>runscript ; \
+              echo lfs setstripe BLOCKDATA  0 -1 -1 >>runscript ; \
+              echo lfs setstripe BLOCKDATA2 0 -1 -1 >>runscript ; \
 	      echo "echo Running $$test >>../monitor_tests" >>runscript ; \
               echo "date >>../monitor_tests" >>runscript ; \
 	      echo $(MPIRUN) >>runscript ; \
@@ -184,6 +215,7 @@ scripts: % : ;
 	      echo "$(RUN_COMPARE) $$test >>../monitor_tests" >>runscript ; \
 	      echo sleep 10 >>runscript ; \
 	   done  
+	@cp runscript $(INSTALL_DIR) ;
 
 clean: % : ;
 	@rm -rf $(INSTALL_DIR) 

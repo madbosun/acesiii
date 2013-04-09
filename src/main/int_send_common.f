@@ -23,9 +23,17 @@ c-------------------------------------------------------------------------
       include 'int_gen_parms.h'
       include 'machine_types.h'
       include 'fmo.h'
+      include 'scflindep.h'
 
       integer ierr, len
       integer*8 ixx, c_loc64
+
+      common /flags/ iflags
+      integer iflags(100) 
+
+      integer ECP, ntot
+      double precision ecp_erd
+      common /FECP/ntot, ecp_erd(2500,2500)
 
 c---------------------------------------------------------------------------
 c   Broadcast int_gen_parms common block.
@@ -43,6 +51,39 @@ c---------------------------------------------------------------------------
 
       call mpi_bcast(nfmo, 1001, mpi_integer, 0, 
      *               mpi_comm_world, ierr) 
+
+c---------------------------------------------------------------------------
+c  Broadcast iflags labeled common block.
+c---------------------------------------------------------------------------
+
+      call mpi_bcast(iflags, 101, mpi_integer, 0, 
+     *               mpi_comm_world, ierr) 
+
+c---------------------------------------------------------------------------
+c  Broadcast ecp labeled common block.
+c---------------------------------------------------------------------------
+
+      call mpi_bcast(ntot, 1, mpi_integer, 0, 
+     *               mpi_comm_world, ierr) 
+
+      len = 2500*2500+1 
+      call mpi_bcast(ecp_erd, len, mpi_double_precision, 0, 
+     *               mpi_comm_world, ierr) 
+
+c---------------------------------------------------------------------------
+c     basis linear dependency threshold for SCF calculation
+c---------------------------------------------------------------------------
+
+      call mpi_bcast(lindep_tol,1,mpi_integer,0,mpi_comm_world, ierr)
+
+c---------------------------------------------------------------------------
+c     Integral threshold for SCF calculation
+c---------------------------------------------------------------------------
+
+      call mpi_bcast(intgrl_tol,1,mpi_integer,0,mpi_comm_world, ierr)
+c---------------------------------------------------------------------------
+c---------------------------------------------------------------------------
+ 
  
       return
       end

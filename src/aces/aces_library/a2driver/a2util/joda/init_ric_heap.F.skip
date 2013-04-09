@@ -1,0 +1,83 @@
+
+c This routine allocates a heap for processing RICs and creates pointers
+c into the heap for various arrays.
+
+      subroutine init_ric_heap
+      implicit none
+
+#include "machsp.com"
+#include "ric_heap.com"
+#include "mxatms.par"
+#include "coord.com"
+
+      integer iNeed, ndx
+      integer s_DerBMat, s_BMat, s_GMat, s_BTGInv
+
+      integer vp(2)
+      data vp /0,0/
+
+c   o don't allocate memory more than once
+      call c_memmove(vp,dRICHeap,ifltln)
+      if (vp(1).ne.0.or.vp(2).ne.0) return
+
+      iNeed = 0
+      Write(6,*) "NATOMS", NATOMS
+
+c   o DerBMat: The derivative of the B-matrix for transforming the
+c              Hessian between RICs and Cartesians.
+      s_DerBMat = 9*natoms*natoms*maxredunco
+      iNeed = iNeed + s_DerBMat
+
+c   o BMat: The B-matrix for RIC/Cartesian transformations.
+      s_BMat = 9*maxredunco*natoms
+      iNeed = iNeed + s_BMat
+
+c   o GMat: The G-matrix for RIC/Cartesian gradient transformations.
+      s_GMat = maxredunco*max(maxredunco,3*natoms)
+      iNeed = iNeed + s_GMat
+
+c   o BTGInv: inv(trans(B)*G) required for transforming the Hessian.
+      s_BTGInv = 3*natoms*maxredunco
+      iNeed = iNeed + s_BTGInv
+
+      ndx = iintfp*iNeed
+      call aces_malloc(ndx,dRICHeap,z_RICHeap)
+      call c_memmove(vp,dRICHeap,ifltln)
+      if (vp(1).eq.0.and.vp(2).eq.0) then
+         print *, '@INIT_RIC_HEAP: Failed to allocate memory.'
+         print *, '                need ',iNeed/1024/1024,' MB'
+         call errex
+      end if
+      z_RICHeap = (z_RICHeap+iintfp-1)/iintfp
+      ndx = z_RICHeap
+#ifdef _DEBUG
+      call c_memset(dRICHeap(z_RICHeap),255,ifltln*iNeed)
+#endif
+
+c   o DerBMat location
+      z_DerBMat = ndx
+      ndx = ndx + s_DerBMat
+
+c   o BMat location
+      z_BMat = ndx
+      ndx = ndx + s_BMat
+
+c   o GMat location
+      z_GMat = ndx
+      ndx = ndx + s_GMat
+
+c   o BTGInv location
+      z_BTGInv = ndx
+      ndx = ndx + s_BTGInv
+
+c      print *, '@INIT_RIC_HEAP: RIC HEAP INDICES'
+c      print *, '                z_RICHeap = ',z_RICHeap
+c      print *, '                z_DerBMat = ',z_DerBMat
+c      print *, '                z_BMat    = ',z_BMat
+c      print *, '                z_GMat    = ',z_GMat
+c      print *, '                z_BTGInv  = ',z_BTGInv
+
+      return
+c     end subroutine init_ric_heap
+      end
+

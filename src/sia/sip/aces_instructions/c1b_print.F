@@ -78,14 +78,14 @@ c---------------------------------------------------------------------------
       nindex     = array_table(c_nindex, array)
 
       if (array .eq. 0) then
-         print *,'Error: The first argument in return_sval  
+         print *,'Error: The first argument in c1b_print  
      *            must be an array.'  
          print *,(op(i),i=1,loptable_entry)
          call abort_job()
       endif
 
       if (nindex .ne. 2) then 
-         write(6,*) ' The first array in return_sval must gave two 
+         write(6,*) ' The first array in c1b_print must gave two 
      *                indices.'   
          write(6,*) ' Number given =', nindex  
          call abort_job() 

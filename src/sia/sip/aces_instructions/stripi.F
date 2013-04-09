@@ -192,7 +192,8 @@ c--------------------------------------------------------------------------
 
       integer i, j, k, a, b, c, d 
       integer m, n, lda, ldb, ldc 
-      integer nsend, strip  
+      integer nsend, strip(4), nstrip   
+      integer astart, aend, bstart, bend, cstart, cend, dstart, dend 
 
       double precision x(a1:a2,b1:b2,c1:c2,d1:d2)
       double precision y(e1:e2,f1:f2,g1:g2,h1:h2)
@@ -204,23 +205,93 @@ c     Find the nonmatching indeces and make sure that array2 has simple indeces
 c     in those locations. 
 c *********************************************************************************** 
 
+      nstrip = 0 
       do i = 1, 4 
+         strip(i) = 0 
          if (sindex(i) .ne. findex(i)) then 
              if (i .eq. 1) match(i) = e1 
              if (i .eq. 2) match(i) = f1 
              if (i .eq. 3) match(i) = g1 
              if (i .eq. 4) match(i) = h1 
-             strip = i 
+             nstrip = nstrip + 1 
+             strip(nstrip) = i 
          else 
              match(i) = 0 
          endif 
       enddo 
 
+      if (match(1) .ne. 0) then 
+         if ((e1 .lt. a1) .or. (e1 .gt. a2)) then 
+            write(6,*) ' Mismatch trying to strip indices ' 
+            call abort_job() 
+         endif 
+         astart = e1 
+         aend   = e1 
+      else 
+         astart = a1 
+         aend   = a2 
+      endif 
+
+      if (match(2) .ne. 0) then 
+         if ((f1 .lt. b1) .or. (f1 .gt. b2)) then 
+            write(6,*) ' Mismatch trying to strip indices ' 
+            call abort_job() 
+         endif 
+         bstart = f1 
+         bend   = f1 
+      else 
+         bstart = b1 
+         bend   = b2 
+      endif 
+
+      if (match(3) .ne. 0) then 
+         if ((g1 .lt. c1) .or. (g1 .gt. c2)) then 
+            write(6,*) ' Mismatch trying to strip indices ' 
+            call abort_job() 
+         endif 
+         cstart = g1 
+         cend   = g1 
+      else 
+         cstart = c1 
+         cend   = c2 
+      endif 
+
+      if (match(4) .ne. 0) then 
+         if ((h1 .lt. d1) .or. (h1 .gt. g2)) then 
+            write(6,*) ' Mismatch trying to strip indices ' 
+            call abort_job() 
+         endif 
+         dstart = h1 
+         dend   = h1 
+      else 
+         dstart = d1 
+         dend   = d2 
+      endif 
+
+      do d = dstart, dend  
+      do c = cstart, cend  
+      do b = bstart, bend  
+      do a = astart, aend 
+
+         y(a,b,c,d) = x(a,b,c,d) 
+
+      enddo 
+      enddo 
+      enddo 
+      enddo 
+      return 
+
+
+c *********************************************************************************** 
+c Strip one index 
+c *********************************************************************************** 
+c
+      if (nstrip .eq. 1) then 
 c *********************************************************************************** 
 c     The fourth index stripped 
 c *********************************************************************************** 
 
-      if ((strip .eq. 4) .and. (h1 .ge. d1) .and. (h1 .le. d2)) then 
+      if ((strip(1) .eq. 4) .and. (h1 .ge. d1) .and. (h1 .le. d2)) then 
 
       do c = c1, c2 
       do b = b1, b2 
@@ -242,7 +313,7 @@ c ******************************************************************************
 c     The Third index stripped 
 c *********************************************************************************** 
 
-      if ((strip .eq. 3) .and. (g1 .ge. c1) .and. (g1 .le. c2)) then 
+      if ((strip(1) .eq. 3) .and. (g1 .ge. c1) .and. (g1 .le. c2)) then 
 
 c     do c = c1, c2 
       do d = d1, d2 
@@ -264,7 +335,7 @@ c ******************************************************************************
 c     The Second index stripped 
 c *********************************************************************************** 
 
-      if ((strip .eq. 2) .and. (f1 .ge. b1) .and. (f1 .le. b2)) then 
+      if ((strip(1) .eq. 2) .and. (f1 .ge. b1) .and. (f1 .le. b2)) then 
 
       do d = d1, d2 
       do c = c1, c2 
@@ -286,7 +357,7 @@ c ******************************************************************************
 c     The First index stripped 
 c *********************************************************************************** 
 
-      if ((strip .eq. 1) .and. (e1 .ge. a1) .and. (e1 .le. a2)) then 
+      if ((strip(1) .eq. 1) .and. (e1 .ge. a1) .and. (e1 .le. a2)) then 
 
       do d = d1, d2 
       do c = c1, c2 
@@ -300,10 +371,35 @@ c     do a = a1, a2
 c     enddo 
       enddo 
 
+      go to 100 
+
       endif 
 
+      endif ! nstrip = 1 
+
+c *********************************************************************************** 
+c Strip two indices  
+c *********************************************************************************** 
+c
+      if (nstrip .eq. 2) then 
+c *********************************************************************************** 
+c     The index 1 1nd 2 are stripped 
+c *********************************************************************************** 
+
+         if ((strip(1) .eq. 1) .and. (strip(2) .eq. 2)) then 
+            do c = c1, c2 
+            do d = d1, d2 
+               y(e1,f1,c,d) = x(e1,f1,c,d) 
+            enddo 
+            enddo 
+            return 
+         endif 
+
+      endif 
+
+
       write(6,*) ' No indeces were found to strip in strip4 '
-      write(6,*) ' Strip = ', strip  
+      write(6,*) ' Strip = ', (strip(i), i=1, 4)  
       write(6,*) ' Match(i) = ', (match(i), i=1,4)  
       call abort_job() 
 

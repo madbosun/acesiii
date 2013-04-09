@@ -42,7 +42,8 @@ c--------------------------------------------------------------------------
       integer block_map_table(lblock_map_entry, nblock_map_table)
       integer nscalar_table
       double precision scalar_table(nscalar_table)
-      double precision sind, shift  
+      double precision shift  
+      integer sind 
       integer*8 address_table(narray_table)
 
       integer i, j, k

@@ -54,7 +54,7 @@ C  in the file COPYRIGHT.
 #else
       common dbuf
 #endif
-      double precision vnn
+      double precision vnn, nuclear_nuclear_repulsion_energy
 
 #ifdef ALTIX
       dptr = dshptr   ! set dbuf ptr to shared memory.
@@ -65,7 +65,7 @@ c   scf_init() initializes the ACES II I/O subsystem so that JOBARC may
 c   be read.
 c-------------------------------------------------------------------------
 
-      call scf_init()
+      call scf_init(vnn)
 
 c-------------------------------------------------------------------------
 c   Read original MOL file, create a new one with the subshells split.
@@ -93,7 +93,9 @@ CDEBUG      call simple_inspect_mol('CHSSI.MOL', max_centers, max_shells,
      *           ncenters, nshells, nspc, 
      *           cartesian, ITFCT, LNP1, LNPO, Nfct,
      *           nufct, nbasis, naobasis, nCFPS, nPFpS,
-     *           naoatm, ivAngMom, atom, vnn)
+     *           naoatm, ivAngMom, atom)
+
+      write(6,*) ' NBASIS AFTER SIMPLE_INSPECT ', nbasis  
       if (cartesian) then
          ispherical = 0
       else
@@ -194,6 +196,13 @@ c------------------------------------------------------------------------
       scf_iter = ijunk(16)
       scf_hist = ijunk(20)
       scf_beg  = ijunk(40)
+
+c     Kluggy way of dealing with this VFL 1/2/2013 
+      if (scf_beg .ge. 8) then 
+         write(6,*) ' Resetting scf_beg to 2 '
+         scf_beg = 2 
+      endif 
+
       vib_freq_calc = .false. 
       if (ijunk(54) .ne. 0) vib_freq_calc = .true.
       vib_exact = .false.
@@ -464,6 +473,9 @@ c-------------------------------------------------------------------------
 
       nalpha_virtual = nbasis - nalpha_occupied 
       nbeta_virtual  = nbasis - nbeta_occupied 
+
+      write(6,*) ' NALPHA_VIRT =' , nalpha_virtual 
+      write(6,*) ' NBETA_VIRT =' , nbeta_virtual 
       
       if (.not. ignore_dropmo) then
 
@@ -640,6 +652,12 @@ c-------------------------------------------------------------------------
       endif
 
       if (scf_energy .eq. 0.d0) then
+C
+C Compute the Nuclear-Nuclear repulsion energy
+C --------------------------------------------
+C
+         vnn = nuclear_nuclear_repulsion_energy(nCenters)
+
          scf_energy = vnn
          print *,'SCF ENERGY IS INITIALIZED FROM ',
      *       'NUCLEAR-NUCLEAR REPULSION ENERGY: ',scf_energy

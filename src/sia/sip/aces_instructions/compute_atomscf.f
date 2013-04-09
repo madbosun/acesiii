@@ -16,7 +16,9 @@ C  in the file COPYRIGHT.
      *                 maxblk, iscr, coords,coeffs,alphas, ccbeg, ccend,
      *                 nc1,nc2, nd1, nd2,
      *                 nai, kin, ovl,  
-     *                 fa,fb) 
+     *                 fa,fb, 
+c
+     *                 vmax,omax,norb,maxhist,diis_start)  
 c---------------------------------------------------------------------------
 
       implicit none
@@ -60,8 +62,11 @@ c---------------------------------------------------------------------------
       double precision ovl(nc1:nc2,nd1:nd2)
       double precision H0T(nc1:nc2,nd1:nd2)
 
-      double precision fa(nc1:nc2,nc1:nc2)
-      double precision fb(nc1:nc2,nc1:nc2)
+      double precision ca(nc1:nc2,nd1:nd2)
+      double precision cb(nc1:nc2,nd1:nd2)
+
+      double precision fa(nc1:nc2,nd1:nd2)
+      double precision fb(nc1:nc2,nd1:nd2)
       integer map(nc1:nc2) 
       integer umap(nc1:nc2) 
       integer beg_anfps(max_shells)  
@@ -79,16 +84,21 @@ c---------------------------------------------------------------------------
      *                 pcoeff_pack(max_dim_coeff)
       integer*8 arg64(25)
       integer n_max 
+c
+c ---------------------------------------------------------------------- 
+c Arrays used in the DIIS procedure 
+c ---------------------------------------------------------------------- 
 
-      common /Imax_com/sz_max(max_shells,max_shells), delta 
-      double precision sz_max, delta
-      double precision itol, bmax, dtemp, emax    
-
-      common /d2int_com/jatom, jx, jcenter
-      integer jatom, jx, jcenter 
-
-      save me,alpha_pack, pcoeff_pack, ccbeg_pack, ccend_pack,
-     *     ccbeg_pack64, ccend_pack64
+      integer vmax,omax,norb,maxhist,diis_start  
+      double precision Fai(vmax,omax,maxhist+1) 
+      double precision Fbj(vmax,omax,maxhist+1) 
+      double precision Ea(norb,norb,maxhist+1) 
+      double precision Eb(norb,norb,maxhist+1) 
+      double precision BM(maxhist+1,maxhist+1) 
+      double precision TBM(maxhist+1,maxhist+1) 
+      double precision CM(maxhist+1) 
+c
+c ---------------------------------------------------------------------- 
 
       open(66,file='summary.out') 
 
@@ -101,7 +111,7 @@ c     call mpi_comm_rank(mpi_comm_world, me, ierr)
       iatom = watom 
 c      write(6,*) ' Performing an SCF calculation on atom:', iatom 
 
-      call comp_return_h0(H0T, iatom, nc1, nc2, nc1, nc2) 
+      call comp_return_h0(H0T, iatom, nc1, nc2, nd1, nd2) 
 
 c-----------------------------------------------------------------------
 c   Find the shell blocks for which we shall loop through.
@@ -181,12 +191,14 @@ c-----------------------------------------------------------------------
      *                 '1', nbasis   
          endif 
 
-c        write(66,*) ' Mapping' 
+c        write(66,*) ' Mapping Atom', watom  
 c        do n = nc1, nc2 
 c           write(66,*) 'n umap(n)', n, umap(n)  
 c        enddo 
 c        do m = m1, m2 
-c           write(6,*) ' Mth shell:', m, end_anfps(m) 
+c           if(atom(m) .eq. iatom) then 
+c           write(66,*) ' Mth shell:', m, beg_anfps(m), end_anfps(m) 
+c           endif 
 c        enddo 
 c         write(6,*) ' The number of basis functions on atom', 
 c     *                iatom, '=', n_basis  
@@ -196,7 +208,9 @@ c     *                iatom, '=', n_basis
      *                 nc1,nc2, nd1, nd2,
      *                 H0T, nai, kin, ovl,  
      *                 fa,  fb, 
-     *                 n_basis, beg_anfps, end_anfps, map, umap) 
+     *                 n_basis, beg_anfps, end_anfps, map, umap, 
+c 
+     *                 vmax,omax,norb,maxhist,diis_start) 
 
       return 
       end 
@@ -204,9 +218,11 @@ c     *                iatom, '=', n_basis
       subroutine do_atomscf(watom, scr,
      *                 maxblk, iscr, coords,coeffs,alphas, ccbeg, ccend,
      *                 nc1,nc2, nd1, nd2,
-     *                 HOT, nai, kin, ovl,  
+     *                 H0T, nai, kin, ovl,  
      *                 fina,  finb, 
-     *                 n_basis, beg_anfps, end_anfps, map, umap) 
+     *                 n_basis, beg_anfps, end_anfps, map, umap, 
+c
+     *                 vmax,omax,norb,maxhist,diis_start) 
 c---------------------------------------------------------------------------
 
       implicit none
@@ -249,10 +265,10 @@ c---------------------------------------------------------------------------
       double precision nai(nc1:nc2,nd1:nd2)
       double precision kin(nc1:nc2,nd1:nd2)
       double precision ovl(nc1:nc2,nd1:nd2)
-      double precision HOT(nc1:nc2,nd1:nd2)
+      double precision H0T(nc1:nc2,nd1:nd2)
 
-      double precision fina(nc1:nc2,nc1:nc2)
-      double precision finb(nc1:nc2,nc1:nc2)
+      double precision fina(nc1:nc2,nd1:nd2)
+      double precision finb(nc1:nc2,nd1:nd2)
 
       double precision h0(n_basis,n_basis) 
       double precision aovl(n_basis,n_basis) 
@@ -273,11 +289,26 @@ c---------------------------------------------------------------------------
       double precision Fa(n_basis,n_basis) 
       double precision Fb(n_basis,n_basis) 
       double precision temp, tempa, tempb   
-      integer doit, itemp, p, p1  
+      double precision charge_keep(max_centers) 
+      integer doit, itemp, jtemp, p, p1  
 
-      integer nocc_a, nocc_b 
+      integer nocc_a, nocc_b, nvirt_a, nvirt_b  
       integer nocc_a_org, nocc_b_org 
       integer iter, max_iter 
+c
+c ---------------------------------------------------------------------- 
+c Arrays used in the DIIS procedure 
+c ---------------------------------------------------------------------- 
+
+      integer vmax,omax,norb,nhist,maxhist,diis_start   
+      double precision Fai(vmax,omax,maxhist+1) 
+      double precision Fbj(vmax,omax,maxhist+1) 
+      double precision Ea(norb,norb,maxhist+1) 
+      double precision Eb(norb,norb,maxhist+1) 
+      double precision BM(maxhist+1,maxhist+1) 
+      double precision TBM(maxhist+1,maxhist+1) 
+      double precision CM(maxhist+1) 
+c ---------------------------------------------------------------------- 
 
       integer map(nc1:nc2) 
       integer umap(nc1:nc2) 
@@ -296,16 +327,6 @@ c---------------------------------------------------------------------------
      *                 pcoeff_pack(max_dim_coeff)
       integer*8 arg64(25)
 
-      common /Imax_com/sz_max(max_shells,max_shells), delta 
-      double precision sz_max, delta
-      double precision itol, bmax, dtemp, emax    
-
-      common /d2int_com/jatom, jx, jcenter
-      integer jatom, jx, jcenter 
-
-      save me,alpha_pack, pcoeff_pack, ccbeg_pack, ccend_pack,
-     *     ccbeg_pack64, ccend_pack64
-
 c     call mpi_comm_rank(mpi_comm_world, me, ierr)
 
       l8true = .true.
@@ -320,10 +341,17 @@ c     call mpi_comm_rank(mpi_comm_world, me, ierr)
             nocc_a = charge(m) - nocc_b 
          endif 
       enddo 
+      charge_keep(iatom) = charge(iatom) 
+      nvirt_a = n_basis - nocc_a  
+      nvirt_b = n_basis - nocc_b  
 
-c      write(6,*) ' Performing an SCF calculation on atom:', iatom, 
-c     * 'in a basis of', n_basis, 'functions with', nocc_a, nocc_b, 
-c     * 'alpha and beta occupied electrons'   
+c TEST !!!! 
+
+c     write(6,*) ' Performing an SCF calculation on atom:', iatom, 
+c    * 'in a basis of', n_basis, 'functions with', nocc_a, nocc_b, 
+c    * 'alpha and beta occupied electrons and ', nvirt_a, nvirt_b, 
+c    * ' alpha and beta virtual electrons'    
+      if (nocc_a .eq. 0) return  
 
 c-----------------------------------------------------------------------
 c   Find the shell blocks for which we shall loop through.
@@ -344,19 +372,36 @@ c Sum nai and kin into small array and copy ovl there too.
 c --> initial guess   
 c-----------------------------------------------------------------------
 
+      do n = 1, n_basis  
+      do m = 1, n_basis  
+         h0(m,n) = 0.0  
+      enddo  
+      enddo  
+
       itemp = 0 
       do n = nc1, nc2 
-      do m = nc1, nc2 
-         if (umap(m).ne.0 .and. umap(n).ne.0) then 
-            aovl(umap(m),umap(n)) = ovl(m,n) 
-c           h0(umap(m),umap(n))   = nai(m,n) + kin(m,n)  
-            h0(umap(m),umap(n))   = HOT(m,n)   
+         if (umap(n).ne.0) then 
             itemp = itemp + 1 
+            jtemp = 0 
+      do m = nc1, nc2 
+         if (umap(m).ne.0) then 
+            aovl(umap(m),umap(n)) = ovl(m,n) 
+            h0(umap(m),umap(n))   = H0T(m,n)   
+            jtemp = jtemp + 1 
          endif 
       enddo  
+         if (jtemp .ne. n_basis) then 
+            write(6,*) ' Jtemp .ne. n_basis ', jtemp, n_basis 
+            call abort_job() 
+         endif 
+         endif 
       enddo  
-      
-      if (itemp .ne. n_basis**2) then 
+      if (itemp .ne. n_basis) then 
+         write(6,*) ' itemp .ne. n_basis ', itemp, n_basis 
+         call abort_job() 
+      endif 
+
+      if (itemp*jtemp .ne. n_basis**2) then 
          write(6,*) ' Something possibly wrong with umap ', 
      *                itemp, n_basis 
          call abort_job()
@@ -365,6 +410,17 @@ c           h0(umap(m),umap(n))   = nai(m,n) + kin(m,n)
 c-----------------------------------------------------------------------
 c Construct the hcore initial guess  
 c-----------------------------------------------------------------------
+
+      do n = 1, n_basis  
+      do m = 1, n_basis  
+         FA(m,n) = 0.0  
+         FB(m,n) = 0.0  
+         FTA(m,n) = 0.0  
+         FTB(m,n) = 0.0  
+         HFD_a(m,n) = 0.0 
+         HFD_b(m,n) = 0.0 
+      enddo  
+      enddo  
 
       do n = 1, n_basis  
       do m = 1, n_basis  
@@ -425,13 +481,15 @@ c-----------------------------------------------------------------------
 
       call hfdensity_copy(HFD_A,HFD_B,HFDOLD_A,HFDOLD_B,n_basis)  
 
-c     go to 100 
+c     if (nocc_a .ne. nocc_b) go to 100 
+
+c     if (nocc_a .eq. 1) go to 100 
 
 c-----------------------------------------------------------------------
 c Start the SCF iterations  
 c-----------------------------------------------------------------------
 
-      max_iter = 30  
+      max_iter = 25  
       DO iter = 1, max_iter 
 
 c-----------------------------------------------------------------------
@@ -483,47 +541,6 @@ c-----------------------------------------------------------------------
             if(atom(s) .eq. iatom) then  
             dd1 = beg_anfps(s)
             dd2 = end_anfps(s)
-
-            doit = 0 
-
-         if (( r .lt. s) .and.  
-     *       ( n .ne. s) .and.  
-     *       ( n .ne. r) .and.  
-     *       ( m .lt. n) .and.  
-     *       ( m .lt. r) .and.  
-     *       ( m .ne. s)) doit = 1  
-
-         if ((r .lt. s) .and.  
-     *       (m .eq. n)) doit = 1  
-
-         if (( r .lt. s) .and.   
-     *    ( n .lt. s) .and.  
-     *    ( m .lt. n) .and.  
-     *    ( m .eq. r)) doit = 1   
-
-         if (( r .lt. s) .and.  
-     *    ( n .eq. r) .and.  
-     *    ( m .lt.  n) .and.  
-     *    ( m .lt. s)) doit = 1  
-
-         if (( r .lt. s) .and.  
-     *    ( n .eq. s) .and.  
-     *    ( m .lt. n) .and.  
-     *    ( m .lt. r)) doit = 1  
-c
-         if (( n .eq. m ) .and.  
-     *    ( s .eq. m ) .and.  
-     *    ( r .eq. m )) doit = 1  
-        
-         if (( r .eq. s) .and.  
-     *    ( m .eq. n) .and.  
-     *    ( m .lt. r)) doit = 1  
- 
-         if (( r .lt. s ) .and.  
-     *    ( n .eq. s) .and.  
-     *    ( m .lt. n) .and.  
-     *    ( m .eq. r)) doit = 1  
- 
 c
 c-----------------------------------------------------------------------
 c   Determine the largest density element.
@@ -537,8 +554,7 @@ c-----------------------------------------------------------------------
      *                          r, s, alpha_pack, nalpha_pack, 
      *                          pcoeff_pack, npcoeff_pack, 
      *                          ccbeg, ccend, indx_cc,
-     *                          ccbeg_pack, ccend_pack, 
-     *                          ccbeg_pack64, ccend_pack64)
+     *                          ccbeg_pack, ccend_pack) 
 
 c---------------------------------------------------------------------------
 c   Calling sequence for ERD version 2.
@@ -570,7 +586,6 @@ c---------------------------------------------------------------------------
                call form_ss1fock(scr(nfirst), n_basis,
      *                        aa1,aa2,bb1,bb2,cc1,cc2,dd1,dd2,
      *                        HFD_A,HFD_B,FA,FB)
-
                call form_ss2fock(scr(nfirst), n_basis,
      *                        aa1,aa2,bb1,bb2,cc1,cc2,dd1,dd2,
      *                        HFD_A,HFD_B,FA,FB)
@@ -621,6 +636,27 @@ c       Compute the new HF energy
 c-----------------------------------------------------------------------
 
         call hfenergy(HFD_A,HFD_B,FA,FB,h0,n_basis) 
+
+c-----------------------------------------------------------------------
+c       Compute the DIIS coefficients  
+c-----------------------------------------------------------------------
+
+        call gen_hist(iter,maxhist,diis_start,n_basis,nvirt_a,
+     *                nocc_a,nvirt_b,nocc_b,ca,cb,FA,FB,Fai,Fbj,Ea,Eb)
+
+        if ((iter .lt. maxhist+diis_start-1) .and. 
+     *      (iter .gt. diis_start)) then 
+           nhist = iter - (diis_start-1)  
+           call do_diis(nhist,nvirt_a,nocc_a,nvirt_b,nocc_b,n_basis,
+     *                  Fai,Ea, Fbj,Eb, FA, FB) 
+        endif 
+
+        if (iter .ge. maxhist+diis_start-1) then 
+           nhist = maxhist   
+           call do_diis(nhist,nvirt_a,nocc_a,nvirt_b,nocc_b,n_basis,
+     *                  Fai,Ea, Fbj,Eb, FA, FB) 
+           call move_hist(nhist,diis_start,n_basis,Fa,Fb,Ea,Eb) 
+        endif 
 
 c-----------------------------------------------------------------------
 c       Transpose the new Fock Matrix   
@@ -698,14 +734,18 @@ c-----------------------------------------------------------------------
 c     Put the density matrix into the full matrix   
 c-----------------------------------------------------------------------
 
-      do n = 1, nbasis
-      do m = 1, nbasis
+      do n = 1, n_basis
+      do m = 1, n_basis
          if ((map(m) .ne. 0) .and. (map(n) .ne. 0)) then  
          Fina(map(m),map(n)) = HFD_a(m,n)  
          Finb(map(m),map(n)) = HFD_b(m,n)   
+c        Fina(map(m),map(n)) = FTa(m,n)  
+c        Finb(map(m),map(n)) = FTb(m,n)   
          endif 
       enddo 
       enddo 
+
+      charge(iatom) = charge_keep(iatom) 
 
       return
       end
@@ -944,7 +984,7 @@ c-----------------------------------------------------------------------
       enddo  
 
       etotal = 0.5d0*(ea + eb) 
-c     write(6,*) ' Total SCF energy(-NN) = ', etotal 
+      write(6,*) ' Total SCF energy(-NN) = ', etotal 
 
       return 
       end 
@@ -1837,6 +1877,312 @@ c           HFDOLD_B(b,a) = HFD_B(b,a)
 c        enddo 
 c        enddo 
 c     endif 
+
+      return 
+      end 
+
+      subroutine do_diis(nhist_old,navirt,naocc,nbvirt,nbocc,norb,
+     *                   Fai,Ea,Fbj,Eb,FA,FB) 
+
+      Implicit none 
+      integer nhist, nhist_old, norb, navirt, naocc, nbvirt, nbocc 
+      double precision CM(nhist_old+1),BM(nhist_old+1,nhist_old+1) 
+      double precision R(nhist_old+1,nhist_old+1) 
+      double precision Fai(navirt,naocc,nhist_old+1), 
+     *                 Ea(norb,norb,nhist_old+1)  
+      double precision Fbj(nbvirt,nbocc,nhist_old+1), 
+     *                 Eb(norb,norb,nhist_old+1)  
+      double precision FA(norb,norb), FB(norb,norb) 
+      double precision itemp, jtemp, atemp, btemp 
+      double precision rpack(nhist_old*nhist_old+2*nhist_old+1) 
+      integer iP(nhist_old+1) 
+      integer m, n, a, i, b, j, k, npack  
+
+c---------------------------------------------------------------------------
+c Zero out B and C matrices 
+c---------------------------------------------------------------------------
+
+      nhist = nhist_old ! - 1  
+
+      do n = 1, nhist+1  
+         CM(n) = 0.0 
+         do m = 1, nhist+1  
+            BM(m,n)  = 0.0 
+         enddo ! m 
+      enddo ! n  
+
+c---------------------------------------------------------------------------
+c Form the B matrix 
+c---------------------------------------------------------------------------
+
+c     alpha-spin 
+      do n = 1, nhist 
+         do m = 1, nhist   
+
+            btemp = 0.0 
+
+            do i = 1, naocc 
+            do a = 1, navirt 
+
+               btemp = btemp + Fai(a,i,m)*Fai(a,i,n)  
+
+            enddo ! a 
+            enddo ! i 
+
+            BM(m,n) = btemp 
+
+          enddo ! m 
+      enddo ! n 
+
+c     beta-spin 
+      do n = 1, nhist 
+         do m = 1, nhist   
+
+            btemp = 0.0 
+
+            do j = 1, nbocc 
+            do b = 1, nbvirt 
+
+               btemp = btemp + Fbj(b,j,m)*Fbj(b,j,n)  
+
+            enddo ! b 
+            enddo ! j 
+
+            BM(m,n) = BM(m,n) + btemp 
+
+          enddo ! m 
+       enddo ! n 
+
+c---------------------------------------------------------------------------
+c Done forming the B matrix 
+c---------------------------------------------------------------------------
+
+      do n = 1, nhist 
+      do m = n, nhist   
+         R(n,m) = BM(n,m) 
+         if (m .ne. n) R(m,n) = BM(n,m) 
+      enddo 
+      enddo 
+    
+      do m = 1, nhist 
+         R(m,nhist+1) = -1.0 
+         R(nhist+1,m) = -1.0 
+      enddo 
+      R(nhist+1,nhist+1) = 0.0 
+
+c     write(6,*) ' R vector ' 
+c     do m = 1, nhist + 1  
+c     do n = 1, nhist + 1 
+c        write(6,*) '  ', m, n, R(m,n) 
+c     enddo 
+c     enddo 
+
+      npack = 0 
+      do n = 1, nhist+1  
+      do m = 1, nhist+1  
+         npack = npack + 1 
+         Rpack(npack) = R(m,n) 
+      enddo 
+      enddo 
+
+      do m = 1, nhist  
+         CM(m) = 0.0 
+      enddo 
+      CM(nhist+1) = -1.0 
+
+      call dgesv(nhist+1,1,Rpack,nhist+1,iP,CM,nhist+1,i) 
+      if (i .ne. 0) then 
+         write(6,*) ' Error in atom DIIS ', i
+         call abort_job() 
+      endif 
+
+c     write(6,*) ' C vector ', nhist + 1  
+c     do m = 1, nhist+1 
+c        write(6,*) '  ', m,  CM(M) 
+c     enddo 
+
+      CM(nhist+1) = 0.0 
+
+c---------------------------------------------------------------------------
+c Form the updated Fock matrix   
+c---------------------------------------------------------------------------
+
+      nhist = nhist_old 
+
+c     write(6,*) ' Updating F ' 
+      do n = 1, norb  
+      do m = 1, norb  
+         itemp = 0.0 
+         do k = 1, nhist  
+             itemp = itemp + Ea(m,n,k)*CM(k)  
+         enddo ! k  
+         FA(m,n) = itemp 
+      enddo ! m 
+      enddo ! n 
+
+c     write(6,*) ' Updating F ' 
+      do m = 1, norb  
+      do n = 1, norb  
+         jtemp = 0.0 
+         do k = 1, nhist  
+             jtemp = jtemp + Eb(m,n,k)*CM(k)  
+         enddo ! k  
+         FB(m,n) = jtemp 
+      enddo ! m 
+      enddo ! n 
+
+c     write(6,*) ' Finished DIIS of order', nhist 
+
+      return 
+      end 
+
+c       call gen_hist(iter,maxhist,diis_start,n_basis,nvirt_a,
+c    *                nocc_a,nvirt_b,nocc_b,ca,cb,FA,FB,Fai,Fbj,Ea,Eb)
+      subroutine gen_hist(kiter,maxhist,diis_start,norb,navirt,naocc,
+     *                    nbvirt,nbocc,ca,cb,Fpq_a,Fpq_b,Fai,Fbj,Ea,Eb)
+
+      Implicit none 
+      integer kiter, maxhist,diis_start,norb,navirt,naocc,nbvirt,nbocc
+      integer m, n, a, i, b, j 
+      Double precision Fpq_a(norb,norb), Fpq_b(norb,norb) 
+      double precision ca(norb,norb), cb(norb,norb) 
+      double precision Fai(navirt,naocc,maxhist+1) 
+      double precision FTai(navirt,naocc) 
+      double precision FTbj(nbvirt,nbocc) 
+      double precision Fbj(nbvirt,nbocc,maxhist+1) 
+      double precision Ea(norb,norb,maxhist+1) 
+      double precision Eb(norb,norb,maxhist+1) 
+      double precision Ti(norb,naocc), Tj(norb,nbocc)  
+      double precision itemp, jtemp  
+
+c---------------------------------------------------------------------------
+c Form Fai and Fbj 
+c---------------------------------------------------------------------------
+
+      do m = 1, norb 
+      do i = 1, naocc 
+         itemp= 0.0 
+         do n = 1, norb 
+            itemp = itemp + Fpq_a(m,n)*ca(n,i) 
+         enddo  
+         Ti(m,i) = itemp 
+      enddo  
+      enddo  
+
+      do a = naocc+1, norb  
+      do i = 1, naocc 
+         itemp = 0.0 
+         do m = 1, norb 
+            itemp = itemp + Ti(m,i)*ca(m,a)  
+         enddo 
+         FTai(a-naocc,i) = itemp 
+      enddo 
+      enddo 
+
+      do m = 1, norb 
+      do j = 1, nbocc 
+         jtemp= 0.0 
+         do n = 1, norb 
+            jtemp = jtemp + Fpq_b(m,n)*cb(n,j) 
+         enddo  
+         Tj(m,j) = jtemp 
+      enddo  
+      enddo  
+
+      do b = nbocc+1, norb  
+      do j = 1, nbocc 
+         jtemp = 0.0 
+         do m = 1, norb 
+            jtemp = jtemp + Tj(m,j)*cb(m,b)  
+         enddo 
+         FTbj(b-nbocc,j) = jtemp 
+      enddo 
+      enddo 
+
+c---------------------------------------------------------------------------
+c Done Forming Fai and Fbj 
+c---------------------------------------------------------------------------
+
+c---------------------------------------------------------------------------
+c Store Fock matrix history  
+c---------------------------------------------------------------------------
+
+      if ((kiter .ge. diis_start) .and. 
+     *    (kiter .lt. maxhist+diis_start-1)) then 
+
+            do n = 1, norb 
+            do m = 1, norb 
+               Ea(m,n,kiter-(diis_start-1)) = Fpq_a(m,n) 
+               Eb(m,n,kiter-(diis_start-1)) = Fpq_b(m,n) 
+            enddo 
+            enddo 
+           
+            do i = 1, naocc 
+            do a = 1, navirt   
+               Fai(a,i,kiter-(diis_start-1)) = FTai(a,i) 
+c              write(6,*) ' XXXXX', a, i, kiter-2, Fai(a,i,kiter-2)
+            enddo 
+            enddo 
+           
+            do j = 1, nbocc 
+            do b = 1, nbvirt  
+               Fbj(b,j,kiter-(diis_start-1)) = FTbj(b,j) 
+            enddo 
+            enddo 
+
+      endif 
+
+      if (kiter .ge. maxhist+diis_start-1) then 
+
+            do n = 1, norb 
+            do m = 1, norb 
+               Ea(m,n,maxhist) = Fpq_a(m,n) 
+               Eb(m,n,maxhist) = Fpq_b(m,n) 
+            enddo 
+            enddo 
+           
+            do i = 1, naocc 
+            do a = 1, navirt  
+               Fai(a,i,maxhist) = FTai(a,i) 
+            enddo 
+            enddo 
+           
+            do j = 1, nbocc 
+            do b = 1, nbvirt 
+               Fbj(b,j,maxhist) = FTbj(b,j) 
+            enddo 
+            enddo 
+
+      endif 
+
+      return 
+      end 
+
+      subroutine move_hist(nhist,diis_start,norb,Fa,Fb,Ea,Eb) 
+      Implicit none 
+      integer norb, nhist, diis_start, m, n, k 
+      Double precision Ea(norb,norb,nhist), Eb(norb,norb,nhist) 
+      Double precision Fa(norb,norb), Fb(norb,norb) 
+
+c Shift histories 
+
+      do k = 2, nhist 
+         do n = 1, norb 
+         do m = 1, norb 
+            Ea(m,n,k-1) = Ea(m,n,k) 
+            Eb(m,n,k-1) = Eb(m,n,k) 
+         enddo 
+         enddo 
+      enddo 
+
+c Current Fock 
+
+      do n = 1, norb 
+      do m = 1, norb 
+         Ea(m,n,nhist) = Fa(m,n) 
+         Eb(m,n,nhist) = Fb(m,n) 
+      enddo 
+      enddo 
 
       return 
       end 

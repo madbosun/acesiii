@@ -1,0 +1,20 @@
+
+C RETURNS THE RMS VALUE OF THE FIRST LENGTH ELEMENTS IN VECTOR VEC.  VALUES
+C BELOW TOL ARE NOT CONSIDERED.
+
+      DOUBLE PRECISION FUNCTION RMSVEC(VEC,LENGTH,TOL)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION VEC(LENGTH)
+      RMSVEC = 0.0d0
+      if (length.lt.1) return
+      NIN = 0
+      DO I = 1, LENGTH
+         Z = VEC(I)
+         IF (ABS(Z).GT.TOL) THEN
+            NIN = NIN + 1
+            RMSVEC = RMSVEC + ( Z * Z )
+         END IF
+      END DO
+      RMSVEC = DSQRT(RMSVEC) / NIN
+      RETURN
+      END

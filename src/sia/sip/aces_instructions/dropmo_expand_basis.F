@@ -62,7 +62,7 @@ c--------------------------------------------------------------------------
     
       integer proc, company_comm
       integer pst_get_company_comm, pst_get_company_rank
-       integer*8 get_index_from_base
+      integer*8 get_index_from_base
       integer*8 nmem_bytes
       integer   nmem_words
       integer*8 iblkmgr, idropmo
@@ -87,11 +87,14 @@ c--------------------------------------------------------------------------
       company_comm    = pst_get_company_comm(me)
       proc  = pst_get_company_rank(me)
       if (proc .eq. 0) then
-         call mem_alloc_free(first_blk_addr, ierr)  ! release blkmgr memory.
-         if (ierr .ne. 0) then
-            print *,'Task ',me,' Error in mem_alloc_free'
-            call abort_job()
-         endif
+
+c VFL Stupid temporary skip 12/13/2012 
+c        call mem_alloc_free(first_blk_addr, ierr)  ! release blkmgr memory.
+
+c        if (ierr .ne. 0) then
+c           print *,'Task ',me,' Error in mem_alloc_free'
+c           call abort_job()
+c        endif
  
          ndropmo_blksize = stack_blocksize(nblkmgr_stacks) ! save largest blksize
          call mem_alloc(scr_dropmo, ndropmo_blksize, bytes_per_double,

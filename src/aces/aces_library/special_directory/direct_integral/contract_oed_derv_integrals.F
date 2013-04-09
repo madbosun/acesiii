@@ -62,6 +62,15 @@ c---------------------------------------------------------------------------
       double precision xn(max_centers), yn(max_centers), 
      *                 zn(max_centers)
       double precision x1,y1,z1,x2,y2,z2, y
+c
+c ECP derivative integrals 
+c 
+      integer natoms 
+c     double precision decp_erd 
+c     common /DECP/natoms, decp_erd(50,3,1000,1000) 
+
+      common /flags/ iflags
+      integer iflags(100)
 
       if (type .lt. 1 .or. type .gt. 3) then
          print *,'Error: Invalid type in contract_oed_integrals'
@@ -149,6 +158,7 @@ c-------------------------------------------------------------------------
                   z(a,b) = 0.
                enddo
                enddo
+c--------------------------------------------------------------------------
 
 c-------------------------------------------------------------------------
 c   Initialize the derivative array.
@@ -214,6 +224,20 @@ c-------------------------------------------------------------------------
 
                  call move_integrals2(z, da1,da2,db1,db2,
      *                 dbuf(dpkgscr+nfirst-1),a1,a2,b1,b2)
+c--------------------------------------------------------------------------
+c   If ECP add ecp derivative integrals  
+c                 if (iflags(71) .eq. 1) then  
+c                 do a = a1, a2 
+c                 do b = b1, b2 
+c                    z(a,b) = z(a,b) + decp_erd(iatom, component, a, b) 
+#ifdef _DEBUG_LVL0
+c                 Write(6,"(a)") "Adding ECP derivative integrals"
+c                 Write(6,"(1x, 2I3, 1x,f12.7)") a, b, decp_erd(iatom,
+c    *                                    component, a, b)
+#endif
+c                 enddo 
+c                 enddo 
+c                 endif 
 
 c--------------------------------------------------------------------------
 c   Contract the density block with the block of integrals.

@@ -37,6 +37,7 @@ c-----------------------------------------------------------------------------
       implicit none
       include 'mpif.h'
       include 'saved_data.h'
+c     include 'int_gen_parms.h'
 
       integer n, nshells, ispherical
       integer nfps(nshells), iangular(nshells)
@@ -60,6 +61,12 @@ c-----------------------------------------------------------------------------
       double precision g_scale(9)
       double precision h_scale(11)
       double precision i_scale(13)
+      double precision xscale
+
+      double precision x_scale(0:6,1:28) 
+
+      common /flags/ iflags
+      integer iflags(100)
 
       save smap, pmap, dmap, fmap, gmap, hmap, imap
       save d_scale, f_scale, g_scale, h_scale, i_scale
@@ -128,6 +135,9 @@ c-----------------------------------------------------------------------------
       istart = 1 
       ierd   = 1
 
+c     write(6,*) ' IFLAGS 71 =', iflags(71) 
+c     go to 2000 
+      if (iflags(71) .eq. 1) go to 1000 
       if (ispherical .ne. 1) go to 1000
 
 c--------------------------------------------------------------------------
@@ -260,6 +270,104 @@ c---------------------------------------------------------------------------
 c   Cartesian coordinates.
 c---------------------------------------------------------------------------
 
+c --- s-functions --- 
+      x_scale(0,1) = 1.0 
+c --- p-functions --- 
+      do i = 1, 3 
+         x_scale(1,i) = 1.0 
+      enddo 
+
+c --- d-functions --- 
+      x_scale(2,1) = 1.0/dsqrt(3.0d0)  
+      x_scale(2,2) = 1.0 
+      x_scale(2,3) = 1.0 
+      x_scale(2,4) = 1.0/dsqrt(3.0d0)  
+      x_scale(2,5) = 1.0 
+      x_scale(2,6) = 1.0/dsqrt(3.0d0)  
+
+c --- f-functions --- 
+      x_scale(3, 1) = 1.0/dsqrt(15.0d0) 
+      x_scale(3, 2) = 1.0/dsqrt(3.0d0) 
+      x_scale(3, 3) = 1.0/dsqrt(3.0d0) 
+      x_scale(3, 4) = 1.0/dsqrt(3.0d0) 
+      x_scale(3, 5) = 1.0/dsqrt(1.0d0) 
+      x_scale(3, 6) = 1.0/dsqrt(3.0d0) 
+      x_scale(3, 7) = 1.0/dsqrt(15.0d0) 
+      x_scale(3, 8) = 1.0/dsqrt(3.0d0) 
+      x_scale(3, 9) = 1.0/dsqrt(3.0d0) 
+      x_scale(3, 10) = 1.0/dsqrt(15.0d0)
+
+c --- g-functions --- 
+      x_scale(4, 1) = 1.0/dsqrt(105.0d0) 
+      x_scale(4, 2) = 1.0/dsqrt(15.0d0) 
+      x_scale(4, 3) = 1.0/dsqrt(15.0d0) 
+      x_scale(4, 4) = 1.0/dsqrt(9.0d0) 
+      x_scale(4, 5) = 1.0/dsqrt(3.0d0) 
+      x_scale(4, 6) = 1.0/dsqrt(9.0d0) 
+      x_scale(4, 7) = 1.0/dsqrt(15.0d0) 
+      x_scale(4, 8) = 1.0/dsqrt(8.0d0) 
+      x_scale(4, 9) = 1.0/dsqrt(3.0d0) 
+      x_scale(4, 10) = 1.0/dsqrt(15.0d0) 
+      x_scale(4, 11) = 1.0/dsqrt(105.0d0) 
+      x_scale(4, 12) = 1.0/dsqrt(15.0d0) 
+      x_scale(4, 13) = 1.0/dsqrt(9.0d0) 
+      x_scale(4, 14) = 1.0/dsqrt(15.0d0) 
+      x_scale(4, 15) = 1.0/dsqrt(105.0d0) 
+
+c --- h-functions --- 
+      x_scale(5, 1) = 1.0/dsqrt(945.0d0) 
+      x_scale(5, 2) = 1.0/dsqrt(105.0d0) 
+      x_scale(5, 3) = 1.0/dsqrt(105.0d0) 
+      x_scale(5, 4) = 1.0/dsqrt(45.0d0) 
+      x_scale(5, 5) = 1.0/dsqrt(15.0d0) 
+      x_scale(5, 6) = 1.0/dsqrt(45.0d0) 
+      x_scale(5, 7) = 1.0/dsqrt(45.0d0) 
+      x_scale(5, 8) = 1.0/dsqrt(45.0d0) 
+      x_scale(5, 9) = 1.0/dsqrt(9.0d0) 
+      x_scale(5, 10) = 1.0/dsqrt(45.0d0) 
+      x_scale(5, 11) = 1.0/dsqrt(105.0d0) 
+      x_scale(5, 12) = 1.0/dsqrt(15.0d0) 
+      x_scale(5, 13) = 1.0/dsqrt(9.0d0) 
+      x_scale(5, 14) = 1.0/dsqrt(15.0d0) 
+      x_scale(5, 15) = 1.0/dsqrt(105.0d0) 
+      x_scale(5, 16) = 1.0/dsqrt(945.0d0) 
+      x_scale(5, 17) = 1.0/dsqrt(105.0d0) 
+      x_scale(5, 18) = 1.0/dsqrt(45.0d0) 
+      x_scale(5, 19) = 1.0/dsqrt(45.0d0) 
+      x_scale(5, 20) = 1.0/dsqrt(105.0d0) 
+      x_scale(5, 21) = 1.0/dsqrt(945.0d0) 
+
+c --- i-functions --- 
+      x_scale(6, 1) = 1.0/dsqrt(10395.0d0) 
+      x_scale(6, 2) = 1.0/dsqrt(945.0d0) 
+      x_scale(6, 3) = 1.0/dsqrt(945.0d0) 
+      x_scale(6, 4) = 1.0/dsqrt(315.0d0) 
+      x_scale(6, 5) = 1.0/dsqrt(105.0d0) 
+      x_scale(6, 6) = 1.0/dsqrt(315.0d0) 
+      x_scale(6, 7) = 1.0/dsqrt(225.0d0) 
+      x_scale(6, 8) = 1.0/dsqrt(45.0d0) 
+      x_scale(6, 9) = 1.0/dsqrt(45.0d0) 
+      x_scale(6, 10) = 1.0/dsqrt(225.0d0) 
+      x_scale(6, 11) = 1.0/dsqrt(315.0d0) 
+      x_scale(6, 12) = 1.0/dsqrt(45.0d0) 
+      x_scale(6, 13) = 1.0/dsqrt(27.0d0) 
+      x_scale(6, 14) = 1.0/dsqrt(45.0d0) 
+      x_scale(6, 15) = 1.0/dsqrt(315.0d0) 
+      x_scale(6, 16) = 1.0/dsqrt(945.0d0) 
+      x_scale(6, 17) = 1.0/dsqrt(105.0d0) 
+      x_scale(6, 18) = 1.0/dsqrt(45.0d0) 
+      x_scale(6, 19) = 1.0/dsqrt(45.0d0) 
+      x_scale(6, 20) = 1.0/dsqrt(105.0d0) 
+      x_scale(6, 21) = 1.0/dsqrt(945.0d0) 
+      x_scale(6, 22) = 1.0/dsqrt(10395.0d0) 
+      x_scale(6, 23) = 1.0/dsqrt(945.0d0) 
+      x_scale(6, 24) = 1.0/dsqrt(315.0d0) 
+      x_scale(6, 25) = 1.0/dsqrt(225.0d0) 
+      x_scale(6, 26) = 1.0/dsqrt(315.0d0) 
+      x_scale(6, 27) = 1.0/dsqrt(945.0d0) 
+      x_scale(6, 28) = 1.0/dsqrt(10395.0d0) 
+
+
       do ishell = 1, nshells
          iend = istart + nfps(ishell) - 1
 
@@ -269,15 +377,81 @@ c---------------------------------------------------------------------------
 
          nsh_coords = (iangular(ishell)+1)*(iangular(ishell)+2)/2
          nctr      = nfps(ishell) / nsh_coords
+
+         if (iangular(ishell) .lt. 2) then 
+
          do i = 1, nctr
          do j = 1, nsh_coords
             erd_index(ierd) = istart + (j-1)*nctr + i - 1
-            scalars(ierd)   = 1.d0
+            scalars(ierd)   = 1.d0 
             ierd = ierd + 1
          enddo
          enddo
 
-         istart = istart + nfps(ishell)
+         endif 
+
+         if (iangular(ishell) .ge. 2) then 
+
+         do i = 1, nctr
+         do j = 1, nsh_coords
+c           xscale = 1.0 
+c           if (j .eq. 1 .or. j .eq. 4 .or. j .eq. 6) 
+c    #          xscale=1.0/dsqrt(3.0d0) 
+            erd_index(ierd) = istart + (j-1)*nctr + i - 1
+            scalars(ierd)   = x_scale(iangular(ishell),j)  
+            ierd = ierd + 1
+         enddo
+         enddo
+
+         endif 
+
+c        if (iangular(ishell) .gt. 2) then 
+
+c        do i = 1, nctr
+c        do j = 1, nsh_coords
+c           xscale = 1.0 
+c           erd_index(ierd) = ierd  
+c           scalars(ierd)   = 1.d0   
+c           ierd = ierd + 1
+c        enddo
+c        enddo
+
+c        endif 
+
+        istart = istart + nfps(ishell)
+      enddo
+
+      return
+
+2000  continue
+
+c---------------------------------------------------------------------------
+c   Do not allow any scaling OR reordering  
+c   NOT used currently ??? 
+c---------------------------------------------------------------------------
+
+      do ishell = 1, nshells
+         if (iangular(ishell) .eq. 0) xscale=1.0    ! s shell
+         if (iangular(ishell) .eq. 1) xscale=1.0    ! p shell
+         if (iangular(ishell) .eq. 2) xscale=1.0/dsqrt(3.0d0) ! d shell
+         if (iangular(ishell) .eq. 3) xscale=1.0/dsqrt(4.0d0) ! f shell
+
+c---------------------------------------------------------------------------
+c   Angular momentum of the shell determines the number of shell components.
+c---------------------------------------------------------------------------
+
+         nsh_coords = (iangular(ishell)+1)*(iangular(ishell)+2)/2
+         nctr      = nfps(ishell) / nsh_coords
+
+         do i = 1, nctr
+         do j = 1, nsh_coords
+            erd_index(ierd) = ierd  
+            scalars(ierd)   = xscale  
+            write(6,*) ' SCALARS :', ierd, scalars(ierd) 
+            ierd = ierd + 1
+         enddo
+         enddo
+
       enddo
 
       return

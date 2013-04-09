@@ -63,6 +63,7 @@
       distributed Whfb(mu,nu) 
       local LDhfa(mu,nu) 
       local LDhfb(mu,nu) 
+      static Spq(mu,nu) 
 #
 # Declare temporary arrays 
 # ------------------------ 
@@ -129,6 +130,7 @@
 # --------------- 
 #
       scalar eleven  
+      scalar rank 
 #
       PROC WHFDENS
 #     ------------
@@ -199,6 +201,8 @@
          GET Dhfb(mu,nu) 
          LDhfa(mu,nu) = Dhfa(mu,nu) 
          LDhfb(mu,nu) = Dhfb(mu,nu) 
+        #execute dump_amp ldhfa(mu,nu)
+        #execute dump_amp ldhfb(mu,nu)
       ENDDO nu 
       ENDDO mu 
 #
@@ -211,13 +215,21 @@
 # Contract with the derivative integrals
 # --------------------------------------
 #
-      PARDO mu, nu
+      execute get_my_rank rank 
+      if rank == 0.0 
+         DO mu 
+         DO nu
             GET           DHFA(mu,nu)
             GET           DHFB(mu,nu)
             Tpq(mu,nu)  = DHFA(mu,nu)
             Tpq(mu,nu) += DHFB(mu,nu)
+            Spq(mu,nu)  = Tpq(mu,nu) 
             EXECUTE HCONT1 Tpq(mu,nu)
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu
+
+         execute ecp_dercont Spq 
+       endif 
 #
 # -----------------------------------------------------------------------------
 #

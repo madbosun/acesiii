@@ -17,8 +17,10 @@ C  in the file COPYRIGHT.
 
       integer dummy, load_user_sub
 c
-      dummy = load_user_sub('sip_barrier' // char(0), 0)
-      dummy = load_user_sub('energy_denominator' // char(0), 0)
+      dummy = load_user_sub('sip_barrier' // char(0),
+     *                       0)
+      dummy = load_user_sub('energy_denominator' // char(0),
+     *                       0)
       dummy = load_user_sub('udenominator'//char(0), 0)
       dummy = load_user_sub('energy_product' // char(0),
      *                       0)
@@ -174,6 +176,7 @@ c     dummy = load_user_sub('smooth4'//char(0), smooth4)
       dummy = load_user_sub('eig_nonsymm'//char(0),
      *                       0)
       dummy = load_user_sub('apply_den2'//char(0), 0)
+      dummy = load_user_sub('apply_den2_nor'//char(0), 0)
       dummy = load_user_sub('apply_den4'//char(0), 0)
       dummy = load_user_sub('apply_den4_nodiag'//char(0),
      *                       0)
@@ -314,8 +317,42 @@ c
       dummy = load_user_sub('maxamp_print'//char(0), 0)
       dummy = load_user_sub('form_fock_rohf'//char(0), 0)
 c
+c --------------------------------------------------------------------
+c VFL Instruction needed for DEA/DIP updated AUG. 14 2012
+c --------------------------------------------------------------------
+c
+      dummy = load_user_sub('write_scfdata'//char(0), 0)
+      dummy = load_user_sub('set_np2'//char(0), 0)
+      dummy = load_user_sub('sdrop'//char(0), 0)
+      dummy = load_user_sub('asymm_force_a'//char(0), 0)
+      dummy = load_user_sub('asymm_force_i'//char(0), 0)
+      dummy = load_user_sub('symm_force_ij'//char(0), 0)
+      dummy = load_user_sub('return_h1_nodiag'//char(0),
+     *                       0)
+c
+c --------------------------------------------------------------------
+c Watson instruction needed to write out density
+c --------------------------------------------------------------------
+c
+      dummy = load_user_sub('dens2jobarc'//char(0), 0)
+      dummy = load_user_sub('change_occ_dens'//char(0), 0)
+      dummy = load_user_sub('change_vrt_dens'//char(0), 0)
+      dummy = load_user_sub('add_scal2diag'//char(0), 0)
+      dummy = load_user_sub('calc_trace'//char(0), 0)
+      dummy = load_user_sub('v_nuc_nuc'//char(0), 0)
+c      dummy = load_user_sub('vccs_change_x'//char(0), vccs_change_x)
+      dummy = load_user_sub('write_coefficients'//char(0),
+     +                       0)
+      dummy = load_user_sub('read_coefficients'//char(0),
+     +                       0)
+      dummy = load_user_sub('scf_atom_coeff'//char(0), 0)
+c
 c -------------------------------------------------------------------- 
-
-
+c Instructions needed in the CCSD(T) gradient  
+c --------------------------------------------------------------------
+c
+      dummy = load_user_sub('index_match'//char(0), 0)
+      dummy = load_user_sub('ecp_dercont'//char(0), 0) 
+c
       return
       end

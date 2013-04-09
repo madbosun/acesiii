@@ -1,0 +1,34 @@
+Ethene Geometry: MBPT(2)/6-31G(d)-(fc,cart) Energy: -78.2850278 a.u.
+ C                  0.00000000    0.00000000    0.66818600
+ H                  0.00000000    0.92327300    1.23828700
+ H                  0.00000000   -0.92327300    1.23828700
+ C                  0.00000000    0.00000000   -0.66818600
+ H                  0.00000000   -0.92327300   -1.23828700
+ H                  0.00000000    0.92327300   -1.23828700
+
+*ACES2
+DROPMO=1-2,
+CALC=CCSD,REF=RHF,SYMMETRY=OFF
+SCF_CONV=8,CC_CONV=8
+EXCITE=EOMEE,ESTATE_PROP=EXPECTATION
+ESTATE_SYM=12,ESTATE_TOL=5
+BASIS=AHLRICHS-TZVP,SPHERICAL=ON
+CHARGE=0,MULTIPLICITY=1
+UNITS=ANGSTROM,COORD=CARTESIAN
+
+*SIP
+MAXMEM=1600MB
+TIMERS=NO
+SIAL_PROGRAM = scf_aguess.sio
+SIAL_PROGRAM = scf_rhf_aguess.sio
+SIAL_PROGRAM = cis_rhf.sio
+SIAL_PROGRAM = etran_rhf.sio
+SIAL_PROGRAM = eccsd_rhf.sio
+SIAL_PROGRAM = elambda_rhf.sio
+SIAL_PROGRAM = xreom_rhf_pro.sio
+#
+SIAL_PROGRAM = xleom_rhf_prop.sio
+SIAL_PROGRAM = ltemp_aaa_nodshift.sio
+SIAL_PROGRAM = ltemp_aab_nodshift.sio
+
+

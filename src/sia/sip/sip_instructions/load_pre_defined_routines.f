@@ -73,7 +73,7 @@ C  in the file COPYRIGHT.
       external check_dconf
       external dropmo_expand_basis
       external square_root, norm_fac, return_sval, return_diagonal4,
-     *         symm_force_a, symm_force_i,
+     *         symm_force_a, symm_force_i, asymm_force_i, symm_force_ij,
      *         place_sval,
      *         place_one,
      *         place_one2,
@@ -110,6 +110,7 @@ C  in the file COPYRIGHT.
      *         place_one_dea_8
  
       external apply_den2, apply_den4, apply_den4_nodiag
+      external apply_den2_nor 
       external energy_tdenominator
       external compute_aaaa_batch, compute_aaab_batch, 
      *         compute_aabb_batch, compute_aabc_batch,
@@ -191,11 +192,37 @@ c
       external maxamp_print
       external form_fock_rohf
 c
+c --------------------------------------------------------------------
+c VFL Instruction needed for DEA/DIP updated AUG. 14 2012
+c --------------------------------------------------------------------
+c
+      external write_scfdata
+      external set_np2
+      external sdrop
+      external asymm_force_a
+      external return_h1_nodiag
+c
+c --------------------------------------------------------------------
+c Watson Instruction needed to write the density out
+c --------------------------------------------------------------------
+c
+      external dens2jobarc
+      external change_occ_dens,change_vrt_dens
+      external add_scal2diag,calc_trace,v_nuc_nuc,vccs_change_x
+      external write_coefficients,read_coefficients
+      external scf_atom_coeff
+c
+c -------------------------------------------------------------------- 
+c Instructions needed in the CCSD(T) gradient and ecpgradient   
+c --------------------------------------------------------------------
+c
+      external index_match 
+      external ecp_dercont 
+c
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
       dummy = load_user_sub('energy_denominator' // char(0),
      *                       energy_denominator)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('udenominator'//char(0), udenominator)
       call set_upgrade_flag(dummy)
       dummy = load_user_sub('energy_product' // char(0),
@@ -337,7 +364,6 @@ c     dummy = load_user_sub('open_amp'//char(0), open_amp)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('symm_force_i'//char(0),
      *                      symm_force_i)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_sval'//char(0), place_sval)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one'//char(0), place_one)
@@ -390,7 +416,6 @@ c     dummy = load_user_sub('open_amp'//char(0), open_amp)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dea'//char(0),
      *                                      place_one_dea)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dea_2'//char(0),
      *                                      place_one_dea_2)
       call set_upgrade_flag(dummy) 
@@ -413,17 +438,15 @@ c     dummy = load_user_sub('open_amp'//char(0), open_amp)
      *                                      place_one_dea_8)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('eomroot_print'//char(0), eomroot_print)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('eomroot_print_new'//char(0), 
      *                       eomroot_print_new)
-      call set_upgrade_flag(dummy) 
 c     dummy = load_user_sub('smooth'//char(0), smooth)
 c     dummy = load_user_sub('smooth4'//char(0), smooth4)
       dummy = load_user_sub('eig_nonsymm'//char(0),
      *                       eigen_nonsymm_calc)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('apply_den2'//char(0), apply_den2)
-      call set_upgrade_flag(dummy) 
+      dummy = load_user_sub('apply_den2_nor'//char(0), apply_den2_nor)
       dummy = load_user_sub('apply_den4'//char(0), apply_den4)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('apply_den4_nodiag'//char(0),
@@ -462,16 +485,12 @@ c    *                       compute_abac_batch)
       dummy = load_user_sub('set_flags4'//char(0), set_flags4)
       dummy = load_user_sub('timestamp'//char(0), timestamp)
       dummy = load_user_sub('c1_print'//char(0), c1_print)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('c1b_print'//char(0), c1b_print)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('c2aa_print'//char(0), c2aa_print)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('c2ab_print'//char(0), c2ab_print)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('c2bb_print'//char(0), c2bb_print)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('pardo_sects'//char(0), pardo_sects)
+      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('get_ijk'//char(0), get_ijk)
       dummy = load_user_sub('set_ijk_aaa'//char(0), set_ijk_aaa)
       dummy = load_user_sub('stripi'//char(0), stripi)
@@ -497,25 +516,19 @@ C
       dummy = load_user_sub('return_derv_xyz'//char(0), return_derv_xyz)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('dipole_moment'//char(0), dipole_moment)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('second_moment'//char(0), second_moment)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('energy_ty_denominator'//char(0),
      *                       energy_ty_denominator)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('reorder_energy'//char(0),reorder_energy)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('return_1st_mom'//char(0), return_1st_mom)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('return_2nd_mom'//char(0), return_2nd_mom)
-      call set_upgrade_flag(dummy) 
 
       dummy = load_user_sub('nuc_dipole_moment'//char(0),
      *                       nuc_dipole_moment)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('nuc_dipole_derivative'//char(0),
      *                       nuc_dipole_derivative)
-      call set_upgrade_flag(dummy) 
 
       dummy = load_user_sub('return_x'//char(0), return_x)
       call set_upgrade_flag(dummy) 
@@ -525,22 +538,15 @@ C
       call set_upgrade_flag(dummy) 
 
       dummy = load_user_sub('return_xx'//char(0), return_xx)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('return_yy'//char(0), return_yy)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('return_zz'//char(0), return_zz)
-      call set_upgrade_flag(dummy) 
 
       dummy = load_user_sub('return_xy'//char(0), return_xy)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('return_xz'//char(0), return_xz)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('return_yz'//char(0), return_yz)
-      call set_upgrade_flag(dummy) 
 
       dummy = load_user_sub('print_eom_dens_info'//char(0),
      +                       print_eom_dens_info)
-      call set_upgrade_flag(dummy) 
 c
 c -------------------------------------------------------------------- 
 c VFL Instructions needed to perform 'fast' scf calculations 
@@ -600,8 +606,43 @@ c
       dummy = load_user_sub('maxamp_print'//char(0), maxamp_print)
       dummy = load_user_sub('form_fock_rohf'//char(0), form_fock_rohf)
 c
+c --------------------------------------------------------------------
+c VFL Instruction needed for DEA/DIP updated AUG. 14 2012
+c --------------------------------------------------------------------
+c
+      dummy = load_user_sub('write_scfdata'//char(0), write_scfdata)
+      dummy = load_user_sub('set_np2'//char(0), set_np2)
+      dummy = load_user_sub('sdrop'//char(0), sdrop)
+      dummy = load_user_sub('asymm_force_a'//char(0), asymm_force_a)
+      dummy = load_user_sub('asymm_force_i'//char(0), asymm_force_i)
+      dummy = load_user_sub('symm_force_ij'//char(0), symm_force_ij)
+      dummy = load_user_sub('return_h1_nodiag'//char(0),
+     *                       return_h1_nodiag)
+c
+c --------------------------------------------------------------------
+c Watson instruction needed to write out density
+c --------------------------------------------------------------------
+c
+      dummy = load_user_sub('dens2jobarc'//char(0), dens2jobarc)
+      dummy = load_user_sub('change_occ_dens'//char(0), change_occ_dens)
+      dummy = load_user_sub('change_vrt_dens'//char(0), change_vrt_dens)
+      dummy = load_user_sub('add_scal2diag'//char(0), add_scal2diag)
+      dummy = load_user_sub('calc_trace'//char(0), calc_trace)
+      dummy = load_user_sub('v_nuc_nuc'//char(0), v_nuc_nuc)
+c      dummy = load_user_sub('vccs_change_x'//char(0), vccs_change_x)
+      dummy = load_user_sub('write_coefficients'//char(0),
+     +                       write_coefficients)
+      dummy = load_user_sub('read_coefficients'//char(0),
+     +                       read_coefficients)
+      dummy = load_user_sub('scf_atom_coeff'//char(0), scf_atom_coeff)
+c
 c -------------------------------------------------------------------- 
-
+c Instructions needed in the CCSD(T) gradient and ecpgradient   
+c --------------------------------------------------------------------
+c
+      dummy = load_user_sub('index_match'//char(0), index_match)
+      dummy = load_user_sub('ecp_dercont'//char(0), ecp_dercont)
+c
 
       return
       end

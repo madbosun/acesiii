@@ -504,8 +504,10 @@ C
 #ifdef _DEBUG_LVL0
             Print*, "Before the call to GMETRY, XYZIN", XYZIN
 #endif
+C 
         IF (.NOT. XYZIN) CALL GMETRY()
-        call geomout
+        IF (XYZIN .AND. Iflags(h_IFLAGS_vib) .GT. 1 .AND.
+     &      IPASS1 .EQ. 0) CALL GETXYZ
 C
 C Internal coordinate geo. optimizations, Cartesian Coordinate 
 C frequency calcualtions requires following call to SYMMETRY.  

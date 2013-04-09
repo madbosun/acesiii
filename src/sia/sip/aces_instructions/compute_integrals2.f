@@ -202,8 +202,7 @@ c    &      write(6,*) m,n,r,s,sz_max(m,r),sz_max(n,s),bmax
      *                          r, s, alpha_pack, nalpha_pack, 
      *                          pcoeff_pack, npcoeff_pack, 
      *                          ccbeg, ccend, indx_cc,
-     *                          ccbeg_pack, ccend_pack, 
-     *                          ccbeg_pack64, ccend_pack64)
+     *                          ccbeg_pack, ccend_pack) 
 
 c---------------------------------------------------------------------------
 c   Calling sequence for ERD version 2.
@@ -211,37 +210,6 @@ c---------------------------------------------------------------------------
 
                ncsum = ncfps(m) + ncfps(n) + ncfps(r) + ncfps(s)
 
-               if (aces64) then
-                  arg64(1) = intmax
-                  arg64(2) = zmax
-                  arg64(3) = nalpha_pack
-                  arg64(4) = npcoeff_pack
-                  arg64(5) = ncsum
-                  arg64(6) = ncfps(m)
-                  arg64(7) = ncfps(n)
-                  arg64(8) = ncfps(r)
-                  arg64(9) = ncfps(s)
-                  arg64(10) = npfps(m)
-                  arg64(11) = npfps(n)
-                  arg64(12) = npfps(r)
-                  arg64(13) = npfps(s)
-                  arg64(18) = ivangmom(m)
-                  arg64(19) = ivangmom(n)
-                  arg64(20) = ivangmom(r)
-                  arg64(21) = ivangmom(s)
-                  call ERD__GENER_ERI_BATCH(arg64(1), arg64(2),
-     *                arg64(3), arg64(4), arg64(5),
-     *                arg64(6), arg64(7), arg64(8), arg64(9),
-     *                arg64(10), arg64(11), arg64(12), arg64(13),
-     *                arg64(18), arg64(19), arg64(20), arg64(21),
-     *                x1,y1,z1,
-     *                x2,y2,z2,x3,y3,z3,x4,y4,z4, alpha_pack,
-     *                pcoeff_pack, ccbeg_pack64, ccend_pack64,
-     *                l8spherical, l8true, iscr, arg64(22), 
-     *                arg64(23), scr)    
-                  nints = arg64(22)
-                  nfirst = arg64(23)
-               else
                   call ERD__GENER_ERI_BATCH(intmax, zmax,
      *                nalpha_pack, npcoeff_pack, ncsum, 
      *                ncfps(m),ncfps(n), ncfps(r), ncfps(s),
@@ -252,7 +220,6 @@ c---------------------------------------------------------------------------
      *                pcoeff_pack, ccbeg_pack, ccend_pack,
      *                spherical, .true., iscr, nints, 
      *                nfirst, scr)    
-               endif
             else if (intpkg .eq. gamess_package .or.
      *               intpkg .eq. gamess_derivative_package) then
             else 

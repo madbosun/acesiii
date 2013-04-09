@@ -1,0 +1,181 @@
+      SUBROUTINE UPDMOI(LSTDIS,DISSIZ,LSTSPN,LSTNUM,IENTER,IOFF)
+C
+C UPDATES THE MOIO AND MOIOWD VECTORS WHEN YOU WRITE A NEW LIST.
+C
+C     LSTDIS= NUMBER OF DISTRIBUTIONS IN THE LIST.
+C     DISSIZ= THE SIZE OF THE INDIVIDUAL DISTRIBUTIONS (IN FP WORDS).
+C     LSTSPN= "SPIN CASE" FOR LIST [I OF MOIO(I,J)].
+C     LSTNUM= NUMBER FOR LIST [J OF MOIO(I,J)].
+C     IENTER= 0 UNLESS THE MOINTS FILE IS NEW.  1 IS USED THEN.
+C              AT THE END OF EXECUTION OF A LINK, CALL THIS
+C              WITH A '2', AND IT WILL WRITE OUT TOTREC TO JOBARC.
+C              AT BEGINNING, A '3' WILL INITIALIZE THE VALUE.
+C     IOFF  = -1 BEGINS LIST ON A PHYSICAL RECORD BOUNDARY.
+C                ANY OTHER VALUE BEGINS AT FIRST AVAILABLE WORD.
+C
+CEND
+      IMPLICIT INTEGER (A-Z)
+      CHARACTER*8 NAMES(5)
+      CHARACTER*80 FNAME
+      LOGICAL YESNO,YESNO1,YESNO2
+cjp modified
+      DIMENSION ITOPRC(5),JUNK(8192)
+      COMMON / / ICORE(1)
+      COMMON /LISTS/ MOIO(10,500),MOIOWD(10,500),MOIOSZ(10,500),
+     &               MOIODS(10,500),MOIOFL(10,500)
+      COMMON /MACHSP/ IINTLN,IFLTLN,IINTFP,IALONE,IBITWD
+      COMMON /MACHSP2/MASK1,MASK2,ISHFSZ
+      COMMON /FILSPC/ ILNBUF,IPRCLN,IPRCWD
+      COMMON /FLAGS/  IFLAGS(100)
+      COMMON /IOPOS/ ICRSIZ,ICHCSZ,IOFFX(2),LENREC
+      COMMON /CACHEINF/ CACHSIZ,CACHSZP1,CACHDIR(100),CACHPOS(100),
+     &                  CACHFILE(100),CACHMOD(100),OLDEST
+      DATA NAMES /'MOINTS  ','GAMLAM  ','MOABCD  ','DERINT  ',
+     &            'DERGAM  '/
+cjp      SAVE TOTREC,TOTWRD
+      common/io_ptrs/TOTREC(5),TOTWRD(5)
+cjp
+#include "bwcc.com"
+C
+      IPACK(I,J)=IOR(J,ISHFT(I-49,ISHFSZ))
+      UPACKR(I) =IAND(I,MASK1)
+      UPACKF(I) =IAND(ISHFT(I,-ISHFSZ),MASK2)+49
+cjp
+      if(bwgossip) write(6,*)'UPDMOI: iref',iref,'LSTDIS DISSIZ LSTSPN',
+     & ' LSTNUM IENTER IOFF', LSTDIS,DISSIZ,LSTSPN,LSTNUM,IENTER,IOFF
+cjp
+      CALL IZERO(JUNK,8192)
+      DO 1001 I=1,5
+       ITOPRC(I)=TOTREC(I)
+1001  CONTINUE
+      IFIVE=5
+cjpNOTE:@@@@ dangerous - totrec, etc stored in JOBARC, which is not replicated
+cjp we assume that  files for all irefs will grow to the same size!
+cjp during run of the job these must be replicated
+cjp this is totally incompatible with symmetry treatment
+      IF(IENTER.EQ.2)THEN
+cjp
+       if(bwgossip) write(6,*)'UPDMOI iref=',iref,' TOTRECMO',TOTREC
+       if(bwgossip) write(6,*)'UPDMOI iref=',iref,' TOTWRDMO',TOTWRD
+       CALL PUTREC(20,'JOBARC','TOTRECMO',IFIVE,TOTREC)
+       CALL PUTREC(20,'JOBARC','TOTWRDMO',IFIVE,TOTWRD)
+       RETURN
+      ENDIF
+      IF(IENTER.EQ.3)THEN
+       CALL GETREC(20,'JOBARC','TOTRECMO',IFIVE,TOTREC)
+       CALL GETREC(20,'JOBARC','TOTWRDMO',IFIVE,TOTWRD)
+       if(bwgossip) write(6,*)'UPDMOI iref=',iref,' TOTRECMO',TOTREC
+       if(bwgossip) write(6,*)'UPDMOI iref=',iref,' TOTWRDMO',TOTWRD
+       RETURN
+      ENDIF
+      ITYPE=1+(LSTNUM-1)/100
+      IF(IENTER.EQ.1)THEN
+       if(bwgossip) write(6,*)'UPDMOI iref=',iref,
+     &    ' IENTER=1, TOTRECMO zeroed'
+       TOTREC(ITYPE)=1
+       TOTWRD(ITYPE)=0
+       ITOPRC(ITYPE)=0
+      ENDIF
+cpn
+cjp      print *,'LSTDIS',lstdis,'   DISSIZ',dissiz,'  LSTSPN',lstspn,
+cjp     +     '  LSTNUM',lstnum
+cpn end
+c
+c  updmoi should not be used to change size of an exisiting list
+c
+      IF ( MOIO(LSTSPN,LSTNUM) .NE. 0 ) then
+         if ( MOIOSZ(LSTSPN,LSTNUM).eq.DISSIZ .and.
+     $        MOIODS(LSTSPN,LSTNUM) .eq. LSTDIS ) then
+            if(bwgossip) write(6,*)
+     +         ' UPDMOI: list already present, returning!'
+            RETURN
+         else
+            write (6,*) 'tried to change size of exisiting list: ',
+     $         lstspn, ',', lstnum
+            write (6,*) 'current: distributions -- ',
+     $         moiods(lstspn,lstnum), ' size -- ', moiosz(lstspn,lstnum)
+            write (6,*) 'requested: distributions -- ',
+     $         lstdis, ' size -- ', dissiz
+            call errex
+         endif
+      endif
+cjp
+C
+C ASSIGN MOIO(LSTSPN,LSTNUM) AND MOIOWD(LSTSPN,LSTNUM) AND THE FILE NUMBER
+C
+      IFILE=ITYPE+49
+      CALL GFNAME(NAMES(ITYPE),FNAME,ILENGTH)
+      INQUIRE(FILE=FNAME(1:ILENGTH),EXIST=YESNO1,OPENED=YESNO2)
+      IF(.NOT.YESNO1.OR..NOT.YESNO2)THEN
+       CALL ACES_IO_OPEN(ITYPE)
+      ENDIF
+
+
+      MOIOSZ(LSTSPN,LSTNUM)=DISSIZ
+      MOIODS(LSTSPN,LSTNUM)=LSTDIS
+      MOIOFL(LSTSPN,LSTNUM)=IFILE
+
+      IF(IOFF.EQ.-1)THEN
+C
+C LISTS STARTS ON A PHYSICAL RECORD BOUNDARY.
+C
+       MOIOWD(LSTSPN,LSTNUM)=1
+       TOTREC(ITYPE)=TOTREC(ITYPE)+1
+       MOIO(LSTSPN,LSTNUM)=TOTREC(ITYPE)
+       TOTWRD(ITYPE)=0
+      ELSE
+       MOIOWD(LSTSPN,LSTNUM)=TOTWRD(ITYPE)+1
+       IF(TOTWRD(ITYPE).EQ.IPRCWD)THEN
+        MOIOWD(LSTSPN,LSTNUM)=1
+        TOTREC(ITYPE)=TOTREC(ITYPE)+1
+       ENDIF
+       MOIO(LSTSPN,LSTNUM)=TOTREC(ITYPE)
+      ENDIF
+C
+C COMPUTE TOTAL NUMBER OF WORDS IN LIST.
+C
+      NWORDS=LSTDIS*DISSIZ*IINTFP
+C
+C COMPUTE THE NUMBER OF FULL RECORDS THIS WILL TAKE UP.  USUALLY THIS
+C   WILL BE ZERO.  ALSO COMPUTE HOW MANY WORDS OF A PARTIAL RECORD ARE
+C   REQUIRED (OFTEN JUST NWORDS).
+C
+      NFULL=NWORDS/IPRCWD
+      NPART=MOD(NWORDS,IPRCWD)
+C
+C INCREMENT TOTREC BY THE NUMBER OF FULL RECORDS THAT THIS WILL TAKE UP.
+C
+      TOTREC(ITYPE)=TOTREC(ITYPE)+NFULL
+C
+C COMPUTE POSITION OF LAST WORD WRITTEN IN PARTIAL RECORD.  IF THE LOGIC
+C  RECORD GOES ACROSS A PHYSICAL RECORD BOUNDARY, INCREMENT TOTREC BY ON
+C
+      NLEFT=IPRCWD-TOTWRD(ITYPE)
+      IF(NLEFT.GE.NPART)THEN
+       TOTWRD(ITYPE)=TOTWRD(ITYPE)+NPART
+      ELSE
+       TOTWRD(ITYPE)=NPART-NLEFT
+       TOTREC(ITYPE)=TOTREC(ITYPE)+1
+      ENDIF
+C
+C WRITE AN EMPTY BUFFER TO RECORD RECORD IF IT IS BEYOND EOF.
+C
+      IF(TOTREC(ITYPE).GT.ITOPRC(ITYPE))THEN
+C
+C FLUSH CURRENT CONTENTS OF CACHE #1
+C
+       IF(CACHMOD(1).NE.0)THEN
+        IFILE0=CACHFILE(1)
+        IREC  =UPACKR(CACHDIR(1))
+        CALL ACES_IO_WRITE(IFILE0,IREC,ICORE(CACHPOS(1)),ICHCSZ)
+        CACHMOD(1)=0
+       ENDIF
+       if(bwgossip) write(6,*)' updmoi: enlarging file by zeroes,',
+     &    ' iref, ifile,TOTREC(ITYPE)', iref,ifile,TOTREC(ITYPE)
+       CALL IZERO(ICORE(CACHPOS(1)),ICHCSZ)
+       CALL ACES_IO_WRITE(IFILE,TOTREC(ITYPE),ICORE(CACHPOS(1)),ICHCSZ)
+       CACHDIR(1)=0
+       CACHFILE(1)=0
+      ENDIF
+      RETURN
+      END

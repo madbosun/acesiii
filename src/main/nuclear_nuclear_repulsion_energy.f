@@ -25,6 +25,9 @@ c---------------------------------------------------------------------------
       integer i, j
       double precision vnn, x, y, z, r
 
+      write(6,*)  ' Computing the NN repulsion energy ' 
+      write(6,*) '  ', natoms, (charge(i), i=1, natoms) 
+
       VNN = 0.0D0
       DO I = 1, natoms
          DO J = I + 1, natoms
@@ -35,6 +38,8 @@ c---------------------------------------------------------------------------
             VNN = VNN + charge(i)*charge(j)/R
          ENDDO ! J
       ENDDO ! I
+
+      write(6,*) ' NN rep computed = ', vnn 
 
       nuclear_nuclear_repulsion_energy = vnn
       return

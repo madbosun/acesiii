@@ -748,8 +748,6 @@
        scalar c9
        scalar c10
 #
-
-#
 # Define scalar quantities 
 # ------------------------ 
 #
@@ -760,6 +758,7 @@
       scalar enew 
       scalar ecrit 
       scalar ediff 
+      scalar rank 
 #    ------------------------------------------------------------------------
 #
 #    ------------------------------------------------------------------------
@@ -7160,14 +7159,19 @@
 # Finally contract with the derivative integrals
 # ----------------------------------------------
 #
-      PARDO mu, nu
-            GET Dpq(mu,nu)
-            GET DHF(mu,nu)
+      execute get_my_rank rank
+      if rank == 0.0 
+         DO mu 
+         DO nu
+            GET           Dpq(mu,nu)
+            GET           DHF(mu,nu)
             Tpq(mu,nu)  = Dpq(mu,nu)
             Tpq(mu,nu) += DHF(mu,nu)
             Tpq(mu,nu) *= 2.0  
             EXECUTE HCONT1 Tpq(mu,nu)
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu 
+      endif 
 #
 # -----------------------------------------------------------------------------
 #
