@@ -16,6 +16,27 @@ you may specify any special compilers to be used.  You can set
 CC,FC and CXX to specify C,FROTRAN and C++ compilers in the call to 
 the configure script.
 
+To enable Detailed Timers, add the flag
+ -DDETAILED_TIMERS
+to FCFLAGS
+Detailed timers include
+1. Time spent in allocating blocks
+2. Overhead for pardo (time spent in dynamic load balancing)
+3. Number of times pardo was done
+
+
+To enable Very Detailed Timers, add the flag
+ -DVERY_DETAILED_TIMERS 
+to FCFLAGS
+Very detailed timers include
+1. Time spent in calls to exec_thread_server
+2. Number of times exec_thread_server was called
+
+Add flag
+DYNAMIC_LOAD_BALANCE
+to FCFLAGS 
+to enable default dynamic load balancing. This can be overriden throught the SIAL file.
+Without this flag, the default is static (or restricted) load balancing.
 
 
   o  Linux cluster:

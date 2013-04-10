@@ -175,8 +175,9 @@ c--------------------------------------------------------------------------
 
          if (optable(c_pardo_batch,iop) .ge. 0) 
      *      optable(c_pardo_batch,iop) = optable(c_pardo_batch,iop)+1  
-
+#ifdef DETAILED_TIMERS
          call timer_start (pardo_ovrhead_timer)
+#endif         
 
          if (next_batch .gt. last_batch .or.
      *       next_batch .eq. 0) then
@@ -184,11 +185,13 @@ c--------------------------------------------------------------------------
                call pardo_loadb_update_batch(iop, optable, index_table, 
      *                segment_table, nsegment_table,
      *                next_batch, last_batch)
-c               call timer_start (timer_ovrhead)
+#ifdef VERY_DETAILED_TIMERS
                call timer_start (pardo_tserver_timer)
+#endif               
                call exec_thread_server(0) 
+#ifdef VERY_DETAILED_TIMERS               
                call update_timer (pardo_tserver_timer)
-c               call update_timer (timer_ovrhead)
+#endif               
                if (next_batch .le. 0) optable(c_oploop,iop) = 0
             else
                call f_acquire_pardo_lock(my_lock)
@@ -202,8 +205,9 @@ c               call update_timer (timer_ovrhead)
                call f_release_pardo_lock(my_lock)
             endif   
          endif
-
+#ifdef DETAILED_TIMERS
          call update_timer (pardo_ovrhead_timer)
+#endif         
 
          if (my_company_rank .eq. pardo_master) 
      *           call f_release_pardo_lock(my_lock)

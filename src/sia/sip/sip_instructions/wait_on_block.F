@@ -43,14 +43,17 @@ c---------------------------------------------------------------------------
       call update_timer(instruction_timer)
       call pause_timer(current_instr_unit_timer)
       call timer_start(comm_timer)
-      call timer_start(pardo_block_wait_timer)
-
-      call update_timer(pardo_act_timer)
-      call timer_start(pardo_tserver_timer)
-c      call timer_start (timer_ovrhead)
-      call timer_start (current_instr_mpi_timer)
       call timer_start (current_instr_blk_timer)
+      if (pardo_block_wait_timer .ne. 0) then
+        call timer_start(pardo_block_wait_timer)
+        call update_timer(pardo_act_timer)
+      endif
+#ifdef VERY_DETAILED_TIMERS      
+      if (pardo_block_wait_timer .ne. 0)
+     *   call timer_start(pardo_tserver_timer)
+      call timer_start (current_instr_mpi_timer)
       call timer_start (current_instr_mpino_timer)
+#endif       
 
   100 continue
       call mpi_test(request, flag, status, ierr)
@@ -58,17 +61,21 @@ c      call timer_start (timer_ovrhead)
          call exec_thread_server(0)
          go to 100
       endif 
-     
+#ifdef VERY_DETAILED_TIMERS     
       call update_timer (current_instr_mpino_timer)
-      call update_timer (current_instr_blk_timer)
       call update_timer (current_instr_mpi_timer)
-c      call update_timer (timer_ovrhead)
+      if (pardo_block_wait_timer .ne. 0)
+     *   call update_timer(pardo_tserver_timer)
+#endif      
+    
+      if(pardo_block_wait_timer .ne. 0) then
+        call timer_start(pardo_act_timer)
+        call update_timer(pardo_block_wait_timer)
+      endif
+      call update_timer (current_instr_blk_timer)
       call update_timer(comm_timer)
-      call update_timer(pardo_block_wait_timer)
-      call timer_start(instruction_timer)
       call resume_timer(current_instr_unit_timer)
-      call timer_start(pardo_act_timer)
-      call update_timer(pardo_tserver_timer)
+      call timer_start(instruction_timer)
 
 c--------------------------------------------------------------------------
 c   Set flags properly on the block we just waited for.

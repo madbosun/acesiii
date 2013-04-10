@@ -195,7 +195,7 @@ c nContAOs : total number of contracted functions
      *                     compute_1e_integrals
                        
       integer max_procsx
-      parameter (max_procsx = 10000)
+      parameter (max_procsx = 150000)
       integer scfa_req, scfb_req, epsa_req, epsb_req 
       integer focka_req, fockb_req
       common /scf_requests/scfa_req(max_procsx), 

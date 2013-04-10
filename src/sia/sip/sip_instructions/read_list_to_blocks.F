@@ -99,7 +99,7 @@ c--------------------------------------------------------------------------
       integer*8 msg8(len_sip_server_message/2)
       equivalence (msg, msg8)
       integer mx_mpi_req
-      parameter (mx_mpi_req = 10000)
+      parameter (mx_mpi_req = 150000)
       integer request(mx_mpi_req)
       integer statuses(MPI_STATUS_SIZE, mx_mpi_req)
       integer mode, fh, fhndx

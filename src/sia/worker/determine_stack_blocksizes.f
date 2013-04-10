@@ -29,7 +29,7 @@ c---------------------------------------------------------------------------
       integer segment_table(lsegment_table_entry,nsegment_table)
       integer stack_blocksizes(nstacks)
 
-      integer i, j, allmax, occmax, virtmax, svirtmax, aomax
+      integer i, j, allmax, occmax, virtmax, aomax
       integer baoccval, eaoccval
       integer bboccval, eboccval
       integer boccval, eoccval
@@ -97,7 +97,6 @@ c   Stack 8: OVVV
 c   Stack 9: VVVV
 c----------------------------------------------------------------------------
 
-      svirtmax = virtmax 
       virtmax = max(virtmax, aomax)
 
       if (dbg) print *,'allmax, occmax, virtmax = ',
@@ -132,7 +131,7 @@ c----------------------------------------------------------------------------
          stack_blocksizes(1) = allmax * allmax
          stack_blocksizes(2) = occmax**3
          stack_blocksizes(3) = occmax**2 * virtmax
-         stack_blocksizes(4) = virtmax**3
+         stack_blocksizes(4) = occmax * virtmax**2
          stack_blocksizes(5) = virtmax**3
 
          stack_blocksizes(6) = occmax*occmax*occmax*occmax

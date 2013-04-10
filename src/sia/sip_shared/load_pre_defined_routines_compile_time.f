@@ -353,6 +353,13 @@ c --------------------------------------------------------------------
 c
       dummy = load_user_sub('index_match'//char(0), 0)
       dummy = load_user_sub('ecp_dercont'//char(0), 0) 
+c--------------------------------------------------------------------
+c VFL Instruction needed for restricted pardo  updated JULY 22012
+c--------------------------------------------------------------------
+      dummy = load_user_sub('init_section'//char(0), 0)
+      dummy = load_user_sub('prestrict'//char(0), 0)
+      dummy = load_user_sub('doprestrict'//char(0), 0)
+c-------------------------------------------------------------------- 
 c
       return
       end

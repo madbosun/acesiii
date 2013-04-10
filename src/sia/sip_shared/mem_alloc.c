@@ -38,6 +38,7 @@ void F77_NAME(mem_alloc_init,MEM_ALLOC_INIT)(f_int *megabytes, f_int *sheap_flag
 	 *ierr = 0;
 	 if (total_bytes == 0){  //only do this once unless free has been called to reset.
 		total_bytes = (long long)(*megabytes) * BYTES_PER_MB;
+		// total_bytes = (*megabytes) * BYTES_PER_MB;
 		base_ptr = (char *)malloc(total_bytes);
 		if (base_ptr == 0)
 		{
@@ -70,7 +71,7 @@ void F77_NAME(mem_alloc,MEM_ALLOC)
 	assert (total_bytes != 0);
 	*ierr = 0;
     f_int esize = *element_size;
-	long long nbytes = (long long) *nwords * esize;
+	long long nbytes = (long long)(*nwords) * esize;
 	long long fiddle = ALIGN-1;
 	long long nxt_int = (long long)nxt_ptr;
 //        printf("mem_alloc called with nwords %d and esize %d, previous nxt_int is %lld.\n",*nwords,esize,nxt_int);

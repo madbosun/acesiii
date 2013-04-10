@@ -34,6 +34,7 @@ C  in the file COPYRIGHT.
       include 'timerz.h'
       include 'machine_types.h'
       include 'where_table.h'
+      include 'restrict_pardo.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -876,6 +877,11 @@ c   Save where conditions, get any new ones for this pardo.
 c---------------------------------------------------------------------------
 
                ierr = push_do(iwhere, nwhere)
+               if (ierr .lt. 0) then
+                  print *,'Task ',me,
+     *              ' Error in handle_call: stack overflow'
+                  call abort_job()
+               endif
                call get_where_conditionals(optable, iop, noptable)
 
                max_batch = 0
@@ -891,6 +897,12 @@ c---------------------------------------------------------------------------
 
             else if (optable(c_opcode,iop) .eq. do_op) then
                ierr = push_do(iwhere, nwhere) 
+               if (ierr .lt. 0) then
+                  print *,'Task ',me,
+     *              ' Error in handle_call: stack overflow'
+                  call abort_job()
+               endif
+ 
                call get_where_conditionals(optable, iop, noptable) 
             else if (optable(c_opcode,iop) .eq. enddo_op .or.
      *               optable(c_opcode,iop) .eq. endpardo_op) then
@@ -959,29 +971,43 @@ c------------------------------------------------------------------------
       stat_key = 0
       do i = 1, noptable
          if (optable(c_opcode,i) .eq. pardo_op) then
+c Tot Pardo Time             
             timerdesc = ' '
             write (timerdesc,9200) optable(c_lineno,i)
             call register_timer(timerdesc, elapsed_time_timer, key1)
-
+c Blkwait for Paro
             timerdesc = ' '
             write (timerdesc,9300) optable(c_lineno,i)
             call register_timer(timerdesc, elapsed_time_timer, key2)
-
+c CPU Time for Pardo
             timerdesc = ' '
             write (timerdesc,9400) optable(c_lineno,i)
             call register_timer(timerdesc, elapsed_time_timer, key3)
-
-            timerdesc = ' '
-            write (timerdesc,9500) optable(c_lineno,i)
-            call register_timer(timerdesc, elapsed_time_timer, key4)
-            
+#ifdef DETAILED_TIMERS
+c Overhead for Pardo            
             timerdesc = ' '
             write (timerdesc,9550) optable(c_lineno,i)
-            call register_timer(timerdesc, elapsed_time_timer, key5)
-
+            call register_timer(timerdesc, elapsed_time_timer, key4)
+c Number of times Pardo was done 
+            timerdesc = ' '
             write (timerdesc,9560) optable(c_lineno,i)
-            call register_timer(timerdesc, times_exec_timer, key6)
-
+            call register_timer(timerdesc, times_exec_timer, key5)
+#else
+            key4 = key3 + 1
+            key5 = key4 + 1
+#endif
+c---------------------------------------------------------------------
+c     Timers to measure MPI Time (time spent in exec_thread_server)
+c       and number of times each pardo is done
+c---------------------------------------------------------------------
+#ifdef VERY_DETAILED_TIMERS
+c Time spent in exec_thread_server
+            timerdesc = ' '
+            write (timerdesc,9500) optable(c_lineno,i)
+            call register_timer(timerdesc, elapsed_time_timer, key6)
+#else
+            key6 = key5 + 1
+#endif
 
             call pack_pardo_timer(optable(c_instr_timer,i),
      *                                     key1,key2) 
@@ -1078,25 +1104,51 @@ c-------------------------------------------------------------------------
      *                  optable(c_lineno, i), ' timer stored ', 
      *                   optable(c_instr_timer,i)
                endif
-
+c----------------------------------------------------------------------
+c   Important timers, always used
+c----------------------------------------------------------------------
+c Block Wait Time for Super-Instruction
                write (timerdesc,9010) optable(c_lineno,i),opdesc
                call register_timer(timerdesc, elapsed_time_timer, key2)
-c               optable(c_instr_blk_timer,i) = key
-               write (timerdesc,9020) optable(c_lineno,i),opdesc
-               call register_timer(timerdesc, elapsed_time_timer, key3)
-c               optable(c_instr_mpi_timer,i) = key
+c Number of times for SI               
                write (timerdesc,9040) optable(c_lineno,i),opdesc
-               call register_timer(timerdesc, times_exec_timer, key4)
-               write (timerdesc,9050) optable(c_lineno,i),opdesc
-               call register_timer(timerdesc, times_exec_timer, key5)
+               call register_timer(timerdesc, times_exec_timer, key3)
+c Average CPU time per call for super instruction               
                write (timerdesc,9060) optable(c_lineno,i),opdesc
-               call register_timer(timerdesc, average_unit_timer, key6)
+               call register_timer(timerdesc, average_unit_timer, key4)
+
+
+c----------------------------------------------------------------------
+c   Measures time spent in allocation (finding a block)
+c----------------------------------------------------------------------
+#ifdef DETAILED_TIMERS
+c Time spent in trying to allocate block per SI
                write (timerdesc,9070) optable(c_lineno,i),opdesc
-               call register_timer(timerdesc, elapsed_time_timer, key7)
+               call register_timer(timerdesc, elapsed_time_timer, key5)
+#else
+               key5 = key4 + 1
+#endif
+c----------------------------------------------------------------------
+c Measures num. calls to exec_thread_server, time spent in it & total
+c----------------------------------------------------------------------
+#ifdef VERY_DETAILED_TIMERS
+c Time spent in exec_thread_server during SI
+               write (timerdesc,9020) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, elapsed_time_timer, key6)
+c Number of times exec_thread_server is called during SI               
+               write (timerdesc,9050) optable(c_lineno,i),opdesc
+               call register_timer(timerdesc, times_exec_timer, key7)
+c Total time spent at the super-instruction               
                write (timerdesc,9080) optable(c_lineno,i),opdesc
                call register_timer(timerdesc, elapsed_time_timer, key8)
+#else
+               key6 = key5 + 1
+               key7 = key6 + 1
+               key8 = key7 + 1
 
-                
+#endif               
+
+
                if (key1 + 1 .ne. key2 .or.
      *             key2 + 1 .ne. key3 .or.
      *             key3 + 1 .ne. key4 .or.
@@ -1108,26 +1160,6 @@ c               optable(c_instr_mpi_timer,i) = key
      *                      " alloted sequentially failed"
                    call abort_job()
                endif
-                                  
-c               if(32000 .le. key1) then
-c                   print *, "Error: Got a key1 from register",
-c     *                " greater than 32k at ", optable(c_lineno,i)
-c                endif
-c               if(key2 .ge. 32000)
-c                   print *, "Error: Got a key2 from register",
-c     *                " greater than 32k at ", optable(c_lineno,i)
-c
-c               if(key3 .ge. 32000)
-c                   print *, "Error: Got a key3 from register",
-c     *                " greater than 32k at ", optable(c_lineno,i)
-c
-c               if(key4 .ge. 32000)
-c                   print *, "Error: Got a key4 from register",
-c     *                " greater than 32k at ", optable(c_lineno,i)
-c
-c               if(key5 .ge. 32000) 
-c                   print *, "Error: Got a key5 from register",
-c     *                " greater than 32k at ", optable(c_lineno,i)
             endif
          endif
       enddo
@@ -1173,16 +1205,18 @@ c     *                  optable(c_instr_timer,i)
       enddo
 
 
-c      do i = 1, noptable
-c          if (optable(c_lineno, i) .eq. 7626) then
-c              if (optable(c_opcode, i) .eq. pardo_op) then
-c                  print *, '7627 is a pardo!!'
-c
-c              endif
-c              print *, '7626 :', optable(c_instr_timer, i)    
-c          endif
-c
-c      enddo
+
+c-------------------------------------------------------------------------
+c   Initialize Pardo Restriction Tables
+c-------------------------------------------------------------------------
+
+      do i = 1, nprocs
+         if (pst_get_company(i-1) .eq. io_company_id) then
+            do_prestrict(i) = 0
+         else
+            do_prestrict(i) = 1
+         endif
+      enddo
 
 
 c      if (my_company_rank .eq. 0) then

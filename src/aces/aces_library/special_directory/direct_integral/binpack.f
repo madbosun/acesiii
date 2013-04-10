@@ -61,8 +61,7 @@ c ----------------------------------------------------------------------
          ishells(i) = i
       end do
 
-      MasLim = lrg ! ShlMax ! VFL changed to accomadate larger shells 3/2013  
-      ShlMax = lrg ! ShlMax ! VFL changed to accomadate larger shells 3/2013  
+      MasLim = ShlMax
       if (MasLim.lt.lrg) then
          print *,'Error in binpack: ',
      *           'The group limit is ',MasLim,
