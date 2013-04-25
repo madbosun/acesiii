@@ -51,7 +51,7 @@ c-------------------------------------------------------------------------
       integer*8 c_loc64, ixx
       integer count_block
       integer size, ierr
-      integer nblocks_stack, wsum
+      integer wsum
       integer*8 indblk
       integer stk_weights(10)
       integer*8 addr
@@ -76,7 +76,7 @@ c---------------------------------------------------------------------------
       count_word  = 0
       do i = 1, nstacks
          stack_size(i) = stack_blocks(i)
-         nblocks_stacks(i) = stack_blocks(i)
+         nblocks_stack(i) = stack_blocks(i)
          count_block = count_block + stack_size(i)
          count_word = count_word + stack_size(i) * 
      *                  (blksize(i) + lblock_id_data)
