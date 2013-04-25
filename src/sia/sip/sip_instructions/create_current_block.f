@@ -95,7 +95,8 @@ c--------------------------------------------------------------------------
      *                      block_map_table)
       if (ierr .le. 0) then
          print *,'Create_current_block: ',
-     *              'Cannot allocate block for array, block = ',
+     *              'Cannot allocate block for array in create, 
+     *              block = ',
      *              array, blk,' release_flag = ',release_flag 
          call array_block_summary(array_table, narray_table)
          print *,'Current segments:'

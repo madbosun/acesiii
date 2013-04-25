@@ -165,6 +165,14 @@ c     write(6,*) ' OP2 :', (findex(i), i=1,4)
      *                  sop1(3), sop2(3), 
      *                  nsend)
       endif 
+
+      if (nindex .eq. 2) then 
+      call do_istrip2(x(indblk1), sindex, 
+     *                  fop1(1), fop2(1), fop1(2), fop2(2), 
+     *                  x(indblk2), findex,  
+     *                  sop1(1), sop2(1), sop1(2), sop2(2), 
+     *                  nsend)
+      endif 
  
       return
       end
@@ -257,7 +265,7 @@ c ******************************************************************************
       endif 
 
       if (match(4) .ne. 0) then 
-         if ((h1 .lt. d1) .or. (h1 .gt. g2)) then 
+         if ((h1 .lt. d1) .or. (h1 .gt. d2)) then 
             write(6,*) ' Mismatch trying to strip indices ' 
             call abort_job() 
          endif 
@@ -510,6 +518,94 @@ c     do a = a1, a2
       enddo 
       enddo 
 c     enddo 
+
+      go to 100 
+
+      endif 
+
+      write(6,*) ' No indeces were found to strip in strip3 '
+      write(6,*) ' Strip = ', strip  
+      write(6,*) ' Match(i) = ', (match(i), i=1,3)  
+      call abort_job() 
+
+100   continue 
+
+      return
+      end
+
+
+      subroutine do_istrip2(x, sindex, a1, a2, b1, b2, 
+     *                      y, findex, e1, e2, f1, f2,   
+     *                      nsend)
+c--------------------------------------------------------------------------
+c  Routine which performs the actual stripping. Only ONE index can be 
+c  stripped and the arrays must be 4-D.   
+c--------------------------------------------------------------------------
+      implicit none
+      include 'interpreter.h'
+      include 'trace.h'
+      include 'mpif.h'
+      include 'epsilon.h'
+#ifdef ALTIX
+      include 'sheap.h'
+#endif
+
+      integer a1,a2,b1,b2
+      integer e1,e2,f1,f2
+      integer sindex(mx_array_index), findex(mx_array_index), 
+     *        match(mx_array_index) 
+
+      integer i, j, k, a, b, c, d 
+      integer m, n, lda, ldb, ldc 
+      integer nsend, strip  
+
+      double precision x(a1:a2,b1:b2)
+      double precision y(e1:e2,f1:f2)
+
+      nsend = (e2-e1+1)*(f2-f1+1) 
+
+c *********************************************************************************** 
+c     Find the nonmatching indeces and make sure that array2 has simple indeces 
+c     in those locations. 
+c *********************************************************************************** 
+
+      do i = 1, 2 
+         if (sindex(i) .ne. findex(i)) then 
+             if (i .eq. 1) match(i) = e1 
+             if (i .eq. 2) match(i) = f1 
+             strip = i 
+         else 
+             match(i) = 0 
+         endif 
+      enddo 
+
+c *********************************************************************************** 
+c     The Second index stripped 
+c *********************************************************************************** 
+
+      if ((strip .eq. 2) .and. (f1 .ge. b1) .and. (f1 .le. b2)) then 
+
+      do a = a1, a2 
+
+         y(a,f1) = x(a,f1) 
+
+      enddo 
+
+      go to 100 
+
+      endif 
+
+c *********************************************************************************** 
+c     The first index stripped 
+c *********************************************************************************** 
+
+      if ((strip .eq. 1) .and. (e1 .ge. a1) .and. (e1 .le. a2)) then 
+
+      do b = b1, b2 
+
+         y(e1,b) = x(e1,b) 
+
+      enddo 
 
       go to 100 
 

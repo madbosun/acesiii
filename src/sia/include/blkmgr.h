@@ -58,6 +58,7 @@
       integer blkmgr_blocks
       integer nblk_in_use
       integer stack_blocksize   ! size of block_id area + data area
+      integer nblocks_stack     ! number of blocks per stack  
       integer stack_datasize    ! size of data area
       integer*8 stack_base_addr
       integer blkmgr_comm
@@ -86,6 +87,7 @@
      *               stack_start(max_stacks),
      *               stack_size(max_stacks), 
      *               stack_blocksize(max_stacks),
+     *               nblocks_stack(max_stacks),
      *               stack_datasize(max_stacks),
      *               comm_list_head, comm_list_tail,
      *               persistent_list_head, persistent_list_tail

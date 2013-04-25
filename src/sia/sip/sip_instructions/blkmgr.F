@@ -76,6 +76,7 @@ c---------------------------------------------------------------------------
       count_word  = 0
       do i = 1, nstacks
          stack_size(i) = stack_blocks(i)
+         nblocks_stacks(i) = stack_blocks(i)
          count_block = count_block + stack_size(i)
          count_word = count_word + stack_size(i) * 
      *                  (blksize(i) + lblock_id_data)
@@ -2981,6 +2982,44 @@ c---------------------------------------------------------------------------
 
       return
       end
+
+      subroutine find_free_stack(stack, blkndx)
+c---------------------------------------------------------------------------
+c   Pops a block from the "stack" free stack.
+c   The block index number (blkndx) is returned.
+c   If there is a stack underflow, a -1 is returned.
+c---------------------------------------------------------------------------
+      implicit none
+      include 'maxdim.h'
+      include 'blkmgr.h'
+      include 'parallel_info.h'
+      integer stack
+      integer blkndx
+
+      if (free_stack_ptr(stack) .lt. stack_start(stack)) then
+         blkndx = -1
+      else
+
+c---------------------------------------------------------------------------
+c   Capture the value of the stack.
+c---------------------------------------------------------------------------
+
+         call get_free_stack(blkndx, free_stack_ptr(stack))
+         if (blkndx .lt. stack_start(stack) .or. 
+     *       blkndx .gt. stack_start(stack)+stack_size(stack)-1) then
+            print *,'Error: Invalid data on free stack: ',
+     *           ' stack = ',stack,' blkndx ',blkndx,
+     *           ' stack data should be between ',
+     *          stack_start(stack),' and ',
+     *          stack_start(stack)+stack_size(stack)-1
+            print *,'stack pointer ',free_stack_ptr(stack)
+            call abort_job()
+         endif
+      endif
+
+      return
+      end
+
 
       subroutine push_free_stack(stack, blkndx)
 c---------------------------------------------------------------------------

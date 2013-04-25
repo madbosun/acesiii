@@ -146,13 +146,6 @@ c---------------------------------------------------------------------------
 999   continue 
       call mem_alloc_init(maxmem, sheap_flag, ierr)
       if (ierr .lt. 0) then
-         print *,'MEMORY ALLOCATION ERROR: maxmem = ',maxmem, 'PROC', me 
-c        maxmem = maxmem - 100 
-c        if (maxmem .lt. 500) then 
-c           write(6,*) ' Too little memory available:', maxmem, 'ME', me 
-c        call abort_job()
-c        endif 
-c        go to 999 
          call abort_job()
       else 
          print *,'MEMORY ALLOCATION Sucessfull: maxmem = ',maxmem, 
@@ -714,7 +707,7 @@ c Always set the stack_algorithm_typr to 2 -> extra blocks allocated
 c based on usage.  
 c-------------------------------------------------------------------
 
-         stack_algorithm_type = 2
+c        stack_algorithm_type = 2
 
          first = .false.
          call init_data()
@@ -824,7 +817,6 @@ c          go to 333
               do_write = .false.
            endif
            endif
-
 
            print *,'----------- Parameter Summary ----------------'
            print *,'DRYRUN...........................',dryrun

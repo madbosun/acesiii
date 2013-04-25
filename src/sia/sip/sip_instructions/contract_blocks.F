@@ -94,6 +94,8 @@ c--------------------------------------------------------------------------
       scr_ptr = dshptr
 #endif
 
+c     call check_stack_pop(array_table, narray_table, index_table, 
+c    *                     nindex_table, block_map_table) 
       if (first_contract_blocks) then
          first_contract_blocks = .false.
  

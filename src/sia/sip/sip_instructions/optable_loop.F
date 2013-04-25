@@ -34,6 +34,7 @@ C  in the file COPYRIGHT.
       include 'checkpoint_data.h'
       include 'pst_functions.h'
       include 'restrict_pardo.h'
+      include 'blkmgr.h'
 
       common /load_balance/load_balance
       logical load_balance
@@ -83,9 +84,12 @@ C  in the file COPYRIGHT.
       double precision blk_send_time
       double precision timeslice, t1, t2
       double precision t1_heartbeat, heartbeat_time
+      double precision t1_blockcount, blockcount_time
 
       integer flopcount, blk_send_count
       integer comm_timer
+
+      integer need_stack(nblkmgr_stacks)
 
       logical debug, validate
 
@@ -157,7 +161,9 @@ c--------------------------------------------------------------------------
 
          t1 = mpi_wtime()
          t1_heartbeat = t1
+         t1_blockcount = t1
          heartbeat_time = 360.0  ! print every 6 minutes
+         blockcount_time = 120.0 
          icount = 0
 
 c---------------------------------------------------------------------------
@@ -248,6 +254,34 @@ c Some of these timers are used inside pardo_loop and pardo_loadb
                     endif
                    endif 
                 endif
+c---------------------------------------------------------------------------
+c    Make sure the pardo starts out with enough blocks to work with 
+c---------------------------------------------------------------------------
+
+c---------------------------------------------------------------------------
+c    Determine how many blocks are needed on eack stack for the given
+c    pardo. 
+c---------------------------------------------------------------------------
+
+               call find_min_stack_op_pardo(optable, noptable,
+     *                   array_table,
+     *                   narray_table,
+     *                   array_labels, index_table, nindex_table,
+     *                   segment_table, nsegment_table, block_map_table,
+     *                   nblock_map_table,
+     *                   scalar_table, nscalar_table, proctab,
+     *                   address_table,
+     *                   iopsave, need_stack, nblkmgr_stacks)
+ 
+ 
+
+c---------------------------------------------------------------------------
+c    Perform the check and free blocks if needed 
+c---------------------------------------------------------------------------
+
+               call check_stack_pop(array_table, narray_table, 
+     *                     index_table, nindex_table, block_map_table,
+     *                     need_stack, nblkmgr_stacks)
 
                  if (load_balance) then
                   call pardo_loadb(optable, noptable, iop, index_table,
@@ -325,6 +359,24 @@ c   Perform the operation.
 c---------------------------------------------------------------------------
 
                t2 = mpi_wtime()
+
+c           if (t2-t1_blockcount .gt. blockcount_time) then
+c           if (pst_get_company(me) .ne. io_company_id) then 
+
+c---------------------------------------------------------------------------
+c   Check stack populations every t1_blockcount seconds . 
+c---------------------------------------------------------------------------
+
+c           if (me .eq. 0) 
+c    *      write(6,*) 'Checking stack population at line:',
+c    *                  current_line, 'on proc', me   
+c                       call check_stack_pop(array_table, narray_table, 
+c    *                       index_table, nindex_table, block_map_table)
+
+c           endif 
+c                 t1_blockcount = t2 
+c           endif 
+
                if (t2-t1_heartbeat .gt. heartbeat_time) then
                   if (me .eq. 0) then
                      write (hbmsg, 2100) current_line
