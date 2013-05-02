@@ -13,8 +13,7 @@ C  GNU General Public License for more details.
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
       subroutine check_stack_pop(array_table, narray_table, index_table,
-     *                           nindex_table, block_map_table, 
-     *                           need_stack, nstacks) 
+     *                           nindex_table, block_map_table) 
 c-------------------------------------------------------------------------
 c The population of the stacks is checked. If pop is too great a wait is
 c enforced so the subsequent operations can proceed.  
@@ -30,6 +29,7 @@ c-------------------------------------------------------------------------
       include 'parallel_info.h'
       include 'server_monitor.h'
       include 'trace.h'
+      include 'timerz.h' 
 
       integer array_table, narray_table, index_table, nindex_table 
       integer block_map_table(*) 
@@ -37,9 +37,6 @@ c-------------------------------------------------------------------------
       integer array, block, type, request, instruction_timer,
      *        comm_timer, iblkndx, n_used, n_free, min_blocks  
       integer stack, ncount, min_block, max_siter 
-
-      integer nstacks, need_stack(nstacks) 
-
       integer ierr
       integer status(MPI_STATUS_SIZE)
       logical flag
@@ -49,16 +46,16 @@ c     write(6,*) 'Checking stack population '
 c     write(6,*) 'Number of stacks:', nblkmgr_stacks  
 c     endif 
 
-      max_siter = 5000001  
+      min_blocks = 7 
+      max_siter  = 5000001  
 
       nblocks = 0 
-      do i = nblkmgr_stacks, nblkmgr_stacks-1, -1 
-            stack     = i 
-            min_block = need_stack(stack)  
-            nblocks   = nblocks + nblocks_stack(stack) 
+      do i = nblkmgr_stacks, 1, -1 ! nblkmgr_stacks-1, -1 
+            stack = i 
+            nblocks = nblocks + nblocks_stack(stack) 
             ncount = 0 
-10          continue 
-            ncount = ncount + 1 
+            min_block = min(min_blocks,nblocks_stack(stack))  
+c           min_block = min_block/3    
             call find_free_stack(stack,iblkndx) 
             if (iblkndx .lt. 0) then 
                n_free = 0 
@@ -71,31 +68,38 @@ c     endif
             if (n_free .ge. min_block) go to 11  
 
             if (n_free .lt. min_block) then 
-            call exec_thread_server(0) 
+10             continue 
+               ncount = ncount + 1 
 
-            call scrub_from_stack(stack, array_table,
-     *           narray_table, index_table, nindex_table,
-     *           block_map_table, ierr)
+               call scrub_from_stack(stack, array_table,
+     *              narray_table, index_table, nindex_table,
+     *              block_map_table, ierr)
 
-            call reclaim_persistent_block_from_stack(stack,
-     *           array_table,narray_table, index_table, nindex_table,
-     *           block_map_table, ierr)
+               if (ierr .eq. 0) n_free = n_free + 1  
+               if (n_free .ge. min_block) go to 11  
 
+               call reclaim_persistent_block_from_stack(stack,
+     *              array_table,narray_table, index_table, nindex_table,
+     *              block_map_table, ierr)
+
+               if (ierr .eq. 0) n_free = n_free + 1  
+               if (n_free .ge. min_block) go to 11  
+
+               if (ncount .lt. max_siter) go to 10 
             endif  
 
-         if (ncount .lt. max_siter) go to 10 
-         write(6,*) ' There are only',n_free,' free blocks on stack', 
-     *                stack, 'on processor ', me 
+c     write(6,*) ' ME STACK NFREE :', me, i, n_free, 'AFTER :', ncount  
+            write(6,*) ' nused nfree ', i, n_used, n_free, 
+     *                 ' ntot ', nblocks_stack(i), 
+     *                 ' start ', stack_start(i),    
+     *                 ' iblkndx', iblkndx , 
+     *                 ' after ', ncount, 'iterations on proc', me   
 11       continue 
-c           write(6,*) ' nused nfree ', i, n_used, n_free, 
-c    *                 ' ntot ', nblocks_stack(i), 
-c    *                 ' start ', stack_start(i),    
-c    *                 ' iblkndx', iblkndx , 
-c    *                 ' after ', ncount, 'iterations'   
       enddo 
 
       return 
       end 
+
 
       subroutine find_min_stack_op_pardo(optable, noptable,
      *                   array_table,
@@ -141,135 +145,174 @@ c    *                 ' after ', ncount, 'iterations'
       integer op1_block_map_entry(lblock_map_entry)
       integer op2_block_map_entry(lblock_map_entry)
       integer opcode
-      integer i, j, k, ind, nind, nseg  
+      integer i, j, k, ind, nind, nseg
       integer stack, nblock, nwild, nstacks, need_stack(nstacks)
-      integer array 
-      integer op(loptable_entry) 
+      integer array, type 
+      integer n_allocate
 
 c----------------------------------------------------------------------- 
 c     Initialize the stack population 
 c----------------------------------------------------------------------- 
 
-      do i = 1, nstacks 
-         need_stack(i) = 0 
-      enddo 
+      do i = 1, nstacks
+         need_stack(i) = 0
+      enddo
+      n_allocate = 0
 
 c----------------------------------------------------------------------- 
 c     Loop through optable between(opsave, end_pardo) counting blocks
 c     needed.  
 c----------------------------------------------------------------------- 
 
-      opcode = optable(c_opcode, iopsave) 
-      if (opcode .ne. pardo_op) then 
+      opcode = optable(c_opcode, iopsave)
+      if (opcode .ne. pardo_op) then
          write(6,*) ' Attemping to find stack population needed for a
-     *                pardo but the opcode is:', opcode  
-         call abort_job() 
-      endif 
+     *                pardo but the opcode is:', opcode
+         call abort_job()
+      endif
 
-      do i = iopsave+1, noptable 
+      do i = iopsave+1, noptable
 
 c----------------------------------------------------------------------- 
 c        If end of pardo exit 
 c----------------------------------------------------------------------- 
 
-         opcode = optable(c_opcode, i) 
-         if (opcode .eq. endpardo_op) go to 100 
+         opcode = optable(c_opcode, i)
+         if (opcode .eq. endpardo_op) go to 100
+
+         do j = 1, 171 
+            stack  = array_table(c_array_stack, j)
+            write(6,*) j, stack 
+         enddo 
+         STOP 
 
 c----------------------------------------------------------------------- 
 c        Check for allocation of local array  
 c----------------------------------------------------------------------- 
 
-         if (opcode .eq. allocate_op) then 
-            array  = optable(c_result_array, i) 
-            nind   = array_table(c_array_type, array) 
-            stack  = array_table(c_array_stack, array) 
-            nblock = 1 
-            nwild  = 0  
-            do j = 1, nind 
-               ind = array_table(c_index_array1+j-1, array) 
-               nseg = index_table(c_nsegments, ind) 
+         if (opcode .eq. allocate_op) then
+            array  = optable(c_result_array, i)
+            type   = array_table(c_array_type,array) 
+            if (type .ne. local_array) then
+                print *,'Error: Deallocate instruction requires 
+     *                   a local_array'
+                print *,'Array, type = ',array,type
+            endif 
+            stack  = array_table(c_array_stack, array)
+            nind   = array_table(c_nindex, array)
+            if(array.eq.171) write(6,*) 'ARRAY NIND STACK:', array, 
+     *        nind, stack 
+            nblock = 1
+            nwild  = 0
+            do j = 1, nind
+               ind = array_table(c_index_array1+j-1, array)
+               nseg = index_table(c_nsegments, ind)
                if (optable(c_ind1+j-1,i) .eq. wildcard_indicator) then
                    nblock = nblock*nseg
-               endif 
-            enddo 
-            need_stack(stack) = need_stack(stack) + nblock 
+                   nwild = nwild + 1 
+               endif
+            enddo
+            need_stack(stack) = need_stack(stack) + nblock
+            n_allocate = n_allocate + 1
          endif ! allocate 
 
 c----------------------------------------------------------------------- 
 c        Check for array assignment  
 c----------------------------------------------------------------------- 
 
-         if (opcode .eq. assignment_op) then 
-            array               = optable(c_result_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 3 
-
-            need_stack(nstacks) = need_stack(nstacks) + 3 
+         if (opcode .eq. assignment_op) then
+            array               = optable(c_result_array, i)
+            type                = array_table(c_array_type,array) 
+            if (type .ne. scalar_value) then 
+                stack               = array_table(c_array_stack, array)
+                need_stack(stack)   = need_stack(stack) + 3
+                need_stack(nstacks) = need_stack(nstacks) + 3
+            endif 
          endif ! assignment_op 
 
 c----------------------------------------------------------------------- 
 c        Check for contraction  
 c----------------------------------------------------------------------- 
 
-         if (opcode .eq. contraction_op) then 
-            array               = optable(c_result_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 1 
+         if (opcode .eq. contraction_op) then
+            array               = optable(c_result_array, i)
+            stack               = array_table(c_array_stack, array)
+            need_stack(stack)   = need_stack(stack) + 1
 
-            array               = optable(c_op1_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 1 
+            array               = optable(c_op1_array, i)
+            stack               = array_table(c_array_stack, array)
+            need_stack(stack)   = need_stack(stack) + 1
 
-            array               = optable(c_op2_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 1 
+            array               = optable(c_op2_array, i)
+            stack               = array_table(c_array_stack, array)
+            need_stack(stack)   = need_stack(stack) + 1
 
-            need_stack(nstacks) = need_stack(nstacks) + 3 
+            need_stack(nstacks) = need_stack(nstacks) + 3
          endif ! assignment_op 
 
 c----------------------------------------------------------------------- 
 c        Check for summation  
 c----------------------------------------------------------------------- 
 
-         if ((opcode .eq. sum_op) .or. (opcode .eq. subtract_op)) then 
-            array               = optable(c_result_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 1 
+         if ((opcode .eq. sum_op) .or. (opcode .eq. subtract_op)) then
+            array               = optable(c_result_array, i)
+            stack               = array_table(c_array_stack, array)
+            need_stack(stack)   = need_stack(stack) + 1
 
-            array               = optable(c_op1_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 1 
+            array               = optable(c_op1_array, i)
+            stack               = array_table(c_array_stack, array)
+            need_stack(stack)   = need_stack(stack) + 1
 
-            array               = optable(c_op2_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 1 
+            array               = optable(c_op2_array, i)
+            stack               = array_table(c_array_stack, array)
+            need_stack(stack)   = need_stack(stack) + 1
 
-            need_stack(nstacks) = need_stack(nstacks) + 3 
+            need_stack(nstacks) = need_stack(nstacks) + 3
          endif ! summation  
 
 c----------------------------------------------------------------------- 
 c        Check for get/request   
 c----------------------------------------------------------------------- 
 
-         if ((opcode .eq. get_op) .or. (opcode .eq. request_op)) then 
-            array               = optable(c_result_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 1 
+         if ((opcode .eq. get_op) .or. (opcode .eq. request_op)) then
+            array               = optable(c_result_array, i)
+            stack               = array_table(c_array_stack, array)
+            need_stack(stack)   = need_stack(stack) + 1
          endif ! get/request   
 
 c----------------------------------------------------------------------- 
 c        Check for put/prepare  
 c----------------------------------------------------------------------- 
 
-         if ((opcode .eq. put_op) .or. (opcode .eq. prepare_op)) then 
-            array               = optable(c_result_array, i) 
-            stack               = array_table(c_array_stack, array) 
-            need_stack(stack)   = need_stack(stack) + 1 
+         if ((opcode .eq. put_op) .or. (opcode .eq. prepare_op)) then
+            array               = optable(c_result_array, i)
+            stack               = array_table(c_array_stack, array)
+            need_stack(stack)   = need_stack(stack) + 1
          endif ! get/request   
- 
+
+c----------------------------------------------------------------------- 
+c        Check for deallocation of local array  
+c----------------------------------------------------------------------- 
+
+         if (opcode .eq. deallocate_op) then
+            n_allocate = n_allocate - 1
+         endif ! deallocate 
+
       enddo ! i 
 
-100   continue 
+100   continue
 
-      return 
-      end 
+      current_line = optable(c_lineno,iopsave) 
+      if (n_allocate .ne. 0) then
+         write(6,*) ' You have not deallocated all local arrays in 
+     *                the pardo at line :', current_line
+      endif
+
+      write(6,*) ' Stack requirements for pardo at line', current_line
+      do i = 1, nstacks
+         write(6,*) '    ', i, need_stack(i) 
+      enddo
+
+      return
+      end
+

@@ -62,7 +62,7 @@ C  in the file COPYRIGHT.
       integer op2_block_map_entry(lblock_map_entry)
       integer opcode
       integer tmpop
-      integer i, j, k
+      integer i, j, k, kstack
       integer instruction_timer
 
       integer instruction_blk_timer
@@ -89,7 +89,7 @@ C  in the file COPYRIGHT.
       integer flopcount, blk_send_count
       integer comm_timer
 
-      integer need_stack(nblkmgr_stacks)
+      integer stack, need_stack(nblkmgr_stacks)
 
       logical debug, validate
 
@@ -262,8 +262,18 @@ c---------------------------------------------------------------------------
 c    Determine how many blocks are needed on eack stack for the given
 c    pardo. 
 c---------------------------------------------------------------------------
+        go to 33 
+               if (opcode .eq. pardo_op) then 
+         do j = 1, 171
+            stack  = array_table(c_array_stack, j)
+            write(6,*) j, stack
+         enddo
+         STOP
 
-               call find_min_stack_op_pardo(optable, noptable,
+               endif  
+
+               if (opcode .eq. pardo_op) 
+     *         call find_min_stack_op_pardo(optable, noptable,
      *                   array_table,
      *                   narray_table,
      *                   array_labels, index_table, nindex_table,
@@ -272,16 +282,37 @@ c---------------------------------------------------------------------------
      *                   scalar_table, nscalar_table, proctab,
      *                   address_table,
      *                   iopsave, need_stack, nblkmgr_stacks)
- 
- 
+
+c---------------------------------------------------------------------------
+c    Count and scrub ALL the scrubbable blocks   
+c---------------------------------------------------------------------------
+
+             do kstack = 1, nblkmgr_stacks ! number of nstacks  
+                       call count_scrubbable(kstack, array_table,
+     *                 narray_table, index_table, nindex_table, 
+     *                 block_map_table)
+             enddo 
+
+c---------------------------------------------------------------------------
+c    Count and remove ALL the persistant blocks   
+c---------------------------------------------------------------------------
+
+             do kstack = 1, nblkmgr_stacks ! number of nstacks  
+                 call reclaim_persistent_blocks_from_stack(kstack,
+     *           array_table,narray_table, index_table, nindex_table,
+     *           block_map_table)
+             enddo 
 
 c---------------------------------------------------------------------------
 c    Perform the check and free blocks if needed 
 c---------------------------------------------------------------------------
 
-               call check_stack_pop(array_table, narray_table, 
-     *                     index_table, nindex_table, block_map_table,
-     *                     need_stack, nblkmgr_stacks)
+c           if (pst_get_company(me) .ne. io_company_id) then
+c              call check_stack_pop(array_table, narray_table,
+c    *                     index_table, nindex_table, block_map_table)
+c           endif 
+
+33          continue 
 
                  if (load_balance) then
                   call pardo_loadb(optable, noptable, iop, index_table,
