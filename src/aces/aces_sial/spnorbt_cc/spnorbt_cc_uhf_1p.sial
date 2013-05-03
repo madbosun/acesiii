@@ -2837,7 +2837,7 @@
 #                          CALL PUT_IN_RK
 #                          CALL COMP_R_NORM
 #                          CALL COMPUTE_DENSITY
-#                          CALL BACK_TRANS_DPQ
+#                          CALL BACK_TRANS_DPQ 
 #
 # Compute the spin-orbit coupling constants between ground and triplet
 # excited states.

@@ -23,7 +23,7 @@
 # Contributions coming from Vabcd --> Iai are computed in AO basis and CHECKED. 
 #
 # This version also computes Dai iteratively in the final step --> Tested and Working 
-#
+# 
 # Iij_aa --> matches aces 
 # Iij_bb --> matches aces 
 #
@@ -271,7 +271,6 @@
       TEMP  T1ibja (i,b,j,a)
       TEMP  tibij (i,b,i1,j)
       TEMP  tjaji (j,a,j1,i)
-      TEMP  t1jaji (j,a,j1,i)
       TEMP  t1ibij (i,b,i1,j)
       TEMP  Tibaj (i,b,a,j)
       TEMP  T1ibaj (i,b,a,j)
@@ -1404,7 +1403,6 @@
       temp  T2jiba(j,i,b,a) 
       temp  T3jiba(j,i,b,a) 
       temp  Tijab(i,j,a,b) 
-      temp  tjiab (j,i2,a2,b)
       temp T1ijab(i,j,a,b) 
       temp T2ijab(i,j,a,b) 
       temp T3ijab(i,j,a,b) 
@@ -1419,8 +1417,6 @@
       temp T1jbia(j,b,i,a) 
       temp  Tabaj(a,b,a1,j) 
       temp  Tabij(a,b,i,j) 
-      temp  Tbaij (b,a,i,j)
-      temp  Tijba (i,j,b,a)
       temp  T1abij(a,b,i,j) 
       temp  T2abij(a,b,i,j) 
       temp T1abaj(a,b,a1,j) 
@@ -1838,7 +1834,6 @@
       SCALAR  energy_ba
       SCALAR  energy_bb
       SCALAR  energy_abba
-      SCALAR  energy_baab
 
       scalar root_thresh
       scalar rootcount
@@ -1853,8 +1848,6 @@
       scalar esum2 
       scalar esum3 
       scalar esum4 
-      scalar esum5 
-      scalar esum6 
       scalar sum 
       scalar sum1 
       scalar sum2 
@@ -1868,26 +1861,6 @@
       scalar ecrit 
       scalar ediff 
 #-------------------------------------------------------------------------
-
-
-
-#------------------------------------------------------------------------
-#
-#     --------------
-      PROC  TEMPLATE
-#     --------------
-#
-#
-      EXECUTE  PRINT_SCALAR  ZERO
-      EXECUTE  PRINT_SCALAR  ONE
-#
-#
-#     ...ready!
-#
-#
-      ENDPROC  TEMPLATE
-#------------------------------------------------------------------------
-
 
 
 
@@ -1914,7 +1887,7 @@
          etemp = tpppp (a,a2,a1,i) * tpppp (a,a2,a1,i)
          etemp *= 0.5
          esum1 += etemp
-        #EXECUTE  DUMP_AMP  tpppp
+         EXECUTE  DUMP_AMP  tpppp
       ENDPARDO  a, a2, a1, i
       EXECUTE  SERVER_BARRIER
       PARDO  b, b2, b1, j
@@ -1923,7 +1896,7 @@
          etemp = tqqqq (b,b2,b1,j) * tqqqq (b,b2,b1,j)
          etemp *= 0.5
          esum2 += etemp
-        #EXECUTE  DUMP_AMP  tqqqq
+         EXECUTE  DUMP_AMP  tqqqq
       ENDPARDO  b, b2, b1, j
       EXECUTE  SERVER_BARRIER
       PARDO  a, b2, a1, j
@@ -1931,7 +1904,7 @@
          Tpqpq (a,b2,a1,j) = Dabci_abab (a,b2,a1,j)
          etemp = Tpqpq (a,b2,a1,j) * Tpqpq (a,b2,a1,j)
          esum3 += etemp
-        #EXECUTE  DUMP_AMP  Tpqpq
+         EXECUTE  DUMP_AMP  Tpqpq
       ENDPARDO  a, b2, a1, j
       EXECUTE  SERVER_BARRIER
       PARDO  b, a2, b1, i
@@ -1939,7 +1912,7 @@
          Tqpqp (b,a2,b1,i) = Dabci_baba (b,a2,b1,i)
          etemp = Tqpqp (b,a2,b1,i) * Tqpqp (b,a2,b1,i)
          esum4 += etemp
-        #EXECUTE  DUMP_AMP  Tqpqp
+         EXECUTE  DUMP_AMP  Tqpqp
       ENDPARDO  b, a2, b1, i
       EXECUTE  SERVER_BARRIER
 
@@ -1957,10 +1930,10 @@
       EXECUTE  SIP_BARRIER
 
       EXECUTE  PRINT_SCALAR  energy_aa
-      EXECUTE  PRINT_SCALAR  energy_ab
       EXECUTE  PRINT_SCALAR  energy_bb
+      EXECUTE  PRINT_SCALAR  energy_ab
       EXECUTE  PRINT_SCALAR  energy_ba
-      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  energy
 #
 #
 #          ...ready!
@@ -1994,7 +1967,7 @@
          etemp = tpppp (i,i1,i2,a) * tpppp (i,i1,i2,a)
          etemp *= 0.5
          esum1 += etemp
-        #EXECUTE  DUMP_AMP  tpppp
+         EXECUTE  DUMP_AMP  tpppp
       ENDPARDO  i, i1, i2, a
       EXECUTE  SERVER_BARRIER
       PARDO  j, j1, j2, b    
@@ -2003,7 +1976,7 @@
          etemp = tqqqq (j,j1,j2,b) * tqqqq (j,j1,j2,b)
          etemp *= 0.5
          esum2 += etemp
-        #EXECUTE  DUMP_AMP  tqqqq
+         EXECUTE  DUMP_AMP  tqqqq
       ENDPARDO  j, j1, j2, b
       EXECUTE  SERVER_BARRIER
       PARDO  i, j1, i2, b
@@ -2011,7 +1984,7 @@
          tpqpq (i,j1,i2,b) = Dijka_abab (i,j1,i2,b)
          etemp = tpqpq (i,j1,i2,b) * tpqpq (i,j1,i2,b)
          esum3 += etemp
-        #EXECUTE  DUMP_AMP  tpqpq
+         EXECUTE  DUMP_AMP  tpqpq
       ENDPARDO  i, j1, i2, b
       EXECUTE  SERVER_BARRIER
       PARDO  j, i1, j2, a
@@ -2019,7 +1992,7 @@
          tqpqp (j,i1,j2,a) = Dijka_baba (j,i1,j2,a)
          etemp = tqpqp (j,i1,j2,a) * tqpqp (j,i1,j2,a)
          esum4 += etemp
-        #EXECUTE  DUMP_AMP  tqpqp
+         EXECUTE  DUMP_AMP  tqpqp
       ENDPARDO  j, i1, j2, a
       EXECUTE  SERVER_BARRIER
 
@@ -2036,11 +2009,11 @@
       energy += energy_ba
       EXECUTE  SIP_BARRIER
 
-      EXECUTE  PRINT_SCALAR  energy_aa
       EXECUTE  PRINT_SCALAR  energy_ab
+      EXECUTE  PRINT_SCALAR  energy_aa
       EXECUTE  PRINT_SCALAR  energy_bb
       EXECUTE  PRINT_SCALAR  energy_ba
-      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  energy
 #
 #
 #          ...ready!
@@ -2061,9 +2034,7 @@
 #
       esum1 = 0.0
       esum2 = 0.0
-      esum3 = 0.0
       energy_aa = 0.0
-      energy_bb = 0.0
       energy_ab = 0.0
 
       EXECUTE  SERVER_BARRIER
@@ -2073,45 +2044,37 @@
          etemp = taiai (a,i,a1,i1) * taiai (a,i,a1,i1)
          etemp *= 0.25
          esum1 += etemp
-        #EXECUTE  DUMP_AMP  taiai
+        #taiai (a,i,a1,i1) *= 2.0
+#         EXECUTE  DUMP_AMP  taiai
       ENDPARDO  i, i1, a, a1
-      EXECUTE  SERVER_BARRIER
-      PARDO  j, j1, b, b1
-         REQUEST              Dijab_bb (j,j1,b,b1) j
-         tbjbj (b,j,b1,j1)  = Dijab_bb (j,j1,b,b1)
-         etemp = tbjbj (b,j,b1,j1) * tbjbj (b,j,b1,j1)
-         etemp *= 0.25
-         esum2 += etemp
-        #EXECUTE  DUMP_AMP  tbjbj
-      ENDPARDO  j, j1, b, b1
       EXECUTE  SERVER_BARRIER
       PARDO  i, j1, a, b1
          REQUEST              Dijab_ab (i,j1,a,b1) i
          taibj (a,i,b1,j1)  = Dijab_ab (i,j1,a,b1)
          etemp = taibj (a,i,b1,j1) * taibj (a,i,b1,j1)
-         esum3 += etemp
-        #EXECUTE  DUMP_AMP  taibj
+         esum2 += etemp
+        #taibj (a,i,b1,j1) *= 2.0
+#         EXECUTE  DUMP_AMP  taibj
       ENDPARDO  i, j1, a, b1
       EXECUTE  SERVER_BARRIER
 
       COLLECTIVE  energy_aa += esum1
-      COLLECTIVE  energy_bb += esum2
-      COLLECTIVE  energy_ab += esum3
+      COLLECTIVE  energy_ab += esum2
 
       EXECUTE  SIP_BARRIER
       energy_aa *= 16.0
-      energy_bb *= 16.0
       energy_ab *= 16.0
 
+      #nergy_bb = energy_aa
       energy += energy_aa
-      energy += energy_bb
+      #nergy += energy_bb
       energy += energy_ab
       EXECUTE  SIP_BARRIER
 
-      EXECUTE  PRINT_SCALAR  energy_aa
       EXECUTE  PRINT_SCALAR  energy_ab
-      EXECUTE  PRINT_SCALAR  energy_bb
-      EXECUTE  PRINT_SCALAR  ZERO
+      EXECUTE  PRINT_SCALAR  energy_aa
+     #EXECUTE  PRINT_SCALAR  energy_bb
+      EXECUTE  PRINT_SCALAR  energy
 #
 #
 #          ...ready!
@@ -2132,9 +2095,7 @@
       energy = 0.0
       esum1 = 0.0
       esum2 = 0.0
-      esum3 = 0.0
       energy_aa = 0.0
-      energy_bb = 0.0
       energy_ab = 0.0
 
       EXECUTE  SERVER_BARRIER
@@ -2144,42 +2105,33 @@
          etemp  = tiiii (i,i1,i2,i3) * tiiii (i,i1,i2,i3)
          etemp *= 0.25
          esum1 += etemp
-        #EXECUTE  DUMP_AMP  tiiii
+         EXECUTE  DUMP_AMP  tiiii
       ENDPARDO  i, i1, i2, i3
-      EXECUTE  SERVER_BARRIER
-      PARDO  j, j1, j2, j3
-         REQUEST               Dijkl_bb (j,j1,j2,j3) j
-         tjjjj (j,j1,j2,j3)  = Dijkl_bb (j,j1,j2,j3)
-         etemp  = tjjjj (j,j1,j2,j3) * tjjjj (j,j1,j2,j3)
-         etemp *= 0.25
-         esum2 += etemp
-        #EXECUTE  DUMP_AMP  tjjjj
-      ENDPARDO  j, j1, j2, j3
       EXECUTE  SERVER_BARRIER
       PARDO  i, j1, i2, j3
          REQUEST               Dijkl_ab (i,j1,i2,j3) i
          Tijij (i,j1,i2,j3)  = Dijkl_ab (i,j1,i2,j3)
          etemp  = Tijij (i,j1,i2,j3) * Tijij (i,j1,i2,j3)
-         esum3 += etemp
-        #EXECUTE  DUMP_AMP  Tijij
+         esum2 += etemp
+         EXECUTE  DUMP_AMP  Tijij
       ENDPARDO  i, j1, i2, j3
       EXECUTE  SERVER_BARRIER
 
       COLLECTIVE  energy_aa += esum1
-      COLLECTIVE  energy_bb += esum2
-      COLLECTIVE  energy_ab += esum3
+      COLLECTIVE  energy_ab += esum2
 
       EXECUTE  SIP_BARRIER
 
+     #energy_bb = energy_aa
       energy  = energy_aa
-      energy += energy_bb
+     #energy += energy_bb
       energy += energy_ab
       EXECUTE  SIP_BARRIER
 
       EXECUTE  PRINT_SCALAR  energy_aa
       EXECUTE  PRINT_SCALAR  energy_ab
-      EXECUTE  PRINT_SCALAR  energy_bb
-      EXECUTE  PRINT_SCALAR  ZERO
+     #EXECUTE  PRINT_SCALAR  energy_bb
+      EXECUTE  PRINT_SCALAR  energy
 #
 #
 #          ...ready!
@@ -2201,14 +2153,10 @@
       esum2 = 0.0
       esum3 = 0.0
       esum4 = 0.0
-      esum5 = 0.0
-      esum6 = 0.0
       energy_aa = 0.0
-      energy_bb = 0.0
       energy_ab = 0.0
       energy_ba = 0.0
       energy_abba = 0.0
-      energy_baab = 0.0
 
       EXECUTE  SERVER_BARRIER
       PARDO  i, a, i1, a1
@@ -2216,75 +2164,47 @@
          tpppp (i,a,i1,a1) = Dibja_aaaa (i,a,i1,a1)
          etemp = tpppp (i,a,i1,a1) * tpppp (i,a,i1,a1)
          esum1 += etemp
-        #EXECUTE  DUMP_AMP  tpppp
+         EXECUTE  DUMP_AMP  tpppp
       ENDPARDO  i, a, i1, a1
-      EXECUTE  SERVER_BARRIER
-      PARDO  j, b, j1, b1
-         REQUEST             Dibja_bbbb (j,b,j1,b1) j
-         tqqqq (j,b,j1,b1) = Dibja_bbbb (j,b,j1,b1)
-         etemp = tqqqq (j,b,j1,b1) * tqqqq (j,b,j1,b1)
-         esum2 += etemp
-        #EXECUTE  DUMP_AMP  tqqqq
-      ENDPARDO  j, b, j1, b1
       EXECUTE  SERVER_BARRIER
       PARDO  i, b, i1, b1
          REQUEST             Dibja_abab (i,b,i1,b1) i
          tpqpq (i,b,i1,b1) = Dibja_abab (i,b,i1,b1)
          etemp = tpqpq (i,b,i1,b1) * tpqpq (i,b,i1,b1)
-         esum3 += etemp
-        #EXECUTE  DUMP_AMP  tpqpq
+         esum2 += etemp
+         EXECUTE  DUMP_AMP  tpqpq
       ENDPARDO  i, b, i1, b1
-      EXECUTE  SERVER_BARRIER
-      PARDO  j, a, j1, a1
-         REQUEST             Dibja_baba (j,a,j1,a1) j
-         tqpqp (j,a,j1,a1) = Dibja_baba (j,a,j1,a1)
-         etemp = tqpqp (j,a,j1,a1) * tqpqp (j,a,j1,a1)
-         esum4 += etemp
-        #EXECUTE  DUMP_AMP  tqpqp
-      ENDPARDO  j, a, j1, a1
       EXECUTE  SERVER_BARRIER
       PARDO  i, a, j1, b1
          REQUEST              Dibja_abba (i,b1,j1,a) i
          tqppq (j1,a,i,b1)  = Dibja_abba (i,b1,j1,a)
          etemp = tqppq (j1,a,i,b1) * tqppq (j1,a,i,b1)
-         esum5 += etemp
-        #EXECUTE  DUMP_AMP  tqppq
+         esum4 += etemp
+         EXECUTE  DUMP_AMP  tqppq
       ENDPARDO  i, a, j1, b1
       EXECUTE  SERVER_BARRIER
-      PARDO  j, b, i1, a1
-         REQUEST              Dibja_baab (j,a1,i1,b) j
-         tpqqp (i1,b,j,a1)  = Dibja_baab (j,a1,i1,b)
-         etemp = tpqqp (i1,b,j,a1) * tpqqp (i1,b,j,a1)
-         esum6 += etemp
-        #EXECUTE  DUMP_AMP  tpqqp
-      ENDPARDO  j, b, i1, a1
-      EXECUTE  SERVER_BARRIER
-
 
       COLLECTIVE  energy_aa += esum1
-      COLLECTIVE  energy_bb += esum2
-      COLLECTIVE  energy_ab += esum3
-      COLLECTIVE  energy_ba += esum4
-      COLLECTIVE  energy_abba += esum5
-      COLLECTIVE  energy_baab += esum6
+      COLLECTIVE  energy_ab += esum2
+     #COLLECTIVE  energy_ba += esum3
+      COLLECTIVE  energy_abba += esum4
 
       EXECUTE  SIP_BARRIER
 
+     #energy_bb = energy_aa
       energy += energy_aa
-      energy += energy_bb
+     #energy += energy_bb
       energy += energy_ab
-      energy += energy_ba
+     #energy += energy_ba
       energy += energy_abba
-      energy += energy_baab
       EXECUTE  SIP_BARRIER
 
       EXECUTE  PRINT_SCALAR  energy_aa
       EXECUTE  PRINT_SCALAR  energy_ab
       EXECUTE  PRINT_SCALAR  energy_abba
-      EXECUTE  PRINT_SCALAR  energy_bb
-      EXECUTE  PRINT_SCALAR  energy_ba
-      EXECUTE  PRINT_SCALAR  energy_baab
-      EXECUTE  PRINT_SCALAR  ZERO
+     #EXECUTE  PRINT_SCALAR  energy_bb
+     #EXECUTE  PRINT_SCALAR  energy_ba
+      EXECUTE  PRINT_SCALAR  energy
 #
 #
 #          ...ready!
@@ -2292,6 +2212,25 @@
 #     
       ENDPROC  PRINT_DIBJA
 #-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+      PROC S2IIJ
+#
+        EXECUTE  SIP_BARRIER
+           PARDO i, i1
+              GET Iij_aa(i,i1)
+              execute dump_amp Iij_aa(i,i1)
+           ENDPARDO i, i1
+#
+           PARDO  j, j1
+              GET Iij_bb(j,j1)
+              execute dump_amp Iij_bb(j,j1)
+           ENDPARDO  j, j1
+        EXECUTE  SIP_BARRIER
+#
+      ENDPROC S2IIJ
 
 
 
@@ -6037,7 +5976,7 @@
 #
 #    ------------------------------------------------------------------------
 #
-#    BEGIN Main HBAR PROGRAM 
+#    BEGIN MAIN HBAR PROGRAM 
 #
 #    ------------------------------------------------------------------------
 #
@@ -7055,7 +6994,7 @@
 #
 # --------------------------------------------------------------------------- 
 #
-      PROC DIJAB
+      PROC DIJABAA 
 #     ------------- 
 #
 # Terms 1-5 in Eq. 33 
@@ -7286,6 +7225,7 @@
 #
 # --------------------------------------------------------------------------- 
 #
+      ENDPROC DIJABAA 
 #
 # --------------------------------------------------------------------------- 
 #
@@ -7307,6 +7247,7 @@
 #
 # --------------------------------------------------------------------------- 
 #
+      PROC DIJABAB 
 #     ------------- 
 #
 # One-particle intermediates computed in AA/BB blocks  
@@ -7690,6 +7631,7 @@
 #     execute server_barrier ca  
 # --------------------------------------------------------------------------- 
 #
+      ENDPROC DIJABAB 
 #
 # --------------------------------------------------------------------------- 
 #
@@ -7710,6 +7652,7 @@
 #
 # --------------------------------------------------------------------------- 
 #
+      PROC DIJABBB 
 #     ------------- 
 #
 # Terms 1-5 in Eq. 33 
@@ -7935,11 +7878,12 @@
 #
 # --------------------------------------------------------------------------- 
 #
-      ENDPROC DIJAB
+      ENDPROC DIJABBB 
 # --------------------------------------------------------------------------- 
-#
-#  AP's generous and helpful contribution!
-#
+
+
+
+
 #-------------------------------------------------------------------------
 #
 #     ---------------
@@ -8027,13 +7971,13 @@
 
          tbjbj  (b,j,b1,j1)  = L_Z1_bj (b,j) ^ t1b_old (b1,j1)
          t1bjbj (b,j,b1,j1)  = L_Z2_bj (b,j) ^ R1B  (b1,j1)
-         tbjbj  (b,j,b1,j1) += t1bjbj (b,j,b1,j1)
+         tbjbj  (b,j,b1,j1) += t1bbj (b,j,b1,j1)
          tbjbj  (b,j,b1,j1) *= 0.125 #0.5
 
-         tjjbb  (j,j1,b,b1) = tbjbj (b,j,b1,j1)
-         t1jjbb (j1,j,b1,b) = tbjbj (b,j,b1,j1)
-         t2jjbb (j1,j,b,b1) = tbjbj (b,j,b1,j1)
-         t3jjbb (j,j1,b1,b) = tbjbj (b,j,b1,j1)
+         tjjbb  (j,j1,b,b1) = tbjbj (b,j,b1,11)
+         t1jjbb (j1,b,b1,b) = tbjbj (b,j,b1,11)
+         t2jjbb (j1,j,b,b1) = tbjbj (b,j,b1,11)
+         t3jjbb (j,j1,b1,b) = tbjbj (b,j,b1,11)
 
          t2jjbb (j1,j,b,b1) *= -1.0
          t3jjbb (j,j1,b1,b) *= -1.0
@@ -8041,7 +7985,7 @@
          tjjbb  (j,j1,b,b1) += tqqqq (j,j1,b,b1)
 
          PREPARE  Dijab_bb (j,j1,b,b1) += tjjbb  (j,j1,b,b1)
-         PREPARE  Dijab_bb (j1,j,b1,b) += t1jjbb (j1,j,b1,b)
+         PREPARE  Dijab_bb (j1,j,b1,b) += t1jjbb (j1,b,b1,b)
          PREPARE  Dijab_bb (j1,j,b,b1) += t2jjbb (j1,j,b,b1)
          PREPARE  Dijab_bb (j,j1,b1,b) += t3jjbb (j,j1,b1,b)
       ENDPARDO  b, j, b1, j1
@@ -8073,8 +8017,8 @@
             t1pppp (a,i,a2,i2) += T2old_aa   (a,i,a2,i2)
             LLaiai  (a,i,a2,i2) += t1pppp (a,i,a2,i2)
          ENDDO i2
-         DO i2
-            t1ai (a,i)  = LLaiai (a,i,a2,i2) * LR1L2_ai (a2,i2)
+         DO j2
+            t1ai (a,i)  =  * LR1L2_ai (a2,i2)
             t1ai (a,i) *= 0.5
             Lai  (a,i) += t1ai  (a,i)
          ENDDO i2
@@ -8207,18 +8151,18 @@
 # BBBB spin combination
 
       PARDO  b2, b, j
-         ALLOCATE  LLbjbj (b,j,b2,*)
+         ALLOCATE  LLbjbj (b,j,2,*)
          ALLOCATE  Lbj   (b,j)
          DO j2
-            REQUEST      T2old_bb (b,j,b2,j2) j2
+            REQUEST      T2old_bb (b,j,b2,j2) 2
             GET  t1b_old (b2,j)
-            GET  t1b_old (b,j2)
+            GET  t1a_old (b,j2)
             tqq  (b2,j) = t1b_old (b2,j)
             t1qq (b,j2) = t1b_old (b,j2)
             tqqqq  (b,j2,b2,j)  = t1qq (b,j2) ^ tqq (b2,j)
             tqqqq  (b,j2,b2,j) *= -1.0
-            t1qqqq (b,j,b2,j2)  = tqqqq  (b,j2,b2,j)
-            t1qqqq (b,j,b2,j2) += T2old_bb   (b,j,b2,j2)
+            t1qqq  (b,j,b2,j2)  = tqqqq  (b,j2,b2,j)
+            t1qqq  (b,j,b2,j2) += T2old_bb   (b,j,b2,j2)
             LLbjbj  (b,j,b2,j2) += t1qqqq (b,j,b2,j2)
          ENDDO j2
          DO j2
@@ -8233,7 +8177,7 @@
             t2qq (b1,j1) = t1b_old (b1,j1)
             tbjbj  (b,j,b1,j1)  = Lbj (b,j) ^ t2qq (b1,j1)
             tbjbj  (b,j,b1,j1) *= 0.25 # 1.0
-            tjjbb  (j,j1,b,b1)  = tbjbj (b,j,b1,j1)
+            tjjbb  (j,b1,b,b1)  = tbjbj (b,j,b1,j1)
             t1jjbb (j1,j,b1,b)  = tbjbj (b,j,b1,j1)
             t2jjbb (j1,j,b,b1)  = tbjbj (b,j,b1,j1)
             t3jjbb (j,j1,b1,b)  = tbjbj (b,j,b1,j1)
@@ -8241,30 +8185,29 @@
             t2jjbb (j1,j,b,b1) *= -1.0
             t3jjbb (j,j1,b1,b) *= -1.0
          
-            PREPARE  Dijab_bb (j,j1,b,b1) += tjjbb  (j,j1,b,b1)
+            PREPARE  Dijab_bb (j,j1,b,b1) += tjjbb  (j,b1,b,b1)
             PREPARE  Dijab_bb (j1,j,b1,b) += t1jjbb (j1,j,b1,b) 
             PREPARE  Dijab_bb (j1,j,b,b1) += t2jjbb (j1,j,b,b1)
             PREPARE  Dijab_bb (j,j1,b1,b) += t3jjbb (j,j1,b1,b) 
          ENDDO j1
-         ENDDO b1
 
          DEALLOCATE  Lbj   (b,j)
          DEALLOCATE  LLbjbj (b,j,b2,*)
       ENDPARDO  b2, b, j
 
       PARDO  b, a, j
-         tbj (b,j) = 0.0
+         tai (b2,j2) = 0.0
          DO i
             REQUEST       T2old_ab (a,i,b,j) j
             t1bj (b,j)  = T2old_ab (a,i,b,j) * LR1L2_ai (a,i)
             t1bj (b,j) *= 0.5
-            tbj  (b,j) +=  t1bj (b,j)
+            tbi  (b,j) +=  t1bj (b,j)
          ENDDO i
          DO b1
          DO j1
             GET t1b_old (b1,j1)
-            tbjbj  (b,j,b1,j1)  = tbj (b,j) ^ t1b_old (b1,j1)
-            tbjbj  (b,j,b1,j1) *= 0.25 # 1.0
+            tbjbj  (b,j,b1,j1)  = tbi (b,j) ^ t1b_old (b1,j1)
+            taiai  (b,j,b1,j1) *= 0.25 # 1.0
             tjjbb  (j,j1,b,b1)  = tbjbj (b,j,b1,j1)
             t1jjbb (j1,j,b1,b)  = tbjbj (b,j,b1,j1) 
             t2jjbb (j1,j,b,b1)  = tbjbj (b,j,b1,j1)
@@ -8279,7 +8222,60 @@
             PREPARE  Dijab_bb (j,j1,b1,b) += t3jjbb (j,j1,b1,b)
          ENDDO j1
          ENDDO b1
-      ENDPARDO  b, a, j
+      ENDPARDO  b2, a, i
+
+      PARDO  b2, b, j
+         ALLOCATE  LLbjbj (b,j,b2,*)
+         ALLOCATE  Lbj   (b,j)
+         DO j2
+            REQUEST      T2old_bb (b,j,b2,j2) j2
+            GET t1b_old (b2,j)
+            GET t1b_old (b,j2)
+            tbj (b2,j) = t1b_old (b2,j)
+            tqqqq  (b,j2,b2,j)  = t1b_old (b,j2) ^ tbj (b2,j)
+            tqqqq  (b,j2,b2,j) *= -1.0
+            t1qqqq (b,j,b2,j2)  = tqqqq  (b,j2,b2,j)
+            t1qqqq (b,j,b2,j2) += T2old_bb   (b,j,b2,j2)
+            LLbjbj  (b,j,b2,j2) += t1qqqq (b,j,b2,j2)
+         ENDDO j2
+         DO j2
+            t1bj (b,j)  = LLbjbj (b,j,b2,j2) * LR1L2_bj (b2,j2)
+            t1bj (b,j) *= 0.5
+            Lbj  (b,j) += t1bj  (b,j)
+         ENDDO j2
+         DO b1
+         DO j1
+            GET t1b_old (b1,j1)
+            tqq (b1,j1) = t1b_old (b1,j1)
+            tbjbj (b,j,b1,j1)  = Lbj (b,j) ^ tqq (b1,j1)
+            tbjbj (b,j,b1,j1) *= 0.25 # 1.0
+            tjjab (j1,j,b1,b)  = tbjbj (b,j,b1,j1)
+            PREPARE  Dijab_bb (j1,j,b1,b) += tjjbb (j1,j,b1,b)
+         ENDDO j1
+         ENDDO b1
+         DEALLOCATE  Lbj   (b,j)
+         DEALLOCATE  LLbjbj (b,j,b2,*)
+      ENDPARDO  b2, b, j
+
+      PARDO  a2, b, j
+         tbj (b,j) = 0.0
+         DO i2
+            REQUEST       T2old_ab (a2,i2,b,j) i2
+            t1bj (b,j)  = T2old_ab (a2,i2,b,j) * LR1L2_ai (a2,i2)
+            t1bj (b,j) *= 0.5
+            tbj  (b,j) += t1bj (b,j)
+         ENDDO i2
+         DO b1
+         DO j1
+            GET t1b_old (b1,j1)
+            tbjbj (b,j,b1,j1)  = tbj (b,j) ^ t1b_old (b1,j1)
+            tbjbj (b,j,b1,j1) *= 0.25 # 1.0
+            tjjbb (j1,j,b1,b)  = tbjbj (b,j,b1,j1)
+            PREPARE  Dijab_bb (j1,j,b1,b) += tijab (j1,j,b1,b)
+         ENDDO j1
+         ENDDO b1
+      ENDPARDO  b2, b, j
+
 #
 #
 #       ab           e  m        ef  mn    ab           a  m        af  mn    eb
@@ -8391,8 +8387,8 @@
          REQUEST  R2BB (b,j2,b1,j1) b
          DO j
             tbjbj  (b,j,b1,j1)  = L_Z_jj (j2,j) * T2old_bb (b,j2,b1,j1)
-            t1bjbj (b,j,b1,j1)  = L_Y_jj (j2,j) * R2BB (b,j2,b1,j1)
-            tbjbj  (b,j,b1,j1) += t1bjbj (b,j,b1,j1)
+            t1bjbj (b,j,b1,j1)  = L_Y_jj (j2,i) * R2BB (b,j2,b1,j1)
+            tbjbj  (b,j,b1,j1) += t1bjb (b,j,b1,j1)
             tbjbj  (b,j,b1,j1) *= 0.125 # 0.5
             tjjbb  (j,j1,b,b1)  = tbjbj  (b,j,b1,j1)
             t1jjbb (j1,j,b,b1)  = tbjbj  (b,j,b1,j1)
@@ -8406,17 +8402,18 @@
          REQUEST  T2old_bb (b2,j,b1,j1) b2
          REQUEST  R2BB (b2,j,b1,j1) b2
          DO b
-            tbjbj  (b,j,b1,j1)  = L_Z_bb (b2,b) * T2old_bb (b2,j,b1,j1)
-            t1bjbj (b,j,b1,j1)  = L_Y_bb (b2,b) * R2BB (b2,j,b1,j1)
-            tbjbj  (b,j,b1,j1) += t1bjbj (b,j,b1,j1)
+            tbjbj  (b,j,b1,j1)  = L_Z_bb (b2,b) * T2old_bb (b,j2,b1,j1)
+            t1bjbj (b,j,b1,j1)  = L_Y_bb (b2,b) * R2BB (b,j2,b1,j1)
+            tbjbj  (b,j,b1,j1) += t1bjb (b,j,b1,j1)
             tbjbj  (b,j,b1,j1) *= 0.125 # 0.5
             tjjbb  (j,j1,b,b1)  = tbjbj  (b,j,b1,j1)
-            t1jjbb (j,j1,b1,b)  = tbjbj  (b,j,b1,j1)
+            t1jjbb (j1,j,b,b1)  = tbjbj  (b,j,b1,j1)
             tjjbb  (j,j1,b,b1) *= -1.0
             PREPARE  Dijab_bb (j,j1,b,b1) += tjjbb  (j,j1,b,b1)
-            PREPARE  Dijab_bb (j,j1,b1,b) += t1jjbb (j,j1,b1,b)
+            PREPARE  Dijab_bb (j1,j,b,b1) += t1jjbb (j1,j,b,b1)
          ENDDO b
       ENDPARDO  b2, j, b1, j1
+
 #
 #     TPDIJAB4; AAAA spin combination
 #
@@ -8500,92 +8497,17 @@
                tqqqq  (j,j1,b,b1)  = L2jjjj (j,j1,j2,j3) * tjjbb  (j2,j3,b,b1)
                t1qqqq (j,j1,b,b1)  = L4jjjj (j,j1,j2,j3) * t1jjbb (j2,j3,b,b1)
                tqqqq  (j,j1,b,b1) += t1qqqq (j,j1,b,b1)
-               tqqqq  (j,j1,b,b1) *= 0.25 # 1.0
+               tpppp  (i,i1,a,a1) *= 0.25 # 1.0
                PREPARE  Dijab_bb (j,j1,b,b1) += tqqqq (j,j1,b,b1)
             ENDDO j1
          ENDDO b1
          DEALLOCATE  L2jjjj (j,*,j2,j3)
          DEALLOCATE  L4jjjj (j,*,j2,j3)
       ENDPARDO  b, j, j2, j3
+
 #
 #     TPDIJAB5: AAAA spin combination
 #
-      PARDO  a1, b2, j2, a
-         ALLOCATE  Libja  (*,b2,j2,a)
-         ALLOCATE  L1ibja (*,b2,j2,a)
-         DO i
-            REQUEST               L2R2_abba (i,b2,j2,a) i
-            REQUEST               L2T2_abba (i,b2,j2,a) i
-            Libja  (i,b2,j2,a)  = L2R2_abba (i,b2,j2,a)
-            L1ibja (i,b2,j2,a)  = L2T2_abba (i,b2,j2,a)
-            Libja  (i,b2,j2,a) *= 0.25
-            L1ibja (i,b2,j2,a) *= 0.25
-         ENDDO i
-         DO i1
-            REQUEST  T2old_ab (a1,i1,b2,j2) i1
-            REQUEST  R2AB (a1,i1,b2,j2) i1
-            DO i
-               tiaia  (i,a1,i1,a)  = T2old_ab (a1,i1,b2,j2) * Libja  (i,b2,j2,a)
-               t1iaia (i,a1,i1,a)  = R2AB (a1,i1,b2,j2) * L1ibja (i,b2,j2,a)
-               tiaia  (i,a1,i1,a) += t1iaia (i,a1,i1,a)
-               tiaia  (i,a1,i1,a) *= 0.25 # 1.0
-
-               t1iiaa (i,i1,a,a1)  = tiaia (i,a1,i1,a)
-               t2iiaa (i1,i,a1,a)  = t1iiaa (i,i1,a,a1)
-               t3iiaa (i1,i,a,a1)  = t1iiaa (i,i1,a,a1)
-               t4iiaa (i,i1,a1,a)  = t1iiaa (i,i1,a,a1)
-
-               t3iiaa (i1,i,a,a1) *= -1.0
-               t4iiaa (i,i1,a1,a) *= -1.0
-
-               PREPARE  Dijab_aa (i,i1,a,a1) += t1iiaa (i,i1,a,a1)
-               PREPARE  Dijab_aa (i1,i,a1,a) += t2iiaa (i1,i,a1,a)
-               PREPARE  Dijab_aa (i1,i,a,a1) += t3iiaa (i1,i,a,a1)
-               PREPARE  Dijab_aa (i,i1,a1,a) += t4iiaa (i,i1,a1,a)
-            ENDDO i
-         ENDDO i1
-         DEALLOCATE  Libja  (*,b2,j2,a)
-         DEALLOCATE  L1ibja (*,b2,j2,a)
-      ENDPARDO  a1, b2, j2, a
-
-      PARDO  b1, a2, i2, b
-         ALLOCATE  Ljaib  (*,a2,i2,b)
-         ALLOCATE  L1jaib (*,a2,i2,b)
-         DO j
-            REQUEST               L2R2_baab (j,a2,i2,b) j
-            REQUEST               L2T2_baab (j,a2,i2,b) j
-            Ljaib  (j,a2,i2,b)  = L2R2_baab (j,a2,i2,b)
-            L1jaib (j,a2,i2,b)  = L2T2_baab (j,a2,i2,b)
-            Ljaib  (j,a2,i2,b) *= 0.25
-            L1jaib (j,a2,i2,b) *= 0.25
-         ENDDO j
-         DO j1
-            REQUEST  T2old_ab (a2,i2,b1,j1) j1
-            REQUEST  R2AB (a2,i2,b1,j1) j1
-            DO j
-               tjbjb  (j,b1,j1,b)  = T2old_ab (a2,i2,b1,j1) * Ljaib  (j,a2,i2,b)
-               t1jbjb (j,b1,j1,b)  = R2AB (a2,i2,b1,j1) * L1jaib (j,a2,i2,b)
-               tjbjb  (j,b1,j1,b) += t1jbjb (j,b1,j1,b)
-               tjbjb  (j,b1,j1,b) *= 0.25 # 1.0
-
-               t1jjbb (j,j1,b,b1)  = tjbjb (j,b1,j1,b)
-               t2jjbb (j1,j,b1,b)  = t1jjbb (j,j1,b,b1)
-               t3jjbb (j1,j,b,b1)  = t1jjbb (j,j1,b,b1)
-               t4jjbb (j,j1,b1,b)  = t1jjbb (j,j1,b,b1)
-
-               t3jjbb (j1,j,b,b1) *= -1.0
-               t4jjbb (j,j1,b1,b) *= -1.0
-
-               PREPARE  Dijab_bb (j,j1,b,b1) += t1jjbb (j,j1,b,b1)
-               PREPARE  Dijab_bb (j1,j,b1,b) += t2jjbb (j1,j,b1,b)
-               PREPARE  Dijab_bb (j1,j,b,b1) += t3jjbb (j1,j,b,b1)
-               PREPARE  Dijab_bb (j,j1,b1,b) += t4jjbb (j,j1,b1,b)
-            ENDDO j
-         ENDDO j1
-         DEALLOCATE  Ljaib  (*,a2,i2,b)
-         DEALLOCATE  L1jaib (*,a2,i2,b)
-      ENDPARDO  b1, a2, i2, b
-
       PARDO  a1, a2, i2, a
          ALLOCATE  Liaia  (*,a2,i2,a)
          ALLOCATE  L1iaia (*,a2,i2,a)
@@ -8640,59 +8562,43 @@
          DEALLOCATE  L1iaia (*,a2,i2,a)
       ENDPARDO  a1, a2, i2, a
 
-      PARDO  b1, b2, j2, b
-         ALLOCATE  Ljbjb  (*,b2,j2,b)
-         ALLOCATE  L1jbjb (*,b2,j2,b)
-         DO j
-            REQUEST               L2R2_bbbb (j,b2,j2,b) j
-            REQUEST               L2T2_bbbb (j,b2,j2,b) j
-            Ljbjb  (j,b2,j2,b)  = L2R2_bbbb (j,b2,j2,b)
-            L1jbjb (j,b2,j2,b)  = L2T2_bbbb (j,b2,j2,b)
-            Ljbjb  (j,b2,j2,b) *= 0.25
-            L1jbjb (j,b2,j2,b) *= 0.25
-         ENDDO j
-         DO j1
-            REQUEST        T2old_bb (b1,j1,b2,j2) j1
-            REQUEST        R2BB (b1,j1,b2,j2) j1
-            GET            R1B  (b1,j2)
-            GET            R1B  (b2,j1)
-            GET            t1b_old (b1,j2)
-            GET            t1b_old (b2,j1)
-            tbj  (b2,j1) = t1b_old (b2,j1)
-            t1bj (b1,j2) = R1B  (b1,j2)
-# TAU ljke
-            tbjbj  (b1,j1,b2,j2)  = tbj (b2,j1) ^ t1b_old (b1,j2)
-            tbjbj  (b1,j1,b2,j2) *= -2.0
-            tbjbj  (b1,j1,b2,j2) += T2old_bb   (b1,j1,b2,j2)
-# RTAU ljke
-            t1bjbj (b1,j1,b2,j2)  = R1B (b2,j1) ^ t1b_old (b1,j2)
-            t2qqqq (b1,j1,b2,j2)  = tbj (b2,j1) ^ t1bj (b1,j2)
-            t1bjbj (b1,j1,b2,j2) += t2qqqq (b1,j1,b2,j2)
-            t1bjbj (b1,j1,b2,j2) *= -2.0
-            t1bjbj (b1,j1,b2,j2) += R2BB (b1,j1,b2,j2)
-            DO j
-               tjbjb  (j,b1,j1,b)  = tbjbj  (b1,j1,b2,j2) * Ljbjb  (j,b2,j2,b)
-               t1jbjb (j,b1,j1,b)  = t1bjbj (b1,j1,b2,j2) * L1jbjb (j,b2,j2,b)
-               tjbjb  (j,b1,j1,b) += t1jbjb (j,b1,j1,b)
-               tjbjb  (j,b1,j1,b) *= 0.25 # 1.0
+      PARDO  a1, b2, j2, a
+         ALLOCATE  Libja  (*,b2,j2,a)
+         ALLOCATE  L1ibja (*,b2,j2,a)
+         DO i
+            REQUEST               L2R2_abba (i,b2,j2,a) i
+            REQUEST               L2T2_abba (i,b2,j2,a) i
+            Libja  (i,b2,j2,a)  = L2R2_abba (i,b2,j2,a)
+            L1ibja (i,b2,j2,a)  = L2T2_abba (i,b2,j2,a)
+            Libja  (i,b2,j2,a) *= 0.25
+            L1ibja (i,b2,j2,a) *= 0.25
+         ENDDO i
+         DO i1
+            REQUEST  T2old_ab (a1,i1,b2,j2) i1
+            REQUEST  R2AB (a1,i1,b2,j2) i1
+            DO i
+               tiaia  (i,a1,i1,a)  = T2old_ab (a1,i1,b2,j2) * Libja  (i,b2,j2,a)
+               t1iaia (i,a1,i1,a)  = R2AB (a1,i1,b2,j2) * L1ibja (i,b2,j2,a)
+               tiaia  (i,a1,i1,a) += t1iaia (i,a1,i1,a)
+               tiaia  (i,a1,i1,a) *= 0.25 # 1.0
 
-               t1jjbb (j,j1,b,b1)  = tjbjb (j,b1,j1,b)
-               t2jjbb (j1,j,b1,b)  = t1jjbb (j,j1,b,b1)
-               t3jjbb (j1,j,b,b1)  = t1jjbb (j,j1,b,b1)
-               t4jjbb (j,j1,b1,b)  = t1jjbb (j,j1,b,b1)
+               t1iiaa (i,i1,a,a1)  = tiaia (i,a1,i1,a)
+               t2iiaa (i1,i,a1,a)  = t1iiaa (i,i1,a,a1)
+               t3iiaa (i1,i,a,a1)  = t1iiaa (i,i1,a,a1)
+               t4iiaa (i,i1,a1,a)  = t1iiaa (i,i1,a,a1)
 
-               t3jjbb (j1,j,b,b1) *= -1.0
-               t4jjbb (j,j1,b1,b) *= -1.0
+               t3iiaa (i1,i,a,a1) *= -1.0
+               t4iiaa (i,i1,a1,a) *= -1.0
 
-               PREPARE  Dijab_bb (j,j1,b,b1) += t1jjbb (j,j1,b,b1)
-               PREPARE  Dijab_bb (j1,j,b1,b) += t2jjbb (j1,j,b1,b)
-               PREPARE  Dijab_bb (j1,j,b,b1) += t3jjbb (j1,j,b,b1)
-               PREPARE  Dijab_bb (j,j1,b1,b) += t4jjbb (j,j1,b1,b)
-            ENDDO j
-         ENDDO j1
-         DEALLOCATE  Ljbjb  (*,b2,j2,b)
-         DEALLOCATE  L1jbjb (*,b2,j2,b)
-      ENDPARDO  b1, b2, j2, b
+               PREPARE  Dijab_aa (i,i1,a,a1) += t1iiaa (i,i1,a,a1)
+               PREPARE  Dijab_aa (i1,i,a1,a) += t2iiaa (i1,i,a1,a)
+               PREPARE  Dijab_aa (i1,i,a,a1) += t3iiaa (i1,i,a,a1)
+               PREPARE  Dijab_aa (i,i1,a1,a) += t4iiaa (i,i1,a1,a)
+            ENDDO i
+         ENDDO i1
+         DEALLOCATE  Libja  (*,b2,j2,a)
+         DEALLOCATE  L1ibja (*,b2,j2,a)
+      ENDPARDO  a1, b2, j2, a
 #
 # ABAB spin combination
 #
@@ -8924,17 +8830,86 @@
 #
 # BBBB spin combination
 #
-#
-#
+      PARDO  b1, b2, j2, b
+         ALLOCATE  Ljbjb  (*,b2,j2,b)
+         ALLOCATE  L1jbjb (*,b2,j2,b)
+         DO j
+            REQUEST               L2R2_bbbb (j,b2,j2,b) j
+            REQUEST               L2T2_bbbb (j,b2,j2,b) j
+            Ljbjb  (j,b2,j2,b)  = L2R2_bbbb (j,b2,j2,b)
+            L1jbjb (j,b2,j2,b)  = L2T2_bbbb (j,b2,j2,b)
+            Ljbjb  (j,b2,j2,b) *= 0.25
+            Ljbjb  (j,b2,j2,b) *= 0.25
+         ENDDO j
+         DO j1
+            REQUEST        T2old_bb (b1,j1,b2,j2) j1
+            REQUEST        R2BB (b1,j1,b2,j2) j1
+            GET            R1B  (b1,j2)
+            GET            R1B  (b2,j1)
+            GET            t1b_old (b1,j2)
+            GET            t1b_old (b2,j1)
+            tbj  (b2,j1) = t1b_old (b2,j1)
+            t1bj (b1,j2) = R1B  (b1,j2)
+# TAU like
+            tbjbj  (b1,j1,b2,j2)  = tbj (b2,j1) ^ t1b_old (b1,j2)
+            tbjbj  (b1,j1,b2,j2) *= -2.0
+            tbjbj  (b1,j1,b2,j2) += T2old_bb   (b1,j1,b2,j2)
+# RTAU like
+            t1bjbj (b1,j1,b2,j2)  = R1B (b2,j1) ^ t1b_old (b1,j2)
+            t2qqqq (b1,j1,b2,j2)  = tbj (b2,j1) ^ t1bj (b2,j2)
+            t1bjbj (b1,j1,b2,j2) += t2qqqq (b1,j1,b2,j2)
+            t1bjbj (b1,j1,b2,j2) *= -2.0
+            t1bjbj (b1,j1,b2,j2) += R2BB (b1,j1,b2,j2)
+            DO j
+               tjbjb  (j,b1,j1,b)  = tbibi  (b1,j1,b2,j2) * Ljbjb  (j,b2,j2,b)
+               t1jbjb (j,b1,j1,b)  = t1bjbj (b1,j1,b2,j2) * L1jbjb (j,b2,j2,b)
+               t1jbjb (j,b1,j1,b) += t1jbjb (j,b1,j1,b)
+               t1jbjb (j,b1,j1,b) *= 0.25 # 1.0
+
+               t1jjbb (j,j1,b,b1)  = t1jbjb (j,b1,j1,b)
+               t2jjbb (j1,j,b1,b)  = t1jjbb (j,j1,b,b1)
+               t3jjbb (j1,j,b,b1)  = t1jjbb (j,j1,b,b1)
+               t4jjbb (j,j1,b1,b)  = t1jjbb (j,j1,b,b1)
+
+               t3jjbb (j1,j,b,b1) *= -1.0
+               t4jjbb (j,j1,b1,b) *= -1.0
+
+               PREPARE  Dijab_bb (j,j1,b,b1) += t1jjbb (j,j1,b,b1)
+               PREPARE  Dijab_bb (j1,j,b1,b) += t2jjbb (j1,j,b1,b)
+               PREPARE  Dijab_bb (j1,j,b,b1) += t3jjbb (j1,j,b,b1)
+               PREPARE  Dijab_bb (j,j1,b1,b) += t4jjbb (j,j1,b1,b)
+            ENDDO j
+         ENDDO j1
+         DEALLOCATE  Ljbjb  (*,b2,j2,b)
+         DEALLOCATE  L1jbjb (*,b2,j2,b)
+      ENDPARDO  b1, b2, j2, b 
+
 #          ...ready!
 #     
 #     
       ENDPROC  DIJAB_EOM
 #-------------------------------------------------------------------------
-
-
-
-
+#
+      PROC DIJAB 
+#     ----------- 
+#
+# Create gamma arrays and one-particle intermediates 
+# Note that Dii and Daa are computed in DIJABAA and 
+# Djj and Dbb are computed in DIJABBB. 
+# -------------------------------------------------- 
+#
+#
+           CALL DIJAB_EOM
+           CALL DIJABAA 
+           CALL DIJABBB 
+           CALL DIJABAB 
+#
+      ENDPROC DIJAB 
+#     ------------- 
+#
+# --------------------------------------------------------------------------- 
+#
+#
 # -----------------------------------------------------------------------------
 #
 # Expression programmed: Equivalent to gamma2.  
@@ -8944,7 +8919,7 @@
 #
 # -----------------------------------------------------------------------------
 #
-      PROC DABCD
+      PROC DABCDAA 
 #     ------------- 
 #
       PARDO a, a2, a1, a3 
@@ -9015,6 +8990,9 @@
 #
       ENDPARDO a, a2, a1, a3 
 #
+      ENDPROC DABCDAA 
+#     ---------------- 
+#
 # -----------------------------------------------------------------------------
 #
 # Expression programmed: 
@@ -9023,6 +9001,9 @@
 # 4* D is stored to be consistent with acess 
 #
 # -----------------------------------------------------------------------------
+#
+      PROC DABCDBB 
+#     ------------- 
 # 
       PARDO b, b2, b1, b3 
 #
@@ -9092,6 +9073,9 @@
 #
       ENDPARDO b, b2, b1, b3 
 #
+      ENDPROC DABCDBB 
+#     ---------------- 
+# 
 # -----------------------------------------------------------------------------
 #
 # Expression programmed: 
@@ -9100,6 +9084,9 @@
 # 4* D is stored to be consistent with acess 
 #
 # -----------------------------------------------------------------------------
+#
+      PROC DABCDAB 
+#     ------------- 
 # 
       create Rbj 
       execute sip_barrier 
@@ -9203,7 +9190,20 @@
       execute sip_barrier 
       delete Rbj 
 #
-      ENDPROC DABCD
+      ENDPROC DABCDAB 
+#     ---------------- 
+# 
+      PROC DABCD 
+#     ---------- 
+#
+# Create gamma arrays 
+# ------------------- 
+#
+           CALL DABCDAA 
+           CALL DABCDAB 
+           CALL DABCDBB 
+# 
+      ENDPROC DABCD 
 # ---------------------------------------------------------------------------- 
 
 
@@ -9222,7 +9222,7 @@
 #
 # ---------------------------------------------------------------------------- 
 #
-      PROC DIJKL
+      PROC DIJKLAAAA 
 #     -------------- 
 #
       PARDO a, a1, i, i1  
@@ -9252,6 +9252,9 @@
 #
       ENDPARDO a, a1, i, i1  
 #
+      ENDPROC DIJKLAAAA 
+#     ----------------- 
+#
 # ---------------------------------------------------------------------------- 
 #
 # Expression programmed: 
@@ -9260,6 +9263,9 @@
 # Note that 4* result is kept to be consistent with aces. 
 #
 # ---------------------------------------------------------------------------- 
+#
+      PROC DIJKLBBBB 
+#     -------------- 
 #
       PARDO b, b1, j, j1   
 #
@@ -9288,6 +9294,9 @@
 #
       ENDPARDO b, b1, j, j1  
 #
+      ENDPROC DIJKLBBBB 
+#     ----------------- 
+#
 # ---------------------------------------------------------------------------- 
 #
 # Expression programmed: 
@@ -9295,6 +9304,9 @@
 # D^{iJ}_{kL} = 1/8 P_+(iJ,kL) \lambda^{iJ}_{eF} \tau^{eF}_{kL} 
 #
 # ---------------------------------------------------------------------------- 
+#
+      PROC DIJKLABAB 
+#     -------------- 
 #
       PARDO a, b, i, j  
 #
@@ -9322,12 +9334,17 @@
             ENDDO i1 
 #
       ENDPARDO a, b, i, j  
-
-      ENDPROC  DIJKL
 #
 # Remove density component
 # ------------------------ 
 #
+      ENDPROC DIJKLABAB 
+#     ----------------- 
+#
+# ---------------------------------------------------------------------------- 
+
+
+
 #----------------------------------------------------------------------------
 #
 #     --------------
@@ -9410,13 +9427,28 @@
 
 
 
+
+#----------------------------------------------------------------------------
+#
+#     ---------- 
+      PROC DIJKL 
+#     ---------- 
+#
+      CALL DIJKL_EOM 
+      CALL DIJKLAAAA 
+      CALL DIJKLABAB 
+      CALL DIJKLBBBB 
+#
+      ENDPROC DIJKL 
+#     ------------- 
+#
 # ---------------------------------------------------------------------------- 
 #
 # Equivalent to gamma4*4 --> factor of 4 to match aces  
 #
 # ----------------------------------------------------------------------------
 #
-      PROC DIBJA
+      PROC DIBJAAAAA 
 #     -------------- 
 #
       PARDO a, a1, i, i1 
@@ -9497,7 +9529,13 @@
 
 
 
+      ENDPROC DIBJAAAAA 
+#     ------------------ 
+#
 # The D(iB,jA) block of the two-particle density matrix is calculated. 
+#
+      PROC DIBJAABAB 
+#     -------------- 
 #
       PARDO i, b1, j, a  
 #
@@ -9549,9 +9587,15 @@
 #
       ENDPARDO i1, b, j, a  
 
+
+
+      ENDPROC DIBJAABAB 
+#     ------------------ 
 #
 # The D(Ib,Ja) block of the two-particle density matrix is calculated. 
 #
+      PROC DIBJABABA 
+#     --------------  
 #
       PARDO a, j1, b, i  
 #
@@ -9607,6 +9651,12 @@
 #
       ENDPARDO i, a1, j, b  
 #
+#
+      ENDPROC DIBJABABA 
+#     ------------------ 
+#
+      PROC DIBJABBBB 
+#     --------------- 
 #
       PARDO b, b1, j, j1
 #
@@ -9684,6 +9734,12 @@
             ENDDO j1  
 #
       ENDPARDO j, b, i, a  
+#
+      ENDPROC DIBJABBBB 
+#     ------------------ 
+#
+      PROC DIBJAABBA 
+#     --------------- 
 #
       PARDO i, a, b, j 
 #
@@ -9810,6 +9866,12 @@
 #
       ENDPARDO b, j, b1, j1  
 #
+      ENDPROC DIBJAABBA 
+#     ------------------ 
+# 
+      PROC DIBJABAAB 
+#     --------------- 
+#
       PARDO j, b, a, i  
 #
             GET t1a_old(a,i)
@@ -9927,10 +9989,11 @@
             ENDDO j
 #
       ENDPARDO a, i, b1, j1 
-
-      ENDPROC  DIBJA
 #
-#----------------------------------------------------------------------------
+      ENDPROC DIBJABAAB
+#     ------------------ 
+#
+# ----------------------------------------------------------------------------
 #
 #     --------------
       PROC DIBJA_EOM
@@ -9941,8 +10004,6 @@
 #      G   = l  r  +  l   r  t  + l   r    ; Last term for ABAB and BABA only
 #       bi    b  i     be  m  i    be  mi
 #
-#
-# AAAA
 #
       PARDO  i, a, a1, i1
          REQUEST  L2R2_aaaa (i,a1,i1,a) i
@@ -9962,104 +10023,35 @@
          PREPARE  Dibja_aaaa (i,a1,i1,a) += tiaia  (i,a1,i1,a)
          PREPARE  Dibja_aaaa (i1,a,i,a1) += t1iaia (i1,a,i,a1)
       ENDPARDO  i, a, a1, i1
-#
-# BBBB
-#
-      PARDO  j, b, b1, j1
-         REQUEST  L2R2_bbbb (j,b1,j1,b) j
-         GET  t1b_old (b,j)
-         GET  R1B (b,j)
-         GET  L1B (j1,b1)
-         tjb (j1,b1) = LR1L2_bj (b1,j1)
-         tqqqq  (b,j,j1,b1)  = R1B (b,j) ^ L1B (j1,b1)
-         t1qqqq (b,j,j1,b1)  = t1b_old (b,j) ^ tjb (j1,b1)
-         tqqqq  (b,j,j1,b1) += t1qqqq (b,j,j1,b1)
 
-         tjbjb  (j,b1,j1,b)  = tqqqq (b,j,j1,b1)
-         tjbjb  (j,b1,j1,b) += L2R2_bbbb (j,b1,j1,b)
-
-         tjbjb  (j,b1,j1,b) *= 0.5
-         t1jbjb (j1,b,j,b1)  = tjbjb (j,b1,j1,b)
-         PREPARE  Dibja_bbbb (j,b1,j1,b) += tjbjb  (j,b1,j1,b)
-         PREPARE  Dibja_bbbb (j1,b,j,b1) += t1jbjb (j1,b,j,b1)
-      ENDPARDO  j, b, b1, j1
-#
-# ABBA
-#
       PARDO  i, a, b1, j1
          REQUEST  L2R2_abba (i,b1,j1,a) i
          GET  t1a_old (a,i)
          GET  R1A (a,i)
+#        GET  L1A (j1,b1)
          GET  L1B (j1,b1)
          tjb (j1,b1) = LR1L2_bj (b1,j1)
+#         tppqq  (a,i,j1,b1)  = R1A (a,i) ^ L1A (j1,b1)
          tppqq  (a,i,j1,b1)  = R1A (a,i) ^ L1B (j1,b1)
          t1ppqq (a,i,j1,b1)  = t1a_old (a,i) ^ tjb (j1,b1)
          tppqq  (a,i,j1,b1) += t1ppqq (a,i,j1,b1)
 
+#         tpqpq  (i,b1,j1,a)  = tppqq (a,i,j1,b1)
+#         tpqpq  (i,b1,j1,a) += L2R2_abba (i,b1,j1,a)
+#         tpqpq  (i,b1,j1,a) *= 0.5
+
          tpqqp  (i,b1,j1,a)  = tppqq (a,i,j1,b1)
          tpqqp  (i,b1,j1,a) += L2R2_abba (i,b1,j1,a)
-
          tpqqp  (i,b1,j1,a) *= 0.5
+
+#         tqpqp  (j1,a,i,b1)  = tpqpq (i,b1,j1,a)
+         tqppq  (j1,a,i,b1)  = tpqqp (i,b1,j1,a)
+#         PREPARE  Dibja_abba (i,b1,j1,a) += tpqpq (i,b1,j1,a)
+#         PREPARE  Dibja_abba (j1,a,i,b1) += tqpqp (j1,a,i,b1)
          PREPARE  Dibja_abba (i,b1,j1,a) += tpqqp (i,b1,j1,a)
+         PREPARE  Dibja_abba (i,b1,j1,a) += tqppq (j1,a,i,b1)
       ENDPARDO  i, a, b1, j1
 
-      PARDO  i, a, b1, j1
-         REQUEST  L2R2_baab (j1,a,i,b1) i
-         GET  t1b_old (b1,j1)
-         GET  R1B (b1,j1)
-         GET  L1A (i,a)
-         tpp (a,i) = L1A (i,a)
-         tppqq  (a,i,b1,j1)  = tpp (a,i) ^ R1B (b1,j1)
-         t1ppqq (a,i,b1,j1)  = LR1L2_ai (a,i) ^ t1b_old (b1,j1)
-         tppqq  (a,i,b1,j1) += t1ppqq (a,i,b1,j1)
-
-         tqppq  (j1,a,i,b1)  = tppqq (a,i,b1,j1)
-         tqppq  (j1,a,i,b1) += L2R2_baab (j1,a,i,b1)
-         tpqqp  (i,b1,j1,a)  = tqppq (j1,a,i,b1)
-
-         tpqqp  (i,b1,j1,a) *= 0.5
-         PREPARE  Dibja_abba (i,b1,j1,a) += tpqqp (i,b1,j1,a)
-      ENDPARDO  i, a, b1, j1
-#
-# BAAB
-#
-      PARDO  j, b, a1, i1
-         REQUEST  L2R2_baab (j,a1,i1,b) j
-         GET  t1b_old (b,j)
-         GET  R1B (b,j)
-         GET  L1A (i1,a1)
-         tia (i1,a1) = LR1L2_ai (a1,i1)
-         tqqpp  (b,j,i1,a1)  = R1B (b,j) ^ L1A (i1,a1)
-         t1qqpp (b,j,i1,a1)  = t1b_old (b,j) ^ tia (i1,a1)
-         tqqpp  (b,j,i1,a1) += t1qqpp (b,j,i1,a1)
-
-         tqppq  (j,a1,i1,b)  = tqqpp (b,j,i1,a1)
-         tqppq  (j,a1,i1,b) += L2R2_baab (j,a1,i1,b)
-
-         tqppq  (j,a1,i1,b) *= 0.5
-         PREPARE  Dibja_baab (j,a1,i1,b) += tqppq (j,a1,i1,b)
-      ENDPARDO  j, b, a1, i1
-
-      PARDO  j, b, a1, i1
-         REQUEST  L2R2_abba (i1,b,j,a1) j
-         GET  t1a_old (a1,i1)
-         GET  R1A (a1,i1)
-         GET  L1B (j,b)
-         tqq (b,j) = L1B (j,b)
-         tqqpp  (b,j,a1,i1)  = tqq (b,j) ^ R1A (a1,i1)
-         t1qqpp (b,j,a1,i1)  = LR1L2_bj (b,j) ^ t1a_old (a1,i1)
-         tqqpp  (b,j,a1,i1) += t1qqpp (b,j,a1,i1)
-
-         tpqqp  (i1,b,j,a1)  = tqqpp (b,j,a1,i1)
-         tpqqp  (i1,b,j,a1) += L2R2_abba (i1,b,j,a1)
-         tqppq  (j,a1,i1,b)  = tpqqp (i1,b,j,a1)
-
-         tqppq  (j,a1,i1,b) *= 0.5
-         PREPARE  Dibja_baab (j,a1,i1,b) += tqppq (j,a1,i1,b)
-      ENDPARDO  j, b, a1, i1
-#
-# ABAB
-#
       PARDO  i, b, i1, b1
          REQUEST               L2R2_abab (i,b1,i1,b) i
          tibib  (i,b,i1,b1)  = L2R2_abab (i,b1,i1,b)
@@ -10069,24 +10061,11 @@
          PREPARE  Dibja_abab (i1,b1,i,b) += t1ibib (i1,b1,i,b)
       ENDPARDO  i, b, i1, b1
 #
-# BABA
-#
-      PARDO  j, a, j1, a1
-         REQUEST               L2R2_baba (j,a1,j1,a) j
-         tjaja  (j,a,j1,a1)  = L2R2_baba (j,a1,j1,a)
-         tjaja  (j,a,j1,a1) *= 0.5
-         t1jaja (j1,a1,j,a)  = tjaja (j,a,j1,a1)
-         PREPARE  Dibja_baba (j,a,j1,a1) += tjaja  (j,a,j1,a1)
-         PREPARE  Dibja_baba (j1,a1,j,a) += t1jaja (j1,a1,j,a)
-      ENDPARDO  j, a, j1, a1
-#
 #
 #       ja    jm    e  a    e  a
 #      G   = l   ( r  t  + t  r  )
 #       bi    be    i  m    i  m
 #
-#
-# AAAA
 #
       PARDO  i1, a2, i2, a1
          REQUEST                L2AA (i2,a2,i1,a1) i1
@@ -10104,6 +10083,7 @@
                t1iaia (i,a1,i1,a)  = t1pppp (i,a1,i1,i2) * R1A  (a,i2)
                tiaia  (i,a1,i1,a) += t1iaia (i,a1,i1,a)
 
+              #tiaia  (i,a1,i1,a) *= -1.0
                tiaia  (i,a1,i1,a) *= -0.5
                t2iaia (i1,a,i,a1)  = tiaia (i,a1,i1,a)
                PREPARE  Dibja_aaaa (i,a1,i1,a) += tiaia  (i,a1,i1,a)
@@ -10111,35 +10091,7 @@
             ENDDO a
          ENDDO i
       ENDPARDO  i1, a2, i2, a1
-#
-# BBBB
-#
-      PARDO  j1, b2, j2, b1
-         REQUEST                L2BB (j2,b2,j1,b1) j1
-         tbbjj (b2,b1,j1,j2)  = L2BB (j2,b2,j1,b1)
-         DO j
-            GET  R1B     (b2,j)
-            GET  t1b_old (b2,j)
-            t1jb (j,b2) = R1B     (b2,j)
-            t2jb (j,b2) = t1b_old (b2,j)
-            tqqqq  (j,b1,j1,j2)  = t1jb (j,b2) * tbbjj (b2,b1,j1,j2)
-            t1qqqq (j,b1,j1,j2)  = t2jb (j,b2) * tbbjj (b2,b1,j1,j2)
-            DO b
-               GET  R1B (b,j2)
-               tjbjb  (j,b1,j1,b)  = tqqqq  (j,b1,j1,j2) * ST1B (b,j2)
-               t1jbjb (j,b1,j1,b)  = t1qqqq (j,b1,j1,j2) * R1B  (b,j2)
-               tjbjb  (j,b1,j1,b) += t1jbjb (j,b1,j1,b)
 
-               tjbjb  (j,b1,j1,b) *= -0.5
-               t2jbjb (j1,b,j,b1)  = tjbjb (j,b1,j1,b)
-               PREPARE  Dibja_bbbb (j,b1,j1,b) += tjbjb  (j,b1,j1,b)
-               PREPARE  Dibja_bbbb (j1,b,j,b1) += t2jbjb (j1,b,j,b1)
-            ENDDO b
-         ENDDO j
-      ENDPARDO  j1, b2, j2, b1
-#
-# ABBA
-#
       PARDO  j1, a2, i2, b1
          REQUEST                L2AB (i2,a2,j1,b1) j1
          tabji (a2,b1,j1,i2)  = L2AB (i2,a2,j1,b1)
@@ -10157,81 +10109,14 @@
                t1ibja (i,b1,j1,a)  = t1pqqp (i,b1,j1,i2) * R1A     (a,i2)
                tibja  (i,b1,j1,a) += t1ibja (i,b1,j1,a)
                tibja  (i,b1,j1,a) *= -0.5
+               tjaib  (j1,a,i,b1)  = tibja (i,b1,j1,a)
                PREPARE  Dibja_abba (i,b1,j1,a) += tibja (i,b1,j1,a)
+#               PREPARE  Dibja_abba (j1,a,i,b1) += tjaib (j1,a,i,b1)
+               PREPARE  Dibja_abba (i,b1,j1,a) += tjaib (j1,a,i,b1)
             ENDDO a
          ENDDO i
       ENDPARDO  j1, a2, i2, b1
 
-      PARDO  b2, a, j2, i
-         REQUEST             L2AB (i,a,j2,b2) b2
-         tijba (i,j2,b2,a) = L2AB (i,a,j2,b2)
-         DO j1
-            GET            R1B     (b2,j1)
-            GET            t1b_old (b2,j1)
-            t1bj (b2,j1) = R1B     (b2,j1)
-            t2bj (b2,j1) = t1b_old (b2,j1)
-            tpqqp  (i,j2,j1,a) = tijba (i,j2,b2,a) * t1bj (b2,j1)
-            t1pqqp (i,j2,j1,a) = tijba (i,j2,b2,a) * t2bj (b2,j1)
-            DO b1
-               GET  R1B     (b1,j2)
-               GET  t1b_old (b1,j2)
-               tibja  (i,b1,j1,a)  = t1b_old (b1,j2) * tpqqp  (i,j2,j1,a)
-               t1ibja (i,b1,j1,a)  = R1B     (b1,j2) * t1pqqp (i,j2,j1,a)
-               tibja  (i,b1,j1,a) += t1ibja (i,b1,j1,a)
-               tibja  (i,b1,j1,a) *= -0.5
-               PREPARE  Dibja_abba (i,b1,j1,a) += tibja (i,b1,j1,a)
-            ENDDO b1
-         ENDDO j1
-      ENDPARDO  b2, a, j2, i
-#
-# BAAB
-#
-      PARDO  i1, b2, j2, a1
-         REQUEST                L2AB (i1,a1,j2,b2) i1
-         tbaij (b2,a1,i1,j2)  = L2AB (i1,a1,j2,b2)
-         DO j
-            GET  R1B     (b2,j)
-            GET  t1b_old (b2,j)
-            t1jb (j,b2) = R1B     (b2,j)
-            t2jb (j,b2) = t1b_old (b2,j)
-            tqppq  (j,a1,i1,j2)  = t1jb (j,b2) * tbaij (b2,a1,i1,j2)
-            t1qppq (j,a1,i1,j2)  = t2jb (j,b2) * tbaij (b2,a1,i1,j2)
-            DO b
-               GET  R1B     (b,j2)
-               GET  t1b_old (b,j2)
-               tjaib  (j,a1,i1,b)  = tqppq  (j,a1,i1,j2) * t1b_old (b,j2)
-               t1jaib (j,a1,i1,b)  = t1qppq (j,a1,i1,j2) * R1B     (b,j2)
-               tjaib  (j,a1,i1,b) += t1jaib (j,a1,i1,b)
-               tjaib  (j,a1,i1,b) *= -0.5
-               PREPARE  Dibja_baab (j,a1,i1,b) += tjaib (j,a1,i1,b)
-            ENDDO b
-         ENDDO j
-      ENDPARDO  i1, b2, j2, a1
-
-      PARDO  a2, b, i2, j
-         REQUEST             L2AB (i2,a2,j,b) a2
-         tjiab (j,i2,a2,b) = L2AB (i2,a2,j,b)
-         DO i1
-            GET            R1A     (a2,i1)
-            GET            t1a_old (a2,i1)
-            t1ai (a2,i1) = R1A     (a2,i1)
-            t2ai (a2,i1) = t1a_old (a2,i1)
-            tqppq  (j,i2,i1,b) = tjiab (j,i2,a2,b) * t1ai (a2,i1)
-            t1qppq (j,i2,i1,b) = tjiab (j,i2,a2,b) * t2ai (a2,i1)
-            DO a1
-               GET  R1A     (a1,i2)
-               GET  t1a_old (a1,i2)
-               tjaib  (j,a1,i1,b)  = t1A_old (a1,i2) * tqppq  (j,i2,i1,b)
-               t1jaib (j,a1,i1,b)  = R1A     (a1,i2) * t1qppq (j,i2,i1,b)
-               tjaib  (j,a1,i1,b) += t1jaib (j,a1,i1,b)
-               tjaib  (j,a1,i1,b) *= -0.5
-               PREPARE  Dibja_baab (j,a1,i1,b) += tjaib (j,a1,i1,b)
-            ENDDO a1
-         ENDDO i1
-      ENDPARDO  a2, b, i2, j
-#
-# ABAB
-#
       PARDO  j2, b, i1, a2    
          REQUEST              L2AB (i1,a2,j2,b) j2
          tabij (a2,b,i1,j2) = L2AB (i1,a2,j2,b)
@@ -10243,8 +10128,12 @@
             tibij  (i,b,i1,j2) = t1ia (i,a2) * tabij (a2,b,i1,j2)
             t1ibij (i,b,i1,j2) = t2ia (i,a2) * tabij (a2,b,i1,j2)
             DO b1
+#               GET  R1A     (b1,j2)
                GET  R1B     (b1,j2)
+
+#               GET  t1a_old (b1,j2)
                GET  t1b_old (b1,j2)
+#               tpqpq  (i,b,i1,b1)  = tibij  (i,b,i1,j2) * t1a_old (b1,j2)
                tpqpq  (i,b,i1,b1)  = tibij  (i,b,i1,j2) * t1b_old (b1,j2)
                t1pqpq (i,b,i1,b1)  = t1ibij (i,b,i1,j2) * R1B     (b1,j2)
                tpqpq  (i,b,i1,b1) += t1pqpq (i,b,i1,b1)
@@ -10257,42 +10146,27 @@
          ENDDO i
       ENDPARDO  j2, b, i1, a2
 #
-# BABA
-#
-      PARDO  i2, a, j1, b2
-         REQUEST              L2AB (i2,a,j1,b2) i2
-         tbaji (b2,a,j1,i2) = L2AB (i2,a,j1,b2)
-         DO j
-            GET  R1B     (b2,j)
-            GET  t1b_old (b2,j)
-            t1jb (j,b2) = R1B     (b2,j)
-            t2jb (j,b2) = t1b_old (b2,j)
-            tjaji  (j,a,j1,i2) = t1jb (j,b2) * tbaji (b2,a,j1,i2)
-            t1jaji (j,a,j1,i2) = t2jb (j,b2) * tbaji (b2,a,j1,i2)
-            DO a1
-               GET  R1A     (a1,i2)
-               GET  t1a_old (a1,i2)
-               tqpqp  (j,a,j1,a1)  = tjaji  (j,a,j1,i2) * t1a_old (a1,i2)
-               t1qpqp (j,a,j1,a1)  = t1jaji (j,a,j1,i2) * R1A     (a1,i2)
-               tqpqp  (j,a,j1,a1) += t1qpqp (j,a,j1,a1)
-
-               tqpqp  (j,a,j1,a1) *= 0.5
-               t2qpqp (j1,a1,j,a)  = tqpqp (j,a,j1,a1)
-               PREPARE  Dibja_baba (j,a,j1,a1) += tqpqp  (j,a,j1,a1)
-               PREPARE  Dibja_baba (j1,a1,j,a) += t2qpqp (j1,a1,j,a)
-            ENDDO a1
-         ENDDO j
-      ENDPARDO  i2, a, j1, b2
-#
 #
 #     ..ready!
 #
 #
       ENDPROC  DIBJA_EOM
-#----------------------------------------------------------------------------
-
-
-
+#
+#-----------------------------------------------------------------------
+      PROC DIBJA  
+#
+# Create gamma arrays and V intermediates 
+# --------------------------------------- 
+#
+           CALL DIBJA_EOM
+           CALL DIBJAAAAA
+           CALL DIBJAABAB
+           CALL DIBJABABA
+           CALL DIBJABBBB
+           CALL DIBJABAAB 
+           CALL DIBJAABBA 
+#
+      ENDPROC DIBJA 
 # ------------------------------------------------------------------------- 
 #
 # Start the calculation of the D^{ab}_{ci} type contributions to the
@@ -10300,7 +10174,7 @@
 #
 # ------------------------------------------------------------------------- 
 #
-      PROC DABCI
+      PROC DABCIAAAA 
 #     ---------------
 #
       PARDO a, a1, a2, i 
@@ -10365,10 +10239,10 @@
             ENDDO i1
 
 #TWODENS
-           #DO mu
-           #   Txaai(mu,a1,a2,i)      = Taaai(a,a1,a2,i)*ca(mu,a)
-           #   PREPARE Dxaai(mu,a1,a2,i) += Txaai(mu,a1,a2,i)
-           #ENDDO mu
+            DO mu
+               Txaai(mu,a1,a2,i)      = Taaai(a,a1,a2,i)*ca(mu,a)
+               PREPARE Dxaai(mu,a1,a2,i) += Txaai(mu,a1,a2,i)
+            ENDDO mu
 
 #
 # Multiply by 4 to match aces 
@@ -10384,6 +10258,12 @@
 #
 # End computation of one-particle intermediate contributions 
 # ---------------------------------------------------------- 
+#
+      ENDPROC DABCIAAAA 
+#     ------------------
+#
+      PROC DABCIBBBB 
+#     ---------------
 #
       PARDO b, b1, b2, j 
 #              
@@ -10446,10 +10326,10 @@
             ENDDO j1 
 #              
 #TWODENS
-           #DO mu
-           #   Txbbj(mu,b1,b2,j)      = Tbbbj(b,b1,b2,j)*cb(mu,b)
-           #   PREPARE Dxbbj(mu,b1,b2,j) += Txbbj(mu,b1,b2,j)
-           #ENDDO mu 
+            DO mu
+               Txbbj(mu,b1,b2,j)      = Tbbbj(b,b1,b2,j)*cb(mu,b)
+               PREPARE Dxbbj(mu,b1,b2,j) += Txbbj(mu,b1,b2,j)
+            ENDDO mu 
 #              
 # Multiply by 4 to match aces 
 # --------------------------- 
@@ -10460,6 +10340,12 @@
 
       ENDPARDO b, b1, b2, j 
 # 
+#
+      ENDPROC DABCIBBBB 
+#     ------------------
+#
+      PROC DABCIABAB 
+#     --------------- 
 #
       PARDO a, a1, b, j
 #
@@ -10523,10 +10409,10 @@
             ENDDO j1
 
 #TWODENS
-           #DO mu
-           #   Txbaj(mu,b,a1,j)      = Tabaj(a,b,a1,j)*ca(mu,a)
-           #   PREPARE Dxbaj(mu,b,a1,j) += Txbaj(mu,b,a1,j)
-           #ENDDO mu 
+            DO mu
+               Txbaj(mu,b,a1,j)      = Tabaj(a,b,a1,j)*ca(mu,a)
+               PREPARE Dxbaj(mu,b,a1,j) += Txbaj(mu,b,a1,j)
+            ENDDO mu 
 #
 # Multiply by 4 to match aces 
 # --------------------------- 
@@ -10538,6 +10424,12 @@
 #              
       ENDPARDO a, a1, b, j
 #
+#
+      ENDPROC DABCIABAB 
+#     ------------------ 
+#
+      PROC DABCIBABA 
+#     --------------- 
 #
       PARDO b1, b, a, i
 #
@@ -10601,10 +10493,10 @@
             ENDDO i1 
 
 #TWODENS
-           #DO mu
-           #   Txabi(mu,a,b,i)      = Tbabi(b1,a,b,i)*cb(mu,b1)
-           #   PREPARE Dxabi(mu,a,b,i) += Txabi(mu,a,b,i)
-           #ENDDO mu
+            DO mu
+               Txabi(mu,a,b,i)      = Tbabi(b1,a,b,i)*cb(mu,b1)
+               PREPARE Dxabi(mu,a,b,i) += Txabi(mu,a,b,i)
+            ENDDO mu
 #
 # Multiply by 4 to match aces 
 # --------------------------- 
@@ -10616,9 +10508,14 @@
 #
       ENDPARDO b1, b, a, i
 
-      ENDPROC  DABCI
 #
 #
+      ENDPROC DABCIBABA 
+#-------------------------------------------------------------------------
+
+
+
+
 #-------------------------------------------------------------------------
 #
 #     ---------------
@@ -10830,6 +10727,7 @@
          GET  t1a_old(a1,i)
 
          tpppp  (a2,a,a1,i)  = LR2L2_aa (a2,a) ^ t1a_old (a1,i)
+         tpppp  (a2,a,a1,i) *= 0.5
          t1pppp (a2,a,a1,i)  = LT2L2_aa (a2,a) ^ R1A  (a1,i)
          tpppp  (a2,a,a1,i) += t1pppp (a2,a,a1,i)
 
@@ -10846,6 +10744,7 @@
          GET  t1b_old(b1,j)
 
          tqqqq  (b2,b,b1,j)  = LR2L2_bb (b2,b) ^ t1b_old (b1,j)
+         tqqqq  (b2,b,b1,j) *= 0.5
          t1qqqq (b2,b,b1,j)  = LT2L2_bb (b2,b) ^ R1B  (b1,j)
          tqqqq  (b2,b,b1,j) += t1qqqq (b2,b,b1,j)
 
@@ -10861,6 +10760,7 @@
          GET  R1A (a,i)
          GET  t1a_old(a,i)
          tqqpp  (b,b1,a,i)  = LR2L2_bb (b,b1) ^ t1a_old (a,i)
+         tqqpp  (b,b1,a,i) *= 0.5
          t1qqpp (b,b1,a,i)  = LT2L2_bb (b,b1) ^ R1A  (a,i)
          tqqpp  (b,b1,a,i) += t1qqpp (b,b1,a,i)
 
@@ -10873,6 +10773,7 @@
          GET  R1B (b,j)
          GET  t1b_old(b,j)
          tppqq  (a1,a,b,j)  = LR2L2_aa (a1,a) ^ t1b_old (b,j)
+         tppqq  (a1,a,b,j) *= 0.5
          t1ppqq (a1,a,b,j)  = LT2L2_aa (a1,a) ^ R1B  (b,j)
          tppqq  (a1,a,b,j) += t1ppqq (a1,a,b,j)
 
@@ -11009,8 +10910,7 @@
          taaii (a,a1,i2,i) = TAU_aa  (a1,i,a,i2)
          DO a2
             tpppp (a,a1,a2,i)  = taaii (a,a1,i2,i) * LR1L2_ai (a2,i2)
-           #tpppp (a,a1,a2,i) *= 0.25
-            tpppp (a,a1,a2,i) *= 0.5
+            tpppp (a,a1,a2,i) *= 0.25
             PREPARE  Dabci_aaaa (a,a1,a2,i) += tpppp (a,a1,a2,i)
          ENDDO a2
       ENDPARDO  i2, a, a1, i
@@ -11020,8 +10920,7 @@
          tbbjj (b,b1,j2,j) = TAU_bb  (b1,j,b,j2)
          DO b2
             tqqqq (b,b1,b2,j)  = tbbjj (b,b1,j2,j) * LR1L2_bj (b2,j2)
-           #tqqqq (b,b1,b2,j) *= 0.25
-            tqqqq (b,b1,b2,j) *= 0.5
+            tqqqq (b,b1,b2,j) *= 0.25
             PREPARE  Dabci_bbbb (b,b1,b2,j) += tqqqq (b,b1,b2,j)
          ENDDO b2
       ENDPARDO  j2, b, b1, j
@@ -11031,8 +10930,7 @@
          tbaji (b1,a,j2,i) = TAU_ab (a,i,b1,j2)
          DO b
             tqpqp (b1,a,b,i)  = LR1L2_bj (b,j2) * tbaji (b1,a,j2,i)
-           #tqpqp (b1,a,b,i) *= 0.25
-            tqpqp (b1,a,b,i) *= 0.5
+            tqpqp (b1,a,b,i) *= 0.25
             PREPARE  Dabci_baba (b1,a,b,i) += tqpqp (b1,a,b,i)
          ENDDO b
       ENDPARDO  j2, a, b1, i
@@ -11042,8 +10940,7 @@
          tabij (a,b,i2,j) = TAU_ab (a,i2,b,j)
          DO a1
             tpqpq (a,b,a1,j)  = LR1L2_ai (a1,i2) * tabij (a,b,i2,j)
-           #tpqpq (a,b,a1,j) *= 0.25
-            tpqpq (a,b,a1,j) *= 0.5
+            tpqpq (a,b,a1,j) *= 0.25
             PREPARE  Dabci_abab (a,b,a1,j) += tpqpq (a,b,a1,j)
          ENDDO a1
       ENDPARDO  i2, b, a, j 
@@ -11060,6 +10957,29 @@
 
 
 
+#-------------------------------------------------------------------------
+      PROC DABCI  
+#     ---------- 
+#
+# Create distributed intermediate arrays 
+# -------------------------------------- 
+#
+     #CALL I2XX
+     #execute server_barrier   
+      CALL DABCI_EOM
+      CALL DABCIAAAA
+      CALL DABCIBBBB
+      CALL DABCIABAB
+      CALL DABCIBABA
+     # EXECUTE  SERVER_BARRIER  # WAtson, check this
+     # CALL IAIXX 
+#
+# Delete distributed intermediate arrays 
+# -------------------------------------- 
+#
+      ENDPROC DABCI 
+#     ------------- 
+#
 # Equivalent to gamma6 
 #
 # ----------------------------------------------------------------------------- 
@@ -11069,7 +10989,7 @@
 #
 # ----------------------------------------------------------------------------- 
 #
-      PROC DIJKA
+      PROC DIJKAAAAA 
 #     -------------- 
 #
       PARDO i, i1, i2, a 
@@ -11130,10 +11050,10 @@
             ENDDO i3 
 #
 #TWODENS
-           #DO sigma 
-           #   Tiiix(i,i1,i2,sigma)      = Tiiia(i,i1,i2,a)*ca(sigma,a) 
-           #   PREPARE Diiix(i,i1,i2,sigma) += Tiiix(i,i1,i2,sigma)
-           #ENDDO sigma
+            DO sigma 
+               Tiiix(i,i1,i2,sigma)      = Tiiia(i,i1,i2,a)*ca(sigma,a) 
+               PREPARE Diiix(i,i1,i2,sigma) += Tiiix(i,i1,i2,sigma)
+            ENDDO sigma
 
 #
 # Multiply by 4 to match aces 
@@ -11146,12 +11066,20 @@
       ENDPARDO i, i1, i2, a 
 #
 #
+      ENDPROC DIJKAAAAA 
+#     ----------------- 
+#
+# ----------------------------------------------------------------------------- 
+#
 # ----------------------------------------------------------------------------- 
 #
 # In this procedure the D(iJ,kA) block of the two-particle 
 # density matrix is evaluated. The AB block is computed.  
 #
 # ----------------------------------------------------------------------------- 
+#
+      PROC DIJKAABAB 
+#     -------------- 
 #
       PARDO i, j, i1, b 
 #
@@ -11208,10 +11136,10 @@
             ENDDO b1 
 #
 # TWODENS
-           #DO sigma
-           #   Tijix(i,j,i1,sigma)      = Tijib(i,j,i1,b)*cb(sigma,b)
-           #   PREPARE Dijix(i,j,i1,sigma) += Tijix(i,j,i1,sigma)
-           #ENDDO sigma 
+            DO sigma
+               Tijix(i,j,i1,sigma)      = Tijib(i,j,i1,b)*cb(sigma,b)
+               PREPARE Dijix(i,j,i1,sigma) += Tijix(i,j,i1,sigma)
+            ENDDO sigma 
 
 # Multiply by 4 to match aces 
 # --------------------------- 
@@ -11223,12 +11151,20 @@
       ENDPARDO i, j, i1, b 
 #
 #
+      ENDPROC DIJKAABAB 
+#     ----------------- 
+#
+# ----------------------------------------------------------------------------- 
+#
 # ----------------------------------------------------------------------------- 
 #
 # In this procedure the D(Ij,Ka) block of the two-particle 
 # density matrix is evaluated. The BABA block is computed.  
 #
 # ----------------------------------------------------------------------------- 
+#
+      PROC DIJKABABA 
+#     -------------- 
 #
       PARDO j, i, j1, a 
 #
@@ -11285,10 +11221,10 @@
             ENDDO a1 
 
 #TWODENS
-           #DO sigma 
-           #   Tjijx(j,i,j1,sigma)      = Tjija(j,i,j1,a)*ca(sigma,a)
-           #   PREPARE Djijx(j,i,j1,sigma) += Tjijx(j,i,j1,sigma) 
-           #ENDDO sigma 
+            DO sigma 
+               Tjijx(j,i,j1,sigma)      = Tjija(j,i,j1,a)*ca(sigma,a)
+               PREPARE Djijx(j,i,j1,sigma) += Tjijx(j,i,j1,sigma) 
+            ENDDO sigma 
 
 #
 # Multiply by 4 to match aces 
@@ -11300,12 +11236,20 @@
 #
       ENDPARDO j, i, j1, a 
 # 
+      ENDPROC DIJKABABA 
+#     ----------------- 
+#
+# ----------------------------------------------------------------------------- 
+#
 # ----------------------------------------------------------------------------- 
 #
 # In this procedure the D(IJ,KA) block of the two-particle 
 # density matrix is evaluated. Only the BBBB contribution is computed.  
 #
 # ----------------------------------------------------------------------------- 
+#
+      PROC DIJKABBBB 
+#     -------------- 
 #
       PARDO j, j1, j2, b 
 #
@@ -11365,10 +11309,10 @@
             ENDDO j3 
 
 #TWODENS
-           #DO sigma
-           #   Tjjjx(j,j1,j2,sigma)      = Tjjjb(j,j1,j2,b)*cb(sigma,b)
-           #   PREPARE Djjjx(j,j1,j2,sigma) += Tjjjx(j,j1,j2,sigma)
-           #ENDDO sigma
+            DO sigma
+               Tjjjx(j,j1,j2,sigma)      = Tjjjb(j,j1,j2,b)*cb(sigma,b)
+               PREPARE Djjjx(j,j1,j2,sigma) += Tjjjx(j,j1,j2,sigma)
+            ENDDO sigma
 
 #
 # Multiply by 4 to match aces 
@@ -11379,9 +11323,14 @@
             PREPARE Dijka_bbbb(j,j1,j2,b) += Tjjjb(j,j1,j2,b) 
 #
       ENDPARDO j, j1, j2, b 
-
-      ENDPROC  DIJKA
 #
+      ENDPROC DIJKABBBB 
+#     ----------------- 
+#
+# ----------------------------------------------------------------------------- 
+
+
+
 #-------------------------------------------------------------------------
 #
 #     ---------------
@@ -11595,6 +11544,7 @@
          GET  t1a_old (a,i1)
 
          tpppp  (i,i2,i1,a)  = LR2L2_ii (i2,i) ^ t1a_old (a,i1)
+         tpppp  (i,i2,i1,a) *= 0.5
          t1pppp (i,i2,i1,a)  = LT2L2_ii (i2,i) ^ R1A  (a,i1)
          tpppp  (i,i2,i1,a) += t1pppp (i,i2,i1,a)
 
@@ -11611,6 +11561,7 @@
          GET  t1b_old (b,j1)
 
          tqqqq  (j,j2,j1,b)  = LR2L2_jj (j2,j) ^ t1b_old (b,j1)
+         tqqqq  (j,j2,j1,b) *= 0.5
          t1qqqq (j,j2,j1,b)  = LT2L2_jj (j2,j) ^ R1B  (b,j1)
          tqqqq  (j,j2,j1,b) += t1qqqq (j,j2,j1,b)
          
@@ -11626,6 +11577,7 @@
          GET  R1B (b,j1)
          GET  t1b_old (b,j1)
          tppqq  (i2,i,b,j1)  = LR2L2_ii (i2,i) ^ t1b_old (b,j1)
+         tppqq  (i2,i,b,j1) *= 0.5
          t1ppqq (i2,i,b,j1)  = LT2L2_ii (i2,i) ^ R1B  (b,j1)
          tppqq  (i2,i,b,j1) += t1ppqq (i2,i,b,j1)
 
@@ -11638,6 +11590,7 @@
          GET  R1A (a,i1)
          GET  t1a_old (a,i1)
          tqqpp  (j2,j,a,i1)  = LR2L2_jj (j2,j) ^ t1a_old (a,i1)
+         tqqpp  (j2,j,a,i1) *= 0.5
          t1qqpp (j2,j,a,i1)  = LT2L2_jj (j2,j) ^ R1A  (a,i1)
          tqqpp  (j2,j,a,i1) += t1qqpp (j2,j,a,i1)
 
@@ -11772,8 +11725,7 @@
          tiiaa (i,i1,a2,a) = TAU_aa  (a2,i,a,i1)
          DO i2
             tpppp (i,i1,i2,a)  = tiiaa (i,i1,a2,a) * LR1L2_ai (a2,i2)
-           #tpppp (i,i1,i2,a) *= -0.25
-            tpppp (i,i1,i2,a) *= -0.5
+            tpppp (i,i1,i2,a) *= -0.25
             PREPARE  Dijka_aaaa (i,i1,i2,a) += tpppp (i,i1,i2,a)
          ENDDO i2
       ENDPARDO  a2, i, a, i1
@@ -11783,8 +11735,7 @@
          tjjbb (j,j1,b2,b) = TAU_bb  (b2,j,b,j1) 
          DO j2 
             tqqqq (j,j1,j2,b)  = tjjbb (j,j1,b2,b) * LR1L2_bj (b2,j2)
-           #tqqqq (j,j1,j2,b) *= -0.25
-            tqqqq (j,j1,j2,b) *= -0.5
+            tqqqq (j,j1,j2,b) *= -0.25
             PREPARE  Dijka_bbbb (j,j1,j2,b) += tqqqq (j,j1,j2,b)
          ENDDO j2
       ENDPARDO  b2, j, b, j1
@@ -11794,8 +11745,7 @@
          tijab (i,j1,a2,b) = TAU_ab (a2,i,b,j1)
          DO i2
             tpqpq (i,j1,i2,b)  = tijab (i,j1,a2,b) * LR1L2_ai (a2,i2)
-           #tpqpq (i,j1,i2,b) *= -0.25
-            tpqpq (i,j1,i2,b) *= -0.5
+            tpqpq (i,j1,i2,b) *= -0.25
             PREPARE  Dijka_abab (i,j1,i2,b) += tpqpq (i,j1,i2,b)
          ENDDO i2
       ENDPARDO  a2, i, b, j1
@@ -11805,8 +11755,7 @@
          tjiba (j,i1,b2,a) = TAU_ab (a,i1,b2,j)
          DO j2
             tqpqp (j,i1,j2,a)  = tjiba (j,i1,b2,a) * LR1L2_bj (b2,j2)
-           #tqpqp (j,i1,j2,a) *= -0.25
-            tqpqp (j,i1,j2,a) *= -0.5
+            tqpqp (j,i1,j2,a) *= -0.25
             PREPARE  Dijka_baba (j,i1,j2,a) += tqpqp (j,i1,j2,a)
          ENDDO j2
       ENDPARDO  b2, j, a, i1
@@ -11822,6 +11771,23 @@
 
 
 
+# ----------------------------------------------------------------------------- 
+#
+      PROC DIJKA 
+#     ---------- 
+#
+# Create gamma arrays 
+# ------------------- 
+#
+           CALL DIJKA_EOM
+           CALL DIJKAAAAA 
+           CALL DIJKAABAB 
+           CALL DIJKABABA 
+           CALL DIJKABBBB 
+#
+      ENDPROC DIJKA 
+#     ------------- 
+#
 # ----------------------------------------------------------------------------
 #
 # In this superprocedure the particle-particle block of the relaxed density 
@@ -22444,6 +22410,259 @@
 # -----------------------------------------------------------------------------
 #
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 
+#
+#
+      PROC S2IAB 
+#
+           DO a 
+           DO a1 
+              GET Iab_aa(a,a1) 
+              execute dump_block Iab_aa(a,a1)  
+           ENDDO a1 
+           ENDDO a 
+#
+           DO b 
+           DO b1 
+              GET Iab_bb(b,b1) 
+              execute dump_block Iab_bb(b,b1)  
+           ENDDO b1 
+           ENDDO b 
+#
+      ENDPROC S2IAB 
+#
+      PROC S2IAI 
+#
+           DO a 
+           DO i 
+              GET Iai_aa(a,i) 
+              execute dump_block Iai_aa(a,i)  
+           ENDDO i 
+           ENDDO a 
+#
+           DO b 
+           DO j 
+              GET Iai_bb(b,j) 
+              execute dump_block Iai_bb(b,j)  
+           ENDDO j 
+           ENDDO b 
+#
+      ENDPROC S2IAI 
+#
+      PROC S2IIA 
+#
+           DO a 
+           DO i 
+              GET Iia_aa(i,a) 
+              execute dump_block Iia_aa(i,a)  
+           ENDDO i 
+           ENDDO a 
+#
+           DO b 
+           DO j 
+              GET Iia_bb(j,b) 
+              execute dump_block Iia_bb(j,b)  
+           ENDDO j 
+           ENDDO b 
+#
+      ENDPROC S2IIA 
+#
+      PROC PRINTIIJ
+#
+           esum = 0.0 
+           etot = 0.0 
+           PARDO i, i1
+              GET Iij_aa(i,i1)
+              etemp = Iij_aa(i,i1)*Iij_aa(i,i1)
+              esum += etemp 
+             #execute dump_block Iij_aa(i,i1)
+           ENDPARDO i, i1
+           execute sip_barrier 
+           collective etot += esum 
+           execute print_scalar etot 
+#
+           esum = 0.0 
+           etot = 0.0 
+           PARDO j, j1
+              GET Iij_bb(j,j1)
+              etemp = Iij_bb(j,j1)*Iij_bb(j,j1)
+              esum += etemp 
+             #execute dump_block Iij_bb(j,j1)
+           ENDPARDO j, j1
+           execute sip_barrier 
+           collective etot += esum 
+           execute print_scalar etot 
+#
+      ENDPROC PRINTIIJ
+#
+      PROC PRINTIAB
+#
+           esum = 0.0 
+           etot = 0.0 
+           PARDO a, a1
+              GET Iab_aa(a,a1)
+              etemp = Iab_aa(a,a1)*Iab_aa(a,a1) 
+              esum += etemp 
+             #execute dump_block Iab_aa
+           ENDPARDO a, a1
+           execute sip_barrier 
+           collective etot += esum 
+           execute print_scalar etot 
+#
+           esum = 0.0 
+           etot = 0.0 
+           PARDO b, b1
+              GET Iab_bb(b,b1)
+              etemp = Iab_bb(b,b1)*Iab_bb(b,b1) 
+              esum += etemp 
+             #execute dump_block Iab_bb
+           ENDPARDO b, b1
+           execute sip_barrier 
+           collective etot += esum 
+           execute print_scalar etot 
+#
+      ENDPROC PRINTIAB
+#
+      PROC PRINTIIA
+#
+           esum = 0.0 
+           etot = 0.0 
+           PARDO i, a
+              GET Iia_aa(i,a)
+              etemp = Iia_aa(i,a)*Iia_aa(i,a) 
+              esum += etemp 
+             #execute dump_block Iia_aa
+           ENDPARDO i, a
+           execute sip_barrier 
+           collective etot += esum 
+           execute print_scalar etot 
+#
+           esum = 0.0 
+           etot = 0.0 
+           PARDO j, b
+              GET Iia_bb(j,b)
+              etemp = Iia_bb(j,b)*Iia_bb(j,b) 
+              esum += etemp 
+             #execute dump_block Iia_bb
+           ENDPARDO j, b
+           execute sip_barrier 
+           collective etot += esum 
+           execute print_scalar etot 
+#
+      ENDPROC PRINTIIA
+#
+      PROC PRINTIAI
+#
+           esum = 0.0 
+           etot = 0.0 
+           PARDO i, a
+              GET Iai_aa(a,i)
+              etemp = Iai_aa(a,i)*Iai_aa(a,i) 
+              esum += etemp 
+             #execute dump_block Iai_aa
+           ENDPARDO i, a
+           execute sip_barrier 
+           collective etot += esum 
+           execute print_scalar etot 
+#
+           esum = 0.0 
+           etot = 0.0 
+           PARDO j, b
+              GET Iai_bb(b,j)
+              etemp = Iai_bb(b,j)*Iai_bb(b,j) 
+              esum += etemp 
+             #execute dump_block Iai_bb
+           ENDPARDO j, b
+           execute sip_barrier 
+           collective etot += esum 
+           execute print_scalar etot 
+#
+      ENDPROC PRINTIAI
+#
+# --------------------------------------------------------------------------- 
+# 
+# ----------------------------------------------------------------------------------------
+#
+# As a simple test of the correctnes of the code the sum of the sum of the squares 
+# of ALL the one-particle intermediates is computed. This can determine whether there
+# is an error but obviously not where the error is. Of course the same quantity 
+# must have been calculated correctly using another code.  
+#
+      PROC SQUAREALL 
+#     -------------- 
+#
+# Intermediate arrays
+# -------------------
+#
+      esum = 0.0 
+#
+      PARDO i, i1 
+            GET Iij_aa(i,i1)
+            etemp = Iij_aa(i,i1)*Iij_aa(i,i1) 
+            esum += etemp 
+      ENDPARDO i, i1 
+#
+      PARDO j, j1 
+            GET Iij_bb(j,j1)
+            etemp = Iij_bb(j,j1)*Iij_bb(j,j1) 
+            esum += etemp 
+      ENDPARDO j, j1 
+#
+      PARDO a, a1 
+            GET Iab_aa(a,a1)
+            etemp = Iab_aa(a,a1)*Iab_aa(a,a1) 
+            esum += etemp 
+      ENDPARDO a, a1 
+#
+      PARDO b, b1 
+            GET Iab_bb(b,b1)
+            etemp = Iab_bb(b,b1)*Iab_bb(b,b1) 
+            esum += etemp 
+      ENDPARDO b, b1 
+#
+      PARDO a, i 
+            GET Iai_aa(a,i)
+            etemp = Iai_aa(a,i)*Iai_aa(a,i) 
+            esum += etemp 
+      ENDPARDO a, i 
+#
+      PARDO a, i 
+            GET Iia_aa(i,a)
+            etemp = Iia_aa(i,a)*Iia_aa(i,a) 
+            esum += etemp 
+      ENDPARDO a, i 
+#
+      PARDO b, j 
+            GET Iai_bb(b,j)
+            etemp = Iai_bb(b,j)*Iai_bb(b,j) 
+            esum += etemp 
+      ENDPARDO b, j 
+#
+      PARDO b, j 
+            GET Iia_bb(j,b)
+            etemp = Iia_bb(j,b)*Iia_bb(j,b) 
+            esum += etemp 
+      ENDPARDO b, j 
+#
+      PARDO a, i 
+            GET Xai_aa(a,i)
+            etemp = Xai_aa(a,i)*Xai_aa(a,i) 
+            esum += etemp 
+      ENDPARDO a, i 
+#
+      PARDO b, j 
+            GET Xai_bb(b,j)
+            etemp = Xai_bb(b,j)*Xai_bb(b,j) 
+            esum += etemp 
+      ENDPARDO b, j 
+#
+      execute sip_barrier 
+      collective enew += esum 
+      execute print_scalar enew  
+#
+      ENDPROC SQUAREALL 
+#     ----------------- 
+# 
+# ----------------------------------------------------------------------------- 
 
 
 
@@ -23680,6 +23899,7 @@
          t3aa (a,a1) = DIS_VV4_A (a,a1)
          LR2L2_aa (a,a1) =  taa  (a,a1)
          LT2L2_aa (a,a1) =  t1aa (a,a1)
+         EXECUTE  DUMP_AMP  t1aa
          L_Y_aa   (a,a1) =  taa2 (a,a1)
          L_Z_aa   (a,a1) =  t3aa (a,a1)
       ENDDO a1
@@ -23813,83 +24033,7 @@
       PROC  BACK_TRANSFORMS
 #     ---------------------
 #
-#
-      PARDO  a, a1, a2, i
-         REQUEST  Dabci_aaaa (a,a1,a2,i) a
-         DO mu 
-            Txaai(mu,a1,a2,i)      = Dabci_aaaa(a,a1,a2,i)*ca(mu,a)
-            Txaai(mu,a1,a2,i)     *= 0.25
-            PREPARE Dxaai(mu,a1,a2,i) += Txaai(mu,a1,a2,i)  
-         ENDDO mu 
-      ENDPARDO  a, a1, a2, i
-
-      PARDO  b, b1, b2, j
-         REQUEST  Dabci_bbbb (b,b1,b2,j) b
-         DO mu
-            Txbbj(mu,b1,b2,j)      = Dabci_bbbb(b,b1,b2,j)*cb(mu,b)
-            Txbbj(mu,b1,b2,j)     *= 0.25
-            PREPARE Dxbbj(mu,b1,b2,j) += Txbbj(mu,b1,b2,j)
-         ENDDO mu
-      ENDPARDO  b, b1, b2, j
-
-      PARDO  b1, a, b, i
-         REQUEST  Dabci_baba (b1,a,b,i) b1
-         DO mu
-            Txabi(mu,a,b,i)      = Dabci_baba(b1,a,b,i)*cb(mu,b1)
-            Txabi(mu,a,b,i)     *= 0.25
-            PREPARE Dxabi(mu,a,b,i) += Txabi(mu,a,b,i)
-         ENDDO mu
-      ENDPARDO  b1, a, b, i
-
-      PARDO  a1, b, a, j
-         REQUEST  Dabci_abab (a1,b,a,j) a1
-         DO mu
-            Txbaj(mu,b,a,j)      = Dabci_abab(a1,b,a,j)*ca(mu,a1)
-            Txbaj(mu,b,a,j)     *= 0.25
-            PREPARE Dxbaj(mu,b,a,j) += Txbaj(mu,b,a,j)
-         ENDDO mu
-      ENDPARDO  a1, b, a, j
-
-      PARDO  a, i2, i1, i
-         REQUEST  Dijka_aaaa (i,i1,i2,a) a
-         DO sigma 
-            Tiiix(i,i1,i2,sigma)      = Dijka_aaaa(i,i1,i2,a)*ca(sigma,a)
-            Tiiix(i,i1,i2,sigma)     *= 0.25
-            PREPARE Diiix(i,i1,i2,sigma) += Tiiix(i,i1,i2,sigma)
-         ENDDO sigma
-      ENDPARDO  a, i2, i1, i
-
-      PARDO  b, j2, j1, j
-         REQUEST  Dijka_bbbb (j,j1,j2,b) b
-         DO sigma
-            Tjjjx(j,j1,j2,sigma)      = Dijka_bbbb(j,j1,j2,b)*cb(sigma,b)
-            Tjjjx(j,j1,j2,sigma)     *= 0.25
-            PREPARE Djjjx(j,j1,j2,sigma) += Tjjjx(j,j1,j2,sigma)
-         ENDDO sigma
-      ENDPARDO  b, j2, j1, j
-
-      PARDO  b, i1, j, i
-         REQUEST  Dijka_abab (i,j,i1,b) b
-         DO sigma 
-            Tijix(i,j,i1,sigma)      = Dijka_abab (i,j,i1,b)*cb(sigma,b) 
-            Tijix(i,j,i1,sigma)     *= 0.25
-            PREPARE Dijix(i,j,i1,sigma) += Tijix(i,j,i1,sigma) 
-         ENDDO sigma 
-      ENDPARDO  b, i1, j, i
-
-      PARDO  a, j1, i, j
-         REQUEST  Dijka_baba (j,i,j1,a) a
-         DO sigma
-            Tjijx(j,i,j1,sigma)      = Dijka_baba (j,i,j1,a)*ca(sigma,a)
-            Tjijx(j,i,j1,sigma)     *= 0.25
-            PREPARE Djijx(j,i,j1,sigma) += Tjijx(j,i,j1,sigma)
-         ENDDO sigma
-      ENDPARDO  a, j1, i, j
-
-      EXECUTE  SERVER_BARRIER
-#
 #  DIBJA
-#
       PARDO sigma, a1, i, i1
             Tiaix(i,a1,i1,sigma) = 0.0
             DO a
@@ -27170,6 +27314,8 @@
 #     
 # EOM GRADIENTS
       IG2R2 += etemp2 
+
+      execute print_scalar etemp2
 
       EXECUTE  SIP_BARRIER
 
@@ -30589,33 +30735,6 @@
       DELETE  D2aa
       DELETE  D2bb
 
-      DELETE  R2L2_iijj
-      DELETE  R2L2_iiii
-      DELETE  R2L2_jjjj
-      DELETE  R2G2_iijj
-      DELETE  R2G2_iiii
-      DELETE  R2G2_jjjj
-      DEALLOCATE  LR1W_ai  (*,*)
-      DEALLOCATE  LR1W_bj  (*,*)
-      DEALLOCATE  LR1W_ii  (*,*)
-      DEALLOCATE  LR1W_jj  (*,*)
-      DEALLOCATE  LR1W_aa  (*,*)
-      DEALLOCATE  LR1W_bb  (*,*)
-      DEALLOCATE  LR1L2_ai (*,*)
-      DEALLOCATE  LR1L2_bj (*,*)
-      DEALLOCATE  LR2L1_ai (*,*)
-      DEALLOCATE  LR2L1_bj (*,*)
-      DEALLOCATE  LR2W2_ai (*,*)
-      DEALLOCATE  LR2W2_bj (*,*)
-      DEALLOCATE  LR2W2_aa (*,*)
-      DEALLOCATE  LR2W2_bb (*,*)
-      DEALLOCATE  LR2W2_ii (*,*)
-      DEALLOCATE  LR2W2_jj (*,*)
-      DEALLOCATE  LR2L2_aa (*,*)
-      DEALLOCATE  LR2L2_bb (*,*)
-      DEALLOCATE  LR2L2_ii (*,*)
-      DEALLOCATE  LR2L2_jj (*,*)
-
      #CALL  PRINT_XI_AB
      #CALL  PRINT_XI_AA
      #CALL  PRINT_XI_BB
@@ -32219,230 +32338,9 @@
 
 
 
-#-------------------------------------------------------------------------
-#                                                                        #
-#                      \--------------------------/                      #
-#                      |    BEGIN MAIN PROGRAM    |                      #
-#                      /--------------------------\                      #
-#                                                                        #
-#-------------------------------------------------------------------------
-#                                                                        #
-#                                                                        #
-#                                                                        #
-      idebug = -1.0
-      iroot = eom_roots      # always get the last vector!
-      root_thresh = eom_tol  # tolerance to distinguish roots
-      EXECUTE  PRINT_SCALAR  iroot
-      EXECUTE  PRINT_SCALAR  root_thresh
-
-      ONEHALF =  0.5
-      ZERO    =  0.0
-      ONE     =  1.0
-      TWO     =  2.0
-      THREE   =  3.0
-
-      CREATE R1A_VECS
-      CREATE R1B_VECS
-      CREATE L1A_VECS
-      CREATE L1B_VECS
-      CREATE REE
-      CREATE LEE
-      CREATE R1A
-      CREATE R1B
-      CREATE L1A
-      CREATE L1B
-      CREATE Dia
-      CREATE Djb
-      CREATE t1a_old
-      CREATE t1b_old
-      CREATE a1a_old
-      CREATE a1b_old
-      create HBAR_aa
-      create HBAR_bb
-      create HBAR_ii
-      create HBAR_jj
-      CREATE HBAR_ia
-      CREATE HBAR_jb
-
-#
-# Read two-electron transformed integrals 
-# --------------------------------------- 
-#
-      CALL READ_2EL 
-      CALL  TRAN_UHF
-      EXECUTE  SERVER_BARRIER
-      CREATE  HBAR_ia
-      CREATE  HBAR_jb
-
-      CALL  GET_RL_AMPS
-      EXECUTE  SERVER_BARRIER
-      CALL  HBAR
-
-      DELETE  R1A_VECS
-      DELETE  R1B_VECS
-      DELETE  L1A_VECS
-      DELETE  L1B_VECS
-     #DESTROY  R2AA_VECS
-     #DESTROY  R2AB_VECS
-     #DESTROY  L2AA_VECS
-     #DESTROY  L2AB_VECS
-
-#
-#
-#     To make things numerically stable and avoid
-#     multiplication by LRNORM everywhere, it is 
-#     much easier to normalize L against R!
-#
-#
-      CALL COMP_LR_NORM
-      EXECUTE  SERVER_BARRIER
-#    
-#
-#     To make things numerically stable and avoid
-#     multiplication by LRNORM everywhere, it is 
-#     much easier to normalize L against R!
-#
-#
-      CALL COMP_LR_NORM
-      EXECUTE  SERVER_BARRIER
-      
-      PARDO  a, i, a1, i1
-         REQUEST              L2AA (i,a,i1,a1) a
-         tiaia (i,a,i1,a1)  = L2AA (i,a,i1,a1) 
-         tiaia (i,a,i1,a1) *= LRNORM
-         PREPARE  A2old_aa  (i,a,i1,a1) = tiaia (i,a,i1,a1)
-      ENDPARDO  a, i, a1, i1
-
-      PARDO  b, j, b1, j1
-         REQUEST              L2BB (j,b,j1,b1) b
-         tjbjb (j,b,j1,b1)  = L2BB (j,b,j1,b1)
-         tjbjb (j,b,j1,b1) *= LRNORM
-         PREPARE  A2old_bb  (j,b,j1,b1) = tjbjb (j,b,j1,b1)
-      ENDPARDO  b, j, b1, j1
-
-      PARDO  a, i, b, j
-         REQUEST            L2AB (i,a,j,b) a
-         tiajb (i,a,j,b)  = L2AB (i,a,j,b)
-         tiajb (i,a,j,b) *= LRNORM
-         PREPARE  A2old_ab  (i,a,j,b) = tiajb (i,a,j,b)
-      ENDPARDO  a, i, b, j
-
-      PARDO  a, i
-         GET          L1A (i,a)
-         tia (i,a)  = L1A (i,a)
-         tia (i,a) *= LRNORM
-         PUT  a1a_old  (i,a) = tia (i,a)
-      ENDPARDO  a, i
-
-      PARDO  b, j
-         GET          L1B (j,b)
-         tjb (j,b)  = L1B (j,b)
-         tjb (j,b) *= LRNORM
-         PUT  a1b_old  (j,b) = tjb (j,b)
-      ENDPARDO  b, j
-
-      EXECUTE  SERVER_BARRIER
-
-      PARDO  a, i, a1, i1
-         REQUEST              A2old_aa (i,a,i1,a1) a
-         tiaia (i,a,i1,a1)  = A2old_aa (i,a,i1,a1)
-         PREPARE  L2AA (i,a,i1,a1) = tiaia (i,a,i1,a1)
-      ENDPARDO  a, i, a1, i1
-
-      PARDO  b, j, b1, j1
-         REQUEST              A2old_bb (j,b,j1,b1) b
-         tjbjb (j,b,j1,b1)  = A2old_bb (j,b,j1,b1)
-         PREPARE  L2BB (j,b,j1,b1) = tjbjb (j,b,j1,b1)
-      ENDPARDO  b, j, b1, j1
-
-      PARDO  a, i, b, j
-         REQUEST            A2old_ab (i,a,j,b) a
-         tiajb (i,a,j,b)  = A2old_ab (i,a,j,b)
-         PREPARE  L2AB (i,a,j,b) = tiajb (i,a,j,b)
-      ENDPARDO  a, i, b, j
-
-      PARDO  a, i
-         GET          a1a_old (i,a)
-         tia (i,a)  = a1a_old (i,a)
-         PUT  L1A (i,a) = tia (i,a)
-      ENDPARDO  a, i
-
-      PARDO  b, j
-         GET          a1b_old (j,b)
-         tjb (j,b)  = a1b_old (j,b)
-         PUT  L1B (j,b) = tjb (j,b)
-      ENDPARDO  b, j
-
-      EXECUTE  SERVER_BARRIER
-     #DESTROY  L2AA_NORM
-     #DESTROY  L2AB_NORM
-
-      CALL  COMP_LR_NORM
-      EXECUTE  SERVER_BARRIER
-#
-#
-#     Now with Hbar and MO integrals, we need to
-#     compute Xi and then Zeta for the EOM gradients!
-#
-#
-      CREATE  Niijj
-      CREATE  Niiii
-      CREATE  Njjjj
-      CREATE  VCONV1B
-      CREATE  VCACT1B
-      CREATE  VCHACT1B
-      CREATE  VCONV1A
-      CREATE  VCACT1A
-      CREATE  VCHACT1A
-      CREATE  DDii
-      CREATE  DDaa
-      CREATE  DDjj
-      CREATE  DDbb
-      CREATE  VC1B
-      CREATE  VCH1B
-      CREATE  VTEMP1B
-      CREATE  VC1A
-      CREATE  VCH1A
-      CREATE  VTEMP1A
-
-      EXECUTE  SERVER_BARRIER
-         
-      CALL CALC_XI
-      CALL SOLVE_ZETA
-      
-      EXECUTE  SIP_BARRIER
-      DELETE  Niijj
-      DELETE  Niiii
-      DELETE  Njjjj
-      DELETE  VCONV1B
-      DELETE  VCACT1B
-      DELETE  VCHACT1B
-      DELETE  VCONV1A
-      DELETE  VCACT1A
-      DELETE  VCHACT1A
-      DELETE  DDii
-      DELETE  DDaa
-      DELETE  DDjj
-      DELETE  DDbb
-      DELETE  VC1B
-      DELETE  VCH1B
-      DELETE  VTEMP1B
-      DELETE  VC1A
-      DELETE  VCH1A
-      DELETE  VTEMP1A
-
-     #DELETE  Niijj
-     #DELETE  Niiii   
-     #DELETE  VCONV1A 
-     #DELETE  VCACT1A
-     #DELETE  VCHACT1A
-#
-#     
-#     Now form the one and two particle density
-#     matrices, including relaxed contribution
-#     and contract in to the gradient array!
-#     
-#     
+# ----------------------------------------------------------------------------- 
+      PROC DGRAD
+#     ----------
 #
 # Create single particle intermediates GAE and GMI and DAB, DIJ arrays 
 # ------------------------------------------------------------------------------ 
@@ -32685,7 +32583,6 @@
 #
 # Form DIJKL 
 # ---------- 
-        #CALL DIJKL_EOM # gamma3 
          CALL DIJKL # gamma3 
 
          EXECUTE  SERVER_BARRIER
@@ -32696,24 +32593,20 @@
 #
 # Form DIBJA 
 # ---------- 
-        #CALL DIBJA_EOM # gamma4 
          CALL DIBJA # gamma4 
 
          EXECUTE  SERVER_BARRIER
 #
 # Form DIJAB  
 # ---------- 
-        #CALL DIJAB_EOM # gamma1 
          CALL DIJAB # gamma1 
 #
 # Form DIJKA  
 # ---------- 
-        #CALL DIJKA_EOM # gamma6 
          CALL DIJKA # gamma6 
 #
 # Form DABCI 
 # ---------- 
-        #CALL DABCI_EOM # gamma5 
          CALL DABCI # gamma5 
 #
 # Compute 'Direct' contributions to Iab coming from Vabcd  
@@ -32728,8 +32621,6 @@
          CALL  I_CONTRIBUTIONS
          CALL  BACK_TRANSFORMS
          EXECUTE  SIP_BARRIER
-
-        # CALL TEMPLATE
 #
 # Finally solve for Dai iteratively 
 # --------------------------------- 
@@ -32745,15 +32636,11 @@
          EXECUTE  PRINT_SCALAR  ZERO
          EXECUTE  PRINT_SCALAR  ZERO
          EXECUTE  PRINT_SCALAR  ZERO
-           CALL  PRINT_DIJAB # Watson, works!
-           EXECUTE  PRINT_SCALAR  ZERO
-           CALL  PRINT_DIJKL # Watson, works!
-           EXECUTE  PRINT_SCALAR  ZERO
-           CALL  PRINT_DIBJA # Watson, works!
-           EXECUTE  PRINT_SCALAR  ZERO
-           CALL  PRINT_DIJKA # Watson, works!
-           EXECUTE  PRINT_SCALAR  ZERO
-           CALL  PRINT_DAIBC # Watson, works!
+            CALL  PRINT_DIJAB # Watson, works!
+            #CALL  PRINT_DIJKL # Watson, works!
+            #CALL  PRINT_DIBJA # Watson, works!
+            #CALL  PRINT_DIJKA # Watson, works!
+            #CALL  PRINT_DAIBC # Watson, works!
          EXECUTE  PRINT_SCALAR  ZERO
          EXECUTE  PRINT_SCALAR  ZERO
          EXECUTE  PRINT_SCALAR  ZERO
@@ -32800,6 +32687,238 @@
 #
       CALL  PDCONT
 
+      ENDPROC DGRAD
+#-------------------------------------------------------------------------
+
+
+
+
+
+#-------------------------------------------------------------------------
+#                                                                        #
+#                      \--------------------------/                      #
+#                      |    BEGIN MAIN PROGRAM    |                      #
+#                      /--------------------------\                      #
+#                                                                        #
+#-------------------------------------------------------------------------
+#                                                                        #
+#                                                                        #
+#                                                                        #
+      idebug = -1.0
+      iroot = eom_roots      # always get the last vector!
+      root_thresh = eom_tol  # tolerance to distinguish roots
+      EXECUTE  PRINT_SCALAR  iroot
+      EXECUTE  PRINT_SCALAR  root_thresh
+
+      ONEHALF =  0.5
+      ZERO    =  0.0
+      ONE     =  1.0
+      TWO     =  2.0
+      THREE   =  3.0
+
+      CREATE R1A_VECS
+      CREATE R1B_VECS
+      CREATE L1A_VECS
+      CREATE L1B_VECS
+      CREATE REE
+      CREATE LEE
+      CREATE R1A
+      CREATE R1B
+      CREATE L1A
+      CREATE L1B
+      CREATE Dia
+      CREATE Djb
+      CREATE t1a_old
+      CREATE t1b_old
+      CREATE a1a_old
+      CREATE a1b_old
+      create HBAR_aa
+      create HBAR_bb
+      create HBAR_ii
+      create HBAR_jj
+      CREATE HBAR_ia
+      CREATE HBAR_jb
+
+#
+# Read two-electron transformed integrals 
+# --------------------------------------- 
+#
+      CALL READ_2EL 
+      CALL  TRAN_UHF
+      EXECUTE  SERVER_BARRIER
+      CREATE  HBAR_ia
+      CREATE  HBAR_jb
+
+      CALL  GET_RL_AMPS
+      EXECUTE  SERVER_BARRIER
+      CALL  HBAR
+
+      DELETE  R1A_VECS
+      DELETE  R1B_VECS
+      DELETE  L1A_VECS
+      DELETE  L1B_VECS
+     #DESTROY  R2AA_VECS
+     #DESTROY  R2AB_VECS
+     #DESTROY  L2AA_VECS
+     #DESTROY  L2AB_VECS
+
+#
+#
+#     To make things numerically stable and avoid
+#     multiplication by LRNORM everywhere, it is 
+#     much easier to normalize L against R!
+#
+#
+      CALL COMP_LR_NORM
+      EXECUTE  SERVER_BARRIER
+#    
+#
+#     To make things numerically stable and avoid
+#     multiplication by LRNORM everywhere, it is 
+#     much easier to normalize L against R!
+#
+#
+      CALL COMP_LR_NORM
+      EXECUTE  SERVER_BARRIER
+      execute print_scalar lrnorm
+      PARDO  a, i, a1, i1
+         REQUEST              L2AA (i,a,i1,a1) a
+         tiaia (i,a,i1,a1)  = L2AA (i,a,i1,a1) 
+         tiaia (i,a,i1,a1) *= LRNORM
+         PREPARE  A2old_aa  (i,a,i1,a1) = tiaia (i,a,i1,a1)
+      ENDPARDO  a, i, a1, i1
+
+      PARDO  b, j, b1, j1
+         REQUEST              L2BB (j,b,j1,b1) b
+         tjbjb (j,b,j1,b1)  = L2BB (j,b,j1,b1)
+         tjbjb (j,b,j1,b1) *= LRNORM
+         PREPARE  A2old_bb  (j,b,j1,b1) = tjbjb (j,b,j1,b1)
+      ENDPARDO  b, j, b1, j1
+
+      PARDO  a, i, b, j
+         REQUEST            L2AB (i,a,j,b) a
+         tiajb (i,a,j,b)  = L2AB (i,a,j,b)
+         tiajb (i,a,j,b) *= LRNORM
+         PREPARE  A2old_ab  (i,a,j,b) = tiajb (i,a,j,b)
+      ENDPARDO  a, i, b, j
+
+      PARDO  a, i
+         GET          L1A (i,a)
+         tia (i,a)  = L1A (i,a)
+         tia (i,a) *= LRNORM
+         PUT  a1a_old  (i,a) = tia (i,a)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+         GET          L1B (j,b)
+         tjb (j,b)  = L1B (j,b)
+         tjb (j,b) *= LRNORM
+         PUT  a1b_old  (j,b) = tjb (j,b)
+      ENDPARDO  b, j
+
+      EXECUTE  SERVER_BARRIER
+
+      PARDO  a, i, a1, i1
+         REQUEST              A2old_aa (i,a,i1,a1) a
+         tiaia (i,a,i1,a1)  = A2old_aa (i,a,i1,a1)
+         PREPARE  L2AA (i,a,i1,a1) = tiaia (i,a,i1,a1)
+      ENDPARDO  a, i, a1, i1
+
+      PARDO  b, j, b1, j1
+         REQUEST              A2old_bb (j,b,j1,b1) b
+         tjbjb (j,b,j1,b1)  = A2old_bb (j,b,j1,b1)
+         PREPARE  L2BB (j,b,j1,b1) = tjbjb (j,b,j1,b1)
+      ENDPARDO  b, j, b1, j1
+
+      PARDO  a, i, b, j
+         REQUEST            A2old_ab (i,a,j,b) a
+         tiajb (i,a,j,b)  = A2old_ab (i,a,j,b)
+         PREPARE  L2AB (i,a,j,b) = tiajb (i,a,j,b)
+      ENDPARDO  a, i, b, j
+
+      PARDO  a, i
+         GET          a1a_old (i,a)
+         tia (i,a)  = a1a_old (i,a)
+         PUT  L1A (i,a) = tia (i,a)
+      ENDPARDO  a, i
+
+      PARDO  b, j
+         GET          a1b_old (j,b)
+         tjb (j,b)  = a1b_old (j,b)
+         PUT  L1B (j,b) = tjb (j,b)
+      ENDPARDO  b, j
+
+      EXECUTE  SERVER_BARRIER
+     #DESTROY  L2AA_NORM
+     #DESTROY  L2AB_NORM
+
+      CALL  COMP_LR_NORM
+      EXECUTE  SERVER_BARRIER
+#
+#
+#     Now with Hbar and MO integrals, we need to
+#     compute Xi and then Zeta for the EOM gradients!
+#
+#
+      CREATE  Niijj
+      CREATE  Niiii
+      CREATE  Njjjj
+      CREATE  VCONV1B
+      CREATE  VCACT1B
+      CREATE  VCHACT1B
+      CREATE  VCONV1A
+      CREATE  VCACT1A
+      CREATE  VCHACT1A
+      CREATE  DDii
+      CREATE  DDaa
+      CREATE  DDjj
+      CREATE  DDbb
+      CREATE  VC1B
+      CREATE  VCH1B
+      CREATE  VTEMP1B
+      CREATE  VC1A
+      CREATE  VCH1A
+      CREATE  VTEMP1A
+
+      EXECUTE  SERVER_BARRIER
+         
+      CALL CALC_XI
+      CALL SOLVE_ZETA
+      
+      EXECUTE  SIP_BARRIER
+      DELETE  Niijj
+      DELETE  Niiii
+      DELETE  Njjjj
+      DELETE  VCONV1B
+      DELETE  VCACT1B
+      DELETE  VCHACT1B
+      DELETE  VCONV1A
+      DELETE  VCACT1A
+      DELETE  VCHACT1A
+      DELETE  DDii
+      DELETE  DDaa
+      DELETE  DDjj
+      DELETE  DDbb
+      DELETE  VC1B
+      DELETE  VCH1B
+      DELETE  VTEMP1B
+      DELETE  VC1A
+      DELETE  VCH1A
+      DELETE  VTEMP1A
+
+     #DELETE  Niijj
+     #DELETE  Niiii   
+     #DELETE  VCONV1A 
+     #DELETE  VCACT1A
+     #DELETE  VCHACT1A
+#
+#     
+#     Now form the one and two particle density
+#     matrices, including relaxed contribution
+#     and contract in to the gradient array!
+#     
+#     
+      CALL DGRAD
 
 
       etemp = 13.0

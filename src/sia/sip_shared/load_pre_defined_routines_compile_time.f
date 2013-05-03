@@ -352,6 +352,14 @@ C Ajith Perera, miscellaneous developments.
 
       dummy = load_user_sub('sum_2d_array'//char(0), 0)
 
+      dummy = load_user_sub('compute_1soi_xbatch'//char(0),0)
+      dummy = load_user_sub('compute_1soi_ybatch'//char(0),0)
+      dummy = load_user_sub('compute_1soi_zbatch'//char(0),0)
+
+      dummy = load_user_sub('compute_2soi_xbatch'//char(0),0)
+      dummy = load_user_sub('compute_2soi_ybatch'//char(0),0)
+      dummy = load_user_sub('compute_2soi_zbatch'//char(0),0)
+
 
       return
       end

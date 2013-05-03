@@ -13,7 +13,7 @@ CPPFLAGS=-DMPIF2C -DC_SUFFIX -DCB_SUFFIX -mcmodel=medium -DMPI2 -shared-intel -O
 
 #ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
 LIBS = -Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -Wl,--end-group
-LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -lecp -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
+LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lprop_ints -lerd -loed -lecp -ldup -lsip1 -lsip2 -lsialinst $(LIBS)
 
 #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
 LIB_DIRS= -L.
@@ -37,6 +37,7 @@ ACES2_LIB=../../lib/libaces2.a
 GEOPT_LIB=../../lib/libgeopt.a
 SYMCOR_LIB=../../lib/libsymcor.a
 OED_LIB=../../lib/liboed.a
+PROP_INTS_LIB=../../libprop_ints.a
 ECP_LIB=../../lib/libecp.a
 DUP_LIB=../../lib/libdup.a
 INTEGRAL_OBJS=$(shell ls ../aces/aces_library/special_directory/direct_integral/*.o 2>/dev/null)

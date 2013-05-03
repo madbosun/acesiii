@@ -9725,11 +9725,170 @@
 #
 # ----------------------------------------------------------------------------
 #
+#     --------------
+      PROC DIBJA_EOM
+#     --------------
+#
+#
+#       ja    j  a     jm  e  a    jm  ea
+#      G   = l  r  +  l   r  t  + l   r    ; Last term for ABAB and BABA only
+#       bi    b  i     be  m  i    be  mi
+#
+#
+      PARDO  i, a, a1, i1
+         REQUEST  L2R2_aaaa (i,a1,i1,a) i
+         GET  t1a_old (a,i)
+         GET  R1A (a,i)
+         GET  L1A (i1,a1)
+         tia (i1,a1) = LR1L2_ai (a1,i1)
+         tpppp  (a,i,i1,a1)  = R1A (a,i) ^ L1A (i1,a1)
+         t1pppp (a,i,i1,a1)  = t1a_old (a,i) ^ tia (i1,a1)
+         tpppp  (a,i,i1,a1) += t1pppp (a,i,i1,a1)
+
+         tiaia  (i,a1,i1,a)  = tpppp (a,i,i1,a1)
+         tiaia  (i,a1,i1,a) += L2R2_aaaa (i,a1,i1,a)
+
+         tiaia  (i,a1,i1,a) *= 0.5
+         t1iaia (i1,a,i,a1)  = tiaia (i,a1,i1,a)
+         PREPARE  Dibja_aaaa (i,a1,i1,a) += tiaia  (i,a1,i1,a)
+         PREPARE  Dibja_aaaa (i1,a,i,a1) += t1iaia (i1,a,i,a1)
+      ENDPARDO  i, a, a1, i1
+
+      PARDO  i, a, b1, j1
+         REQUEST  L2R2_abba (i,b1,j1,a) i
+         GET  t1a_old (a,i)
+         GET  R1A (a,i)
+#        GET  L1A (j1,b1)
+         GET  L1B (j1,b1)
+         tjb (j1,b1) = LR1L2_bj (b1,j1)
+#         tppqq  (a,i,j1,b1)  = R1A (a,i) ^ L1A (j1,b1)
+         tppqq  (a,i,j1,b1)  = R1A (a,i) ^ L1B (j1,b1)
+         t1ppqq (a,i,j1,b1)  = t1a_old (a,i) ^ tjb (j1,b1)
+         tppqq  (a,i,j1,b1) += t1ppqq (a,i,j1,b1)
+
+#         tpqpq  (i,b1,j1,a)  = tppqq (a,i,j1,b1)
+#         tpqpq  (i,b1,j1,a) += L2R2_abba (i,b1,j1,a)
+#         tpqpq  (i,b1,j1,a) *= 0.5
+
+         tpqqp  (i,b1,j1,a)  = tppqq (a,i,j1,b1)
+         tpqqp  (i,b1,j1,a) += L2R2_abba (i,b1,j1,a)
+         tpqqp  (i,b1,j1,a) *= 0.5
+
+#         tqpqp  (j1,a,i,b1)  = tpqpq (i,b1,j1,a)
+         tqppq  (j1,a,i,b1)  = tpqqp (i,b1,j1,a)
+#         PREPARE  Dibja_abba (i,b1,j1,a) += tpqpq (i,b1,j1,a)
+#         PREPARE  Dibja_abba (j1,a,i,b1) += tqpqp (j1,a,i,b1)
+         PREPARE  Dibja_abba (i,b1,j1,a) += tpqqp (i,b1,j1,a)
+         PREPARE  Dibja_abba (i,b1,j1,a) += tqppq (j1,a,i,b1)
+      ENDPARDO  i, a, b1, j1
+
+      PARDO  i, b, i1, b1
+         REQUEST               L2R2_abab (i,b1,i1,b) i
+         tibib  (i,b,i1,b1)  = L2R2_abab (i,b1,i1,b)
+         tibib  (i,b,i1,b1) *= 0.5
+         t1ibib (i1,b1,i,b)  = tibib (i,b,i1,b1)
+         PREPARE  Dibja_abab (i,b,i1,b1) += tibib  (i,b,i1,b1)
+         PREPARE  Dibja_abab (i1,b1,i,b) += t1ibib (i1,b1,i,b)
+      ENDPARDO  i, b, i1, b1
+#
+#
+#       ja    jm    e  a    e  a
+#      G   = l   ( r  t  + t  r  )
+#       bi    be    i  m    i  m
+#
+#
+      PARDO  i1, a2, i2, a1
+         REQUEST                L2AA (i2,a2,i1,a1) i1
+         taaii (a2,a1,i1,i2)  = L2AA (i2,a2,i1,a1)
+         DO i
+            GET  R1A     (a2,i)
+            GET  t1a_old (a2,i)
+            t1ia (i,a2) = R1A     (a2,i)
+            t2ia (i,a2) = t1a_old (a2,i)
+            tpppp  (i,a1,i1,i2)  = t1ia (i,a2) * taaii (a2,a1,i1,i2)
+            t1pppp (i,a1,i1,i2)  = t2ia (i,a2) * taaii (a2,a1,i1,i2)
+            DO a
+               GET  R1A (a,i2)
+               tiaia  (i,a1,i1,a)  = tpppp  (i,a1,i1,i2) * ST1A (a,i2)
+               t1iaia (i,a1,i1,a)  = t1pppp (i,a1,i1,i2) * R1A  (a,i2)
+               tiaia  (i,a1,i1,a) += t1iaia (i,a1,i1,a)
+
+              #tiaia  (i,a1,i1,a) *= -1.0
+               tiaia  (i,a1,i1,a) *= -0.5
+               t2iaia (i1,a,i,a1)  = tiaia (i,a1,i1,a)
+               PREPARE  Dibja_aaaa (i,a1,i1,a) += tiaia  (i,a1,i1,a)
+               PREPARE  Dibja_aaaa (i1,a,i,a1) += t2iaia (i1,a,i,a1)
+            ENDDO a
+         ENDDO i
+      ENDPARDO  i1, a2, i2, a1
+
+      PARDO  j1, a2, i2, b1
+         REQUEST                L2AB (i2,a2,j1,b1) j1
+         tabji (a2,b1,j1,i2)  = L2AB (i2,a2,j1,b1)
+         DO i
+            GET  R1A     (a2,i)
+            GET  t1a_old (a2,i)
+            t1ia (i,a2) = R1A     (a2,i)
+            t2ia (i,a2) = t1a_old (a2,i)
+            tpqqp  (i,b1,j1,i2)  = t1ia (i,a2) * tabji (a2,b1,j1,i2)
+            t1pqqp (i,b1,j1,i2)  = t2ia (i,a2) * tabji (a2,b1,j1,i2)
+            DO a
+               GET  R1A     (a,i2)
+               GET  t1a_old (a,i2)
+               tibja  (i,b1,j1,a)  = tpqqp  (i,b1,j1,i2) * t1a_old (a,i2)
+               t1ibja (i,b1,j1,a)  = t1pqqp (i,b1,j1,i2) * R1A     (a,i2)
+               tibja  (i,b1,j1,a) += t1ibja (i,b1,j1,a)
+               tibja  (i,b1,j1,a) *= -0.5
+               tjaib  (j1,a,i,b1)  = tibja (i,b1,j1,a)
+               PREPARE  Dibja_abba (i,b1,j1,a) += tibja (i,b1,j1,a)
+#               PREPARE  Dibja_abba (j1,a,i,b1) += tjaib (j1,a,i,b1)
+               PREPARE  Dibja_abba (i,b1,j1,a) += tjaib (j1,a,i,b1)
+            ENDDO a
+         ENDDO i
+      ENDPARDO  j1, a2, i2, b1
+
+      PARDO  j2, b, i1, a2    
+         REQUEST              L2AB (i1,a2,j2,b) j2
+         tabij (a2,b,i1,j2) = L2AB (i1,a2,j2,b)
+         DO i
+            GET  R1A     (a2,i)
+            GET  t1a_old (a2,i)
+            t1ia (i,a2) = R1A     (a2,i)
+            t2ia (i,a2) = t1a_old (a2,i)
+            tibij  (i,b,i1,j2) = t1ia (i,a2) * tabij (a2,b,i1,j2)
+            t1ibij (i,b,i1,j2) = t2ia (i,a2) * tabij (a2,b,i1,j2)
+            DO b1
+#               GET  R1A     (b1,j2)
+               GET  R1B     (b1,j2)
+
+#               GET  t1a_old (b1,j2)
+               GET  t1b_old (b1,j2)
+#               tpqpq  (i,b,i1,b1)  = tibij  (i,b,i1,j2) * t1a_old (b1,j2)
+               tpqpq  (i,b,i1,b1)  = tibij  (i,b,i1,j2) * t1b_old (b1,j2)
+               t1pqpq (i,b,i1,b1)  = t1ibij (i,b,i1,j2) * R1B     (b1,j2)
+               tpqpq  (i,b,i1,b1) += t1pqpq (i,b,i1,b1)
+
+               tpqpq  (i,b,i1,b1) *= 0.5
+               t2pqpq (i1,b1,i,b)  = tpqpq (i,b,i1,b1)
+               PREPARE  Dibja_abab (i,b,i1,b1) += tpqpq  (i,b,i1,b1)
+               PREPARE  Dibja_abab (i1,b1,i,b) += t2pqpq (i1,b1,i,b)
+            ENDDO b1
+         ENDDO i
+      ENDPARDO  j2, b, i1, a2
+#
+#
+#     ..ready!
+#
+#
+      ENDPROC  DIBJA_EOM
+#---------------------------------------------------------------------------
+
       PROC DIBJA  
 #
 # Create gamma arrays and V intermediates 
 # --------------------------------------- 
 #
+           CALL DIBJA_EOM
            CALL DIBJAAAAA
            CALL DIBJAABAB
            CALL DIBJABABA

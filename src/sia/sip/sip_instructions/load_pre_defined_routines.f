@@ -159,6 +159,15 @@ c VFL SCF instructions
       external compute_ubatch7
       external compute_ubatch8
 
+C Ajith Perera, SOI instructions
+
+      external compute_1soi_xbatch, compute_1soi_ybatch,
+     &         compute_1soi_zbatch
+
+      external compute_2soi_xbatch, compute_2soi_ybatch,
+     &         compute_2soi_zbatch
+
+c------------------------------------------------------
       external form_iad
       external form_ibd
       external set_itol
@@ -639,6 +648,21 @@ c Ajith Perera, miscellaneous developments.
 c-------------------------------------------------------------------
       dummy = load_user_sub('sum_2d_array'//char(0), sum_2d_array)
       call set_upgrade_flag(dummy)
+
+      dummy = load_user_sub('compute_1soi_xbatch'//char(0),
+     &                       compute_1soi_xbatch)
+      dummy = load_user_sub('compute_1soi_ybatch'//char(0),
+     &                       compute_1soi_ybatch)
+      dummy = load_user_sub('compute_1soi_zbatch'//char(0),
+     &                       compute_1soi_zbatch)
+
+      dummy = load_user_sub('compute_2soi_xbatch'//char(0),
+     &                       compute_2soi_xbatch)
+      dummy = load_user_sub('compute_2soi_ybatch'//char(0),
+     &                       compute_2soi_ybatch)
+      dummy = load_user_sub('compute_2soi_zbatch'//char(0),
+     &                       compute_2soi_zbatch)
+
 
       return
       end
