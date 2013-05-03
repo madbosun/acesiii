@@ -64,8 +64,10 @@ scf_uhf_new.sio
 IGNORE_DROPMO=YES
 
 mp2_rhf_sp.sio
+NO_SERVERS=YES 
 
 mp2_uhf_sp.sio
+NO_SERVERS=YES 
 
 scf_rhf_isymm_diis10.sio
 IGNORE_DROPMO=YES
@@ -89,6 +91,7 @@ scf_rud_model.sio
 IGNORE_DROPMO=YES
 
 mp2_n6_uhf.sio
+NO_SERVERS=YES 
 
 hess_rohf_ao1_sv.sio
 SECOND_DERIVATIVE_INTEGRALS=YES

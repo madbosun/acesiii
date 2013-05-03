@@ -43,9 +43,9 @@ C  in the file COPYRIGHT.
       integer company_comm, pst_get_company_comm
       integer pst_get_company
       integer niocompany
-      integer request(10000)
+      integer request(max_procsx)
       integer msg(5)
-      integer statuses(MPI_STATUS_SIZE,10000)
+      integer statuses(MPI_STATUS_SIZE,max_procsx)
       integer status(MPI_STATUS_SIZE)
 
       if (dbg) then
@@ -89,7 +89,7 @@ c-------------------------------------------------------------------------
       niocompany = 0
       msg(1) = sip_server_barrier_signal
       msg(4) = current_line   ! in the "tag" field of the msg.
-      do i = 1, nprocs
+      do i = me+1, nprocs
          if (pst_get_company(i-1) .eq. io_company_id) then
 
 c---------------------------------------------------------------------------
@@ -97,8 +97,22 @@ c   Proc i-1 is a server.  Send the barrier message.
 c---------------------------------------------------------------------------
 
             niocompany = niocompany + 1
-            call mpi_isend(msg, 4, 
-     *               MPI_INTEGER, i-1, 
+            call mpi_isend(msg, 4,
+     *               MPI_INTEGER, i-1,
+     *               sip_server_message, mpi_comm_world,
+     *               request(niocompany), ierr)
+         endif
+      enddo
+      do i = 1, me
+         if (pst_get_company(i-1) .eq. io_company_id) then
+
+c---------------------------------------------------------------------------
+c   Proc i-1 is a server.  Send the barrier message.
+c---------------------------------------------------------------------------
+
+            niocompany = niocompany + 1
+            call mpi_isend(msg, 4,
+     *               MPI_INTEGER, i-1,
      *               sip_server_message, mpi_comm_world,
      *               request(niocompany), ierr)
          endif
@@ -118,7 +132,7 @@ c---------------------------------------------------------------------------
 
       if (my_company_rank .eq. 0) then
          niocompany = 0
-         do i = 1, nprocs
+         do i = me+1, nprocs
             if (pst_get_company(i-1) .eq. io_company_id) then
 
 c---------------------------------------------------------------------------
@@ -135,6 +149,22 @@ c---------------------------------------------------------------------------
             endif
          enddo
 
+         do i = 1, me
+            if (pst_get_company(i-1) .eq. io_company_id) then
+
+c---------------------------------------------------------------------------
+c   Proc i-1 is a server.  Receive the barrier message.
+c   Each server will send a 1-word indicator message using the 
+c   sip_server_barrier_signal as the message tag.
+c---------------------------------------------------------------------------
+
+               niocompany = niocompany + 1
+               call mpi_irecv(msg, 1,
+     *               MPI_INTEGER, i-1,
+     *               sip_server_barrier_signal, mpi_comm_world,
+     *               request(niocompany), ierr)
+            endif
+         enddo
 c-----------------------------------------------------------------------
 c   Wait for all the acknowledgement messages.
 c------------------------------------------------------------------------
@@ -142,6 +172,8 @@ c------------------------------------------------------------------------
          call mpi_waitall(niocompany, request, statuses, 
      *                    ierr)
       endif 
+      if (dbg) print *,'Task ',me,' Completed server response at line ',
+     *     current_line 
 
 c---------------------------------------------------------------------------
 c   Reset all persistent blocks  of all arrays which have had a "PREPARE"
@@ -156,6 +188,8 @@ c---------------------------------------------------------------------------
      *               index_table, nindex_table, block_map_table)
          endif
       enddo
+      if (dbg) print *,'Task ',me,' Completed free persistnt blocks at 
+     *                  line ', current_line 
 
 c--------------------------------------------------------------------------
 c   Force all processors to await acknowledgement that the servers have

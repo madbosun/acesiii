@@ -19,10 +19,11 @@ c-------------------------------------------------------------------------
       implicit none
       include 'mpif.h'
       include 'saved_data.h'
+      include 'int_gen_parms.h'
       integer status(MPI_STATUS_SIZE)
       integer i, ierr
 
-      common /saved_requests/my_saved_requests(10000)
+      common /saved_requests/my_saved_requests(max_procsx)
       integer my_saved_requests
 
       do i = 1, n_saved_requests

@@ -107,7 +107,7 @@ c--------------------------------------------------------------------------
       integer eseg(mx_array_index)
 
       integer mx_mpi_req
-      parameter (mx_mpi_req = 10000)
+      parameter (mx_mpi_req = 150000)
       integer request(mx_mpi_req)
       integer statuses(MPI_STATUS_SIZE, mx_mpi_req)
       integer status(MPI_STATUS_SIZE)

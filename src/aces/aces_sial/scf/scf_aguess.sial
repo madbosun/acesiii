@@ -107,7 +107,9 @@
       ENDDO mu  
       execute sip_barrier 
 #
-      CALL IGUESS  
+      IF Natoms > 3 
+         CALL IGUESS  
+      ENDIF 
       create Da 
       create Db 
       create Nai_d  

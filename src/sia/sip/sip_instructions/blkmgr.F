@@ -2722,27 +2722,28 @@ c--------------------------------------------------------------------------
                 call put_blk_header(MPI_REQUEST_NULL, 
      *                      i,c_block_request)
              else 
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_act_timer)
-                   call timer_start(pardo_tserver_timer)
-                endif
 
-c               call timer_start(timer_ovrhead)
                call update_timer(current_instr_timer)  
                call pause_timer(current_instr_unit_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *           call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *           call timer_start(pardo_tserver_timer)
                call timer_start(current_instr_mpi_timer)
                call timer_start (current_instr_mpino_timer)
+#endif               
                call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS               
                call update_timer (current_instr_mpino_timer)
                call update_timer(current_instr_mpi_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_tserver_timer)
+#endif                
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_act_timer)
                call resume_timer(current_instr_unit_timer)
                call timer_start(current_instr_timer)
-c               call update_timer(timer_ovrhead)
-c                call exec_thread_server(0)
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_tserver_timer)
-                   call timer_start(pardo_act_timer)
-                endif
                 go to 200
              endif
 
@@ -3047,8 +3048,11 @@ c-------------------------------------------------------------------------
       integer blkndx
       integer stack, istack
 
+#ifdef DETAILED_TIMERS
       call timer_start(current_instr_allocate_timer)
+#endif      
       call update_timer(current_instr_timer)
+      call pause_timer(current_instr_unit_timer)
 
       allocate_block = -1
       max_iterations = 600000   
@@ -3096,27 +3100,24 @@ c   Try to scrub a block from the current stack.
 c---------------------------------------------------------------------------
 
             do kscrub = 1, scrub_iterations
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_act_timer)
-                   call timer_start(pardo_tserver_timer)
-                endif
 
-c               call timer_start(timer_ovrhead)
-c               call update_timer(current_instr_timer)  
-               call pause_timer(current_instr_unit_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_tserver_timer)
                call timer_start(current_instr_mpi_timer)
                call timer_start (current_instr_mpino_timer)
+#endif               
                call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS
                call update_timer (current_instr_mpino_timer)
                call update_timer(current_instr_mpi_timer)
-               call resume_timer(current_instr_unit_timer)
-c               call timer_start(current_instr_timer)
-c               call update_timer(timer_ovrhead)  
-c               call exec_thread_server(0)  
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_tserver_timer)
-                   call timer_start(pardo_act_timer)
-                endif
+               if (pardo_block_wait_timer .ne. 0)
+     *             call update_timer(pardo_tserver_timer)
+#endif                
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_act_timer)
 
                call scrub_from_stack(stack, array_table,
      *                     narray_table, index_table, nindex_table,
@@ -3160,31 +3161,32 @@ c--------------------------------------------------------------------------
 
             call set_block_id(array, array_block, stack, i)
             call put_blk_in_use(i)
+#ifdef DETAILED_TIMERS            
             call update_timer(current_instr_allocate_timer)
+#endif            
             call timer_start(current_instr_timer)
+            call resume_timer(current_instr_unit_timer)
             return 
          else
             if (comm_list_head .ne. 0) then
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_act_timer)
-                   call timer_start(pardo_tserver_timer)
-                endif
                
-c               call timer_start(timer_ovrhead)
-c               call update_timer(current_instr_timer)  
-               call pause_timer(current_instr_unit_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_tserver_timer)
                call timer_start(current_instr_mpi_timer)
                call timer_start (current_instr_mpino_timer)
+#endif               
                call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS
                call update_timer (current_instr_mpino_timer)
                call update_timer(current_instr_mpi_timer)
-               call resume_timer(current_instr_unit_timer)
-c               call timer_start(current_instr_timer)
-c               call update_timer(timer_ovrhead)  
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_tserver_timer)
-                   call timer_start(pardo_act_timer)
-                endif
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_tserver_timer)
+#endif                
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_act_timer)
 
                call scrub_blocks(size, .false., array_table,
      *                   narray_table, index_table, nindex_table,
@@ -3204,27 +3206,24 @@ c     *             array,array_block,' k, ierr ',k, ierr
             endif
 
             if (ierr .ne. 0) then
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_act_timer)
-                   call timer_start(pardo_tserver_timer)
-                endif
 
-c               call timer_start(timer_ovrhead)
-c               call update_timer(current_instr_timer)  
-               call pause_timer(current_instr_unit_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_tserver_timer)
                call timer_start(current_instr_mpi_timer)
                call timer_start (current_instr_mpino_timer)
+#endif               
                call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS               
                call update_timer (current_instr_mpino_timer)
                call update_timer(current_instr_mpi_timer)
-               call resume_timer(current_instr_unit_timer)
-c               call timer_start(current_instr_timer)
-c               call update_timer(timer_ovrhead)  
-c               call exec_thread_server(0)   ! do one pass of thread server.
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_tserver_timer)
-                   call timer_start(pardo_act_timer)
-                endif
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_tserver_timer)
+#endif
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_act_timer)
 
             endif
          endif
@@ -3236,9 +3235,11 @@ c               call exec_thread_server(0)   ! do one pass of thread server.
       call array_block_summary(array_table, narray_table)
       call dump_block_ids()
       call abort_job()
-
+#ifdef DETAILED_TIMERS
       call update_timer(current_instr_allocate_timer)
+#endif      
       call timer_start(current_instr_timer)
+      call resume_timer(current_instr_unit_timer)
       return
       end
 
@@ -3274,9 +3275,11 @@ c-------------------------------------------------------------------------
       integer k, max_iterations, kscrub, scrub_iterations
       integer blkndx
       integer stack, istack
-
+#ifdef DETAILED_TIMERS
       call timer_start(current_instr_allocate_timer)
+#endif      
       call update_timer(current_instr_timer)
+       call pause_timer(current_instr_unit_timer)
       
       allocate_block_light = -1
 
@@ -3319,25 +3322,24 @@ c---------------------------------------------------------------------------
 c   Try to scrub a block from the current stack.
 c---------------------------------------------------------------------------
 
-          if (pardo_act_timer .ne. 0) then
-             call update_timer(pardo_act_timer)
-             call timer_start(pardo_tserver_timer)
-          endif
 
-c               call timer_start(timer_ovrhead)
-c               call update_timer(current_instr_timer)  
-               call pause_timer(current_instr_unit_timer)
-               call timer_start(current_instr_mpi_timer)
-               call timer_start (current_instr_mpino_timer)
-               call exec_thread_server(0)
-               call update_timer (current_instr_mpino_timer)
-               call update_timer(current_instr_mpi_timer)
-               call resume_timer(current_instr_unit_timer)
-c               call timer_start(current_instr_timer)
-          if (pardo_act_timer .ne. 0) then
-             call update_timer(pardo_tserver_timer)
-             call timer_start(pardo_act_timer)
-          endif
+               if (pardo_block_wait_timer .ne. 0)
+     *           call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *           call timer_start(pardo_tserver_timer)
+             call timer_start(current_instr_mpi_timer)
+             call timer_start (current_instr_mpino_timer)
+#endif               
+             call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS               
+             call update_timer (current_instr_mpino_timer)
+             call update_timer(current_instr_mpi_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *           call update_timer(pardo_tserver_timer)
+#endif          
+               if (pardo_block_wait_timer .ne. 0)
+     *           call timer_start(pardo_act_timer)
 
           call scrub_from_stack(stack, array_table,
      *                     narray_table, index_table, nindex_table,
@@ -3359,8 +3361,11 @@ c---------------------------------------------------------------------------
 
       allocate_block_light = -1
 c      print *,'TASK ',me,' ALLOC_LIGHT RETURN -1'
-      call timer_start(current_instr_timer)
+#ifdef DETAILED_TIMERS
       call update_timer(current_instr_allocate_timer)
+#endif      
+      call timer_start(current_instr_timer)
+      call resume_timer(current_instr_unit_timer)
       return
             
   200 continue 
@@ -3386,8 +3391,11 @@ c--------------------------------------------------------------------------
       call set_block_id(array, array_block, stack, i)
       call put_blk_in_use(i)
 c      print *,'TASK ',me,' ALLOC LIGHT SUCCEEDED: RETURN ',i  
-      call timer_start(current_instr_timer)
+#ifdef DETAILED_TIMERS
       call update_timer(current_instr_allocate_timer)
+#endif
+      call timer_start(current_instr_timer)
+      call resume_timer(current_instr_unit_timer)
       return 
       end
 

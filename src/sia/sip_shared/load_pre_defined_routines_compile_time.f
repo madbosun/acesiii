@@ -347,6 +347,8 @@ c      dummy = load_user_sub('vccs_change_x'//char(0), vccs_change_x)
      +                       0)
       dummy = load_user_sub('scf_atom_coeff'//char(0), 0)
 c
+c -------------------------------------------------------------------- 
+c Instructions needed in the CCSD(T) gradient  
 c --------------------------------------------------------------------
 C Ajith Perera, miscellaneous developments. 
 
@@ -360,6 +362,15 @@ C Ajith Perera, miscellaneous developments.
       dummy = load_user_sub('compute_2soi_ybatch'//char(0),0)
       dummy = load_user_sub('compute_2soi_zbatch'//char(0),0)
 
-
+      dummy = load_user_sub('index_match'//char(0), 0)
+      dummy = load_user_sub('ecp_dercont'//char(0), 0) 
+c--------------------------------------------------------------------
+c VFL Instruction needed for restricted pardo  updated JULY 22012
+c--------------------------------------------------------------------
+      dummy = load_user_sub('init_section'//char(0), 0)
+      dummy = load_user_sub('prestrict'//char(0), 0)
+      dummy = load_user_sub('doprestrict'//char(0), 0)
+c-------------------------------------------------------------------- 
+c
       return
       end

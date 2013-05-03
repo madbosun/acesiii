@@ -104,8 +104,9 @@ c--------------------------------------------------------------------------
 c   Clear the request on the send and recv.
 c--------------------------------------------------------------------------
 
-c      call timer_start (timer_ovrhead)
+#ifdef VERY_DETAILED_TIMERS
       call timer_start (pardo_tserver_timer)   
+#endif
   100 continue
 
       call mpi_test(request,  flag1, status, ierr)
@@ -113,11 +114,6 @@ c      call timer_start (timer_ovrhead)
          call exec_thread_server(0)
          go to 100
       endif
-c      call update_timer (pardo_tserver_timer)
-c      call update_timer (timer_ovrhead)
-
-c      call timer_start (timer_ovrhead)
-c      call timer_start (pardo_tserver_timer)   
   200 continue
 
       call mpi_test(request2, flag2, status, ierr)
@@ -125,8 +121,9 @@ c      call timer_start (pardo_tserver_timer)
          call exec_thread_server(0)
          go to 200
       endif
+#ifdef VERY_DETAILED_TIMERS
       call update_timer (pardo_tserver_timer)
-c      call update_timer (timer_ovrhead)
+#endif
 
       next_batch = batch_data(1) 
       last_batch = batch_data(2)

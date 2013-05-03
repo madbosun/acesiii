@@ -363,11 +363,21 @@ c---------------------------------------------------------------------------
          endif
          
          if (array_table(c_create_flag, result) .ne. 0) then
+
+            nindex = array_table(c_nindex,result)
+            partial_create = .false.
+            do k = 1, nindex
+               if (op(c_ind1+k-1) .eq. wildcard_indicator) 
+     *               partial_create = .true.
+            enddo
+            if (partial_create .eq. .false.) then 
             print *,'Task ',me,' Error: Attempt to create an array ',
-     *              'that has already been created.'
-            print *,'Array = ',result,' Array_table entry = ',
-     *              (array_table(j,result),j=1,larray_table_entry)
+     *              'that has already been created.', partial_create 
+            print *,'Wild Array = ', (op(c_ind1+k-1), k=1, nindex) 
+c           print *,'Array = ',result,' Array_table entry = ',
+c    *              (array_table(j,result),j=1,larray_table_entry)
             call abort_job()
+            endif 
          endif
 
 c----------------------------------------------------------------------------

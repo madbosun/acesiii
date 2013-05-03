@@ -225,6 +225,20 @@ c Ajith Perera, miscellaneous developments.
 c-------------------------------------------------------------------
       external sum_2d_array
 c-------------------------------------------------------------------
+c
+c -------------------------------------------------------------------- 
+c Instructions needed in the CCSD(T) gradient and ecpgradient   
+c --------------------------------------------------------------------
+c
+      external index_match 
+      external ecp_dercont 
+c--------------------------------------------------------------------
+c VFL Instruction needed for restricted pardo  updated JULY 22012
+c--------------------------------------------------------------------
+      external init_section
+      external prestrict
+      external doprestrict
+
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
       dummy = load_user_sub('energy_denominator' // char(0),
@@ -422,7 +436,6 @@ c     dummy = load_user_sub('open_amp'//char(0), open_amp)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dea'//char(0),
      *                                      place_one_dea)
-      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dea_2'//char(0),
      *                                      place_one_dea_2)
       call set_upgrade_flag(dummy) 
@@ -663,6 +676,19 @@ c-------------------------------------------------------------------
       dummy = load_user_sub('compute_2soi_zbatch'//char(0),
      &                       compute_2soi_zbatch)
 
+c Instructions needed in the CCSD(T) gradient and ecpgradient   
+c --------------------------------------------------------------------
+c
+      dummy = load_user_sub('index_match'//char(0), index_match)
+      dummy = load_user_sub('ecp_dercont'//char(0), ecp_dercont)
+c--------------------------------------------------------------------
+c VFL Instruction needed for restricted pardo  updated JULY 22012
+c--------------------------------------------------------------------
+      dummy = load_user_sub('init_section'//char(0),init_section)
+      dummy = load_user_sub('prestrict'//char(0), prestrict)
+      dummy = load_user_sub('doprestrict'//char(0),doprestrict)
+c--------------------------------------------------------------------
+c
 
       return
       end

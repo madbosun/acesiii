@@ -8,11 +8,11 @@ c--------------------------------------------------------------------------
       parameter (contraction_trace = 2)
       integer proc_trace
       parameter (proc_trace = 4)
-   
+
       common /trace/tracelevel, current_op, current_line,trace,
      *              call_marker, dryrun, simulator, pardo_timer,
      *              pardo_block_wait_timer,
-     *              pardo_act_timer, pardo_tserver_timer, 
+     *              pardo_act_timer, pardo_tserver_timer,
      *              pardo_ovrhead_timer,
      *              pardo_times_timer,
      *              current_instr_timer,

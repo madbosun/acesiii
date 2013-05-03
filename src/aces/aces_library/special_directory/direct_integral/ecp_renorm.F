@@ -51,7 +51,7 @@ c     include 'saved_data.h'
       integer nbasis, ndim, natoms  
       double precision ecp_erd, decp_erd
       common /FECP/ndim, ecp_erd(2500,2500)  
-      common /DECP/natoms, decp_erd(50,3,1000,1000)  
+c     common /DECP/natoms, decp_erd(50,3,1000,1000)  
 
       integer map(max_basis) 
       logical bexist 
@@ -132,62 +132,6 @@ c     include 'saved_data.h'
       Write(6,*) "Linear and checksums"
       Write(6, "(2(1x, F20.10))") w, Ws
 #endif
-
-      INQUIRE(file='decpint.dat',exist=dExist) 
-
-      if (dexist) then 
-
-      OPEN (Unit = 88, File = 'decpint.dat', Form = 'Unformatted', 
-     *      Status = 'Old', Iostat = Ierror) 
-      rewind 88 
-#ifdef _DEBUG_LVL0
-      write(6,*) ' Reading the ECP derivative integrals ' 
-10    Format(2x,'ATOM NUMBER ',2x,I8) 
-20    Format(6x,'Coordinate ',2x,I8) 
-30    Format(12x,'Integrals ',2x,2I8,2x,F16.8) 
-#endif
-
-      read(88) natoms 
-      do jj = 1, natoms 
-c        write(6,10) jj 
-
-      do k = 1, 3  
-c        write(6,20) k  
-         read(88) ndim 
-         read(88) (etemp(i), i=1, ndim*(ndim+1)/2)  
-
-      kk = 0 
-      do i = 1, ndim  
-      do j = 1, i 
-           kk = kk + 1 
-           ecp_vmol(i,j) = etemp(kk) ! * scalars(ii) * scalars(jj) 
-           ecp_vmol(j,i) = etemp(kk) ! * scalars(ii) * scalars(jj)   
-      enddo 
-      enddo 
-
-      do i = 1, ndim  
-      do j = 1, ndim  
-           decp_erd(jj,k,i,j) = ecp_vmol(i,j) * scalars(i) * scalars(j) 
-c          write(6,30) i, j, decp_erd(jj,k,i,j)  
-
-#ifdef _DEBUG_LVL0
-           w  = w + decp_erd(jj,k,i, j)
-           Ws = ws + decp_erd(jj,k,i,j)*decp_erd(jj,k,i,j)
-#endif
-      enddo 
-      enddo 
-
-      enddo 
-      enddo 
-
-#ifdef _DEBUG_LVL0
-      Write(6,*) "Linear and checksums"
-      Write(6, "(2(1x, F20.10))") w, Ws
-#endif
-
-      close(88) 
-
-      endif ! bexist 
 
       return
       end

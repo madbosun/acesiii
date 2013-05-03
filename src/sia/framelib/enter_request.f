@@ -19,9 +19,10 @@ c   processing stage.
 c--------------------------------------------------------------------------
       implicit none
       include 'saved_data.h'
+      include 'int_gen_parms.h'
       integer request
 
-      common /saved_requests/my_saved_requests(10000)
+      common /saved_requests/my_saved_requests(max_procsx)
       integer my_saved_requests
 
       n_saved_requests = n_saved_requests + 1

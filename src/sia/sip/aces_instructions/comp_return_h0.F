@@ -238,15 +238,15 @@ c ------------------------------------------------------------------------
 
                endif ! nints 
 
-c              IF (ECP .eq. 1) then 
+               IF (ECP .eq. 1) then 
 c                 write(6,*) ' WATOM:', watom 
-c                 do a = a1, a2 
-c                 do b = b1, b2 
+                  do a = a1, a2 
+                  do b = b1, b2 
 c                    write(6,*) '  ', a,b, ecp_erd(a,b) 
-c                    z(a,b) = z(a,b)+ecp_erd(a,b)
-c                 enddo 
-c                 enddo 
-c              endif 
+                     z(a,b) = z(a,b)+ecp_erd(a,b)
+                  enddo 
+                  enddo 
+               endif 
 
             endif 
          enddo   ! n shells

@@ -25998,7 +25998,7 @@
        root11=100000.0
        root12=100000.0
 #
-       eomthresh= 0.00001
+       eomthresh= 0.0000001 
        rootmax=1.0
        maxcycle=100.0
 #

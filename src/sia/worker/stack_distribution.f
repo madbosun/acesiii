@@ -252,7 +252,7 @@ c   Divide out any remaining blocks evenly among the different stacks.
 c--------------------------------------------------------------------------
 
          nwords_per_group = 0
-         do i = 1, nstacks
+         do i = 1, nstacks ! VFL 2/26/13 
             nwords_per_group = nwords_per_group + stack_blocksizes(i) +
      *                      lblock_id_data
          enddo
@@ -278,7 +278,7 @@ c--------------------------------------------------------------------------
          nresidual = nscr - total_words
          nresidual_old = nresidual
 
-         do i = nstacks, 1, -1
+         do i = nstacks, 1, -1 ! VFL 2/26/13 
             if (stack_blocks(i) .ne. 0 .and. 
      *          nresidual .gt. 0) then
                weight =float(stack_blocks(i)) / total_blocks

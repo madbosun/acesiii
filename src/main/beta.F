@@ -143,10 +143,20 @@ c---------------------------------------------------------------------------
       call mpi_bcast(maxmem, 1, mpi_integer, 0,
      *               mpi_comm_world, mpierr)
       if (maxmem .eq. 0) maxmem = check_malloc() * 0.8
+999   continue 
       call mem_alloc_init(maxmem, sheap_flag, ierr)
       if (ierr .lt. 0) then
-         print *,'MEMORY ALLOCATION ERROR: maxmem = ',maxmem
+         print *,'MEMORY ALLOCATION ERROR: maxmem = ',maxmem, 'PROC', me 
+c        maxmem = maxmem - 100 
+c        if (maxmem .lt. 500) then 
+c           write(6,*) ' Too little memory available:', maxmem, 'ME', me 
+c        call abort_job()
+c        endif 
+c        go to 999 
          call abort_job()
+      else 
+         print *,'MEMORY ALLOCATION Sucessfull: maxmem = ',maxmem, 
+     *           'PROC', me 
       endif
 #ifdef ALTIX
       dptr = dshptr    ! set dbuf pointer to shared mem.
@@ -698,6 +708,13 @@ c-------------------------------------------------------------------
            init_scf = .false.
            stack_algorithm_type = 1
          endif
+
+c-------------------------------------------------------------------
+c Always set the stack_algorithm_typr to 2 -> extra blocks allocated 
+c based on usage.  
+c-------------------------------------------------------------------
+
+         stack_algorithm_type = 2
 
          first = .false.
          call init_data()

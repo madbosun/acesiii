@@ -22,7 +22,7 @@ c-------------------------------------------------------------------------
       include 'int_gen_parms.h'
       include 'machine_types.h'
       include 'mxatms.par' 
-      include 'scflindep.h' 
+      include 'scflindep.h'
 
       integer ierr
       common /flags/ iflags
@@ -50,14 +50,14 @@ c-------------------------------------------------------------------------
          call joda_main()
          print *,'Initial xjoda is complete...'
          call c_flush_stdout()
-      else
-c
-c lets set the linear dependency tolerance here in the case
-c of manual parallel finite difference calculations
-C Ajith Perera, 03/2013.
+      else 
 
-          lindep_tol = 9
+c Sets the linear dependence tolerance in cases when JOBARC exists so that 
+c it does not become 1.0!! 
+          lindep_tol = 9 
+
       endif
+
 c---------------------------------------------------------------------------
 c   Initialize ACES routines.
 c---------------------------------------------------------------------------

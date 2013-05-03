@@ -72,6 +72,7 @@
 #      mobindex q1= bbocc, ebvirt
 #      mobindex q2= bbocc, ebvirt
 #      mobindex q3= bbocc, ebvirt
+#
       moaindex q = baocc, eavirt
       moaindex q1= baocc, eavirt
       moaindex q2= baocc, eavirt
@@ -26122,9 +26123,9 @@
        root11=100000.0
        root12=100000.0
 #
-       eomthresh= 0.0005
+       eomthresh= 0.0000001 
        rootmax=1.0
-       maxcycle=50.0
+       maxcycle=100.0
 #
        rcrit = 10000.001 # Threshold to turm 2-particle correction on 
 #
