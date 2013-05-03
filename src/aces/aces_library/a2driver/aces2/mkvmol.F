@@ -226,7 +226,10 @@ C     skip the header
          bTmp = ((i.eq.0).or.(JobTtl(i:i).EQ.'%'))
       end do
 
-      IF ((.NOT.XYZIN).OR.(NWFINDIF)) THEN
+
+cVFL      IF ((.NOT.XYZIN).OR.(NWFINDIF)) THEN
+cVFL 4/15/2013 Changed as vib=findif breaks with ECP's
+      IF ((.NOT.XYZIN).and.(IECP.NE.1)) THEN
          i = 1
          do while (i.le.natms)
             read (LuZ,'(A)', ERR=8500, END=8510) Wrk

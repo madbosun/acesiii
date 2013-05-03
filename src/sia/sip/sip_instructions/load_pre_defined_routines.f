@@ -121,6 +121,7 @@ C  in the file COPYRIGHT.
       external timestamp
       external pardo_sects, get_ijk, set_ijk_aaa, stripi,
      *         sum_64ss, set_ijk_aab
+      external set_ijk_aaa_nosymm, set_ijk_aab_nosymm 
       external get_my_rank, broadcast_array
       external checkpoint, get_restart_status, commit_checkpoint
       external crash
@@ -513,9 +514,13 @@ c    *                       compute_abac_batch)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('get_ijk'//char(0), get_ijk)
       dummy = load_user_sub('set_ijk_aaa'//char(0), set_ijk_aaa)
+      dummy = load_user_sub('set_ijk_aaa_nosymm'//char(0), 
+     *                       set_ijk_aaa_nosymm)
       dummy = load_user_sub('stripi'//char(0), stripi)
       dummy = load_user_sub('sum_64ss'//char(0), sum_64ss)
       dummy = load_user_sub('set_ijk_aab'//char(0), set_ijk_aab)
+      dummy = load_user_sub('set_ijk_aab_nosymm'//char(0), 
+     *                       set_ijk_aab_nosymm)
       dummy = load_user_sub('get_my_rank'//char(0), get_my_rank)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('broadcast_array'//char(0), broadcast_array)

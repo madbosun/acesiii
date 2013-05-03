@@ -198,5 +198,14 @@ c--------------------------------------------------------------------------
 
       call mpi_barrier(company_comm, ierr)
       call prt_time('Passed the server barrier.')
+
+c--------------------------------------------------------------------------
+c   Dont proceed unless there are enough free blocks.  
+c               EXPERIMENTAL 
+c--------------------------------------------------------------------------
+
+c     call check_stack_pop(array_table, narray_table, index_table,
+c    *                           nindex_table, block_map_table)
+
       return
       end

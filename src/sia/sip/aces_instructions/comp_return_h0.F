@@ -239,11 +239,9 @@ c ------------------------------------------------------------------------
                endif ! nints 
 
                IF (ECP .eq. 1) then 
-c                 write(6,*) ' WATOM:', watom 
                   do a = a1, a2 
                   do b = b1, b2 
-c                    write(6,*) '  ', a,b, ecp_erd(a,b) 
-                     z(a,b) = z(a,b)+ecp_erd(a,b)
+cTURN OFF VFL                     z(a,b) = z(a,b)+ecp_erd(a,b)
                   enddo 
                   enddo 
                endif 

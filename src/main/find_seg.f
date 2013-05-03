@@ -31,7 +31,7 @@ c norb segmentation
 c ----------------- 
 c
       nmin = 20 
-      nmax = 35 
+      nmax = 40 
 
 c----------------------------------------------------------------------------
 c   Handle tiny jobs appropriately.
@@ -111,7 +111,7 @@ c nvirt segmentation
 c ------------------ 
 c
       nmin    = 22 
-      nmax    = 35 
+      nmax    = 40 
 c
 c make sure range is applicable 
 c ----------------------------- 
@@ -180,7 +180,7 @@ c nocc segmentation
 c ------------------ 
 c
       nmin    = 10 
-      nmax    = 30  
+      nmax    = 40  
 c
 c make sure range is applicable 
 c ----------------------------- 

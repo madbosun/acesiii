@@ -961,7 +961,7 @@ c--------------------------------------------------------------------------
 
       integer i, j, n
       integer a,b,c,d,e,f
-      integer xval(6), map(6)
+      integer xval(6), map(6), map1, map2, map3, map4, map5, map6 
 
 c--------------------------------------------------------------------------
 c   'Optimized' 6-dimensional transpose.
@@ -1351,27 +1351,168 @@ c--------------------------------------------------------------------------
 c   Generic 6-dimensional transpose.
 c--------------------------------------------------------------------------
 
-c     write(6,*) 'Unoptimized permutation at line#', current_line 
+      do i = 1, 6
+         do j = 1, 6
+            if (yind(i) .eq. xind(j)) map(j) = i
+         enddo
+      enddo
+      map1 = map(1) 
+      map2 = map(2) 
+      map3 = map(3) 
+      map4 = map(4) 
+      map5 = map(5) 
+      map6 = map(6) 
+
+c     perm 123456 -> abcdef  
+      if ((map1.eq.1) .and. (map2.eq.2) .and. (map3.eq.3) .and.  
+     *    (map4.eq.4) .and. (map5.eq.5) .and. (map6.eq.6)) then    
+      do f = yf1, yf2
+      do e = ye1, ye2
+      do d = yd1, yd2
+      do c = yc1, yc2
+      do b = yb1, yb2
+      do a = ya1, ya2
+         y(a,b,c,d,e,f) = x(a,b,c,d,e,f) 
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+
+      return
+      endif 
+
+c     perm 213456 -> bacdef  
+      if ((map1.eq.2) .and. (map2.eq.1) .and. (map3.eq.3) .and.  
+     *    (map4.eq.4) .and. (map5.eq.5) .and. (map6.eq.6)) then    
+      do f = yf1, yf2
+      do e = ye1, ye2
+      do d = yd1, yd2
+      do c = yc1, yc2
+      do b = yb1, yb2
+      do a = ya1, ya2
+         y(a,b,c,d,e,f) = x(b,a,c,d,e,f) 
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+
+      return
+      endif 
+
+c     perm 231456 -> bacdef  
+      if ((map1.eq.2) .and. (map2.eq.3) .and. (map3.eq.1) .and.  
+     *    (map4.eq.4) .and. (map5.eq.5) .and. (map6.eq.6)) then    
+      do f = yf1, yf2
+      do e = ye1, ye2
+      do d = yd1, yd2
+      do c = yc1, yc2
+      do b = yb1, yb2
+      do a = ya1, ya2
+         y(a,b,c,d,e,f) = x(b,c,a,d,e,f) 
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+
+      return
+      endif 
+
+c     perm 132456 -> bacdef  
+      if ((map1.eq.1) .and. (map2.eq.3) .and. (map3.eq.2) .and.  
+     *    (map4.eq.4) .and. (map5.eq.5) .and. (map6.eq.6)) then    
+      do f = yf1, yf2
+      do e = ye1, ye2
+      do d = yd1, yd2
+      do c = yc1, yc2
+      do b = yb1, yb2
+      do a = ya1, ya2
+         y(a,b,c,d,e,f) = x(a,c,b,d,e,f) 
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+
+      return
+      endif 
+
+c     perm 312456 -> bacdef  
+      if ((map1.eq.3) .and. (map2.eq.1) .and. (map3.eq.2) .and.  
+     *    (map4.eq.4) .and. (map5.eq.5) .and. (map6.eq.6)) then    
+      do f = yf1, yf2
+      do e = ye1, ye2
+      do d = yd1, yd2
+      do c = yc1, yc2
+      do b = yb1, yb2
+      do a = ya1, ya2
+         y(a,b,c,d,e,f) = x(c,a,b,d,e,f) 
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+
+      return
+      endif 
+
+c     perm 321456 -> bacdef  
+      if ((map1.eq.3) .and. (map2.eq.2) .and. (map3.eq.1) .and.  
+     *    (map4.eq.4) .and. (map5.eq.5) .and. (map6.eq.6)) then    
+      do f = yf1, yf2
+      do e = ye1, ye2
+      do d = yd1, yd2
+      do c = yc1, yc2
+      do b = yb1, yb2
+      do a = ya1, ya2
+         y(a,b,c,d,e,f) = x(c,b,a,d,e,f) 
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+
+      return
+      endif 
+
+
+
+      write(6,*) 'Unoptimized permutation at line#', current_line 
+      write(6,*) ' MAP :', (map(i), i=1, 6) 
 
       do i = 1, 6
          do j = 1, 6
             if (yind(i) .eq. xind(j)) map(i) = j
          enddo
       enddo
+      map1 = map(1) 
+      map2 = map(2) 
+      map3 = map(3) 
+      map4 = map(4) 
+      map5 = map(5) 
+      map6 = map(6) 
 
 10101 continue
       do f = yf1, yf2
-         xval(map(6)) = f
+         xval(map6) = f
       do e = ye1, ye2
-         xval(map(5)) = e
+         xval(map5) = e
       do d = yd1, yd2
-         xval(map(4)) = d 
+         xval(map4) = d 
       do c = yc1, yc2
-         xval(map(3)) = c
+         xval(map3) = c
       do b = yb1, yb2
-         xval(map(2)) = b
+         xval(map2) = b
       do a = ya1, ya2
-         xval(map(1)) = a
+         xval(map1) = a
          y(a,b,c,d,e,f) = x(xval(1), xval(2), xval(3), xval(4), 
      *                      xval(5), xval(6))
       enddo
