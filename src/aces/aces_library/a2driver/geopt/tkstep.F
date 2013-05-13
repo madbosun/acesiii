@@ -111,8 +111,9 @@ C
       CALL DCOPY(NOPT*NOPT, HESMOD, 1, HES, 1)
 CSSS      CALL OUTPUT(HES, 1, NOPT, 1, NOPT, NOPT, NOPT, 1)
       CALL EIG(HESMOD, DIAGHES, NOPT, NOPT, 1)
-      IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 2) CALL EVEC_SHIFT(HESMOD,
-     &           DIAGHES, HES_INTACT, NOPT)
+C Revisit this after the storm is over. Ajith Perera, 05/2013   
+CSSS      IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 2) CALL EVEC_SHIFT(HESMOD,
+CSSS     &           DIAGHES, HES_INTACT, NOPT)
 C
 C Analyse the eigenvalues and eigenvectors of the current Hessian
 C to decide the direction to follow. Note that ANALYSHES does

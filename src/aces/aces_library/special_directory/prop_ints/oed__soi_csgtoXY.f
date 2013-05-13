@@ -419,7 +419,7 @@ c           EQUALAB=.false.
          IPRIMB = IPRIMA + NPGTOAB
          INUCCEN = IPRIMB + NPGTOAB
 
-         CALL  OED__NAI_SET_DERV_IJC_TRIPLES
+         CALL  OED__SOI_SET_DERV_IJC_TRIPLES
      +
      +              ( NUCLEI,
      +                XN,YN,ZN,NCHARGE,
