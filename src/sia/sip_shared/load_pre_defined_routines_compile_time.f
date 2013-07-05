@@ -359,6 +359,10 @@ c--------------------------------------------------------------------
       dummy = load_user_sub('init_section'//char(0), 0)
       dummy = load_user_sub('prestrict'//char(0), 0)
       dummy = load_user_sub('doprestrict'//char(0), 0)
+c--------------------------------------------------------------------
+c Jason Byrd misc. development additions
+c--------------------------------------------------------------------
+      dummy = load_user_sub('return_length'//char(0), 0)
 c-------------------------------------------------------------------- 
 c
       return

@@ -224,6 +224,10 @@ c--------------------------------------------------------------------
       external init_section
       external prestrict
       external doprestrict
+c--------------------------------------------------------------------
+c Jason Byrd misc. development additions
+c--------------------------------------------------------------------
+      external return_length
 c
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
@@ -654,6 +658,10 @@ c--------------------------------------------------------------------
       dummy = load_user_sub('init_section'//char(0),init_section)
       dummy = load_user_sub('prestrict'//char(0), prestrict)
       dummy = load_user_sub('doprestrict'//char(0),doprestrict)
+c--------------------------------------------------------------------
+c Jason Byrd misc. development additions
+c--------------------------------------------------------------------
+      dummy = load_user_sub('return_length'//char(0),return_length)
 c--------------------------------------------------------------------
 c
 

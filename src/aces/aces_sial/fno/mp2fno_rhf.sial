@@ -118,6 +118,10 @@
       temp Tpipi(p,i,p1,i1)
       distributed Pab_aa(a,a1)
       temp Taa(a,a1)
+      local Lwork1(p,p1)
+      temp Twork1(p,p1)
+      static NOorb(a,a1)
+      static work1(a,a1)
 #
 # scalars
 #
@@ -126,13 +130,18 @@
       scalar esumaa
       scalar ecorraa
       scalar mp2_energy
+      scalar zero
       scalar one
+      scalar mone
       scalar two
       scalar five
       scalar six
       scalar seven
       scalar ncount1
       scalar ncount2
+      scalar numvirt
+      scalar virtovertwo
+      scalar countstart
 #
 # -----------------------------------------------------------
 #
@@ -500,6 +509,11 @@
 # -----------------------------------------------------------
       execute sip_barrier
 #
+      zero = 0.0
+      mone = -1.0
+      one = 1.0
+      two = 2.0
+#
       CALL TRAN_UHF
       CALL ENERGY
       execute sip_barrier totenerg
@@ -560,7 +574,7 @@
 #
       ENDPARDO a, b, i, j
 #
-      execute server_barrier
+# debug print mp2 VV density
       pardo a, a1
           get Pab_aa(a,a1)
           execute dump_amp Pab_aa(a,a1)
@@ -568,6 +582,67 @@
 #
 # End compute the virtual-virtual block of the density correction
 #
+# compute mp2 VV block natural orbitals
+      execute server_barrier
+      do a
+          do a1
+              get Pab_aa(a,a1)
+              work1(a,a1) = Pab_aa(a,a1)
+# trick to get "correct" order of eigen values (e.g. first is biggest)
+              work1(a,a1) *= mone
+          enddo a1
+      enddo a
+      execute eig work1 NOorb
+# debug print mp2 natural orbitals
+      do a
+          do a1
+              execute dump_amp NOorb(a,a1)
+          enddo a1
+      enddo a
+# reverse trick to get correct magnitudes
+#      do a
+#          do a1
+#              work1(a,a1) *= mone
+#          enddo a1
+#      enddo a
+# zero small natural orbitals
+      execute return_length NOorb
+      execute print_scalar numvirt
+      virtovertwo = numvirt
+      virtovertwo *= 0.5
+      execute print_scalar virtovertwo
+      execute server_barrier
       execute sip_barrier
-# -----------------------------------------------------------
       ENDSIAL MBPT2_FNO
+#
+      ncount1 = 1
+      do a
+          if ncount1 > virtovertwo
+              do a1
+                  NOorb(a,a1) = zero
+              enddo a1
+          endif
+          ncount1 += 1.0
+      enddo a
+# debug print mp2 natural orbitals
+      do a
+          do a1
+              execute dump_amp NOorb(a,a1)
+          enddo a1
+      enddo a
+# get VV block of the fock matrix
+      do a
+          do a1
+              work1(a,a1) = fock_a(a,a1)
+          enddo a1
+      enddo a
+      do a
+          do a1
+              execute dump_amp work1(a,a1)
+          enddo a1
+      enddo a
+#      pardo p, p1
+#          execute dump_amp fock_a(p,p1)
+#      endpardo p, p1
+#
+# -----------------------------------------------------------
