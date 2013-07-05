@@ -1,0 +1,573 @@
+#  Copyright (c) 2003-2010 University of Florida
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  The GNU General Public License is included in this distribution
+#  in the file COPYRIGHT.
+      SIAL MBPT2_FNO
+#
+#
+# -----------------------------------------------------------
+#
+# Declare indeces 
+# --------------- 
+      index kiter    = 1, cc_iter
+      index jiter    = 1, cc_iter
+      index   kptr1  = 1, 2
+      index   kptr2  = 1, 2
+      index   kone   = 1, 1
+#
+      aoindex mu     = 1, norb
+      aoindex nu     = 1, norb
+      aoindex lambda = 1, norb
+      aoindex sigma  = 1, norb
+#                
+      aoindex m      = 1, norb
+      aoindex n      = 1, norb
+      aoindex l      = 1, norb
+      aoindex s      = 1, norb
+#
+      moaindex i = baocc, eaocc
+      moaindex i1= baocc, eaocc
+      moaindex i2= baocc, eaocc
+      moaindex i3= baocc, eaocc
+#
+      moaindex a = bavirt, eavirt
+      moaindex a1= bavirt, eavirt
+      moaindex a2= bavirt, eavirt
+      moaindex a3= bavirt, eavirt
+#
+      moaindex j = baocc, eaocc
+      moaindex j1= baocc, eaocc
+      moaindex j2= baocc, eaocc
+      moaindex j3= baocc, eaocc
+#
+      moaindex b = bavirt, eavirt
+      moaindex b1= bavirt, eavirt
+      moaindex b2= bavirt, eavirt
+      moaindex b3= bavirt, eavirt
+#
+      moaindex p = baocc, eavirt
+      moaindex p1= baocc, eavirt
+      moaindex p2= baocc, eavirt
+      moaindex p3= baocc, eavirt
+#
+      moaindex q = baocc, eavirt
+      moaindex q1= baocc, eavirt
+      moaindex q2= baocc, eavirt
+      moaindex q3= baocc, eavirt
+#
+# Declare arrays
+# tran_xxii
+      temp AOINT(mu,nu,lambda,sigma)
+      temp V0xxxi(mu,nu,lambda,i)
+      local L0xxxi(mu,nu,lambda,i)
+      temp Txixx(mu,i,nu,lambda)
+      temp Txxix(nu,mu,i,lambda)
+      temp Txixi(mu,i1,lambda,i)
+      temp Txxii(mu,nu,i1,i)
+      temp Tixxi(i1,nu,lambda,i)
+      served Vxixj(mu,i,nu,j)
+      served Vxxjj(mu,nu,j1,j)
+      served Vixxj(i,mu,nu,j)
+# tran_piqj
+      local Lxiqj(mu,i,q,j)
+      temp Txiqj(mu,i,q,j)
+      served Vxiqj(mu,i,q,j)
+      local Lpiqj(p,i,q,j)
+      temp Tpiqj(p,i,q,j)
+      temp T1piqj(p,i,q,j)
+      served Vpiqj(p,i,q,j)
+      served VSpipi(p1,i,p,i1)
+      served ASpipi(a,i,a1,i1)
+      served Apiqj(a,i,a1,i1)
+# tran_aajj
+      local Lxajj(mu,a,j,j1)
+      temp Txajj(mu,a,j,j1)
+      served Vxajj(mu,a,j,j1)
+      local Laajj(a1,a,j,j1)
+      temp Taajj(a,a1,j,j1)
+      served Vaajj(a,a1,j,j1)
+# tran_iabj
+      local Lixbj(i,mu,b,j)
+      temp Tixbj(i,mu,b,j)
+      served Vixbj(i,mu,b,j)
+      local Liabj(i,a,b,j)
+      temp Tiabj(i,a,b,j)
+      served Viabj(i,a,b,j)
+#
+# hfdens
+      temp Txi(mu,i)
+      temp Tpq(mu,nu)
+      distributed Dhfa(mu,nu)
+# mp2 energy
+      temp Taiai(a,i,a1,i1)
+      temp T1aiai(a,i,a1,i1)
+# main
+#
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      temp Tpipi(p,i,p1,i1)
+      distributed Pab_aa(a,a1)
+      temp Taa(a,a1)
+#
+# scalars
+#
+      scalar etemp
+      scalar esum
+      scalar esumaa
+      scalar ecorraa
+      scalar mp2_energy
+      scalar one
+      scalar two
+      scalar five
+      scalar six
+      scalar seven
+      scalar ncount1
+      scalar ncount2
+#
+# -----------------------------------------------------------
+#
+     PROC TRAN_XXII
+#
+     execute sip_barrier
+#
+     PARDO mu, nu, lambda
+#
+           allocate L0xxxi(mu,nu,lambda,*) 
+#
+           DO sigma
+#
+                 compute_integrals AOINT(mu,nu,lambda,sigma)
+#
+                 DO i
+#
+                    V0xxxi(mu,nu,lambda,i) = AOINT(mu,nu,lambda,sigma)*ca(sigma,i)
+                    L0xxxi(mu,nu,lambda,i) += V0xxxi(mu,nu,lambda,i) 
+#
+                 ENDDO i
+#
+           ENDDO sigma
+#
+           DO i
+#
+              Txixx(lambda,i,mu,nu) = L0xxxi(mu,nu,lambda,i) 
+              Txxix(nu,mu,i,lambda) = L0xxxi(mu,nu,lambda,i)  
+#
+              DO i1
+#
+                 Txixi(lambda,i,mu,i1) = Txixx(lambda,i,mu,nu)*ca(nu,i1)
+                 Txxii(nu,mu,i,i1)     = Txxix(nu,mu,i,lambda)*ca(lambda,i1)
+                 Tixxi(i1,nu,lambda,i) = L0xxxi(mu,nu,lambda,i)*ca(mu,i1) 
+#
+                 prepare Vxixj(lambda,i,mu,i1) += Txixi(lambda,i,mu,i1)
+                 prepare Vxxjj(nu,mu,i,i1)     += Txxii(nu,mu,i,i1) 
+                 prepare Vixxj(i1,nu,lambda,i) += Tixxi(i1,nu,lambda,i) 
+#
+              ENDDO i1 
+#
+           ENDDO i
+#
+           deallocate L0xxxi(mu,nu,lambda,*) 
+#
+     ENDPARDO mu, nu, lambda 
+#
+     execute server_barrier
+#
+     ENDPROC TRAN_XXII
+#
+     PROC TRAN_PIQJ
+#
+     execute sip_barrier
+#
+     PARDO mu, i, j
+#
+           allocate Lxiqj(mu,i,*,j) 
+#
+           DO nu 
+#
+              REQUEST Vxixj(mu,i,nu,j) i
+#
+              DO q
+#
+                 Txiqj(mu,i,q,j)  = Vxixj(mu,i,nu,j)*ca(nu,q)
+                 Lxiqj(mu,i,q,j) += Txiqj(mu,i,q,j)
+#
+              ENDDO q
+#
+           ENDDO nu 
+#
+           DO q
+#
+              Txiqj(mu,i,q,j)         = Lxiqj(mu,i,q,j) 
+              PREPARE Vxiqj(mu,i,q,j) = Txiqj(mu,i,q,j)
+#
+           ENDDO q
+#
+           deallocate Lxiqj(mu,i,*,j) 
+#
+     ENDPARDO mu, i, j
+#
+     execute sip_barrier
+     execute server_barrier
+#
+     PARDO q, i, j
+#
+           allocate Lpiqj(*,i,q,j) 
+#
+           DO mu 
+#
+              REQUEST Vxiqj(mu,i,q,j) i 
+#
+              DO p
+#
+                 Tpiqj(p,i,q,j)  = Vxiqj(mu,i,q,j)*ca(mu,p)
+                 Lpiqj(p,i,q,j) += Tpiqj(p,i,q,j)
+#
+              ENDDO p
+#
+           ENDDO mu 
+#
+           DO p
+#
+              Tpiqj(p,i,q,j)         = Lpiqj(p,i,q,j) 
+              PREPARE Vpiqj(p,i,q,j) = Tpiqj(p,i,q,j)
+#
+           ENDDO p
+#
+           deallocate Lpiqj(*,i,q,j) 
+#
+     ENDPARDO q, i, j
+#
+     execute sip_barrier
+     execute server_barrier
+#
+     PARDO p, i, q, j 
+           REQUEST                   Vpiqj(p,i,q,j) p 
+           REQUEST                   Vpiqj(p,j,q,i) p 
+           Tpiqj(p,i,q,j)          = Vpiqj(p,i,q,j)  
+           T1piqj(p,i,q,j)         = Vpiqj(p,j,q,i)  
+           Tpiqj(p,i,q,j)         -= T1piqj(p,i,q,j) 
+           PREPARE VSpipi(p,i,q,j) = Tpiqj(p,i,q,j) 
+#
+     ENDPARDO p, i, q, j 
+
+#    DISCARD Vxiqj
+#
+#    ------------------------------------------------------------------------
+#
+     ENDPROC TRAN_PIQJ
+#
+     PROC TRAN_AAJJ
+#
+     execute sip_barrier
+#
+     PARDO mu, j, j1
+#
+           allocate Lxajj(mu,*,j,j1) 
+#
+           DO nu 
+#
+              REQUEST Vxxjj(mu,nu,j,j1) j 
+#
+              DO a
+#
+                 Txajj(mu,a,j,j1)  = Vxxjj(mu,nu,j,j1)*ca(nu,a)
+                 Lxajj(mu,a,j,j1) += Txajj(mu,a,j,j1)
+#
+              ENDDO a
+#
+           ENDDO nu 
+#
+           DO a
+#
+              Txajj(mu,a,j,j1)         = Lxajj(mu,a,j,j1) 
+              PREPARE Vxajj(mu,a,j,j1) = Txajj(mu,a,j,j1)
+#
+           ENDDO a
+#
+           deallocate Lxajj(mu,*,j,j1) 
+#
+     ENDPARDO mu, j, j1
+#
+     execute sip_barrier
+     execute server_barrier
+#
+     PARDO a, j, j1
+#
+           allocate Laajj(*,a,j,j1) 
+#
+           DO mu 
+#
+              REQUEST Vxajj(mu,a,j,j1) j
+#
+              DO a1
+#
+                 Taajj(a1,a,j,j1)  = Vxajj(mu,a,j,j1)*ca(mu,a1)
+                 Laajj(a1,a,j,j1) += Taajj(a1,a,j,j1)
+#
+              ENDDO a1
+#
+           ENDDO mu 
+#
+           DO a1
+#
+              Taajj(a1,a,j,j1)         = Laajj(a1,a,j,j1) 
+              PREPARE Vaajj(a1,a,j,j1) = Taajj(a1,a,j,j1)
+#
+           ENDDO a1
+#
+           deallocate Laajj(*,a,j,j1) 
+#
+     ENDPARDO  a, j, j1
+#
+     execute sip_barrier
+     execute server_barrier
+#
+     ENDPROC TRAN_AAJJ
+#
+     PROC TRAN_IABJ
+#
+     execute sip_barrier
+#
+     PARDO mu, i, j
+#
+           allocate Lixbj(i,mu,*,j) 
+#
+           DO nu 
+#
+              REQUEST Vixxj(i,mu,nu,j) i
+#
+              DO b
+#
+                 Tixbj(i,mu,b,j)  = Vixxj(i,mu,nu,j)*ca(nu,b)
+                 Lixbj(i,mu,b,j) += Tixbj(i,mu,b,j)
+#
+              ENDDO b
+#
+           ENDDO nu 
+#
+           DO b
+#
+              Tixbj(i,mu,b,j)         = Lixbj(i,mu,b,j) 
+              PREPARE Vixbj(i,mu,b,j) = Tixbj(i,mu,b,j)
+#
+           ENDDO b
+#
+           deallocate Lixbj(i,mu,*,j) 
+#
+     ENDPARDO mu, i, j
+#
+     execute sip_barrier
+     execute server_barrier
+#
+     PARDO b, i, j
+#
+           allocate Liabj(i,*,b,j) 
+#
+           DO mu 
+#
+              REQUEST Vixbj(i,mu,b,j) i
+#
+              DO a
+#
+                 Tiabj(i,a,b,j)  = Vixbj(i,mu,b,j)*ca(mu,a)
+                 Liabj(i,a,b,j) += Tiabj(i,a,b,j)
+#
+              ENDDO a
+#
+           ENDDO mu 
+#
+           DO a
+#
+              Tiabj(i,a,b,j)         = Liabj(i,a,b,j) 
+              PREPARE Viabj(i,a,b,j) = Tiabj(i,a,b,j)
+#
+           ENDDO a
+#
+           deallocate Liabj(i,*,b,j) 
+#
+     ENDPARDO b, i, j
+#
+     execute sip_barrier
+     execute server_barrier
+#
+     ENDPROC TRAN_IABJ
+#
+     PROC TRAN_UHF 
+# 
+     CALL TRAN_XXII
+     CALL TRAN_PIQJ
+     CALL TRAN_AAJJ
+     CALL TRAN_IABJ
+#
+     ENDPROC TRAN_UHF 
+#
+#      PROC HFDENS
+#
+#      pardo mu, nu, i
+#            Txi(nu,i) = ca(nu,i)
+#    		Tpq(mu,nu) = ca(mu,i)*Txi(nu,i)
+#    		PUT Dhfa(mu,nu) += Tpq(mu,nu)
+#      endpardo
+##
+#      ENDPROC HFDENS
+#
+     PROC ENERGY
+#
+#    ------------------------------------------------------------------------
+#
+     esumaa = 0.0
+     ecorraa = 0.0 
+     execute sip_barrier
+#
+     PARDO a, a1, i, i1
+#     
+           request                    Vpiqj(a,i1,a1,i) i
+           request                    Vpiqj(a1,i1,a,i) i
+           Taiai(a,i1,a1,i)         = Vpiqj(a,i1,a1,i)
+           T1aiai(a,i1,a1,i)        = Vpiqj(a1,i1,a,i)
+           Taiai(a,i1,a1,i)        *= 2.0
+           Taiai(a,i1,a1,i)        -= T1aiai(a,i1,a1,i)
+           execute energy_denominator Taiai
+           etemp                    = Taiai(a,i1,a1,i)*Vpiqj(a,i1,a1,i)
+          #etemp                   *= 0.25
+           esumaa                  += etemp
+#
+     ENDPARDO a, a1, i, i1
+#
+     execute sip_barrier
+     collective ecorraa += esumaa
+     execute sip_barrier
+
+     execute print_scalar ecorraa 
+#
+     mp2_energy  = ecorraa
+     totenerg   = mp2_energy + scfeneg
+     execute print_scalar mp2_energy  
+
+     one = 1.0
+     two = 2.0
+     six = 6.0
+
+      do kiter
+      do kptr1
+         etemp = 0.0
+         pinf(kiter,kptr1)  = etemp
+      enddo kptr1
+      enddo kiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == two
+               etemp              = ecorraa
+               etemp             += scfeneg
+               tpinf(jiter,kptr1) = etemp
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        do jiter
+           ncount2 = 0.0
+         DO kptr1
+            ncount2 += 1.0
+            if ncount2 == one
+               tpinf(jiter,kptr1) = ecorraa
+               pinf(jiter,kptr1)  = tpinf(jiter,kptr1)
+            endif
+         ENDDO kptr1
+        enddo jiter
+
+        execute print_rel_info six pinf
+#
+     ENDPROC ENERGY
+#
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+#      Main prog
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+      execute sip_barrier
+#
+      CALL TRAN_UHF
+      CALL ENERGY
+      execute sip_barrier totenerg
+
+#     Create the second-order 'amplitudes' 
+#     ------------------------------------ 
+#
+      PARDO a, i, a1, i1
+            REQUEST                     VSpipi(a,i,a1,i1) i
+            Tpipi(a,i,a1,i1)          = VSpipi(a,i,a1,i1)
+            execute energy_denominator  Tpipi(a,i,a1,i1)
+            PREPARE ASpipi(a,i,a1,i1) = Tpipi(a,i,a1,i1)
+      ENDPARDO a, i, a1, i1
+#
+      PARDO a, i, a1, i1
+            REQUEST                    Vpiqj(a,i,a1,i1) i
+            Tpipi(a,i,a1,i1)         = Vpiqj(a,i,a1,i1)
+            execute energy_denominator Tpipi(a,i,a1,i1)
+            PREPARE Apiqj(a,i,a1,i1) = Tpipi(a,i,a1,i1)
+      ENDPARDO a, i, a1, i1
+#
+      execute sip_barrier
+      execute server_barrier
+#
+# Compute the virtual-virtual block of the density correction
+#     AAAA/AAAA piece 
+      create Pab_aa
+#
+      PARDO a, a2, i, i1
+#
+            REQUEST            ASpipi(a,i,a2,i1) i
+            Tpipi(a,i,a2,i1) = ASpipi(a,i,a2,i1)
+#
+            DO a1
+#
+               REQUEST             ASpipi(a1,i,a2,i1) i
+               Taa(a,a1)         = Tpipi(a,i,a2,i1)*ASpipi(a1,i,a2,i1)
+               Taa(a,a1)        *= 0.5
+               PUT Pab_aa(a,a1) += Taa(a,a1)
+#
+            ENDDO a1
+#
+      ENDPARDO a, a2, i, i1
+#     AABB/AABB piece 
+#
+      PARDO a, b, i, j
+#
+            REQUEST          Apiqj(a,i,b,j) i
+            Tpiqj(a,i,b,j) = Apiqj(a,i,b,j)
+#
+            DO a1
+#
+               REQUEST             Apiqj(a1,i,b,j) i
+               Taa(a,a1)         = Tpiqj(a,i,b,j)*Apiqj(a1,i,b,j)
+               PUT Pab_aa(a,a1) += Taa(a,a1)
+#
+            ENDDO a1
+#
+      ENDPARDO a, b, i, j
+#
+      execute server_barrier
+      pardo a, a1
+          get Pab_aa(a,a1)
+          execute dump_amp Pab_aa(a,a1)
+      endpardo a, a1
+#
+# End compute the virtual-virtual block of the density correction
+#
+      execute sip_barrier
+# -----------------------------------------------------------
+      ENDSIAL MBPT2_FNO
