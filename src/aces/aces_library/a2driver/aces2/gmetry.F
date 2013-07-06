@@ -12,7 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      SUBROUTINE GMETRY()
+      SUBROUTINE GMETRY(We_havegeom, NOSILENT)
 C
 C     ROUTINE TO CALCULATE CARTESIAN COORDINATES FROM INTERNAL
 C     COORDINATE REPRESENTATION.  SOME OF THIS HAS BEEN LIFTED FROM
@@ -93,7 +93,7 @@ C
          Write (LuOut,'((I3,1X,f12.6))') (i,R(i),i=1,NX)
       EndIf
 
-      CALL GEN_CART_COORD()
+      CALL GEN_CART_COORD(Q0,NOSILENT)
 C
 C DEAL WITH CASE WHERE ANGLES OR DIHEDRALS NOT WITHIN BOUNDS HERE.
 C
@@ -136,7 +136,7 @@ C internal coordinates and connectivities (from ACES II common blocks)
 C and generates ACES II Cartesians (nothing else). Ajith Perera, 04/2005
 C
 C Only one out-of-bound is all it takes to regenerate Cartesians.
-      IF (NOT_IN_BOUND) CALL GEN_CART_COORD()
+      IF (NOT_IN_BOUND) CALL GEN_CART_COORD(Q0, NOSILENT)
 C
 #ifdef _DEBUG_LVL0
       Call geomout

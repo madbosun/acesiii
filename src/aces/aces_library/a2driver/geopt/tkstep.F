@@ -1,20 +1,7 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
       SUBROUTINE TKSTEP(GRD, HES, SCRATCH, HESMOD, GRDMOD, STEP, 
      &                  GRDHES, DIAGHES, VEC, RFAMAT, EVRFAMAT,
-     &                  BMATRIX, HES_INTACT, FSCR, IADITNL)
+     &                  BMATRIX, HES_INTACT, FSCR, WORK, PMAT, 
+     &                  IADITNL)
 C
 C Control all the optimiztion alogrithms. The old EFOL (John Stanton)
 C subroutine was not flexible enough to add new optimization 
@@ -32,12 +19,14 @@ C
 #include "mxatms.par"
 #include "machsp.com"
 #include "coord.com"
-#include "flags.h"
 #include "jodaflags.com"
-C
+#include "flags.h"
+
       PARAMETER (STPTOL = 1.0D-12, LUOUT = 6,
      &           LUDONE = 80,
      &           EPS = 1.0D-8)
+
+      INTEGER CONSTRAINS
 
       COMMON /USINT/ NX, NXM6, IARCH, NCYCLE, NUNIQUE, NOPT
 C
@@ -47,11 +36,15 @@ C
 C
       DIMENSION HES(NXM6,NXM6), GRD(NXM6), SCRATCH(NX*NX),
      &          HESMOD(NOPT,NOPT), GRDMOD(NOPT), STEP(NXM6), 
-     &          IQFIX(3*NATOMS,3*NATOMS), DIAGHES(NOPT, NOPT), 
+     &          IQFIX(3*MXATMS,3*MXATMS), DIAGHES(NOPT, NOPT), 
      &          GRDHES(NOPT),VEC(NOPT),  EVRFAMAT(NOPT+IADITNL,
      &          NOPT+IADITNL), RFAMAT(NOPT+IADITNL, NOPT+IADITNL),
      &          BMATRIX(NXM6*NX), HES_INTACT(NX*NX), FSCR(NXM6*NX),
-     &          ENERGY(2)
+     &          ENERGY(2),WORK(6*NX),PMAT(NX*NX)
+C
+      DIMENSION CONSTRAINS(3*MXATMS)
+      
+      Write(6,*) iFlags2(h_IFLAGS2_geom_opt)
 C
 C Form modified Hessian containing optimized coordinates
 C only, and transform it to totally symmetric coordinates. Do the 
@@ -60,45 +53,71 @@ C and printing. Note that STPMAX is a user defined flag. It is
 C initially set in mkvmol.F but is reprocessed in setup.f.
 C
       IBREAK = 0 
-      IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 1) THEn
-C     
+      IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 1) THEN
+C
 C This is a user defined internal optimization
 C
-          CALL SETUP(HES, GRD, HESMOD, GRDMOD, IQFIX, STPMAX, LUOUT)
-C
+         Write(6,*) "Entering setup"
+         CALL SETUP(HES, GRD, HESMOD, GRDMOD, IQFIX, STPMAX, LUOUT)
+
       ELSE IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 2) THEN
 C
-C
 C This is a Cartesian optimization
-
-          CALL DCOPY(NOPT, GRD, 1, GRDMOD, 1)
-C 
-C Vibrations and rotation must be projected out from the Hessian. In
+C
+         CALL XDCOPY(NOPT, GRD, 1, GRDMOD, 1)
+C
+C Vibrations and rotation must be projected out from the Hessian. In 
 C this particular instance unit masses at the points where atoms are
-C located.
-C        
+C located. 
+C
          Do Iatoms = 1, NX/3
             Fscr(Iatoms) = 1.0D0
          Enddo 
+C
 #ifdef _DEBUG_LVLM1
       Write(6,*) "@-TKSTEP, The Hessian before the projection"
       call output(Hes, 1, NXM6, 1, NXM6, NXM6, NXM6, 1)
-#endif   
-         CALL PROJEC_FC(Q, Hes, Fscr, GrdMOD, HesMOd, Scratch,
+#endif
+         CALL PROJEC_FC(Q, Hes, Fscr, GrdMOD, HesMOd, Scratch, 
      &                  EPS, Nx/3, .True., .True., .False.)
+C
 #ifdef _DEBUG_LVLM1
       Write(6,*) "@-TKSTEP The Hessian after the projection"
       call output(Hes, 1, NX, 1, NX, NX, NX, 1)
-#endif   
+#endif
+C
+C If the optimization is constrained lets handle it here instead
+C of in projec_fc.F in libr (projec_fc.F is shared by other modules).
+C Ajith Perera, 06/2013.
+
+      IF (iFlags2(h_IFLAGS2_opt_control) .EQ. 3) Then
+
+         CALL READ_CART_CONSTRAINS(CONSTRAINS, NUM_CONSTRAINS,
+     &                             NOT_FOUND)
+         IF (NOT_FOUND) THEN
+            WRITE(6, "(1x, 2a)") "Constrained optimization requested "
+     &                         , "but no constrains found. Proceeded "
+            WRITE(6, "(1x,a)") "to do a full optimization."
+         ELSE
+            CALL APP_CART_CONSTRAINS(HES, SCRATCH, PMAT,
+     &                               GRD, GRDMOD, CONSTRAINS,
+     &                               NUM_CONSTRAINS, NX)
+         ENDIF
+      ENDIF
+C
+C Note that for Cartesian opts., setup call really do nothing,
+C but it need to be called to update several variable, especially
+C the ncycle. 
+C 
          CALL SETUP(HES, GRD, HESMOD, GRDMOD, IQFIX, STPMAX, LUOUT)
-         CALL DCOPY(NOPT*NOPT, HES, 1, HESMOD, 1)
+         CALL XDCOPY(NOPT*NOPT, HES, 1, HESMOD, 1)
 C
       ELSE IF (iFlags2(h_IFLAGS2_geom_opt) .gt. 2) THEN
 C
 C This is a redundant internal optimization
 C
-         CALL  PROJEC_IFC(HES, FSCR, HESMOD, HES_INTACT, DIAGHES,
-     &                    GRD, NXM6)
+         CALL  PROJEC_IFC(HES, FSCR, SCRATCH, PMAT, HES_INTACT, 
+     &                    DIAGHES, GRD, GRDMOD, NXM6)
          CALL SETUP(HES, GRD, HESMOD, GRDMOD, IQFIX, STPMAX, LUOUT)
       ENDIF
 C
@@ -106,14 +125,25 @@ C Diagonalize the symmetrized Hessian. First, save the
 C original symmetrized Hessian in HES to be used in QST/LST
 C procedure. See the dependents of ANLYSHES that deal
 C with the QST/LST procedure. Note that HESMOD and DIAGHES
-C will be changed for QST/LST steps (see modfy_hessian.F).
+
 C
-      CALL DCOPY(NOPT*NOPT, HESMOD, 1, HES, 1)
-CSSS      CALL OUTPUT(HES, 1, NOPT, 1, NOPT, NOPT, NOPT, 1)
+      IF (IFLAGS2(h_IFLAGS2_opt_control) .GT. 0) CALL 
+     &    XDCOPY(NOPT*NOPT, HESMOD, 1, HES, 1)
+
+#ifdef _DEBUG_LVL0
+      If (IFLAGS2(h_IFLAGS2_opt_control) .GT. 0) then
+      Write(6,*) "@-TKSTEP The Hessian restored for QST/LST"
+      CALL OUTPUT(HES, 1, NOPT, 1, NOPT, NOPT, NOPT, 1)
+      endif 
+#endif
+#ifdef _DEBUG_LVLM1
+      Write(6,*) NX, NOPT
+      Write(6,*) "@-TKSTEP The Hessian before diagonalization"
+      call output(HesMod, 1, NX, 1, NX, NX, NX, 1)
+#endif
       CALL EIG(HESMOD, DIAGHES, NOPT, NOPT, 1)
-C Revisit this after the storm is over. Ajith Perera, 05/2013   
-CSSS      IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 2) CALL EVEC_SHIFT(HESMOD,
-CSSS     &           DIAGHES, HES_INTACT, NOPT)
+      IF (iFlags2(h_IFLAGS2_geom_opt) .eq. 2) CALL EVEC_SHIFT(HESMOD,
+     &           DIAGHES, HES_INTACT, NOPT)
 C
 C Analyse the eigenvalues and eigenvectors of the current Hessian
 C to decide the direction to follow. Note that ANALYSHES does
@@ -134,8 +164,9 @@ C                 keep the LST and QST directional vectors. They
 C                 revert back to zero after their use in ANLYSHES so that
 C                 there intended use in GETLAMBDA is not upset.
 C
+      Write(6,*) "Enetering ANLYSHES"
       CALL ANLYSHES(HESMOD, DIAGHES, RFAMAT, EVRFAMAT, HES,
-     &              GRDMOD, SCRATCH, VEC, NOPT, NX,
+     &              GRDMOD, SCRATCH, PMAT, VEC, NOPT, NX,
      &              NCYCLE, INR, IVEC, IMODE, IDIE, TS,
      &              NRORMANR, RFA, EVFTS, IGTS, QSD, LUOUT,
      &              QSTLST_CLIMB, NATOMS, IPRNT)
@@ -151,65 +182,76 @@ C
 C
          SCRATCH(I) = R(NOPTI(I))
 C
-CSSS         WRITE(6,*) "The value of Grd-Mod", GRDMOD(I)
          DO 1179 J = 1, NOPT
             GRDHES(I)=GRDHES(I)+GRDMOD(J)*DIAGHES(J,I)
-C
  1179    CONTINUE
  1180 CONTINUE
+#ifdef _DEBUG_LVL0
+        Write(6,*)
+        Write(6,*) "The gradients along eiegenvectors"
+        Write(6,"(3F13.8)") (GRDHES(I), I=1, NOPT)
+        Write(6,*)
+#endif
 C
-C Do the Newton-Raphson or Morse adjusted Newton-Raphson minima search.
+C Do the Newton-Raphson or Morse adjusted Newton-Raphson minima search
+C (Only applies to internal coordinate optimizations, Ajith Perera, 12/08).
 C     
-      MORSE = (INR .EQ. 3 .OR. INR .EQ. 5) 
+      MORSE = (INR .EQ. 3 .OR. INR .EQ. 5) .and. 
+     &        (iFlags2(h_IFLAGS2_geom_opt) .ne. 2)
+C
 CSSS      Write(6,*) "Debug Info: The QST and LST climb", QSTLST_CLIMB
 C
-C      IF (NCYCLE .GE. 2) THEN
+#ifdef _NOSKIP
+      IF (NCYCLE .GE. 2 .AND. .NOT. TS) THEN
 C
 C The following stuff is for the line search. God I need some help
 C from  litrature in order to finish this. Let's comment this out
 C until, I have some help from others.
 C
-C          CALL DGETREC(20, 'JOBARC', 'TOTENERG', 1, CURR_ENRG)
-C          CALL DGETREC(20, 'JOBARC', 'OLDENERG', 1, PREV_ENRG)
-C          CALL DGETREC(20, 'JOBARC', 'OLDGRADS', NXM6, 
-C     &                SCRATCH(3*NXM6+1))
-C          CALL DCOPY(NXM6, GRD, 1, SCRATCH(2*NXM6+1), 1)
-C          CALL DCOPY(NXM6, R, 1, SCRATCH(1), 1)
-C          CALL DGETREC(20, 'JOBARC', 'OLDGEOMT', NXM6,  
-C     &                SCRATCH(NXM6 +1))
-C          ENERGY(1) = CURR_ENRG
-C          ENERGY(2) = PREV_ENRG 
-C          Print*, (SCRATCH(I), I=1, 2*NOPT)
-C          Print*, (SCRATCH(2*NOPT+I), I=1, 2*NOPT)
-C          CALL LN_SEARCH(ENERGY, SCRATCH(1), SCRATCH(2*NXM6+1), 
-C     &                   SCRATCH(4*NXM6+1), NXM6, 2, DQHDQ, STPTOL)
-C          CALL XDCOPY(NXM6, SCRATCH(2*NXM6+1), 1, GRD, 1)
-C          Print*, "The New Gradients", (GRD(I), I=1, NXM6)
-C          CALL ZERO(GRDHES, NOPT)
-C          DO  I=1, NOPT
-C             Write(6,*) GRD(NOPTI(I)), NEQ(NOPTI(I))
-C             GRDMOD(I)= DSQRT(DFLOAT(NEQ(NOPTI(I))+1))*GRD(NOPTI(I))
-C          ENDDO 
+          CALL DGETREC(20, 'JOBARC', 'TOTENERG', 1, CURR_ENRG)
+          CALL DGETREC(20, 'JOBARC', 'OLDENERG', 1, PREV_ENRG)
+          CALL DGETREC(20, 'JOBARC', 'OLDGRADS', NXM6, 
+     &                WORK(3*NXM6+1))
+          CALL DGETREC(20, 'JOBARC', 'OLDGEOMT', NXM6,
+     &                WORK(NXM6 +1))
 C
-C          Print*, "The Grad mod", (GRDMOD(I), I=1, NOPT)
-C          DO IOPT = 1, NOPT
-C             SCRATCH(IOPT) = SCRATCH(NOPTI(IOPT))
-C             DO J = 1, NOPT
-C                GRDHES(IOPT)=GRDHES(IOPT)+GRDMOD(J)*DIAGHES(J,IOPT)
-C             ENDDO
-C          ENDDO 
-C          Print*, "After a line search:", (SCRATCH(i), i=1,nopt)
-CC Plese zero out the SCRATCH before leave this block so what's done
+          CALL XDCOPY(NXM6, GRDMOD, 1, WORK(2*NXM6+1), 1)
+          CALL XDCOPY(NXM6, R,      1, WORK(1),        1)
+C
+          ENERGY(1) = PREV_ENRG
+          ENERGY(2) = CURR_ENRG 
+C
+#ifdef _DEBUG_LVL0
+          write(6,*)
+          Write(6,*) "The previous gradient"
+          Write(6,"(3F10.5)") (WORK(3*NXM6+i), i=1, NOPT)
+          Write(6,*) "The current gradient"
+          Write(6,"(3F10.5)") (WORK(2*NXM6+i), i=1, NOPT)
+          Write(6,*) "The previous step increment"
+          Write(6,"(3F10.5)") (WORK(NXM6+i), i=1, NOPT)
+          Write(6,"(1x,a,2F10.5)") "Previous and current energies", 
+     &                          PREV_ENRG, CURR_ENRG
+#endif  
+          CALL LN_SEARCH(ENERGY, WORK(1), WORK(NXM6+1), 
+     &                   WORK(2*NXM6+1), WORK(3*NXM6+1),
+     &                   WORK(4*NXM6+1), NXM6, EPS)
+C
+CC Please zero out the SCRATCH before leave this block so what's done
 CC here can not interfere with the rest. 
 C
-C      ENDIF
+      ENDIF
+#endif
 C
       IF (NRORMANR) THEN         
 C
-         CALL NEWRAPH(SCRATCH, GRDHES, HESMOD, DIAGHES, MORSE, NOPT,
+         CALL NEWRAPH(SCRATCH, GRDHES, HESMOD, DIAGHES, MORSE, NOPT,  
      &                NX, LUOUT)
 C         
       ELSE IF (TS .OR. RFA) THEN
+
+#ifdef _DEBUG_LVL0
+      Write(6,"(a,l)") "Debug Info: The QST and LST climb",QSTLST_CLIMB
+#endif
 C
 C First get the Lambda(P) and Lambda(N) parameters: Jon Baker
 C J. Comput. Chem. 7, 385, 1986 and references their in. In general
@@ -257,6 +299,12 @@ C
      &             NOPT, NX, NXM6, IBREAK, ICONTL, LUOUT, NCYCLE,
      &             LUDONE, BMATRIX, HES_INTACT, FSCR, VEC,
      &             STEP)
+#ifdef _DEBUG_LVL0
+      Write(6,*)
+      Write(6,*) "The R vector before leaving tkstep"
+      Write(6,"(5F13.7)"), (R(I), I =1, NXM6)
+#endif
+
 C
       RETURN
       END

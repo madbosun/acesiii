@@ -44,6 +44,7 @@ c---------------------------------------------------------------------------
       double precision x2,y2,z2
       double precision x3,y3,z3
       double precision x4,y4,z4
+      double precision y
 
       double precision coords(3,*), coeffs(*), alphas(*)
       double precision SOI_JY(a1:a2,b1:b2,c1:c2,d1:d2)
@@ -97,7 +98,15 @@ c     itol = delta ! 1.0d-9
          call mpi_abort(mpi_comm_world, ierr)
       endif
 
-
+      do d = d1,d2
+      do c = c1,c2
+      do b = b1,b2
+      do a = a1,a2
+         SOI_JY(a,b,c,d) = 0.d0
+      enddo
+      enddo
+      enddo
+      enddo
 c-----------------------------------------------------------------------
 c   Find the shell blocks for which we shall loop through.
 c-----------------------------------------------------------------------
@@ -306,18 +315,25 @@ c  <Y ...| X..>
          enddo   ! n
          enddo   ! m
 C
-C#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVL0
       Write(6,*) "The <munu |SOI_JY| lam sig> integral matrix"
-      do d = 1, Nbasis
-      Write(6,*)
-      do c = 1, Nbasis
-      Write(6,*)
+      y=0.0d0
+      do a = 1, Nbasis
+CSSS      Write(6,*)
       do b = 1, Nbasis
-         Write(6, "(5(1x,F15.10))") (SOI_JY(a,b,c,d), a=1, nbasis)
+CSSS      Write(6,*)
+      do c = 1, Nbasis
+      do d = 1, Nbasis
+CSSS      if (a .le. b .and. c .le. d) then
+CSSS         Write(6, "(5(1x,F15.10))") (SOI_JY(a,b,c,d), a=1, nbasis)
+         y = y + SOI_JY(a,b,c,d)*SOI_JY(a,b,c,d)
+CSSS      endif
+      enddo 
       enddo
       enddo
       enddo
-C#endif
+      Write(6,"(a, F20.10)") "L_y check sum=", y
+#endif
 
       return
       end

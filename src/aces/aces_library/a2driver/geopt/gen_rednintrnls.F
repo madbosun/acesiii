@@ -1,17 +1,4 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
+#include "flags.h"
       SUBROUTINE GEN_REDNINTRNLS(CARTCOORD, REDUNCO, INTLABEL,
      &                           IBNDTO, BMATRX, GMATRX,
      &                           TOTREDNCO, IATOMICNMBER, NRATMS,
@@ -29,13 +16,16 @@ C
       IMPLICIT DOUBLE PRECISION (A-H, O-Z)
 C
 #include "mxatms.par"
+#include "machsp.com"
 #include "io_units.par"
+#include "jodaflags.com"
 C 
       PARAMETER(THRESHOLD = 5.0D00, EPSILON = 1.0D-10)
 C
       INTEGER TOTREDNCO, TOTNOFBND, TOTNOFANG, TOTNOFDIH,
      &        FRAGSCR
       CHARACTER*4 INTLABEL(MAXREDUNCO)
+      Logical Constrained, Not_found
 C
 C The following arrays need to be managed dynamically:
 C
@@ -49,15 +39,15 @@ C NCONPRCNTR: The number of connectivities for an atom. The
 C             maximum number is set to 10, so this is a
 C             rather small (it is not currently being
 C             used, but needs in the future).
-      DIMENSION CARTCOORD(3*MXATMS), BNDLENTHS(NRATMS, NRATMS), 
-     &          IATOMICNMBER(MXATMS), SMOFCOVRADI(NRATMS, NRATMS),
+      DIMENSION CARTCOORD(3*MXATMS), BNDLENTHS(MXATMS, MXATMS), 
+     &          IATOMICNMBER(MXATMS), SMOFCOVRADI(MXATMS, MXATMS),
      &          IBNDTO(MXATMS*MXATMS), NCONPRCNTR(MXATMS),
      &          IREDUNCO(4, MAXREDUNCO), BMATRX(9*MXATMS*MXATMS),
      &          GMATRX(9*MXATMS*MXATMS), REDUNCO(MAXREDUNCO),
-     &          MARK_FRAGMENTS(NRATMS, NRATMS),
+     &          MARK_FRAGMENTS(MXATMS, MXATMS),
      &          LENGTH_FRAGMENTS(MXATMS),FRAGSCR(MXATMS*MXATMS)
       DIMENSION EIGVECTORS(MAXREDUNCO, MAXREDUNCO),
-     &          BTGMIN(3*NRATMS,*),BLNGT_IJFRGS(MXATMS)
+     &          BTGMIN(3*NRATMS,MAXREDUNCO),BLNGT_IJFRGS(MXATMS)
 #include "ric_heap.com"
 C      
       DATA  IZERO /0/
@@ -91,7 +81,7 @@ C Assign bond angle Coordinates.
 C
 #ifdef _DEBUG_LVL0
       Print*, "Entering assign angles"
-      Print*, "Total # of bonds:", TOTNOFBND 
+      Print*, "Total # of bonds:", TOTNOFBND
 #endif 
 
       CALL ASSIGN_ANGLS(CARTCOORD, IBNDTO, IREDUNCO, TOTREDNCO,
@@ -147,6 +137,44 @@ C
 
 #endif 
 C
+C Assign the bonds, angles and dihedrals for recatants and products
+C if this is a redundent internal optimization. Note that the transition
+C state is the current structure and both reactants and products is
+C assumed to have the same connectivit pattern, Ajith Perera, 12/2012. 
+C
+      Call IGetrec(0,'JOBARC','PRSTRUCT',Length, Redunco)
+      If (Length .Gt. 0) Then 
+C
+C Note that the length should be 3*NRATMS.
+C
+         Call DGetrec(20,'JOBARC','PRSTRUCT',3*NRATMS, CARTCOORD) 
+         Call Gen_RICS(CARTCOORD, TOTREDNCO, TOTNOFBND, TOTNOFANG, 
+     &                 TOTNOFDIH, IREDUNCO, REDUNCO)
+         Call DPutrec(20,'JOBARC','PR_RICS_',TOTREDNCO, REDUNCO) 
+      Endif 
+C
+      Call IGetrec(0,'JOBARC','RXSTRUCT',Length, Redunco)
+      If (Length .Gt. 0) Then 
+         Call DGetrec(20,'JOBARC','RXSTRUCT',3*NRATMS, CARTCOORD) 
+         Call Gen_RICS(CARTCOORD, TOTREDNCO, TOTNOFBND, TOTNOFANG, 
+     &                 TOTNOFDIH, IREDUNCO, REDUNCO)
+         Call DPutrec(20,'JOBARC','RX_RICS_',TOTREDNCO, REDUNCO) 
+      Endif 
+C  
+C Read and process the constraints for constrained geometry 
+C optimizations. Ajith Perera, 11/2012
+C   
+      Constrained = .False.
+      If (Iflags2(h_IFLAGS2_opt_control) .EQ. 3) constrained = .True.
+      If (Constrained) Call Idntfy_constraints(IREDUNCO, TOTREDNCO, 
+     &                                         TOTNOFBND,
+     &                                         TOTNOFANG, TOTNOFDIH,
+     &                                         Not_found)
+C
+C If no constrains were found, we do FULL (or RIC) optimizations.
+C
+      If (NOt_found) Iflags2(h_IFLAGS2_geom_opt) = 4
+C
 C Make sure the number of RICs has not increased.
 C
       CALL IGETREC(0,'JOBARC','REDNCORD',ITMP,0)
@@ -183,8 +211,8 @@ C
 C
 C some labels for internal coords...
 C   
-cSSS      CALL OUTPUT(BMATRX, 1, TOTREDNCO, 1, 3*NRATMS, TOTREDNCO, 
-cSSS     &            3*NRATMS, 1)
+CSSS      CALL OUTPUT(BMATRX, 1, TOTREDNCO, 1, 3*NRATMS, TOTREDNCO, 
+CSSS     &            3*NRATMS, 1)
 C
       RETURN
       END

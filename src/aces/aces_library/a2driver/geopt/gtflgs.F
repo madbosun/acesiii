@@ -1192,6 +1192,16 @@ c         o geom_opt=partial
       endif
 
 c
+c    o LST or QST is set but not a transition state search, 12/2012.
+c      Ajith Perera.
+
+      if (ioppar(h_IOPPAR_opt_control) .lt. 3) Then
+         if (ioppar(h_IOPPAR_opt_method) .lt. 4) Then
+             szTmp = 'opt_method=4'//achar(0)
+             call asv_update_kv(szTmp,iASV,szData,0)
+          endif
+      endif
+c
 c    o Geometry optimizations with exact Hessians need to be told how
 c      the Hessian is calcualted. If not specified set it to 1 
 c      (at each update Hessian is recalculated!).
@@ -2149,9 +2159,14 @@ c      o numerical gradients
             end if
          end if
 c
+C The best Hessian update that works for all is not known. I
+C find Bofill mixture of Powell and Murtagh-Sargent seems to
+C work better, 07/2013. Ajith Perera
+C
          if (ioppar(h_IOPPAR_hess_update).eq.0) then
             if (ioppar(h_IOPPAR_opt_method).le.3) then
-               ioppar(h_IOPPAR_hess_update) = 2
+CSSS; on 07/2013               ioppar(h_IOPPAR_hess_update) = 2
+               ioppar(h_IOPPAR_hess_update) = 4
             else
                ioppar(h_IOPPAR_hess_update) = 4
             end if

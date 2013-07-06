@@ -2,7 +2,8 @@
       Subroutine A3_ECP_grdint_main(Iecp, Natoms, Namat, Iqmstr,
      &                              Jcostr, Nucstr, Nrcstr, Jstrt, 
      &                              Jrs, Expa, Nalpha, Cont, Npcoef, 
-     &                              Cord, Charge, IGenby, Spherical)
+     &                              Cord, Charge, IGenby, Spherical,
+     &                              Ecpgrdint, Naobasis)
 C
       Implicit Double Precision(A-H, O-Z)
 C
@@ -22,7 +23,7 @@ C
      &          Cont(Npcoef),Cord(3,Max_centers),
      &          Charge(Max_centers), IGenby(Max_centers)
 
-      Dimension Ecpgrdint(Max_centers, 3, Max_cbf*(Max_cbf+1)/2)
+      Dimension Ecpgrdint(Natoms, 3, *)
 C
 CSSS      Call A3_Ecp_set4_grdint(Iecp,Nmax,namat,iqmstr,jcostr,nucstr,
 CSSS     &                        nrcstr, Jstrt, Jrs, Expa, Nalpha,
@@ -52,7 +53,7 @@ cVFL end
 #ifdef _DEBUG_LVL0
       Write(6,"(a)") "The ECP deriavative integrals" 
 #endif
-      Call Dzero(Ecpgrdint, Max_centers*3*Max_cbf*(Max_cbf+1)/2)
+      Call Dzero(Ecpgrdint, Natoms*3*Naobasis*(Naobasis+1)/2)
 
       Call A3_ECP_grdint_driver(Ecpgrdint, Ntotatoms, Natoms, 
      &                          Iloc, Isoc, IGenby, Cord, .True.,

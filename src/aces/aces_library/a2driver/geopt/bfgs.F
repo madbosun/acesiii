@@ -40,7 +40,6 @@ C
       CALL MODMATMUL(TBT(1),SCRATCH(N2),SCRATCH(N2),NXM6,1,NXM6,
      $               NXM6,1,NXM6)
       X0=1.D0/xdot(NXM6,SCRATCH(N2),1,STEP,1)
-      Write(6,*) "IN BFGS X0", X0
       CALL xscal(NXM6*NXM6,X0,TBT(1),1)
 C
 C SCRATCH(N3) = HDX, SCRATCH(N4) = DXH, TBT(NX2)= HDX{x}DXH
@@ -53,7 +52,6 @@ C
 C Z0 = 1/DXHDX, TBT(NX2) = [1/DXHDX][HDX{x}DXH]
 C
       Z0=1.D0/xdot(NXM6,STEP,1,SCRATCH(N3),1)
-      Write(6,*) "IN BFGS Z0", Z0
       CALL xscal(NXM6*NXM6,Z0,TBT(NX2),1)
 C
 C H(updated) = H(old) + [1/DG{dot}DX][DGxDG] - [1/DXHDX][HDX{x}DXH]

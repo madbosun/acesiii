@@ -513,5 +513,17 @@
 #define h_IOPPAR_single_store	255
 #define h_IFLAGS2_single_store	155
 
+#define h_IOPPAR_oomp_cyc       256
+#define h_IFLAGS2_oomp_cyc	156
+
+#define h_IOPPAR_dkh_order      257
+#define h_IFLAGS2_dkh_order     157
+
+#define h_IOPPAR_uncontract     258
+#define h_IFLAGS2_uncontract    158
+
+#define h_IOPPAR_opt_control    259
+#define h_IFLAGS2_opt_control   159
+
 #endif /* _FLAGS_H_ */
 

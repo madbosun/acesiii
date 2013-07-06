@@ -9,7 +9,7 @@
 #endif
 
 #ifndef F_ADR
-#define F_ADR INTEGER*8
+#define F_ADR INTEGER
 #endif
 
 #else /* C */

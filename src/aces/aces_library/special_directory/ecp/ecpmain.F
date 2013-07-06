@@ -8,14 +8,17 @@ C
 #include "ecp.com"
 #include "flags.com"
 #include "flags2.com"
+#include "machsp.com"
+#include "icore.com"
 
       Character*4 INP_Fname
       Character*4 ATMNAM(Max_centers), Namat(Max_centers)
     
       Logical Cartesian, Grads, Spherical
       Integer Angmom, Atomic_label
+      Integer*8 Istart_Heap, IECP_int, IECP_Grad_int
   
-      DIMENSION WORK(Maxmem_a3)
+      DIMENSION WORK(Maxmem_a3), Decp_ints(1)
     
       DIMENSION NFCT(max_centers), NAOATM(max_centers),
      &          NUFCT(max_centers), NAOUATM(max_centers),
@@ -128,11 +131,38 @@ c     Write(6,*) "Atom Coordiantes of each shell"
 c     Do Iatm =1, Ncenters
 c        Write(6, "(6(1x,F12.8))") (Cord(i,Iatm), i=1,3)
 c     Enddo
+   
+      IECP_int      = 1
+      IECP_grad_int = IECP_int +  (1/2)*(NAOBASIS+1)*NAOBASIS
+
+      If (Grads) Then
+          Mem_needed    = IECP_grad_int + (3/2)*(NAOBASIS+1)*NAOBASIS*
+     &                                     Ncenters
+      Else
+          Mem_needed    = IECP_grad_int
+      Endif
+
+      Ierr = 0
+      Call MEM_ALLOC(Decp_ints, Mem_needed, Ifltln, Istart_Heap, .True.,
+     &               Ierr)
+C
+      If (Ierr .ne. 0) then
+         Write(6, "(a,i10,a)") "@ECPMAIN: Unable to allocate",
+     &         Mem_needed, " words of double precision memory"
+        Call Errex
+      Endif
+C
+      IECP_int      = Istart_Heap
+      IECP_grad_int = IECP_int +      (1/2)*(NAOBASIS+1)*NAOBASIS
+
+      If (Grads)
+     &    Ilast  = IECP_grad_int + (3/2)*(NAOBASIS+1)*NAOBASIS*
+     &                             Ncenters
 
       Call A3_ECP_MAIN(Iecp, Ncenters, Namat, Iqmstr, Jcostr,
      &                 Nucstr, Nrcstr, Jstrt, Jrs, Work(Ialpha), 
      &                 Nalpha, Work(Ipcoef), Npcoef, Cord, 
-     &                 Charge, IGenby, Spherical)
+     &                 Charge, IGenby, Spherical, Decp_ints(IECP_int))
 
       If (Grads) Call A3_ECP_GRDINT_MAIN(Iecp, Ncenters, Namat,
      &                                   Iqmstr, Jcostr,
@@ -140,7 +170,9 @@ c     Enddo
      &                                   Jrs, Work(Ialpha),
      &                                   Nalpha, Work(Ipcoef), 
      &                                   Npcoef, Cord, Charge,
-     &                                   IGenby, Spherical)
-      
-      return  
+     &                                   IGenby, Spherical,
+     &                                   Decp_ints(IECP_grad_int),
+     &                                   Naobasis)
+
+      Return  
       End

@@ -1,17 +1,3 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
 
 C  *******************************************************
 C  Conversion of the hessian from cartesian to red. internal
@@ -49,15 +35,14 @@ C GMINB  : To keep the  transpose of the G-mat, and it is of
 C          the same lengthe as GMINBT.
 C PFI    : Keep the gradients during the gradient projection.
 C          It is of length MAXREDUNCO.
-      DIMENSION DIFTEMP(9*NRATMS*NRATMS),FI(TOTREDNCO),PFI(TOTREDNCO),
+      DIMENSION DIFTEMP(9*MXATMS*MXATMS),FI(TOTREDNCO),PFI(MAXREDUNCO),
      &          HC(3*NRATMS,3*NRATMS),
      &          HI(TOTREDNCO*TOTREDNCO),
-     &          GMINBT(3*NRATMS*MAXREDUNCO),
-     &          TEMP1(TOTREDNCO*3*NRATMS),
-     &          GMINB(TOTREDNCO*TOTREDNCO)
+     &          GMINBT(3*MXATMS*MAXREDUNCO),
+     &          TEMP1(MAXREDUNCO*3*MXATMS),
+     &          GMINB(MAXREDUNCO*MAXREDUNCO)
 
       CALL IGETREC(-1,'JOBARC','REDNCORD',1,TOTREDNCO)
-      IPRNT=600
 
 C Build the K-matrix and the (H-K) matrix as shown in JCP, 117, 9160, 2002.
 #ifdef _DEBUG_LVLM1
@@ -103,6 +88,9 @@ C Now we have the the Hessian in Redundant Internal Coordinates
          CALL OUTPUT(HI, 1, TOTREDNCO, 1, TOTREDNCO, TOTREDNCO,
      &               TOTREDNCO, 1)
 #endif
+#ifdef _NO_OBSOLETE
+C----------------Following block of code now done in projec_ifc---
+C It is convenient to do projection in one place. Ajith Perera 
 C Purify the Hessian as recommended by Schlegel et al. (JCC,17,49,1996).
 C G and G{^-1} have been created in the built_bgmatrix.F. The P=GG{^-1}
 C is the projection into the redundant spaces that correspond to actual
@@ -151,6 +139,7 @@ C built the PHP and stored in HI).
           CALL OUTPUT(HI,1,TOTREDNCO,1,TOTREDNCO,TOTREDNCO,
      &                TOTREDNCO,1)
 #endif
+#endif 
       RETURN
       END
 

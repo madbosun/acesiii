@@ -7,7 +7,7 @@
       integer times_exec_timer
       integer average_unit_timer
 
-      parameter (max_allocated_timers = 900000)
+      parameter (max_allocated_timers = 100000)
       parameter (max_timer_desc_len = 40)
       parameter (cpu_timer = 1)
       parameter (elapsed_time_timer = 2)
