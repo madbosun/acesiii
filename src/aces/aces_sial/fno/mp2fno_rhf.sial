@@ -89,39 +89,27 @@
       served VSpipi(p1,i,p,i1)
       served ASpipi(a,i,a1,i1)
       served Apiqj(a,i,a1,i1)
-# tran_aajj
-      local Lxajj(mu,a,j,j1)
-      temp Txajj(mu,a,j,j1)
-      served Vxajj(mu,a,j,j1)
-      local Laajj(a1,a,j,j1)
-      temp Taajj(a,a1,j,j1)
-      served Vaajj(a,a1,j,j1)
-# tran_iabj
-      local Lixbj(i,mu,b,j)
-      temp Tixbj(i,mu,b,j)
-      served Vixbj(i,mu,b,j)
-      local Liabj(i,a,b,j)
-      temp Tiabj(i,a,b,j)
-      served Viabj(i,a,b,j)
-#
-# hfdens
-      temp Txi(mu,i)
-      temp Tpq(mu,nu)
-      distributed Dhfa(mu,nu)
 # mp2 energy
       temp Taiai(a,i,a1,i1)
       temp T1aiai(a,i,a1,i1)
 # main
 #
+      distributed FTa(p,q)
       static pinf(kiter,kptr1)
       temp tpinf(kiter,kptr1)
       temp Tpipi(p,i,p1,i1)
       distributed Pab_aa(a,a1)
       temp Taa(a,a1)
-      local Lwork1(p,p1)
+      temp Tab(a,b)
       temp Twork1(p,p1)
-      static NOorb(a,a1)
-      static work1(a,a1)
+      static NCa(a,a1)
+      static SPab(a,a1)
+      static VVFock_a(a,a1)
+      static VVUa(a,a1)
+      temp Tvtzt(a,b)
+      static Svtzt(a,b)
+      static SCa(mu,b)
+      temp T1xp(mu,a)
 #
 # scalars
 #
@@ -134,6 +122,7 @@
       scalar one
       scalar mone
       scalar two
+      scalar three
       scalar five
       scalar six
       scalar seven
@@ -142,6 +131,7 @@
       scalar numvirt
       scalar virtovertwo
       scalar countstart
+      scalar rank
 #
 # -----------------------------------------------------------
 #
@@ -275,160 +265,6 @@
 #
      ENDPROC TRAN_PIQJ
 #
-     PROC TRAN_AAJJ
-#
-     execute sip_barrier
-#
-     PARDO mu, j, j1
-#
-           allocate Lxajj(mu,*,j,j1) 
-#
-           DO nu 
-#
-              REQUEST Vxxjj(mu,nu,j,j1) j 
-#
-              DO a
-#
-                 Txajj(mu,a,j,j1)  = Vxxjj(mu,nu,j,j1)*ca(nu,a)
-                 Lxajj(mu,a,j,j1) += Txajj(mu,a,j,j1)
-#
-              ENDDO a
-#
-           ENDDO nu 
-#
-           DO a
-#
-              Txajj(mu,a,j,j1)         = Lxajj(mu,a,j,j1) 
-              PREPARE Vxajj(mu,a,j,j1) = Txajj(mu,a,j,j1)
-#
-           ENDDO a
-#
-           deallocate Lxajj(mu,*,j,j1) 
-#
-     ENDPARDO mu, j, j1
-#
-     execute sip_barrier
-     execute server_barrier
-#
-     PARDO a, j, j1
-#
-           allocate Laajj(*,a,j,j1) 
-#
-           DO mu 
-#
-              REQUEST Vxajj(mu,a,j,j1) j
-#
-              DO a1
-#
-                 Taajj(a1,a,j,j1)  = Vxajj(mu,a,j,j1)*ca(mu,a1)
-                 Laajj(a1,a,j,j1) += Taajj(a1,a,j,j1)
-#
-              ENDDO a1
-#
-           ENDDO mu 
-#
-           DO a1
-#
-              Taajj(a1,a,j,j1)         = Laajj(a1,a,j,j1) 
-              PREPARE Vaajj(a1,a,j,j1) = Taajj(a1,a,j,j1)
-#
-           ENDDO a1
-#
-           deallocate Laajj(*,a,j,j1) 
-#
-     ENDPARDO  a, j, j1
-#
-     execute sip_barrier
-     execute server_barrier
-#
-     ENDPROC TRAN_AAJJ
-#
-     PROC TRAN_IABJ
-#
-     execute sip_barrier
-#
-     PARDO mu, i, j
-#
-           allocate Lixbj(i,mu,*,j) 
-#
-           DO nu 
-#
-              REQUEST Vixxj(i,mu,nu,j) i
-#
-              DO b
-#
-                 Tixbj(i,mu,b,j)  = Vixxj(i,mu,nu,j)*ca(nu,b)
-                 Lixbj(i,mu,b,j) += Tixbj(i,mu,b,j)
-#
-              ENDDO b
-#
-           ENDDO nu 
-#
-           DO b
-#
-              Tixbj(i,mu,b,j)         = Lixbj(i,mu,b,j) 
-              PREPARE Vixbj(i,mu,b,j) = Tixbj(i,mu,b,j)
-#
-           ENDDO b
-#
-           deallocate Lixbj(i,mu,*,j) 
-#
-     ENDPARDO mu, i, j
-#
-     execute sip_barrier
-     execute server_barrier
-#
-     PARDO b, i, j
-#
-           allocate Liabj(i,*,b,j) 
-#
-           DO mu 
-#
-              REQUEST Vixbj(i,mu,b,j) i
-#
-              DO a
-#
-                 Tiabj(i,a,b,j)  = Vixbj(i,mu,b,j)*ca(mu,a)
-                 Liabj(i,a,b,j) += Tiabj(i,a,b,j)
-#
-              ENDDO a
-#
-           ENDDO mu 
-#
-           DO a
-#
-              Tiabj(i,a,b,j)         = Liabj(i,a,b,j) 
-              PREPARE Viabj(i,a,b,j) = Tiabj(i,a,b,j)
-#
-           ENDDO a
-#
-           deallocate Liabj(i,*,b,j) 
-#
-     ENDPARDO b, i, j
-#
-     execute sip_barrier
-     execute server_barrier
-#
-     ENDPROC TRAN_IABJ
-#
-     PROC TRAN_UHF 
-# 
-     CALL TRAN_XXII
-     CALL TRAN_PIQJ
-     CALL TRAN_AAJJ
-     CALL TRAN_IABJ
-#
-     ENDPROC TRAN_UHF 
-#
-#      PROC HFDENS
-#
-#      pardo mu, nu, i
-#            Txi(nu,i) = ca(nu,i)
-#    		Tpq(mu,nu) = ca(mu,i)*Txi(nu,i)
-#    		PUT Dhfa(mu,nu) += Tpq(mu,nu)
-#      endpardo
-##
-#      ENDPROC HFDENS
 #
      PROC ENERGY
 #
@@ -513,11 +349,21 @@
       mone = -1.0
       one = 1.0
       two = 2.0
+      three = 3.0
 #
-      CALL TRAN_UHF
+      create Pab_aa
+      create FTa
+#
+      pardo p,q
+          Twork1(p,q) = Fock_a(p,q)
+          put FTa(p,q) = Twork1(p,q)
+      endpardo p,q
+#
+      CALL TRAN_XXII
+      CALL TRAN_PIQJ
       CALL ENERGY
       execute sip_barrier totenerg
-
+      execute server_barrier
 #     Create the second-order 'amplitudes' 
 #     ------------------------------------ 
 #
@@ -540,7 +386,6 @@
 #
 # Compute the virtual-virtual block of the density correction
 #     AAAA/AAAA piece 
-      create Pab_aa
 #
       PARDO a, a2, i, i1
 #
@@ -574,75 +419,132 @@
 #
       ENDPARDO a, b, i, j
 #
-# debug print mp2 VV density
-      pardo a, a1
-          get Pab_aa(a,a1)
-          execute dump_amp Pab_aa(a,a1)
-      endpardo a, a1
-#
-# End compute the virtual-virtual block of the density correction
-#
-# compute mp2 VV block natural orbitals
-      execute server_barrier
+      execute sip_barrier
+# make temporary vv density
       do a
           do a1
               get Pab_aa(a,a1)
-              work1(a,a1) = Pab_aa(a,a1)
-# trick to get "correct" order of eigen values (e.g. first is biggest)
-              work1(a,a1) *= mone
+              SPab(a,a1) = Pab_aa(a,a1)
+# trick for ordering
+              SPab(a,a1) *= -1.0
           enddo a1
       enddo a
-      execute eig work1 NOorb
-# debug print mp2 natural orbitals
-      do a
-          do a1
-              execute dump_amp NOorb(a,a1)
-          enddo a1
-      enddo a
-# reverse trick to get correct magnitudes
+#      pardo a,a1
+#      get pab_aa(a,a1)
+#      execute dump_amp pab_aa(a,a1)
+#      endpardo a,a1
+# make vv mp2 natural orbitals
+      execute get_my_rank rank
+      if rank == 0.0
+          execute eig SPab NCa
+# reverse trick
+          do a
+              do a1
+                  SPab(a,a1) *= mone
+              enddo a1
+          enddo a
+# zero small natural orbitals
+          execute form_fno SPab NCa
+      endif
+      execute sip_barrier
+      execute broadcast_array SPab
+      execute broadcast_array NCa
 #      do a
 #          do a1
-#              work1(a,a1) *= mone
+#          execute dump_amp NCa(a1,a)
 #          enddo a1
 #      enddo a
-# zero small natural orbitals
-      execute return_length NOorb
-      execute print_scalar numvirt
-      virtovertwo = numvirt
-      virtovertwo *= 0.5
-      execute print_scalar virtovertwo
+      execute sip_barrier
+# Make VV fock matrix in FNO basis
+      DO b
+      DO b1
+          VVUa(b,b1) = 0.0
+          DO a
+              get FTa(b,b1)
+              Tab(a,b) = FTa(b,b1)*NCa(b1,a)
+              DO a1
+                  Taa(a,a1) = Tab(a,b)*NCa(b,a1)
+                  VVFock_a(a,a1) += TaA(a,a1)
+              ENDDO a1
+          ENDDO A
+      ENDDO b1
+      ENDDO b
+      execute broadcast_array VVFock_a
+      execute broadcast_array VVUa
+      execute sip_barrier
+#      do a
+#          do a1
+#          execute dump_amp VVFock_a(a,a1)
+#          enddo a1
+#      enddo a
+# diagonalize VV fno fock matrix
+      execute eig VVFock_a VVUa
+#      do a
+#          do a1
+#          execute dump_amp VVFock_a(a,a1)
+#          enddo a1
+#      enddo a
+      execute broadcast_array VVFock_a
+      execute broadcast_array VVUa
+      execute sip_barrier
+# VVFock_a now equals Zt
+# Vt*Zt
+      DO a
+          DO b
+              DO a1
+                  Tvtzt(a,b) = NCa(a,a1)*VVUa(a1,b)
+                  Svtzt(a,b) += Tvtzt(a,b)
+              ENDDO a1
+          ENDDO b
+      ENDDO a
+      execute broadcast_array Svtzt
+      execute sip_barrier
+#      do a
+#          do a1
+#          execute dump_amp Svtzt(a,a1)
+#          enddo a1
+#      enddo a
+# Uvirt*(Vt*Zt)
+      DO mu
+      DO a
+          SCa(mu,a) = Ca(mu,a)
+          Ca(mu,a) = 0.0
+          DO a1
+              T1xp(mu,a) = SCa(mu,a1)*Svtzt(a1,a)
+              Ca(mu,a) += T1xp(mu,a)
+          ENDDO a1
+      ENDDO a
+      ENDDO mu
+      execute sip_barrier
+# update VV block of main fock matrix
+      do a
+          do b
+              Twork1(a,b) = VVFock_a(a,b)
+              PUT FTa(a,b) = Twork1(a,b)
+          ENDDO b
+      ENDDO a
+      PARDO p,q
+          GET FTa(p,q)
+          Twork1(p,q) = FTa(p,q)
+          Fock_a(p,q) = Twork1(p,q)
+      ENDPARDO p,q
+      execute print_rel_info three Fock_a
+#
+      execute sip_barrier
+      CALL TRAN_XXII
+      CALL TRAN_PIQJ
+      CALL ENERGY
+# -----------------------------------------------------------
       execute server_barrier
       execute sip_barrier
       ENDSIAL MBPT2_FNO
 #
-      ncount1 = 1
-      do a
-          if ncount1 > virtovertwo
-              do a1
-                  NOorb(a,a1) = zero
-              enddo a1
-          endif
-          ncount1 += 1.0
-      enddo a
-# debug print mp2 natural orbitals
-      do a
-          do a1
-              execute dump_amp NOorb(a,a1)
-          enddo a1
-      enddo a
-# get VV block of the fock matrix
-      do a
-          do a1
-              work1(a,a1) = fock_a(a,a1)
-          enddo a1
-      enddo a
-      do a
-          do a1
-              execute dump_amp work1(a,a1)
-          enddo a1
-      enddo a
+#      do a
+#          do a1
+#              execute dump_amp work1(a,a1)
+#          enddo a1
+#      enddo a
 #      pardo p, p1
 #          execute dump_amp fock_a(p,p1)
 #      endpardo p, p1
 #
-# -----------------------------------------------------------
