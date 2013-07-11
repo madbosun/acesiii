@@ -119,8 +119,6 @@ c---------------------------------------------------------------------------
 
 c     thresh = 5.0d-5 
 
-      if (me .eq. 0) write(66,*)  ' '  
-
       if (me .eq. 0) write(66,5)  
 5     format(5x,'Determining FNOs')  
 
@@ -135,27 +133,38 @@ c     thresh = 5.0d-5
       if (me .eq. 0) write(66,40) max 
 40    format(5x,'MAX virtual occupancy=',F12.8)  
 
-      thresh = 0.01*max 
+      thresh = 0.00071190d0
 
       if (me .eq. 0) write(66,20) thresh 
-20    format(5x,'DETERMINING FNOs with MAX allowable occupancy=',F12.8)  
+20    format(5x,'DETERMINING FNOs based on thresholding:',F12.8)  
 
-      do j = 1, n
-         if (me .eq. 0) write(66,*) j+nalpha_occupied, SPab(j,j) 
+      do j = 1,n
          if (dabs(SPab(j,j)) .lt. thresh) then 
             ndrop = ndrop + 1 
-            if (me .eq. 0) 
-     *      write(66,10) j+nalpha_occupied, SPab(j,j)   
+            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
             do i = 1, n
                Uab(i,j) = 0.0 
             enddo
+         else
+            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),''
          endif 
       enddo
 
       if (me .eq. 0) write(66,30) ndrop, n  
+      if (me .eq. 0) 
+     *   write(66,31) n+nalpha_occupied-ndrop,n+nalpha_occupied
 
-10    format(5x,'Drop orbital:',I8,5x,'with occupation=',F12.8)
-30    format(5x,I8,' Virtuals dropped out of',I8)
+C      do j = 1,n
+C         write(6,999) j,(uab(j,i),i=1,n)
+C      enddo
+999   format(I4,100F10.7)
+
+c10    format(5x,'Drop orbital:',I8,5x,'with occupation=',F12.8)
+11    format(5x,I3,1F14.8,2x,A)
+c00    format(5x,I8,'Virtuals dropped out of',I8)
+30    format(5x,'Dropping ',I8,' natural orbitals out of ',I8,
+     *       ' total virtuals')
+31    format(5x,'If this is the first run, use DROPMO=',I8,'-',I8)
 
       return
       end

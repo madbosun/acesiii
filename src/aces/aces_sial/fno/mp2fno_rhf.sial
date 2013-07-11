@@ -105,11 +105,14 @@
       static NCa(a,a1)
       static SPab(a,a1)
       static VVFock_a(a,a1)
+      static SF_a(a,a1)
       static VVUa(a,a1)
       temp Tvtzt(a,b)
       static Svtzt(a,b)
-      static SCa(mu,b)
-      temp T1xp(mu,a)
+      temp TCa(mu,p)
+      distributed SCa(mu,p)
+      static SFa(p,q)
+      temp T1xp(mu,q)
 #
 # scalars
 #
@@ -270,6 +273,7 @@
 #
 #    ------------------------------------------------------------------------
 #
+     totenerg = 0.0
      esumaa = 0.0
      ecorraa = 0.0 
      execute sip_barrier
@@ -353,7 +357,12 @@
 #
       create Pab_aa
       create FTa
+      create SCa
 #
+      pardo mu,p
+          TCa(mu,p) = Ca(mu,p)
+          put SCa(mu,p) = TCa(mu,p)
+      endpardo mu,p
       pardo p,q
           Twork1(p,q) = Fock_a(p,q)
           put FTa(p,q) = Twork1(p,q)
@@ -425,28 +434,30 @@
           do a1
               get Pab_aa(a,a1)
               SPab(a,a1) = Pab_aa(a,a1)
-# trick for ordering
-              SPab(a,a1) *= -1.0
           enddo a1
       enddo a
 #      pardo a,a1
-#      get pab_aa(a,a1)
-#      execute dump_amp pab_aa(a,a1)
+#          get pab_aa(a,a1)
+#          execute dump_amp pab_aa(a,a1)
 #      endpardo a,a1
 # make vv mp2 natural orbitals
-      execute get_my_rank rank
-      if rank == 0.0
-          execute eig SPab NCa
-# reverse trick
-          do a
-              do a1
-                  SPab(a,a1) *= mone
-              enddo a1
-          enddo a
-# zero small natural orbitals
-          execute form_fno SPab NCa
-      endif
+      execute eig SPab NCa
+      #execute eig_nonsymm SPab NCa
+      execute broadcast_array SPab
+      execute broadcast_array NCa
+#      do a
+#          do a1
+#          execute dump_amp SPab(a1,a)
+#          enddo a1
+#      enddo a
+#      do a
+#          do a1
+#          execute dump_amp NCa(a1,a)
+#          enddo a1
+#      enddo a
       execute sip_barrier
+# zero small natural orbitals
+      execute form_fno SPab NCa
       execute broadcast_array SPab
       execute broadcast_array NCa
 #      do a
@@ -455,7 +466,13 @@
 #          enddo a1
 #      enddo a
       execute sip_barrier
+      execute sip_barrier
 # Make VV fock matrix in FNO basis
+#      do a
+#          do a1
+#          execute dump_amp FTa(a,a1)
+#          enddo a1
+#      enddo a
       DO b
       DO b1
           VVUa(b,b1) = 0.0
@@ -479,15 +496,21 @@
 #      enddo a
 # diagonalize VV fno fock matrix
       execute eig VVFock_a VVUa
+      #execute eig_nonsymm VVFock_a VVUa
 #      do a
 #          do a1
 #          execute dump_amp VVFock_a(a,a1)
+#          enddo a1
+##      enddo a
+#      do a
+#          do a1
+#          execute dump_amp VVUa(a,a1)
 #          enddo a1
 #      enddo a
       execute broadcast_array VVFock_a
       execute broadcast_array VVUa
       execute sip_barrier
-# VVFock_a now equals Zt
+# UUVa now equals Zt
 # Vt*Zt
       DO a
           DO b
@@ -505,16 +528,32 @@
 #          enddo a1
 #      enddo a
 # Uvirt*(Vt*Zt)
+      pardo mu,p
+          TCa(mu,p) = zero
+          Ca(mu,p) = TCa(mu,p)
+      endpardo mu,p
+#
       DO mu
-      DO a
-          SCa(mu,a) = Ca(mu,a)
-          Ca(mu,a) = 0.0
-          DO a1
-              T1xp(mu,a) = SCa(mu,a1)*Svtzt(a1,a)
-              Ca(mu,a) += T1xp(mu,a)
-          ENDDO a1
-      ENDDO a
+          DO b
+              DO a
+                  get SCa(mu,a)
+                  T1xp(mu,b) = SCa(mu,a)*Svtzt(a,b)
+                  Ca(mu,b) += T1xp(mu,b)
+              ENDDO a
+          ENDDO b
       ENDDO mu
+#
+      pardo mu,i
+          get SCa(mu,i)
+          Ca(mu,i) = SCa(mu,i)
+      endpardo mu,i
+      pardo mu,p
+          get SCa(mu,p)
+          execute dump_amp SCa(mu,p)
+      endpardo mu,p
+      pardo mu,p
+          execute dump_amp Ca(mu,p)
+      endpardo mu,p
       execute sip_barrier
 # update VV block of main fock matrix
       do a
@@ -526,14 +565,19 @@
       PARDO p,q
           GET FTa(p,q)
           Twork1(p,q) = FTa(p,q)
+          SFa(p,q) = Twork1(p,q)
           Fock_a(p,q) = Twork1(p,q)
       ENDPARDO p,q
+      execute scf_rhf Fock_b cb
       execute print_rel_info three Fock_a
+      execute print_rel_info zero Ca
+#      execute print_rel_info three Fock_b
+#      execute print_rel_info zero Cb
 #
-      execute sip_barrier
-      CALL TRAN_XXII
-      CALL TRAN_PIQJ
-      CALL ENERGY
+#      execute sip_barrier
+#      CALL TRAN_XXII
+#      CALL TRAN_PIQJ
+#      CALL ENERGY
 # -----------------------------------------------------------
       execute server_barrier
       execute sip_barrier
