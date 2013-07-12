@@ -12,7 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine form_fno(array_table, 
+      subroutine sort_fno(array_table, 
      *                      narray_table, index_table,
      *                      nindex_table, segment_table, nsegment_table,
      *                      block_map_table, nblock_map_table,
@@ -102,74 +102,52 @@ c---------------------------------------------------------------------------
       ievec  = get_index_from_base(address_table(evec_array), x, 2)
 
       n = index_table(c_index_size, ind(1))  ! pick up length of index
-      call do_formfno(x(iarray), x(ievec), n, ind(1), ind(2))
+      call calc_fno_sort(x(iarray), x(ievec), n)
 
       return
       end
 
-      subroutine do_formfno(SPab, Uab, n, n1, n2)
-      include 'int_gen_parms.h'
-      integer i, j, n, n1, n2, ndrop, k
-      double precision SPab(n,n)
-      double precision Uab(n,n)  
-      double precision utemp(n,n)  
-      double precision thresh, maxp, minp, temp, temp1, dtmp
-      integer fno_keep, ndim
-      logical harddrop
+      subroutine calc_fno_sort(a,b,n)
+      implicit none
+      include 'machine_types.h'
+      include 'parallel_info.h'
 
-      open(66,file='summary.out') 
-      if (me .eq. 0) write(66,5)  
+      integer n 
+      double precision a(n,n),b(n,n)
+      double precision dtmp
+      integer i, j, k
+c
+c sort by eigenvalues
+      do i = 1, n-1
+         do j = i+1, n
+            if ( a(i,i) .gt. a(j,j) ) then
+               dtmp   = a(i,i)
+               a(i,i) = a(j,j)
+               a(j,j) = dtmp
+               do k = 1, n
+                  dtmp   = b(k,i)
+                  b(k,i) = b(k,j)
+                  b(k,j) = dtmp
+               end do
+           end if
+         end do
+      end do
+      do i = 1, n-1
+         do j = i+1, n
+            if ( a(i,i) .eq. 0.d0 ) then
+               dtmp   = a(i,i)
+               a(i,i) = a(j,j)
+               a(j,j) = dtmp
+               do k = 1, n
+                  dtmp   = b(k,i)
+                  b(k,i) = b(k,j)
+                  b(k,j) = dtmp
+               end do
+           end if
+         end do
+      end do
 
-      thresh = 1.d-4
-      harddrop = .false.
-      ndrop = 0 
-      minp = SPab(1,1)
-      maxp = SPab(n,n)
-
-      if (me .eq. 0) write(66,40) minp,maxp
-
-      ndim = 1
-      call igetrec(0, 'JOBARC','FNO_KEEP',ndim,fno_keep)
-      if(me.eq.0) write(66,*) fno_keep
-      if(fno_keep.ne.0) then
-          harddrop = .true.
-          ndrop=nint(n*(100-fno_keep)/100.d0)
-          if (me .eq. 0) write(66,20) (100-fno_keep)
-      else
-          ndrop = 0
-          if (me .eq. 0) write(66,21) thresh 
-      end if
-
-      do j = 1,n
-         if (harddrop .and. j.le.ndrop) then
-            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
-            do i = 1, n
-               Uab(i,j) = 0.0 
-            enddo
-         else if (.not.harddrop .and. dabs(SPab(j,j)) .lt. thresh) then 
-            ndrop = ndrop + 1 
-            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
-            do i = 1, n
-               Uab(i,j) = 0.0 
-            enddo
-         else
-            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),''
-         endif 
-      enddo
-
-      if (me .eq. 0) write(66,30) ndrop, n  
-      if (me .eq. 0) 
-     *   write(66,31) n+nalpha_occupied-ndrop,n+nalpha_occupied
-
-5     format(5x,'DETERMINING MBPT(2) FROZEN NATURAL ORBITALS',/)  
-40    format(/5x,'MIN/MAX virtual occupancy=',F12.8,'/',F12.8)  
-20    format(5x,'DETERMINING FNO SUBSPACE BASED ON % DROP: ',I3,'%')  
-21    format(5x,'DETERMINING FNO SUBSPACE BASED ON THRESHOLD: ',F12.8)  
-999   format(I4,100F10.7)
-11    format(5x,I3,1F14.8,2x,A)
-30    format(5x,'Dropping ',I8,' natural orbitals out of ',I8,
-     *       ' total virtuals')
-31    format(5x,'If this is the first run, use DROPMO=',I8,'-',I8)
-
+c 
       return
       end
+

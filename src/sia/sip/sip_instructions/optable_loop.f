@@ -98,7 +98,7 @@ C  in the file COPYRIGHT.
 
       trace = .false.
 
-      load_balance = .false.
+      load_balance = .true.
 
       call determine_timeslice(timeslice, timer_count)
 

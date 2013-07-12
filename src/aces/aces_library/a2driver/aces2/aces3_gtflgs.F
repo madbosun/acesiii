@@ -1621,10 +1621,6 @@ c turn save_ints on for all fno methods
 c props need to be first order for cc densities
       if (ioppar(h_IOPPAR_fno_keep).gt.0) then
          call asv_update_kv('save_ints'//achar(0),iASV,szData,0)
-         if (ioppar(h_IOPPAR_calc).gt.1) then
-            szTmp = 'props=first_order'//achar(0)
-            call asv_update_kv(szTmp,iASV,szData,0)
-         end if
       end if
 
 c   o TRAP METHODS WHICH DON'T WORK YET
