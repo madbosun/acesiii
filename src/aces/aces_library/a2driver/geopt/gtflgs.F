@@ -1195,7 +1195,8 @@ c
 c    o LST or QST is set but not a transition state search, 12/2012.
 c      Ajith Perera.
 
-      if (ioppar(h_IOPPAR_opt_control) .lt. 3) Then
+      if (ioppar(h_IOPPAR_opt_control) .EQ. 1 .OR.
+     &    ioppar(h_IOPPAR_opt_control) .EQ. 2) Then
          if (ioppar(h_IOPPAR_opt_method) .lt. 4) Then
              szTmp = 'opt_method=4'//achar(0)
              call asv_update_kv(szTmp,iASV,szData,0)
@@ -1298,7 +1299,18 @@ cVFL start
 c     if (ioppar(h_IOPPAR_subgroup).eq.1) then
 c        call asv_update_kv('!sym'//achar(0),iASV,szData,0)
 c     end if
-      if (ioppar(h_IOPPAR_geom_opt) .ge. 2) Then
+
+C comments indicated by "CSSS" is by Ajith Perera, 07/2012.
+C Summary of what should happen. ACES III calculations that starts
+C from Cartesian coordiante inputs, the symmetry is set to
+c NONE by default (see VFL comment). In addition, unless it
+C is vibrational frequency calculation the reorientation 
+c is also turned off. This is not done for vibrational frq.
+c calculations, since only in the center of mass and 
+C rotating principal axis orientation, the rotational and translations 
+C get decoupled.
+C
+CSSS      if (ioppar(h_IOPPAR_geom_opt) .ge. 2) Then
 c        szTmp = 'SYMMETRY=NONE'//achar(0)
 c        if (ioppar(h_IOPPAR_sym).ne.0) then
 c            call asv_update_kv(szTmp,iASV,szData,0)
@@ -1325,7 +1337,7 @@ C
                szTmp = "OPT_METHOD=RFA"//achar(0)
                call asv_update_kv(szTmp,iASV,szData,0)
           endif
-      endif
+CSSS      endif
 C
 C For internal Coordinates do not allow symmetry=none (symmetry=none do no harm
 C except when dummy atoms are present but there is no need of this). 

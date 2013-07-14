@@ -197,7 +197,19 @@ c For ECP must renormalize/reorder
      *                         dbuf(iscale_fac)) 
             Else
                call aces_to_erd(nfps, ivangmom, nshells, ispherical,
+
      *                          ibuf(ierdind), dbuf(iscale_fac))
+
+C The mapping from ERD <-> VMOL (ACES II) is written to JOBARC
+C for post ACES II processing. Within ACES III a ERD normalization
+C and order is maintained. Ajith Perera, 07/2013.
+ 
+               If (master .EQ. me) then
+                   call iputrec(20, "JOBARC", "ERDORDER", nbasis,
+     *                          ibuf(ierdind))
+                   call dputrec(20, "JOBARC", "ERD2A2CS", nbasis,
+     *                          dbuf(iscale_fac))
+               Endif
             Endif
 
             call setup_ccbeg(dbuf(ialpha), ixalpha, dbuf(ipcoeff), 

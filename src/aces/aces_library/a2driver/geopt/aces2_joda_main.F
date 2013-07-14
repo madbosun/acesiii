@@ -366,7 +366,7 @@ c------------------------------------------------------------------------------
          call abort_job()
       endif
 
-      call gentranmat(iz(ixz), gentranmat_ints)
+CSSS      call gentranmat(iz(ixz), gentranmat_ints)
 
 c---------------------------------------------------------------------------
 c   Free any heap memory that might have been used.  It must be made

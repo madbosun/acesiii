@@ -79,7 +79,7 @@ C   AO2SO (misnomer) : transforms SYMMETRY-ADAPTED orbitals (Cartesian
 C                      or Spherical) to NON-SYMMETRY-ADAPTED orbitals
 C                      (Cartesian basis)
 C                      Used in vscf, props, vee.
-C   AO2SOINV         : the inverse transformation of AO2SO
+
 C                      By default, it acts FROM THE LEFT.
 C                      Used in props and vee. 
 C
@@ -258,7 +258,7 @@ C     NFAOIrr Number of functions per irrep in the full AO basis
 C     SEWARD  If it is true, SEWARD integrals are being used.
 C     ACESIII  If it is true, ACESIII is used.
 C
-      Double precision RepNuc, Det
+      Double precision RepNuc, Det, Scfvec_a(25,25)
       Integer IntTyp, NBF, NBFIrr(MxIrr), NIrr, i, MemPtr(15), MemUse,
      $   NAtoms, MxMPtr, NAOBF, NOrbits, LScr, IErr, IOrdGp,
      $   NFAOIrr(MxIrr), j, IACESIII
@@ -343,10 +343,6 @@ C
          Do 100 i = 1, NIrr
             NBF = NBF + NBFIrr(i)
  100     Continue
-      Else
-         Nirr = 1
-         Call Getrec(20, "JOBARC", "NBASTOT ", 1, NBF)
-         NBFIrr(1) = NBF
       Endif 
      
 C     And the total number of AO basis functions
@@ -366,6 +362,9 @@ C
       
       If (SEWARD .OR. ACESIII) Then
          Call GenTranMat(Icore, Icrsiz)
+         Call Getrec(20, 'JOBARC', 'NIRREP  ',1, Nirr)
+         Call Getrec(20, 'JOBARC', 'NUMBASIR',Nirr, NBFIrr)
+         Call Getrec(20, "JOBARC", "NBASTOT ",1, NBF)
       endif
 C
 C     If the computational basis has dropped functions or it is spherical
@@ -377,6 +376,9 @@ C
            Call Locate(LuInt, 'CSYMTRAN')
            Read (LuInt) NAOBF, J, J, J, (NFAOIrr(i), i = 1, NIrr)
         EndIf
+      ELSE
+        CALL GetRec(20,'JOBARC','NAOBASFN', 1,    NAOBF)
+        CALL GetRec(20,'JOBARC','FAOBASIR', Nirr, NFAOIrr)
       ENDIF
 C
 C

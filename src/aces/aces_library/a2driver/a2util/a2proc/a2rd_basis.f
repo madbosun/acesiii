@@ -7,20 +7,21 @@ c-----------------------------------------------------------------------
       parameter(toler=0.0000000D0)
       parameter(mxangmom=7)
       parameter(mxcoef=30)
-      logical yesno, Write_Molden_file
-      character*2 celeaces(nelement)
+      logical yesno, Write_Molden_file, btmp
+      character*2 celeaces(nelement), Symbol
       character*1 cangmom(mxangmom)
       character*80 wrk
       character*80 wrk2
       character*80 wrk3 
       character*30 cbasnam(mxatoms)
-      character*30 cbasnam2(mxatoms)
+      character*30 cbasnam2(mxatoms),Basnam_hold(mxatoms)
       integer iatchrg(natoms),iangmom(mxangmom),
      &  icbf(mxangmom),iexp(mxangmom),ireorder(mxatoms),
      &  lsearch(mxatoms)
 
       double precision gexp(mxangmom,mxcoef)
       double precision coef(mxangmom,mxcoef,mxcoef)
+      Integer atomnumb
 
 c flags.com : begin
       integer        iflags(100)
@@ -48,6 +49,8 @@ c flags.com : end
      &  /'s','p','d','f','g','h','i'/
 c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 c
+      external atomnumb
+
       if(iflags(61).eq.1) then
 c
 c>>>>>>>>>>>>>>>>>>>>>>> BASIS SET IS NOT SPECIAL<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -82,19 +85,52 @@ c
           call errex
         ENDIF
 c
-300     READ(4,'(A)',END=900)WRK
-        if (wrk(1:6).ne.'*ACES2') goto 300
-c now look for a blank line
-310     READ(4,'(A)',END=904)WRK
-        i=1
-        do while ((wrk(i:i).eq.' '.or.wrk(i:i).eq.achar(9)).and.
-     &            i.le.len(wrk))
-           i=i+1
-        end do
-        if (i.le.len(wrk)) goto 310
-        do iatom=1,natoms
-           read(4,'(A)',end=910)cbasnam(iatom)
-        end do
+C This block is changed to accomodate to changes to basis 
+C input. With the new additions one can input only the distinct 
+C atom/basis functons. Also see mkvmol.F in joda. 
+C Ajith Perera, 06/2013.
+
+         bTmp = .true.
+         do while (bTmp)
+            read(4,'(A)',END=910) wrk
+            bTmp = (wrk(2:2).ne.':'.and.wrk(3:3).ne.':')
+         end do
+c      o go back for the next read
+         backspace(4)
+         backspace(4)
+
+         read(4,"(i4)",end=910)  Num_unique
+         If (Num_unique .EQ. Natoms .OR. Num_unique .EQ.0) Then
+            do iatom=1,natoms
+               read(4,'(A)',end=910)cbasnam(iatom)
+            end do
+         Else
+            Do Iatm = 1,  Num_unique
+               if (iatchrg(iatm) .ne. 0)
+     &         read(4,'(A)',end=910)Basnam_hold(iatm)
+            Enddo
+C
+            Katm  = 0
+            Do Iatm = 1, Natoms
+               Do Jatm = 1, Num_unique
+                  Ilen   = Index(Basnam_hold(Jatm), ":")
+                  Symbol = Basnam_hold(Jatm)(1:Ilen-1)
+                  JAtnr  = ATOMNUMB(Symbol)
+                  If (iatchrg(iatm) .eq. 0)  Katm = Katm + 1
+                  If (iatchrg(Iatm) .EQ. Jatnr) Then
+                      Katm = Katm + 1
+                      cbasnam(Katm) = Basnam_hold(Jatm)
+                  Endif
+             Enddo
+          Enddo
+        Endif
+
+      Write(6,*)
+      Write(6,"(a)") "The basis set definitions"
+      do i=1,natoms
+         Write(6,"(1x,i3,1x,A20)") iatchrg(i), cbasnam(i)
+      enddo
+C
         call getrec(-1,'JOBARC','12SWITCH',1,iswitch)
         if (iswitch.gt.0) then
            wrk        = cbasnam(2)

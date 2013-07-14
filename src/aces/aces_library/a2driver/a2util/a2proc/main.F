@@ -121,7 +121,13 @@ c These modules require heap space, but do not require lists.
      &            1000000,' integers of memory'
          call aces_exit(1)
       end if
-
+C
+C This call to xjoda (which should be in the directory where xaces3).
+C In addition to the ACES_EXE_PATH usesrs must set the PATH to recignize
+C the location of xjoda and xa2proc to do pre/post processing of 
+C ACES III files set (JOBARC and JAINDX). 07/2013, Ajith Perera.
+C
+      call runit("xjoda")
       call v2ja(icore(I0), icrsiz)
 
       if (module(1:5).eq.'test ') then
@@ -185,18 +191,24 @@ C
          goto 9998
       endif
 C
-      if (module(1:11).eq.'qta ') then
+      if (module(1:4).eq.'qta ') then
          call qntm_topl_main(Icore(I0), icrsiz)
          goto 9998
       endif
 C      
-      if (module(1:11).eq.'wrtprm ') then
+      if (module(1:7).eq.'wrtprm ') then
          call Wrt_prim_main(Icore(I0), icrsiz)
          goto 9998
       endif
       
-      if (module(1:11).eq.'rdfile ') then
+      if (module(1:8).eq.'rdfile ') then
          call read_file_main(Icore(I0), icrsiz)
+         goto 9998
+      endif
+
+      if (module(1:9).eq.'symadapt ') then
+         Write(6,*) "Entering sym-adaptation"
+         call a3_symadapt_main(Icore(I0), icrsiz)
          goto 9998
       endif
 

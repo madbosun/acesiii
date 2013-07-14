@@ -671,7 +671,8 @@ void asv_handle_proc(const f_int * index, const char * value)
                 "NONE",         /* 0 */
                 "LST",          /* 1 */
                 "QST",          /* 2 */
-                "CONSTRAINED"   /* 3 */
+                "CONSTRAINED",  /* 3 */
+                "COMBO"         /* 4 - reserved for QST/LST and constrained*/
             };
             asv_update_handle(index,value,handles);
             break;
