@@ -109,12 +109,15 @@ c---------------------------------------------------------------------------
 
       subroutine do_formfno(SPab, Uab, n, n1, n2)
       include 'int_gen_parms.h'
-      integer i, j, n, n1, n2, ndrop, k
+      parameter (max_basis = 2000)
+      integer i, j, n, n1, n2, k
       double precision SPab(n,n)
       double precision Uab(n,n)  
       double precision utemp(n,n)  
       double precision thresh, maxp, minp, temp, temp1, dtmp
-      integer fno_keep, ndim
+      integer ndrop
+      integer ndropmo_a
+      integer modrop_a(max_basis)
       logical harddrop
 
       open(66,file='summary.out') 
@@ -128,17 +131,22 @@ c---------------------------------------------------------------------------
 
       if (me .eq. 0) write(66,40) minp,maxp
 
-      ndim = 1
-      call igetrec(0, 'JOBARC','FNO_KEEP',ndim,fno_keep)
-      if(me.eq.0) write(66,*) fno_keep
-      if(fno_keep.ne.0) then
+      call igetrec(1, 'JOBARC', 'OCCUPYA0', 1, nalpha_occupied)
+      CALL IGETREC(20,'JOBARC','NUMDROPA',1,NDROPMO_A)
+      if (ndropmo_a .gt. 0) then
           harddrop = .true.
-          ndrop=nint(n*(100-fno_keep)/100.d0)
-          if (me .eq. 0) write(66,20) (100-fno_keep)
+          CALL IGETREC(20,'JOBARC','MODROPA',NDROPMO_A,MODROP_A)
+          do i = 1,ndropmo_a
+              if(modrop_a(i) .gt. nalpha_occupied) then
+                  ndrop = ndrop + 1
+              end if
+          end do
       else
+          harddrop = .false.
           ndrop = 0
           if (me .eq. 0) write(66,21) thresh 
       end if
+C      if(me.eq.0) write(66,*) fno_keep
 
       do j = 1,n
          if (harddrop .and. j.le.ndrop) then

@@ -692,7 +692,6 @@ c   Get addresses of CA, CB, FOCK_A, and FOCK_B arrays.
 c   ONLY if the scf has just been performed. 
 c---------------------------------------------------------------------------
 
-         write(6,*) "--moo", if_fno
          if (if_scf .or. init_scf .or. if_fno) then
             ixca = 1
             ixcb = 1
