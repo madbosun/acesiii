@@ -357,6 +357,12 @@
       three = 3.0
       four = 4.0
 #
+      execute server_barrier
+      execute list_to_blocks VSpipi
+      execute list_to_blocks Vpiqj
+      execute read_list_to_blocks
+      execute server_barrier
+#
       create Pab_aa
       create FTa
       create SCa
@@ -370,9 +376,9 @@
           put FTa(p,q) = Twork1(p,q)
       endpardo p,q
 #
-      CALL TRAN_XXII
-      CALL TRAN_PIQJ
-      CALL ENERGY
+#      CALL TRAN_XXII
+#      CALL TRAN_PIQJ
+#      CALL ENERGY
       execute sip_barrier totenerg
       execute server_barrier
 #     Create the second-order 'amplitudes' 
