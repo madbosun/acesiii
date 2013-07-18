@@ -3,7 +3,7 @@
       Subroutine A3_ECP_MAIN(Iecp, Natoms, Namat, Iqmstr, Jcostr,
      &                       Nucstr, Nrcstr, Jstrt, Jrs, Expa, 
      &                       Nalpha, Cont, Npcoef, Cord, Charge,
-     &                       IGenby, Nharm)
+     &                       IGenby, Nharm, Ecpint)
 C      
       Implicit Double Precision(A-H, O-Z)
 
@@ -26,7 +26,7 @@ C
      &          IGenby(Max_centers), Charge(Max_centers),
      &          Fcord(3,Max_centers)
 
-      Dimension Ecpint(Max_cbf*Max_cbf), Ecpint_C(Max_cbf*Max_cbf)
+      Dimension Ecpint(*) 
 
 C ECP integrals. Except for simplifications, I have kept the original
 C form of all the input/output ECP processing routines. This was 
@@ -107,7 +107,7 @@ c-----------------------------------------------------------------------
       Endif
 
       call prepareecp(Cord, Charge, Igenby, Natoms, Ntotatoms)
-      call A3_ecp_int_driver(Ecpint, Ecpint_C, Natoms, Ntotatoms,
+      call A3_ecp_int_driver(Ecpint, Natoms, Ntotatoms,
      &                       Igenby, Cord, .FALSE., Nharm)
 
 #ifdef _OBSOLETED

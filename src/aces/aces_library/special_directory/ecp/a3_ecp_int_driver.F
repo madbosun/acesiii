@@ -1,4 +1,4 @@
-      subroutine A3_Ecp_int_driver(Ecpint, ECpint_C, Natoms, Ntotatoms,
+      subroutine A3_Ecp_int_driver(Ecpint, Natoms, Ntotatoms,
      &                             IGenby, Coord, Grads, Spherical)
 c----------------------------------------------------------------------
 c     Ecp_int_driver drives the calculation of 1e-matrices in the basis of
@@ -22,7 +22,7 @@ C
 
       dimension Cint(Maxmem_a3), Ecpint_4Shell(Maxints_4shell),
      &          IGenby(Ntotatoms),
-     &          Coord(3,Ntotatoms),Ecpint(Max_cbf*(Max_cbf+1)/2)
+     &          Coord(3,Ntotatoms),Ecpint(*)
 
 c-----------------------------------------------------------------------
 #ifdef _DEBUG_LVL0
