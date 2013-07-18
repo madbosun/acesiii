@@ -283,13 +283,8 @@ c     enddo
       if (delta .le. 0.01)   itol = 1.0d-6  
       if (delta .le. 0.001)  itol = 1.0d-7  
       if (delta .le. 0.0001) itol = 1.0d-8 
-      if (delta .le. 0.00001) itol = 1.0d-9 
+      if (delta .le. 0.00001) itol = 1.0d-10
 c
-c The screening tolerance is set at -100.0 for now-->no screening. VFL 
-c 
-c     itol = 10.0**(intgrl_tol) 
-c     itol = 1.0/itol 
-      itol = -100.0 
 
 c     write(6,*) ' Integral screening threshold = ',intgrl_tol, itol 
 

@@ -592,6 +592,8 @@ C--------------------------------------------------------------------------
 c   Reset the number of virtual orbitals if they were dropped. 
 C--------------------------------------------------------------------------
 c
+C JNB: do not do virtual drop for fno sial program. 
+         if(.not. if_fno) then
          nalpha_virtual = nbasis - nalpha_occupied    
          enalpha_virtual = nalpha_virtual
          do i = 1, ndropmo_a 
@@ -605,6 +607,7 @@ c
             if (modrop_b(i) .gt. nbeta_occupied) 
      *      nbeta_virtual = nbeta_virtual - 1  
          enddo 
+         endif
 c
 C--------------------------------------------------------------------------
 c   Reset the number of occupied orbitals if they were dropped. 
