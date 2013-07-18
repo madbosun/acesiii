@@ -282,11 +282,8 @@ IGNORE_DROPMO=YES
 scf_uhf_gorb.sio
 IGNORE_DROPMO=YES
 
-tran_rhf_mp2fno.sio
-IGNORE_DROPMO=YES
-
 fno_rhf_mp2.sio
-IGNORE_DROPMO=NO
+IGNORE_DROPMO=YES
 
 expand_lccd_rhf.sio
 IGNORE_DROPMO=NO

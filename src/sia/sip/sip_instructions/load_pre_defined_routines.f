@@ -228,6 +228,7 @@ c--------------------------------------------------------------------
 c Jason Byrd misc. development additions
 c--------------------------------------------------------------------
       external sort_fno
+      external dropcore_fno
 c
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
@@ -662,6 +663,7 @@ c--------------------------------------------------------------------
 c Jason Byrd misc. development additions
 c--------------------------------------------------------------------
       dummy = load_user_sub('sort_fno'//char(0),sort_fno)
+      dummy = load_user_sub('dropcore_fno'//char(0),dropcore_fno)
 c--------------------------------------------------------------------
 c
 

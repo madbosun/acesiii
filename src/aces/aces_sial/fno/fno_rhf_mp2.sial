@@ -111,6 +111,7 @@
       static Svtzt(a,b)
       temp TCa(mu,p)
       distributed SCa(mu,p)
+      static SCa2(mu,i)
       static SFa(p,q)
       temp T1xp(mu,q)
 #
@@ -357,15 +358,11 @@
       three = 3.0
       four = 4.0
 #
-      execute server_barrier
-      execute list_to_blocks VSpipi
-      execute list_to_blocks Vpiqj
-      execute read_list_to_blocks
-      execute server_barrier
-#
       create Pab_aa
       create FTa
       create SCa
+#
+# get copies of the fock and mo matrix
 #
       pardo mu,p
           TCa(mu,p) = Ca(mu,p)
@@ -376,9 +373,54 @@
           put FTa(p,q) = Twork1(p,q)
       endpardo p,q
 #
-#      CALL TRAN_XXII
-#      CALL TRAN_PIQJ
-#      CALL ENERGY
+# check and see if we have frozen cores, zero mo coefficients at that point.
+#
+      execute sip_barrier
+      execute get_my_rank rank
+      if rank == 0.0
+          do mu
+              do i
+                  TCa(mu,i) = Ca(mu,i)
+                  SCa2(mu,i) = TCa(mu,i)
+              enddo i
+          enddo mu
+      endif
+      execute sip_barrier
+#
+      execute broadcast_array SCa2
+      execute get_my_rank rank
+      if rank == 0.0
+          do mu
+              do i
+          execute dropcore_fno SCa2(mu,i)
+              enddo i
+          enddo mu
+      endif
+      execute broadcast_array SCa2
+#
+      execute sip_barrier
+      execute get_my_rank rank
+      pardo mu,i
+          execute dump_amp Ca(mu,i)
+      endpardo mu,i
+      if rank == 0.0
+          do mu
+              do i
+                  TCa(mu,i) = SCa2(mu,i)
+                  Ca(mu,i) = TCa(mu,i)
+              enddo i
+          enddo mu
+#
+      endif
+      execute sip_barrier
+      pardo mu,i
+          execute dump_amp Ca(mu,i)
+      endpardo mu,i
+      execute server_barrier
+#
+      CALL TRAN_XXII
+      CALL TRAN_PIQJ
+      CALL ENERGY
       execute sip_barrier totenerg
       execute server_barrier
 #     Create the second-order 'amplitudes' 
@@ -587,7 +629,6 @@
               do q
                   GET FTa(p,q)
                   Twork1(p,q) = FTa(p,q)
-                  SFa(p,q) = Twork1(p,q)
                   Fock_a(p,q) = Twork1(p,q)
               enddo q
           enddo p
@@ -597,9 +638,9 @@
       execute print_rel_info three Fock_a
       execute print_rel_info zero Ca
 #
-      pardo mu,p
-          execute dump_amp Ca(mu,p)
-      endpardo mu,p
+#      pardo mu,p
+#          execute dump_amp Ca(mu,p)
+#      endpardo mu,p
       execute server_barrier
 # -----------------------------------------------------------
       ENDSIAL FNO_MBPT2
