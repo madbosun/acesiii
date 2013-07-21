@@ -14,14 +14,19 @@ C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
       subroutine find_jobflow(calc,dropmo,ref,geom_opt,
      *                                       vib, excite, instab, props,
-     *                                       grad_calc, jobflow)
+     *                                       grad_calc, density, 
+     *                                       dip_calc, dea_calc, 
+     *                                       jobflow)
 c-------------------------------------------------------------------------
 c   Writes the SIAL_PROGRAM parameters for a default set of SIAL programs
 c   determined by the parameters calc, dropmo, ref, geom_opt, and vib.
 c   The SIAL_PROGRAM parameters are written to ZMAT.AUTO.
 c-------------------------------------------------------------------------
       implicit none
-      integer calc,dropmo,ref,geom_opt, vib, excite, instab, props
+      integer calc,dropmo,ref,geom_opt, vib, excite, instab, props,
+     &        density, dip_calc, dea_calc, dip_singlet_root,
+     &        dip_triplet_root, dea_singlet_root, dea_triplet_root
+
       integer grad_calc 
       character*80 jobflow
       integer ierr
@@ -358,6 +363,55 @@ C
 C   Watson
 C
       endif
+C
+C Ajith Perera, 07/2013. The isotropic Hyperfine coupling 
+c Constants.
+C  
+   
+      if (ref .eq. 1 .and. Calc .eq. 0 .and. props .eq. 1) 
+     &   jobflow = 'HF_AISO'
+
+      if (ref .eq. 1 .and. Calc .eq. 1 .and. props .eq. 1) 
+     &   jobflow = 'MBPT2_AISO'
+
+      if (ref .eq. 1 .and. Calc .eq. 10 .and. props .eq. 1 .and.
+     &   density .eq. 0) jobflow = 'CCSD_RELAX_DENS_AISO'
+
+      if (ref .eq. 1 .and. Calc .eq. 22 .and. props .eq. 1 .and.
+     &   density .eq. 0) jobflow = 'CCSDT_RELAX_DENS_AISO'
+
+      if (ref .eq. 1 .and. Calc .eq. 10 .and. props .eq. 1 .and.
+     &   density .eq. 1) jobflow = 'CCSD_RESPONSE_DENS_AISO'
+
+      if (ref .eq. 1 .and. Calc .eq. 10 .and. props .eq. 1 .and.
+     &   density .eq. 0 .and. dropmo .ne. 0) 
+     &   jobflow = 'CCSD_RELAX_DENS_DROPMO_AISO'
+  
+C
+C EOM-DIP and DEA (singlets and triplets)
+C
+C Note that currently singlet states only DIP/DEA calculations
+C require UHF refrence and it is not necessary and need to be
+C changed (require new SIAL codes).
+
+
+      call Igetrec(-1,'JOBARC','DIPSYMA ',1, dip_singlet_root)
+      call Igetrec(-1,'JOBARC','DIPSYMB ',1, dip_triplet_root)
+
+      call Igetrec(-1,'JOBARC','DEASYMA ',1, dea_singlet_root)
+      call Igetrec(-1,'JOBARC','DEASYMB ',1, dea_triplet_root)
+
+      if (ref .eq. 1 .and. Calc .eq. 10 .and.dip_calc .eq. 2 .and.
+     &    dip_singlet_root .gt. 0) jobflow = 'EOMDIP_CCSD_SINGLET'
+
+      if (ref .eq. 1 .and. Calc .eq. 10 .and. dip_calc .eq. 2 .and.
+     &    dip_triplet_root .gt. 0) jobflow = 'EOMDIP_CCSD_TRIPLET'
+
+      if (ref .eq. 1 .and. Calc .eq. 10 .and. dea_calc .eq. 2 .and.
+     &    dea_singlet_root .gt. 0) jobflow = 'EOMDEA_CCSD_SINGLET'
+
+      if (ref .eq. 1 .and. Calc .eq. 10 .and. dea_calc .eq. 2 .and.
+     &    dea_triplet_root) jobflow = 'EOMDEA_CCSD_TRIPLET'
 
       return
       end

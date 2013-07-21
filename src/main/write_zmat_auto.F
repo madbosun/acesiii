@@ -36,7 +36,7 @@ c-------------------------------------------------------------------------
 #endif
 
       integer calc, vib, geom_opt, ref, dropmo, excite, instab, props
-      integer grad_calc
+      integer grad_calc, dip_calc, dea_calc, density
       integer nerr
       integer ios
       integer str_trimlen
@@ -130,6 +130,28 @@ c---------------------------------------------------------------------------
          endif
       endif
 
+c---------------------------------------------------------------------------
+c   Get the flag for relaxed or respnse denstiy
+c---------------------------------------------------------------------------
+
+      density = iflags(19)
+c
+c---------------------------------------------------------------------------
+c Get the flags for DIP/DEA calculations.
+C Note that currently singlet states only DIP/DEA calculations
+C require UHF refrence and it is not necessary and need to be
+C changed (require new SIAL codes). Ajith Perera, 07/2013.
+
+      dip_calc = iflags2(128)
+      dea_calc = iflags2(230)
+
+      If (dip_calc .gt. 0 .OR. dea_calc .gt. 0) then
+          if (ref .eq. 0) then
+              Write(6,"(a,a)") "DIP/DEA calcuation with RHF reference",
+     &                         " is not currently supported."
+              nerr = nerr + 1
+          Endif
+      Endif
 c---------------------------------------------------------------------------
 c   Get the HFSTABILITY flag.
 c---------------------------------------------------------------------------
@@ -271,11 +293,13 @@ c-------------------------------------------------------------------------
       if (.not. set_keyword(4)) then
          call write_default_sial_programs(calc,dropmo,ref,geom_opt,
      *                                    vib, excite, instab, props,
-     *                                    grad_calc,jobflow)
+     *                                    grad_calc,density,dip_calc,
+     *                                    dea_calc,jobflow)
       else 
          call find_jobflow(calc,dropmo,ref,geom_opt,
      *                                    vib, excite, instab, props,
-     *                                    grad_calc,jobflow)
+     *                                    grad_calc,density,dip_calc,
+     *                                    dea_calc,jobflow)
       endif
 
 c---------------------------------------------------------------------------

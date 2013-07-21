@@ -70,14 +70,16 @@ C
       Write(6,"(a)") "The occupation numbers"
       Write(6,"(8(1x,I3))") (Nocc(i, 1), i=1, Nirrep)
       Write(6,"(8(1x,I3))") (Nocc(i, 2), i=1, Nirrep)
-#endif C
+#endif 
+C
 C First convert from Spherical to Cartesian (if the calculation is
 C in Cartesian this should do nothing).
 
       Call Getrec(20, "JOBARC", "CMP2ZMAT", Nbfns*Naobfns*Iintfp,
-     &               Tmp1)
+     &            Tmp1)
+
       Call Xgemm("N", "N", Naobfns, Nbfns, Nbfns, 1.0D0, Tmp1,
-     &             Naobfns, Scfvec_a, Nbfns, 0.0D0, Tmp2, Naobfns)
+     &            Naobfns, Scfvec_a, Nbfns, 0.0D0, Tmp2, Naobfns)
 
       Call Dcopy(Naobfns*Nbfns, Tmp2, 1, Scfvec_a, 1)
 
@@ -97,58 +99,11 @@ C in Cartesian this should do nothing).
 #endif
 
       Call Get_irreps(Scfvec_a, Scfevl_a, Work, Imemleft*Iintfp, 
-     &                Nbfns, Naobfns, 1, Iuhf)
+     &                Nbfns, Naobfns, 1, Nocc, Iuhf)
       If (Iuhf .EQ. 1) Call Get_irreps(Scfvec_b, Scfevl_b, Work, 
      &                                 Imemleft*Iintfp, Nbfns, 
-     &                                 Naobfns, 2, Iuhf)
+     &                                 Naobfns, 2, Nocc, Iuhf)
 C
-#ifdef _NO_OBSOLETE
-C Now do the symmetry adapation and spherical transformation in
-C one step.
-C
-      Call Getrec(20, "JOBARC", "CMP2ZMAT", Nbfns*Naobfns*Iintfp,
-     &               Tmp1)
-
-      Call Xgemm("N", "N", Naobfns, Nbfns, Naobfns, 1.0D0, Scfvec_a,
-     &            Naobfns, Tmp1, Nbfns, 0.0D0, Tmp2, Naobfns)
-      Call Xgemm("T", "N", Nbfns, Nbfns, Naobfns, 1.0D0, Tmp1, 
-     &            Naobfns, Tmp2, Nbfns, 0.0D0, Scfvec_a, Naobfns)
-
-      If (Iuhf .EQ. 1) Then
-
-         Call Xgemm("N", "N", Naobfns, Nbfns, Naobfns, 1.0D0, 
-     &               Scfvec_b, Naobfns, Tmp1, Naobfns, 0.0D0, 
-     &               Tmp2, Naobfns)
-         Call Xgemm("T", "N", Nbfns, Nbfns, Naobfns, 1.0D0, Tmp1, 
-     &               Naobfns, Tmp2, Naobfns, 0.0D0, Scfvec_b, Naobfns)
-
-      Endif
-
-#ifdef _DEBUG_LVL0
-      Write(6,*) "The symmetry adapted SCF eigenvectors"
-      Call output(Scfvec_a, 1, Nbfns, 1, Nbfns, Naobfns, Naobfns, 1)
-      if (Iuhf .Gt. 0) Call output(Scfvec_a, 1, Nbfns, 1, Nbfns, 
-     &                             Naobfns, Naobfns, 1)
-#endif
-C
-      Idex = 0
-      Do Irrep = 1, Nirrep
-         Do I = 1 + Idex, Nbfirr(Irrep) + idex
-              Do J = 1+ Idex, Nbfirr(Irrep) + idex
-              Tmp1(j, i) = Scfvec_a(j,i)
-              If (Iuhf .Eq. 1) Tmp1(j, i) = Scfvec_b(j,i)
-           Enddo
-        Enddo
-           Idex = Idex + Nbfirr(Irrep)
-      Enddo
-C 
-#ifdef _DEBUG_LVL0
-       Write(6,"(a)")"Sym. adapted A3 eigenvectors"
-       Call output(Tmp1, 1, Nbfns, 1, Nbfns, Naobfns, Naobfns, 1)
-       if (Iuhf .eq. 1) Call output(Tmp2, 1, Naobfns, 1, Naobfns, 
-     &                              Naobfns, Naobfns, 1)
-#endif
-#endif
-       Return
-       End
+      Return
+      End
 

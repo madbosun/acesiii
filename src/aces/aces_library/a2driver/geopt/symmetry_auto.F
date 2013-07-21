@@ -1139,7 +1139,7 @@ C
 #endif
       CALL XGEMM('N','N',3,3,3,ONE,ORIEN2,3,ORIENT,3,ZILCH,
      &     SCRATCH,3)
-C
+
 #ifdef _DEBUG_LVL0
       Write(6,*)
       CALL OUTPUT(SCRATCH, 1, 3, 1, 3, 3, 3, 0)

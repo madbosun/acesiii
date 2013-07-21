@@ -1,5 +1,5 @@
       SUBROUTINE EVLOUT(EVAL, IRERDR, IVMLSYM, IREPS, NBAS, NIRREP,
-     &                  ISPIN)
+     &                  NOCC, ISPIN)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -14,7 +14,7 @@ C
       LOGICAL FANDUP, SYMINFO_EXIST
       DIMENSION EVAL(NBAS),IRERDR(NBAS)
       DIMENSION IVMLSYM(NBAS),IREPS(9)
-      DIMENSION IRPCHAR(8)
+      DIMENSION IRPCHAR(8), NOCC(8,2)
 C
       DATA FACTOR /27.2113957D0/
       DATA SPIN /'ALPHA',' BETA'/
@@ -76,15 +76,15 @@ C
 C
         DO 200 I=1,NBAS
           DO 201 J=1,NIRREP
-            IF(IRERDR(I).GE.IREPS(J).AND.IRERDR(I).LT.IREPS(J+1))
+            IF(IRERDR(I).GE.IREPS(J).AND.IRERDR(I).LT.IREPS(J+1)) 
      &        IVMLSYM(I)=J
   201     CONTINUE
   200   CONTINUE
 C
-CSSS        ITOTOCC=0
-CSSS        DO 210 I=1,NIRREP
-CSSS          ITOTOCC=ITOTOCC+NOCC(I,ISPIN)
-CSSS  210   CONTINUE
+        ITOTOCC=0
+        DO 210 I=1,NIRREP
+           ITOTOCC=ITOTOCC+NOCC(I,ISPIN)
+  210   CONTINUE
 C
         IF(IFLAGS(77).NE.0)THEN
           WRITE(LUOUT,5000)SPIN(ISPIN)
@@ -95,6 +95,8 @@ C
  5002     FORMAT(T3,'ORBITAL EIGENVALUES (',A5,')',
      &              '  (1H = 27.2113957 eV)',/)
         ENDIF
+        WRITE(LUOUT,5009)
+ 5009   FORMAT(T3,77("-"))
         WRITE(LUOUT,5010)
  5010   FORMAT(T8,'MO #',8X,'E(hartree)',15X,'E(eV)',11X,'FULLSYM',4X,
      &            'COMPSYM')
@@ -110,8 +112,11 @@ C
      &           1X,'(',I1,')')
           IF(J.EQ.ITOTOCC) WRITE(LUOUT,5021)
  5021     FORMAT(T3,77('+'))
+C
   125   CONTINUE
 c
+        WRITE(LUOUT,5022)
+ 5022   FORMAT(T3,77("-"))
 cmn
 c Determine mapping between comp symmetry labels and internal number of irrep.
 c

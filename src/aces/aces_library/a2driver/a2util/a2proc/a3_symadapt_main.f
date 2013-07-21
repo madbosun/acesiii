@@ -706,8 +706,8 @@ C
 
       Write(6,*)
       Print*, "Variable at symadapt main"
-      Write(*, '(a)'), "Nreal_atoms, Natoms, Nirrep, Nbfns"
-      Write(*, '(a,5i4)')", Naobfns: ", Nreal_atoms, 
+      Write(*, '(a)'), "Nreal_atoms, Natoms, Nirrep, Nbfns,"
+      Write(*, '(a,5i4)')"Naobfns: ", Nreal_atoms, 
      &                    Natoms, Nirrep, Nbfns,Naobfns
       Write(6,*) "Spherical :", Spherical 
       Write(6,"(a,2A4)")"Comp_pgrp, Full_pgrp: ", Comp_pgrp, Full_pgrp

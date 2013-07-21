@@ -319,8 +319,12 @@ C basis pair do not need need to be in particular order. The
 C same applies for ECP basis sets. Ajith Perera, 06/2013.
 C
 C
-      backspace(luz)
-      read(LuZ,'(i4)',err=8500,end=8510,iostat=IOS) Num_unique
+      If (Ibasis .EQ. 0) Then
+          backspace(luz)
+          read(LuZ,'(i4)',err=8500,end=8510,iostat=IOS) Num_unique
+      Else
+          Num_unique = 0
+      Endif
 
       If (Num_unique .EQ. Natms .OR. Num_unique .EQ. 0) Then
 
@@ -356,24 +360,18 @@ c        end if ([not dummy atom])
       Else
         
           Do Iatm = 1,  Num_unique
-  
-             if (AtNr(Iatm).ne.0) then
-                if (iBasis.eq.0) then
-                    read(LuZ,'(A)',err=8500,end=8510,iostat=IOS) 
-     &                   BasNam_hold(Iatm)
-                endif
-            Endif
-
-          Enddo
+             read(LuZ,'(A)',err=8500,end=8510,iostat=IOS)
+     &                      BasNam_hold(Iatm)
+          Enddo 
 C
           Katm = 0
           Do Iatm = 1, NAtms
- 
+             If (AtNr(Iatm).EQ.0) Katm = Katm + 1
+
              Do Jatm = 1, Num_unique
                 Ilen   = Index(Basnam_hold(Jatm), ":")
                 Symbol = Basnam_hold(Jatm)(1:Ilen-1)
                 JAtnr  = ATOMNUMB(Symbol)
-                If (AtNr(Iatm).EQ.0) Katm = Katm + 1
                 If (AtNr(Iatm) .EQ. JAtNr) Then
                    Katm  = Katm + 1
                    Basnam(Katm) = Basnam_hold(Jatm)
@@ -446,24 +444,18 @@ csb
         Else
 
           Do Iatm = 1,  Num_unique
-
-             if (AtNr(Iatm).ne.0) then
-                if (iBasis.eq.0) then
-                    read(LuZ,'(A)',err=8500,end=8510,iostat=IOS)
+              read(LuZ,'(A)',err=8500,end=8510,iostat=IOS)
      &                   Ecpnam_hold(Iatm)
-                endif
-            Endif
-
           Enddo
 C
           Katm = 0
           Do Iatm = 1, NAtms
+             If (AtNr(Iatm).EQ.0) Katm = Katm + 1
 
              Do Jatm = 1, Num_unique
                 Ilen   = Index(Basnam_hold(Jatm), ":")
                 Symbol = Ecpnam_hold(Jatm)(1:Ilen-1)
                 JAtnr  = ATOMNUMB(Symbol)
-                If (AtNr(Iatm).EQ.0) Katm = Katm + 1
                 If (AtNr(Iatm) .EQ. JAtNr) Then
                    Katm  = Katm + 1
                    Ecpnam(Katm) = Ecpnam_hold(Jatm)

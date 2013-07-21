@@ -532,6 +532,7 @@ c INTERNAL VARIABLES
       integer dimargs, iuhf
       character*80 module
       character*80 args(8)
+      Logical OPTARC_EXIST
 
 c COMMON BLOCKS
 
@@ -671,6 +672,9 @@ C In addition to the ACES_EXE_PATH usesrs must set the PATH to recignize
 C the location of xjoda and xa2proc to do pre/post processing of 
 C ACES III files set (JOBARC and JAINDX). 07/2013, Ajith Perera.
 C
+      Inquire(FILE='OPTARC',EXIST=OPTARC_EXIST)
+      If (OPTARC_EXIST) Call runit("rm OPTARC")
+
       call runit("xjoda")
       call v2ja(icore(I0), icrsiz)
 

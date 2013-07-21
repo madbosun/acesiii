@@ -2,11 +2,11 @@ C
 C DRIVER FOR DETERMINATION OF ORBITAL SYMMETRIES. From ACES II. 
 C 
       SUBROUTINE GET_IRREPS(SCFVEC,SCFEVAL,ICORE,MAXCOR,NBAS,NBASX,
-     &                      ISPIN, IUHF)
+     &                      ISPIN, NOCC, IUHF)
 C
       IMPLICIT INTEGER (A-Z)
 
-      DIMENSION ICORE(MAXCOR), IREPS(9), NBFIRR(8)
+      DIMENSION ICORE(MAXCOR), IREPS(9), NBFIRR(8), NOCC(8,2)
       DOuble Precision Scfvec(Nbasx*Nbas), Scfeval(Nbas)
       CHARACTER*1 SP(2)
 C
@@ -65,7 +65,7 @@ C Write a Table of Eigenvalues and their symmetry.
 C
       IREPS(1) = 1
       DO IRREP = 1, NIRREP
-         IREPS(I+1) = IREPS(I) + NBFIRR(I)
+         IREPS(IRREP+1) = IREPS(IRREP) + NBFIRR(IRREP)
       ENDDO 
 
       I020 = 1
@@ -73,7 +73,7 @@ C
       I040 = I030 + NBASX
   
       CALL EVLOUT(SCFEVAL, ICORE(I020), ICORE(I030), IREPS, NBAS,
-     &            NIRREP, ISPIN)
+     &            NIRREP, NOCC, ISPIN)
 
       RETURN
       END

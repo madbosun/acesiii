@@ -1466,8 +1466,8 @@
 #
 #    ------------------------------------------------------------------------
 #
-      create FTa 
-      create FTb 
+     #create FTa 
+     #create FTb 
       execute server_barrier
       execute list_to_blocks                VSpipi(p,i,p1,i1)
       execute list_to_blocks                Vaaii
@@ -1493,8 +1493,8 @@
       PROC READ_AMP
 #     -------------
 #
-      execute list_to_blocks FTa  
-      execute list_to_blocks FTb  
+     #execute list_to_blocks FTa  
+     #execute list_to_blocks FTb  
       execute list_to_blocks t1a
       execute list_to_blocks t1b
       execute list_to_blocks T2aa
@@ -1505,13 +1505,13 @@
       execute read_list_to_blocks
       execute server_barrier
 #
-      DO p 
-      DO p1 
-         GET FTa(p,p1) 
-         Fock_a(p,p1) = FTa(p,p1) 
+     #DO p 
+     #DO p1 
+     #   GET FTa(p,p1) 
+     #   Fock_a(p,p1) = FTa(p,p1) 
      # # Fock_b(p,p1) = FTa(p,p1) 
-      ENDDO p1
-      ENDDO p 
+     #ENDDO p1
+     #ENDDO p 
 #
       ENDPROC READ_AMP
 #     ---------------

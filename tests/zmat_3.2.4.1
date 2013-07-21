@@ -18,18 +18,13 @@ CHARGE=2
 
 *SIP
 MAXMEM=1500
-IMERS=NO
-SIP_MX_SEGSIZE = 30
-SIP_MX_OCC_SEGSIZE = 14
-SIP_MX_VIRT_SEGSIZE = 37
-TIMERS = YES
-SIAL_PROGRAM = scf_aguess.sio
-SIAL_PROGRAM = scf_qrhf_aguess.sio
-#SIAL_PROGRAM = cis_rhf_gcheck.sio
-#SIAL_PROGRAM = scf_np2.sio
-SIAL_PROGRAM = diptran_uhf_ao_sv1.sio
-SIAL_PROGRAM = qccsd_uhf_ao_sv1_diis5.sio
-SIAL_PROGRAM = qhbar_uhf_ao_ap.sio
+TIMERS=NO
+SIAL_PROGRAM = scf_uhf_coreh.sio
+SIAL_PROGRAM = cis_uhf.sio
+SIAL_PROGRAM = tran_uhf_dea.sio
+SIAL_PROGRAM = ccsd_uhf_dea.sio
+SIAL_PROGRAM = hbar_uhf_dea.sio
 SIAL_PROGRAM = eom_dea_singlets.sio
-#SIAL_PROGRAM = eom_dea_triplets.sio
+
+
 

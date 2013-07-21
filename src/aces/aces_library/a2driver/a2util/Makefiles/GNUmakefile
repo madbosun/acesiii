@@ -901,7 +901,7 @@ ACES_LINK_LISTS = \
    dens:libr2:crust:${LIST_DEF_LIBS} \
    rspdens:libr2:crust:${LIST_DEF_LIBS} \
    findif:joda:symcor:ecp:${LIST_DEF_LIBS} \
-   joda:symcor:ecp:${LIST_DEF_LIBS} \
+   joda:symcor_a2:ecp:${LIST_DEF_LIBS} \
    lambda:eomtrp:trp:librt3:libr2:${LIST_DEF_LIBS} \
    nmr:libr2:${LIST_DEF_LIBS} \
    vcc:trp:librt3:libr2:crust:${LIST_DEF_LIBS} \

@@ -86,13 +86,15 @@ C
       Write(6,"(a)") "The occupation numbers"
       Write(6,"(8(1x,I3))") (Nocc(i, 1), i=1, Nirrep)
       Write(6,"(8(1x,I3))") (Nocc(i, 2), i=1, Nirrep)
+C
 C First convert from Spherical to Cartesian (if the calculation is
 C in Cartesian this should do nothing).
 
       Call Getrec(20, "JOBARC", "CMP2ZMAT", Nbfns*Naobfns*Iintfp,
-     &               Tmp1)
+     &            Tmp1)
+
       Call Xgemm("N", "N", Naobfns, Nbfns, Nbfns, 1.0D0, Tmp1,
-     &             Naobfns, Scfvec_a, Nbfns, 0.0D0, Tmp2, Naobfns)
+     &            Naobfns, Scfvec_a, Nbfns, 0.0D0, Tmp2, Naobfns)
 
       Call Dcopy(Naobfns*Nbfns, Tmp2, 1, Scfvec_a, 1)
 
@@ -110,11 +112,11 @@ C in Cartesian this should do nothing).
      &                             Naobfns, Nbfns, 1)
 
       Call Get_irreps(Scfvec_a, Scfevl_a, Work, Imemleft*Iintfp, 
-     &                Nbfns, Naobfns, 1, Iuhf)
+     &                Nbfns, Naobfns, 1, Nocc, Iuhf)
       If (Iuhf .EQ. 1) Call Get_irreps(Scfvec_b, Scfevl_b, Work, 
      &                                 Imemleft*Iintfp, Nbfns, 
-     &                                 Naobfns, 2, Iuhf)
+     &                                 Naobfns, 2, Nocc, Iuhf)
 C
-       Return
-       End
+      Return
+      End
 
