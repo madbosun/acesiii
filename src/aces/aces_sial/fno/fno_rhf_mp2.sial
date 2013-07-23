@@ -359,6 +359,7 @@
       create Pab_aa
       create FTa
       create SCa
+      execute server_barrier
 #
 # get copies of the fock and mo matrix
 #
@@ -460,6 +461,10 @@
 #
       ENDPARDO a, b, i, j
       execute server_barrier
+      pardo a,a1
+          get Pab_aa(a,a1)
+          execute dump_block Pab_aa(a,a1)
+      endpardo a,a1
 #
 # make temporary vv density
 #
@@ -476,6 +481,16 @@
           execute eig SPab NCa
 # zero small natural orbitals
           execute form_fno SPab NCa
+          do a
+              do a1
+              execute dump_block SPab(a,a1)
+              enddo a1
+          enddo a
+          do a
+              do a1
+              execute dump_block NCa(a,a1)
+              enddo a1
+          enddo a
       endif
       execute broadcast_array SPab
       execute broadcast_array NCa
@@ -494,6 +509,11 @@
               enddo a
           enddo b1
       enddo b
+      do a
+          do a1
+          execute dump_block VVFock_a(a,a1)
+          enddo a1
+      enddo a
       execute server_barrier
 #
       execute get_my_rank rank
@@ -501,6 +521,16 @@
 # no diagonalize and energy sort new VV fock matrix
           execute eig VVFock_a VVUa
           execute sort_fno VVFock_a VVUa
+          do a
+              do a1
+              execute dump_block VVFock_a(a,a1)
+              enddo a1
+          enddo a
+          do a
+              do a1
+              execute dump_block VVUa(a,a1)
+              enddo a1
+          enddo a
       endif
       execute broadcast_array VVFock_a
       execute broadcast_array VVUa
@@ -518,6 +548,11 @@
       enddo a
       execute broadcast_array Svtzt
       execute server_barrier
+      do a
+          do a1
+          execute dump_block Svtzt(a,a1)
+          enddo a1
+      enddo a
 #
 # zero intermediate
       do mu
@@ -527,6 +562,7 @@
           enddo p
       enddo mu
       execute broadcast_array SCa2
+      execute server_barrier
 #
 # Uvirt*Svtzt
       do mu
@@ -539,6 +575,12 @@
           enddo b
       enddo mu
       execute broadcast_array SCa2
+      execute server_barrier
+      do mu
+          do p
+          execute dump_block SCa2(mu,p)
+          enddo p
+      enddo mu
       do mu
           do a
               Tnp(mu,a) = SCa2(mu,a)
@@ -546,6 +588,10 @@
           enddo a
       enddo mu
       execute server_barrier
+      pardo mu,a
+          get SCa(mu,a)
+          execute dump_block SCa(mu,a)
+      endpardo mu,a
 # save new mo vecs
       do mu
           do p
@@ -572,6 +618,12 @@
           enddo q
       enddo p
       execute server_barrier
+      pardo mu,p
+          execute dump_block Ca(mu,p)
+      endpardo mu,p
+      pardo p,q
+          execute dump_block Fock_a(p,q)
+      endpardo p,q
 #
       execute scf_rhf Fock_b Cb
       execute print_rel_info three Fock_a
