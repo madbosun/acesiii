@@ -95,22 +95,26 @@
 # main
 #
       distributed Pab_aa(a,a1)
+      distributed NCa(a,a1)
       distributed SCa(mu,p)
       distributed FTa(p,q)
+      distributed VVFock_a(a,a1)
+      distributed VVUa(a,a1)
+      distributed Dsvzt(a,b)
+      distributed SCa2(mu,p)
       static pinf(kiter,kptr1)
+      static SPab(a,a1)
+      static NSCa(a,a1)
+      static SVFock_a(a,a1)
+      static SVUa(a,a1)
+      static SU(mu,i)
       temp tpinf(kiter,kptr1)
       temp Tpipi(p,i,p1,i1)
       temp Taa(a,a1)
       temp Tab(a,b)
       temp TCa(mu,p)
       temp Twork1(p,q)
-      static SCa2(mu,p)
-      static SPab(a,a1)
-      static NCa(a,a1)
-      static VVFock_a(a,a1)
-      static VVUa(a,a1)
       temp Tvtzt(a,b)
-      static Svtzt(a,b)
       temp Tnp(nu,p)
 #
 # scalars
@@ -357,8 +361,13 @@
       four = 4.0
 #
       create Pab_aa
+      create NCa
       create FTa
       create SCa
+      create SCa2
+      create VVFock_a
+      create VVUa
+      create Dsvzt
       execute server_barrier
 #
 # get copies of the fock and mo matrix
@@ -366,6 +375,7 @@
       pardo mu,p
           TCa(mu,p) = Ca(mu,p)
           put SCa(mu,p) = TCa(mu,p)
+          put SCa2(mu,p) = TCa(mu,p)
       endpardo mu,p
       pardo p,q
           Twork1(p,q) = Fock_a(p,q)
@@ -376,25 +386,31 @@
 #
 # Check and see if we have frozen cores
 #
-      execute server_barrier
-      do mu
-         do i
-              TCa(mu,i) = Ca(mu,i)
-              SCa2(mu,i) = TCa(mu,i)
-          enddo i
-      enddo mu
       execute get_my_rank rank
       if rank == 0.0
-      do mu
-          do i
-              execute dropcore_fno SCa2(mu,i)
-          enddo i
-      enddo mu
+          do mu
+              do i
+                  get SCa2(mu,i)
+                  Tnp(mu,i) = SCa2(mu,i)
+                  SU(mu,i) = Tnp(mu,i)
+              enddo i
+          enddo mu
+          do mu
+              do i
+                  execute dropcore_fno SU(mu,i)
+              enddo i
+          enddo mu
+          do mu
+              do i
+                  Tnp(mu,i) = SU(mu,i)
+                  put SCa2(mu,i) = Tnp(mu,i)
+              enddo i
+          enddo mu
       endif
-      execute broadcast_array SCa2
       execute server_barrier
       do mu
           do i
+              get SCa2(mu,i)
               TCa(mu,i) = SCa2(mu,i)
               Ca(mu,i) = TCa(mu,i)
           enddo i
@@ -465,133 +481,114 @@
           get Pab_aa(a,a1)
           execute dump_block Pab_aa(a,a1)
       endpardo a,a1
+      execute get_my_rank rank
+      if rank == 0.0
 #
 # make temporary vv density
 #
-      do a
-          do b
-              get Pab_aa(a,b)
-              Taa(a,b) = Pab_aa(a,b)
-              SPab(a,b) = Taa(a,b)
-          enddo b
-      enddo a
-      execute get_my_rank rank
-      if rank == 0.0
-# mp2 VV natural orbitals
-          execute eig SPab NCa
-# zero small natural orbitals
-          execute form_fno SPab NCa
           do a
-              do a1
-              execute dump_block SPab(a,a1)
-              enddo a1
+              do b
+                  get Pab_aa(a,b)
+                  Taa(a,b) = Pab_aa(a,b)
+                  SPab(a,b) = Taa(a,b)
+              enddo b
+          enddo a
+# mp2 VV natural orbitals
+          execute eig SPab NSCa
+# zero small natural orbitals
+          execute form_fno SPab NSCa
+          do a
+              do b
+                  Taa(a,b) = SPab(a,b)
+                  put Pab_aa(a,b) = Taa(a,b)
+              enddo b
           enddo a
           do a
-              do a1
-              execute dump_block NCa(a,a1)
-              enddo a1
+              do b
+                  Taa(a,b) = NSCa(a,b)
+                  put NCa(a,b) = Taa(a,b)
+              enddo b
           enddo a
       endif
-      execute broadcast_array SPab
-      execute broadcast_array NCa
       execute server_barrier
 #
 # transform VV fock matrix to FNO basis
-      do b
-          do b1
-              do a
-                  get FTa(b,b1)
-                  Tab(a,b) = FTa(b,b1)*NCa(b1,a)
-                  do a1
-                      Taa(a,a1) = Tab(a,b)*NCa(b,a1)
-                      VVFock_a(a,a1) += Taa(a,a1)
-                  enddo a1
-              enddo a
-          enddo b1
-      enddo b
-      do a
+      pardo b,b1,a
+          get FTa(b,b1)
+          get NCa(b1,a)
+          Tab(a,b) = FTa(b,b1)*NCa(b1,a)
           do a1
-          execute dump_block VVFock_a(a,a1)
+              get NCa(b,a1)
+              Taa(a,a1) = Tab(a,b)*NCa(b,a1)
+              put VVFock_a(a,a1) += Taa(a,a1)
           enddo a1
-      enddo a
+      endpardo b,b1,a
       execute server_barrier
 #
       execute get_my_rank rank
       if rank == 0.0
-# no diagonalize and energy sort new VV fock matrix
-          execute eig VVFock_a VVUa
-          execute sort_fno VVFock_a VVUa
           do a
               do a1
-              execute dump_block VVFock_a(a,a1)
+                  get VVFock_a(a,a1)
+                  Taa(a,a1) = VVFock_a(a,a1)
+                  SVFock_a(a,a1) = Taa(a,a1)
+              enddo a1
+          enddo a
+# now diagonalize and energy sort new VV fock matrix
+          execute eig SVFock_a SVUa
+          execute sort_fno SVFock_a SVUa
+          do a
+              do a1
+                  Taa(a,a1) = SVFock_a(a,a1)
+                  put VVFock_a(a,a1) = Taa(a,a1)
               enddo a1
           enddo a
           do a
               do a1
-              execute dump_block VVUa(a,a1)
+                  Taa(a,a1) = SVUa(a,a1)
+                  put VVUa(a,a1) = Taa(a,a1)
               enddo a1
           enddo a
       endif
-      execute broadcast_array VVFock_a
-      execute broadcast_array VVUa
       execute server_barrier
 #
 # UUVa equals Zt
 # Vt*Zt
-      do a
-          do b
-              do a1
-                  Tvtzt(a,b) = NCa(a,a1)*VVUa(a1,b)
-                  Svtzt(a,b) += Tvtzt(a,b)
-              enddo a1
-          enddo b
-      enddo a
-      execute broadcast_array Svtzt
-      execute server_barrier
-      do a
+      pardo a,b
           do a1
-          execute dump_block Svtzt(a,a1)
+              get NCA(a,a1)
+              get VVUa(a1,b)
+              Tvtzt(a,b) = NCa(a,a1)*VVUa(a1,b)
+              put Dsvzt(a,b) += Tvtzt(a,b)
           enddo a1
-      enddo a
+      endpardo a,b
+      execute server_barrier
 #
 # zero intermediate
       do mu
           do p
               TCa(mu,p) = zero
-              SCa2(mu,p) = TCa(mu,p)
+              put SCa2(mu,p) = TCa(mu,p)
           enddo p
       enddo mu
-      execute broadcast_array SCa2
       execute server_barrier
 #
-# Uvirt*Svtzt
-      do mu
-          do b
-              do a
-                  get SCa(mu,a)
-                  Tnp(mu,b) = SCa(mu,a)*Svtzt(a,b)
-                  SCa2(mu,b) += Tnp(mu,b)
-              enddo a
-          enddo b
-      enddo mu
-      execute broadcast_array SCa2
-      execute server_barrier
-      do mu
-          do p
-          execute dump_block SCa2(mu,p)
-          enddo p
-      enddo mu
-      do mu
+# Uvirt*Dsvzt
+      pardo mu,b
           do a
-              Tnp(mu,a) = SCa2(mu,a)
-              put SCa(mu,a) = Tnp(mu,a)
+              get Dsvzt(a,b)
+              get SCa(mu,a)
+              Tnp(mu,b) = SCa(mu,a)*Dsvzt(a,b)
+              put SCa2(mu,b) += Tnp(mu,b)
           enddo a
-      enddo mu
+      endpardo mu,b
       execute server_barrier
-      pardo mu,a
-          get SCa(mu,a)
-          execute dump_block SCa(mu,a)
-      endpardo mu,a
+      pardo mu, a
+          get SCa2(mu,a)
+          Tnp(mu,a) = SCa2(mu,a)
+          put SCa(mu,a) = Tnp(mu,a)
+      endpardo mu, a
+      execute server_barrier
 # save new mo vecs
       do mu
           do p
@@ -603,12 +600,11 @@
       execute server_barrier
 #
 # save new fock matrix
-      do a
-         do b
-              Twork1(a,b) = VVFock_a(a,b)
-              put FTa(a,b) = Twork1(a,b)
-          enddo b
-      enddo a
+      pardo a,b
+          get VVFock_a(a,b)
+          Twork1(a,b) = VVFock_a(a,b)
+          put FTa(a,b) = Twork1(a,b)
+      endpardo a,b
       execute server_barrier
       do p
           do q
@@ -617,13 +613,15 @@
               Fock_a(p,q) = FTa(p,q)
           enddo q
       enddo p
+      execute get_my_rank rank
+      if rank == 0.0
+      do mu
+          do p
+          execute dump_amp Ca(mu,p)
+          enddo p
+      enddo mu
+      endif
       execute server_barrier
-      pardo mu,p
-          execute dump_block Ca(mu,p)
-      endpardo mu,p
-      pardo p,q
-          execute dump_block Fock_a(p,q)
-      endpardo p,q
 #
       execute scf_rhf Fock_b Cb
       execute print_rel_info three Fock_a
