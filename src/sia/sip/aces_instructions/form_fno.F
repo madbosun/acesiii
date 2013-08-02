@@ -123,7 +123,7 @@ c---------------------------------------------------------------------------
       open(66,file='summary.out') 
       if (me .eq. 0) write(66,5)  
 
-      thresh = 1.d-4
+      thresh = 0.00005d0
       harddrop = .false.
       ndrop = 0 
       minp = SPab(1,1)
@@ -150,18 +150,21 @@ C      if(me.eq.0) write(66,*) fno_keep
 
       do j = 1,n
          if (harddrop .and. j.le.ndrop) then
-            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
+C            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
+      if (me .eq. 0) write(66,11) n+nalpha_occupied-j+1, SPab(j,j),'D'
             do i = 1, n
                Uab(i,j) = 0.0 
             enddo
          else if (.not.harddrop .and. dabs(SPab(j,j)) .lt. thresh) then 
             ndrop = ndrop + 1 
-            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
+C            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
+      if (me .eq. 0) write(66,11) n+nalpha_occupied-j+1, SPab(j,j),'D'
             do i = 1, n
                Uab(i,j) = 0.0 
             enddo
          else
-            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),''
+C            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),''
+      if (me .eq. 0) write(66,11) n+nalpha_occupied-j+1, SPab(j,j),' '
          endif 
       enddo
 
