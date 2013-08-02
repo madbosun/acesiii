@@ -279,19 +279,12 @@ c     enddo
       include 'scflindep.h' 
       double precision delta, itol  
 
-      itol = 1.0d-5 
-      if (delta .le. 0.01)   itol = 1.0d-6  
-      if (delta .le. 0.001)  itol = 1.0d-7  
-      if (delta .le. 0.0001) itol = 1.0d-8 
-      if (delta .le. 0.00001) itol = 1.0d-9 
+C
+C use less agressive thresholding for early SCF
+      itol = 1.0d-9
+C if nearly converged then turn the screws
+      if (delta .le. 0.0001) itol = 1.0d-10
 c
-c The screening tolerance is set at -100.0 for now-->no screening. VFL 
-c 
-c     itol = 10.0**(intgrl_tol) 
-c     itol = 1.0/itol 
-      itol = -100.0 
-
-c     write(6,*) ' Integral screening threshold = ',intgrl_tol, itol 
 
       return 
       end 
