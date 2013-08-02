@@ -346,6 +346,43 @@
 #
      ENDPROC ENERGY
 #
+     PROC MP2VV
+# Compute the virtual-virtual block of the density correction
+#     AAAA/AAAA piece 
+#
+      PARDO a, a2, i, i1
+#
+            REQUEST            ASpipi(a,i,a2,i1) i
+            Tpipi(a,i,a2,i1) = ASpipi(a,i,a2,i1)
+#
+            DO a1
+#
+               REQUEST             ASpipi(a1,i,a2,i1) i
+               Taa(a,a1)         = Tpipi(a,i,a2,i1)*ASpipi(a1,i,a2,i1)
+               Taa(a,a1)        *= 0.5
+               PUT Pab_aa(a,a1) += Taa(a,a1)
+#
+            ENDDO a1
+#
+      ENDPARDO a, a2, i, i1
+#     AABB/AABB piece 
+#
+      PARDO a, b, i, j
+#
+            REQUEST          Apiqj(a,i,b,j) i
+            Tpiqj(a,i,b,j) = Apiqj(a,i,b,j)
+#
+            DO a1
+#
+               REQUEST             Apiqj(a1,i,b,j) i
+               Taa(a,a1)         = Tpiqj(a,i,b,j)*Apiqj(a1,i,b,j)
+               PUT Pab_aa(a,a1) += Taa(a,a1)
+#
+            ENDDO a1
+#
+      ENDPARDO a, b, i, j
+     ENDPROC MP2VV
+#
 # -----------------------------------------------------------
 # -----------------------------------------------------------
 #     MAIN PROGRAM
@@ -441,42 +478,10 @@
 #
       execute sip_barrier
       execute server_barrier
-#
-# Compute the virtual-virtual block of the density correction
-#     AAAA/AAAA piece 
-#
-      PARDO a, a2, i, i1
-#
-            REQUEST            ASpipi(a,i,a2,i1) i
-            Tpipi(a,i,a2,i1) = ASpipi(a,i,a2,i1)
-#
-            DO a1
-#
-               REQUEST             ASpipi(a1,i,a2,i1) i
-               Taa(a,a1)         = Tpipi(a,i,a2,i1)*ASpipi(a1,i,a2,i1)
-               Taa(a,a1)        *= 0.5
-               PUT Pab_aa(a,a1) += Taa(a,a1)
-#
-            ENDDO a1
-#
-      ENDPARDO a, a2, i, i1
-#     AABB/AABB piece 
-#
-      PARDO a, b, i, j
-#
-            REQUEST          Apiqj(a,i,b,j) i
-            Tpiqj(a,i,b,j) = Apiqj(a,i,b,j)
-#
-            DO a1
-#
-               REQUEST             Apiqj(a1,i,b,j) i
-               Taa(a,a1)         = Tpiqj(a,i,b,j)*Apiqj(a1,i,b,j)
-               PUT Pab_aa(a,a1) += Taa(a,a1)
-#
-            ENDDO a1
-#
-      ENDPARDO a, b, i, j
+# make mp2 vv density
+      call mp2vv
       execute server_barrier
+#
       pardo a,a1
           get Pab_aa(a,a1)
           execute dump_block Pab_aa(a,a1)
