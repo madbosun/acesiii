@@ -27419,9 +27419,11 @@
        nsp+=1.0
 #
        enddo eomcycle
-#
-# --------- print out the excitation energies------  
-#
+
+# print out the exciation energies
+
+      totenerg += root1
+      execute print_scalar totenerg
 #
        execute print_scalar root1
        execute print_scalar root2

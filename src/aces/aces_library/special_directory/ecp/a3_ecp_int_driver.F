@@ -18,6 +18,13 @@ C Ecpints need to be (2*Maxang+1)**2 times the square of the
 C maximum number of contracted functions per shell (currently
 C set at 20 for ECP integrals). The current Max_cbf is 1000. 
 C
+C Modification to compute ECP integrals in a suitable form 
+C for ACES III parallel implementation. Since ACES III disregard
+C symmetry, all the logic relating to symmtery is removed (the
+C reason that symmetry logic there in the first place is that 
+C this code is written to use both in ACES II and III. 08/2013,
+C Ajith Perera. 
+C
       Logical Grads, Zero_int, Spherical
 
       dimension Cint(Maxmem_a3), Ecpint_4Shell(Maxints_4shell),
@@ -33,53 +40,56 @@ CSS      nprims(2) = 1
 
       Iloc   = 0
       Isoc   = 0
-      Do Icent = 1, Ntotatoms
-      do ishell = 1, Nshell
+
+CSSS      Do Icent = 1, Ntotatoms
+
+      Do ishell = 1, Nshell
+
 CSSS      do ishell = 1, 1
+
         iatom  = katom(ishell)
 
-        If (IGenby(Icent) .EQ. Iatom) Then
+CSSS        If (IGenby(Icent) .EQ. Iatom) Then
 
-        xa = Coord(1,icent)
-        ya = Coord(2,icent)
-        za = Coord(3,icent)
+        xa = Coord(1,iatom)
+        ya = Coord(2,iatom)
+        za = Coord(3,iatom)
         la = ktype(ishell) - 1
 
         kprimi=kprim(ishell)-1
-        idegen=ndegen(ishell)
         numcoi=numcon(ishell)
 
 C begin loop jshell 
 
         Jloc = 0
         Jsoc = 0
-        Do Jcent = 1, Icent
+
+CSSS        Do Jcent = 1, Icent
+
         do jshell=1, Nshell
+
 CSSS        do jshell=1, 1
 
-          Jdegen=ndegen(Jshell)
           jatom=katom(jshell)
           lb = ktype(jshell) - 1
 C
 #ifdef _DEBUG_LVL0       
-      Write(6,"(a)") "Icent, Jcent, Jatom, Ishell, Jshell: " 
-      write(6,"(6(1x,i4))") Icent, Jcent, Jatom, Ishell, Jshell, Jloc
+      Write(6,"(a)") "Iatom, Jatom, Ishell, Jshell, Jloc: " 
+      write(6,"(6(1x,i4))") Iatom, Jatom, Ishell, Jshell, Jloc
       Write(6,*)
 #endif
-          If (IGenby(Jcent) .EQ. Jatom) Then
-          If (.NOT. (ICent .EQ. Jcent .AND. JShell .GT. IShell)) Then
+CSSS          If (IGenby(Jcent) .EQ. Jatom) Then
+CSSS          If (.NOT. (ICent .EQ. Jcent .AND. JShell .GT. IShell)) Then
+
+          If (.NOT. (Iatom .EQ. Jatom .AND. JShell .GT. IShell)) Then
 C
-          xb=Coord(1,jcent)
-          yb=Coord(2,jcent)
-          zb=Coord(3,jcent)
+          xb=Coord(1,jatom)
+          yb=Coord(2,jatom)
+          zb=Coord(3,jatom)
 
           kprimj=kprim(jshell)-1
           numcoj=numcon(jshell)
 
-#ifdef _DEBUG_LVLM
-      Nprims(1) = 1
-      Write(6,"(a,I3)") "The Debug value for Nprims: ", Nprims(1)
-#endif
           Call Dzero(Ecpint_4shell, Maxints_4shell)
 C
           Do iprim = 1, nprims(ishell)
@@ -140,6 +150,8 @@ C
 C 
 #ifdef _DEBUG_LVL0
       Write(6,*)
+      Idegen = (la+1)*(la+2)/2
+      Jdegen = (lb+1)*(lb+2)/2
       Write(6,"(a,4(1x,I2))")
      &"The Contracted integral for shell pair", Ishell, JShell, Idegen,
      & Jdegen
@@ -165,17 +177,17 @@ C
           Jsoc = Jsoc + (2*Lb+1)*NUmcoj
 C
         Endif
-        Endif
+cSSS        Endif
 C
         Enddo
-        Enddo
+CSSS        Enddo
 
         Iloc = Iloc + (La+1)*(La+2)*Numcoi/2
         Isoc = Isoc + (2*La+1)*Numcoi
 C
-      Endif 
+CSSS      Endif 
       Enddo 
-      Enddo
+CSSS      Enddo
 C     
       Ndim = Iloc
       If (Spherical) Ndim = Isoc 

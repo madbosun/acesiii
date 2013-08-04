@@ -18,6 +18,13 @@ C-----------------------------------------------------------------------
 C Ecpints need to be (2*Maxang+1)**2 times the square of the 
 C maximum number of contracted functions per shell (currently
 C set at 20 for ECP integrals). The current Max_cbf is 1000. 
+
+C Modification to compute ECP integrals in a suitable form
+C for ACES III parallel implementation. Since ACES III disregard
+C symmetry, all the logic relating to symmtery is removed (the
+C reason that symmetry logic there in the first place is that
+C this code is written to use both in ACES II and III. 08/2013,
+C Ajith Perera.
 C
       Logical Grads, Zero_int, Spherical
 
@@ -47,16 +54,20 @@ CSS      Nshell = 2
 C
       Iloc   = 0
       Isoc   = 0
-      Do Icent = 1, Ntotatoms 
+C
+CSSS      Do Icent = 1, Ntotatoms 
+
       do ishell = 1, Nshell
+
 CSSS      do ishell = 1, 1
 C
         iatom  = katom(ishell)
-        If (IGenby(Icent) .EQ. Iatom) Then
 
-        xa = Coord(1,Icent)
-        ya = Coord(2,Icent)
-        za = Coord(3,Icent)
+CSSS        If (IGenby(Icent) .EQ. Iatom) Then
+
+        xa = Coord(1,Iatom)
+        ya = Coord(2,Iatom)
+        za = Coord(3,Iatom)
         la = ktype(ishell) - 1
 
         kprimi=kprim(ishell)-1
@@ -68,8 +79,11 @@ C begin loop jshell
  
         Jloc = 0
         Jsoc = 0
-        Do Jcent = 1, Ntotatoms
+
+CSSS        Do Jcent = 1, Ntotatoms
+
         do jshell=1, Nshell
+
 CSSS        do jshell=1, 1
 
 C
@@ -79,11 +93,11 @@ C
           lb = ktype(jshell) - 1
           Jdegen=ndegen(jshell)
 C
-          If (IGenby(Jcent) .EQ. Jatom) Then
+CSSS          If (IGenby(Jcent) .EQ. Jatom) Then
  
-          xb=Coord(1,Jcent)
-          yb=Coord(2,JCent)
-          zb=Coord(3,Jcent)
+          xb=Coord(1,Jatom)
+          yb=Coord(2,Jatom)
+          zb=Coord(3,Jatom)
 
           kprimj=kprim(jshell)-1
           numcoj=numcon(jshell)
@@ -138,11 +152,18 @@ C
       Write(6,*)
 #endif
                 Do Icnt = 1,  Ntotatoms
-                   Isym_unq_cnt = IGenby(Icnt)
-                   If (Ipseux(Isym_unq_cnt) .NE. 0) Then
+
+CSSS                   Isym_unq_cnt = IGenby(Icnt)
+                   Isym_unq_cnt = Icnt
+
+                   If (Ipseux(Icnt) .NE. 0) Then
                       
-                      If (.NOT. (Grads .AND. Icent .EQ. Icnt)) Then
-                         Iecp_cnt = Isym_unq_cnt
+CSSS                      If (.NOT. (Grads .AND. Icent .EQ. Icnt)) Then
+CSSS                         Iecp_cnt = Isym_unq_cnt
+
+                      If (.NOT. (Grads .AND. Iatom .EQ. Icnt)) Then
+                          Iecp_cnt = Icnt
+C
                          Call Dzero(Ecpint_4shell, Maxints_4shell)
                          Call Dzero(Cint, Maxmem_a3)
  
@@ -174,12 +195,12 @@ C
      &                                      Iprim, Jprim, Exp1, Exp2,
      &                                      Ecpgrd_x, Ecpgrd_y, 
      &                                      Ecpgrd_z, Ntotatoms, 
-     &                                      Icent, ICnt)
+     &                                      Iatom, ICnt)
                         
                          Call Ecp_grdint(Ecpgrdint, Ecpgrd_X, Ecpgrd_Y,
      &                                   Ecpgrd_Z, La, Lb, Iloc, Jloc, 
      &                                   Isoc, Jsoc, Numcoi, Numcoj, 
-     &                                   Icent, Icnt, Ntotatoms,
+     &                                   Iatom, Icnt, Ntotatoms,
      &                                   Spherical)
 
                       Endif
@@ -193,31 +214,34 @@ C
           Jloc = Jloc + (Lb+1)*(Lb+2)*Numcoj/2
           Jsoc = Jsoc + (2*Lb+1)*NUmcoj
 
-        Endif 
+CSSS        Endif 
         Enddo
-        Enddo
+CSSS        Enddo
         Iloc = Iloc + (La+1)*(La+2)*Numcoi/2
         Isoc = Isoc + (2*La+1)*Numcoi
 
-      Endif 
+CSSS      Endif 
+
       Enddo 
 
-cVFL start 
-c       Nint = Iloc
-c       If (SPherical) Nint = Isoc 
-c       Ldim = Nint*(Nint+1)/2 
-
-c       DO Ixyz = 1, 3 
-c          DO I = 1, Nint 
-c             Ecpgrdint(Icent,Ixyz,i*(i+1)/2) = 2.0D0*Ecpgrdint(Icent,
-c    &                                                 Ixyz,i*(i+1)/2)
-c          Enddo
-
-c          Write(62) Nint
-c          Write(62) (Ecpgrdint(Icent,Ixyz,jj), JJ=1, Ldim)
-c       Enddo
-cVFL end  
-      Enddo
+#ifdef _DEBUG_LVL0
+       Nint = Iloc
+       If (SPherical) Nint = Isoc 
+       Write(6, "(a)") "The ECP derivative integral atom:xyz:int"
+       Do icent = 1, Ntotatoms 
+          w=0.0d0
+          DO Ixyz = 1, 3 
+                Write(6, "(6(1x,F12.6))") (Ecpgrdint(Icent,Ixyz,I),
+     &                                    i=1, Nint)
+             DO I = 1, Nint 
+                w = w+Ecpgrdint(Icent,Ixyz,I)*Ecpgrdint(Icent,Ixyz,I)
+             Enddo
+          Enddo
+       Write(6, "(a,(1x,F20.13))") "The ecpgrdint. check sum = ", w 
+       Enddo 
+#endif 
+  
+CSSS      Enddo
 
       return
       end
