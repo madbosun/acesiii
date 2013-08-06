@@ -1,5 +1,11 @@
       SUBROUTINE EVEC_SHIFT(EIGEN, VEC, SCR, NOPT)
- 
+C 
+C This routine moves the 3N-6(or 5) translational and rotational
+C modes to the end (ie. This eigenvalues and vectors that have
+C zero eigenvalues). Ajith Perera, 11/2012 (the date is when
+C the comment was added, the routine was written 3 or 4 years 
+C prior to that).  
+
       IMPLICIT DOUBLE PRECISION (A-H, O-Z)
 
       DIMENSION EIGEN(NOPT, NOPT), VEC(NOPT, NOPT), SCR(NOPT, NOPT)

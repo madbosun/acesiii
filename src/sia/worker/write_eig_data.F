@@ -50,6 +50,7 @@ c---------------------------------------------------------------------------
 c   Transform the CA and CB data from ERD order/scaling to VMOL order/scaling.
 c---------------------------------------------------------------------------
 
+         go to 10 
          if (need_predef(1) .or.
      *       need_predef(2)) then
             do j = 1, n
@@ -76,6 +77,7 @@ c---------------------------------------------------------------------------
                enddo
             enddo
          endif   
+10       continue 
 
 c---------------------------------------------------------------------------
 c   Save the diagonals of the FOCKA array.

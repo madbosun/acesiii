@@ -1,0 +1,363 @@
+#!/bin/csh
+#PBS -j oe
+#PBS -l nodes=8:ppn=8:infiniband
+#PBS -l walltime=40:00:00
+#PBS -l pmem=2000mb
+#PBS -q parallel
+
+export ACES_EXE_PATH= /home/perera/Develop/acesiii/tests/../bin
+cd /scratch/hpc/perera/ACESIII_TESTS
+echo Test of ACESIII system >monitor_tests
+date >>monitor_tests
+
+### Test 1.1.1.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.1.1.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.1.1.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.1.1.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.1.1.1 >>../monitor_tests
+sleep 10
+
+### Test 1.1.2.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.1.2.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.1.2.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.1.2.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.1.2.1 >>../monitor_tests
+sleep 10
+
+### Test 1.1.2.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.1.2.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.1.2.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.1.2.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.1.2.2 >>../monitor_tests
+sleep 10
+
+### Test 1.1.3.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.1.3.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.1.3.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.1.3.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.1.3.1 >>../monitor_tests
+sleep 10
+
+### Test 1.1.3.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.1.3.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.1.3.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.1.3.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.1.3.2 >>../monitor_tests
+sleep 10
+
+### Test 1.1.4.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.1.4.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.1.4.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.1.4.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.1.4.1 >>../monitor_tests
+sleep 10
+
+### Test 1.1.4.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.1.4.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.1.4.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.1.4.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.1.4.2 >>../monitor_tests
+sleep 10
+
+### Test 1.2.1.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.2.1.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.2.1.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.2.1.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.2.1.1 >>../monitor_tests
+sleep 10
+
+### Test 1.2.2.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.2.2.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.2.2.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.2.2.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.2.2.1 >>../monitor_tests
+sleep 10
+
+### Test 1.2.3.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.2.3.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.2.3.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.2.3.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.2.3.1 >>../monitor_tests
+sleep 10
+
+### Test 1.2.3.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.2.3.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.2.3.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.2.3.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.2.3.2 >>../monitor_tests
+sleep 10
+
+### Test 1.3.1.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.3.1.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.3.1.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.3.1.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.3.1.1 >>../monitor_tests
+sleep 10
+
+### Test 1.3.2.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.3.2.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.3.2.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.3.2.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.3.2.1 >>../monitor_tests
+sleep 10
+
+### Test 1.4.3.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.4.3.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.4.3.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.4.3.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.4.3.1 >>../monitor_tests
+sleep 10
+
+### Test 1.4.3.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/1.4.3.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 1.4.3.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 1.4.3.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 1.4.3.2 >>../monitor_tests
+sleep 10
+
+### Test 2.1.1.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.1.1.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.1.1.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.1.1.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.1.1.1 >>../monitor_tests
+sleep 10
+
+### Test 2.1.2.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.1.2.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.1.2.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.1.2.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.1.2.1 >>../monitor_tests
+sleep 10
+
+### Test 2.1.2.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.1.2.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.1.2.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.1.2.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.1.2.2 >>../monitor_tests
+sleep 10
+
+### Test 2.1.3.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.1.3.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.1.3.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.1.3.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.1.3.1 >>../monitor_tests
+sleep 10
+
+### Test 2.1.3.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.1.3.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.1.3.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.1.3.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.1.3.2 >>../monitor_tests
+sleep 10
+
+### Test 2.1.4.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.1.4.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.1.4.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.1.4.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.1.4.1 >>../monitor_tests
+sleep 10
+
+### Test 2.1.4.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.1.4.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.1.4.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.1.4.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.1.4.2 >>../monitor_tests
+sleep 10
+
+### Test 2.2.1.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.2.1.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.2.1.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.2.1.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.2.1.1 >>../monitor_tests
+sleep 10
+
+### Test 2.2.2.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.2.2.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.2.2.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.2.2.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.2.2.1 >>../monitor_tests
+sleep 10
+
+### Test 2.2.3.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.2.3.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.2.3.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.2.3.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.2.3.1 >>../monitor_tests
+sleep 10
+
+### Test 2.2.3.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.2.3.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.2.3.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.2.3.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.2.3.2 >>../monitor_tests
+sleep 10
+
+### Test 2.3.1.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.3.1.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.3.1.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.3.1.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.3.1.1 >>../monitor_tests
+sleep 10
+
+### Test 2.3.2.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.3.2.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.3.2.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.3.2.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.3.2.1 >>../monitor_tests
+sleep 10
+
+### Test 2.4.3.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.4.3.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.4.3.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.4.3.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.4.3.1 >>../monitor_tests
+sleep 10
+
+### Test 2.4.3.2 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/2.4.3.2
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 2.4.3.2 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 2.4.3.2 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 2.4.3.2 >>../monitor_tests
+sleep 10
+
+### Test 4.1.1.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/4.1.1.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 4.1.1.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 4.1.1.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 4.1.1.1 >>../monitor_tests
+sleep 10
+
+### Test 4.2.1.1 ###
+cd /scratch/hpc/perera/ACESIII_TESTS/4.2.1.1
+lfs setstripe BLOCKDATA 0 -1 -1
+lfs setstripe BLOCKDATA2 0 -1 -1
+echo Running 4.2.1.1 >>../monitor_tests
+date >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xaces3 > ./job.out
+echo Completed 4.2.1.1 >>../monitor_tests
+mpiexec --mca btl openib,self,sm ./xtest_compare 4.2.1.1 >>../monitor_tests
+sleep 10

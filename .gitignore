@@ -1,0 +1,6 @@
+*.a
+*.o
+*.sio
+xaces3
+Makefile
+

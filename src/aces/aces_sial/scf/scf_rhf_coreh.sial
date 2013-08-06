@@ -280,6 +280,7 @@
        scalar Tb19
        scalar Tb110 
 #
+       scalar Tb21
        scalar Tb22
        scalar Tb23
        scalar Tb24
@@ -290,6 +291,8 @@
        scalar Tb29
        scalar Tb210 
 #
+       scalar Tb31
+       scalar Tb32
        scalar Tb33
        scalar Tb34
        scalar Tb35
@@ -299,6 +302,9 @@
        scalar Tb39
        scalar Tb310 
 #
+       scalar Tb41
+       scalar Tb42
+       scalar Tb43
        scalar Tb44
        scalar Tb45
        scalar Tb46
@@ -307,6 +313,10 @@
        scalar Tb49
        scalar Tb410 
 #
+       scalar Tb51
+       scalar Tb52
+       scalar Tb53
+       scalar Tb54
        scalar Tb55
        scalar Tb56
        scalar Tb57
@@ -314,25 +324,61 @@
        scalar Tb59
        scalar Tb510 
 #
+       scalar Tb61 
+       scalar Tb62 
+       scalar Tb63 
+       scalar Tb64 
+       scalar Tb65 
        scalar Tb66 
        scalar Tb67 
        scalar Tb68 
        scalar Tb69 
        scalar Tb610  
 #
+       scalar Tb71 
+       scalar Tb72 
+       scalar Tb73 
+       scalar Tb74 
+       scalar Tb75 
+       scalar Tb76 
        scalar Tb77 
        scalar Tb78 
        scalar Tb79 
        scalar Tb710  
 #
+       scalar Tb81 
+       scalar Tb82 
+       scalar Tb83 
+       scalar Tb84 
+       scalar Tb85 
+       scalar Tb86 
+       scalar Tb87 
        scalar Tb88 
        scalar Tb89 
        scalar Tb810  
 #
+       scalar Tb91 
+       scalar Tb92 
+       scalar Tb93 
+       scalar Tb94 
+       scalar Tb95 
+       scalar Tb96 
+       scalar Tb97 
+       scalar Tb98 
        scalar Tb99 
        scalar Tb910  
 #
+       scalar Tb101 
+       scalar Tb102 
+       scalar Tb103 
+       scalar Tb104 
+       scalar Tb105 
+       scalar Tb106 
+       scalar Tb107 
+       scalar Tb108 
+       scalar Tb109 
        scalar Tb1010 
+#
 #
 # Declare scalars 
 # --------------- 
@@ -394,10 +440,7 @@
 #     Initialize the Fock matrix to the bare 1-electron hamiltonian.
 #     -------------------------------------------------------------- 
 #
-      execute get_my_rank rank  
-      if rank == 0.0 
-      DO mu 
-      DO nu 
+      PARDO mu, nu  
 #
             Txx(mu,nu) = 0.0 
             execute return_h1 Txx 
@@ -405,9 +448,7 @@
             PUT Fpq_a(mu,nu) = Txx(mu,nu) 
             PUT Fpq_b(mu,nu) = Txx(mu,nu) 
 #
-      ENDDO nu 
-      ENDDO mu 
-      endif 
+      ENDPARDO mu, nu  
 #
      #execute print_scalar scfeneg
       ENDPROC IGUESS   
@@ -1174,6 +1215,7 @@
 #
              etemp        = T1xx(mu,nu)*DHFb(mu,nu)  
              esum        += etemp 
+             execute dump_amp DHFa 
 #
           ENDDO nu 
           ENDDO mu  
@@ -1273,6 +1315,8 @@
 #      First put the transposed Fock arrays into static arrays 
 #      ------------------------------------------------------- 
 #
+       execute get_my_rank rank
+       if rank == 0.0
        DO mu   
        DO nu  
 #
@@ -1284,9 +1328,13 @@
 #
        ENDDO nu  
        ENDDO mu   
+          execute eig FSpq_a ca
+          execute eig FSpq_b Cb  
+       endif 
 #
-       execute eig FSpq_a ca
-       execute eig FSpq_b Cb  
+       execute sip_barrier
+       execute broadcast_array ca
+       execute broadcast_array cb
 #
        ENDPROC FOCK_DIAG 
 #      ----------------- 

@@ -1435,10 +1435,8 @@
 #
        PROC OVER_HALF 
 #      -------------- 
-#
 #      Diagonalize the overlap matrix, invert and take the square
 #      root of the diagonal elements. 
-#      -------------------------------------------------------------- 
 #
        execute eig_sr_inv oed_ovl x1   
 #
@@ -3109,7 +3107,7 @@
 
       execute print_scalar diis_start
       execute print_scalar diis_order
-#
+
 #
 #     Create the one-particle arrays needed for the computation. 
 #     ---------------------------------------------------------- 

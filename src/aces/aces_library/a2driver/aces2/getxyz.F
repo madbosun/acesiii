@@ -1,18 +1,4 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
-
+#include "flags.h"
 C Read Cartesian coordinates from Z-matrix
 
       SUBROUTINE GETXYZ
@@ -21,7 +7,6 @@ C Read Cartesian coordinates from Z-matrix
 #include "mxatms.par"
 #include "io_units.par"
 #include "linelen.par"
-#include "flags.h"
       DOUBLE PRECISION BTOA
       PARAMETER (BTOA=0.529177249d0)
 
@@ -29,10 +14,10 @@ C     Labels used throughout the program:
 C     ZSYM    Atomic symbol given for each line of the Z-matrix
 C     VARNAM  Symbols of all variable parameters
 C     PARNAM  Symbols of all variables *and* (fixed) parameters
-      CHARACTER*5 ZSYM, VARNAM, PARNAM
-      COMMON /CBCHAR/ ZSYM(MXATMS), VARNAM(3*MXATMS),
-     1     PARNAM(3*MXATMS)
+C
+#include "cbchar.com"
 #include "coord_dup.com"
+C
       COMMON /USINT/ NX, NXM6, IARCH, NCYCLE, NUNIQUE, NOPT
 #include "machsp.com"
 
@@ -57,7 +42,7 @@ C
      $   ICONTL,IRECAL,INTTYP,IDISFD,IGRDFD,ICNTYP,ISYM,IBASIS,
      $   XYZTol
 
-      double precision xyz(3,mxatms)
+      double precision rxyz(3,mxatms), pxyz(3,mxatms)
       integer izl(2,7), iStruct
       CHARACTER*(linelen) ZLINE
       logical btmp, bStruct, bAtom
@@ -124,8 +109,14 @@ c   o process the reactant as the main structure
       end if
       natoms = ndx
       nx = 3*natoms
-      if (iflags(h_IOPPAR_units).eq.0) call dscal(nx,factor,q,1)
+      if (iflags(78).eq.0) call xscal(nx,factor,q,1)
       call pertable
+
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") "Creating CUSTRUCT jobarc record"
+      Write(6,"(3(1x,F12.6))") ((q(i,j),i=1,3),j=1,natoms)
+#endif
+      call dputrec(1,'JOBARC','CUSTRUCT',nx,q)
 
 c   o flush remaining atom slots
       if (natoms.lt.mxatms) then
@@ -136,7 +127,7 @@ c   o flush remaining atom slots
          end do
       end if
 
-c   o read additional structures into xyz until we hit a namelist
+c   o read additional structures into rxyz until we hit a namelist
 c     (iStruct corresponds to the structure we expect to read)
       iStruct = 1
       bStruct = .true.
@@ -152,6 +143,17 @@ c         o only read the first line of the secondary structure
             end if
             i = izl(1,1)
             if (i.ne.0.and.(ndx.ne.0.or.zline(i:i).ne.'*')) then
+C
+C This small loop allows us to designate the character of the 
+C additional structures (Products, Transition state, etc.)
+C Ajith Perera, 12/2012.
+C
+                if (ndx .eq. 0) Then
+                   read(luz,'(a)') zline
+                   call parsez(zline,izl)
+                   i = izl(1,1)
+                endif
+C
 c            o increment atom counter
                ndx = ndx + 1
                if (ndx.gt.natoms) then
@@ -173,10 +175,9 @@ c            o load the coordinates
                   print *, '@GETXYZ: Error in XYZ coordinates'
                   print *, '         structure ',iStruct
                   print *, '         atom ',ndx,': ',zline
-                  print *,'izl ',(izl(1,i),i=1,5)
                   call errex
                end if
-               read(zline(izl(1,2):izl(2,4)),*) (xyz(i,ndx),i=1,3)
+               read(zline(izl(1,2):izl(2,4)),*) (rxyz(i,ndx),i=1,3)
             else
                bAtom = .false.
                if (ndx.eq.0) then
@@ -211,28 +212,50 @@ c            o read the next line and see if this structure was the TS or PR
                if (btmp) then
                   print *, 'Product structure:'
                else
-                  print *, 'Transition-state structure:'
+                  print *, 'Reactant structure:'
                end if
                do ndx = 1, natoms
-                  print *, zsym(ndx),(xyz(i,ndx),i=1,3)
+                  print *, zsym(ndx),(rxyz(i,ndx),i=1,3)
                end do
 c           end if (print structures)
             end if
-            if (iflags(h_IOPPAR_units).eq.0) 
-     *              call dscal(nx,factor,xyz,1)
+            if (iflags(78).eq.0) call xscal(nx,factor,rxyz,1)
             if (btmp) then
-               call dputrec(1,'JOBARC','PRSTRUCT',nx,xyz)
+               If (iStruct.eq.2) Then
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") "Creating RXSTRUCT jobarc record"
+      Write(6,"(3(1x,F12.6))") ((xyz(i,j),i=1,3),j=1,natoms)
+#endif
+                  call dputrec(1,'JOBARC','RXSTRUCT',nx,rxyz)
+                Else
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") "Creating PRSTRUCT jobarc record"
+      Write(6,"(3(1x,F12.6))") ((rxyz(i,j),i=1,3),j=1,natoms)
+#endif
+                  call dputrec(1,'JOBARC','PRSTRUCT',nx,rxyz)
+                Endif
             else
 c            o move Q to RXSTRUCT since we are optimizing the TS structure
-               call dputrec(1,'JOBARC','RXSTRUCT',nx,q)
-               call dcopy(nx,xyz,1,q,1)
+
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") "Creating RXSTRUCT jobarc record"
+      Write(6,"(3(1x,F12.6))") ((rxyz(i,j),i=1,3),j=1,natoms)
+#endif
+               call dputrec(1,'JOBARC','RXSTRUCT',nx,rxyz)
+
+C q contains the first block of coordinates which is the approx. TS  
+C structure (better designation must be current structure). 
+c  Commented 12/2012, Ajith Perera
+CSSS               call xdcopy(nx,rxyz,1,q,1)
             end if
 c        end if (bStruct)
          end if
 c     end do while (bStruct)
       end do
 
-      call geomout(natoms, q, zsym, iatnum)
+      If (IFLAGS2(h_IFLAGS2_opt_control) .EQ. 1)
+     &    Call Gen_curr_coords(Rxyz, Pxyz, q, Nx, .TRUE.)
+
       RETURN
       END
 

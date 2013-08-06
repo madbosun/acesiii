@@ -219,6 +219,11 @@ C
 C
         CHARCN=CHRVEC(1)
         CHARSGD=CHRVEC(IORDER+(IORDER/2))
+C
+C This is added to B1 and B2 labeling for C2v to adhere into 
+C text book standards, 10/2012, Ajith Perera
+
+        IF (IORDER .EQ. 2) CHARSGD = CHRVEC(2)
         CHARCN=CHARCN/DFLOAT(NDEG)
         CHARSGD=CHARSGD/DFLOAT(NDEG)
         IF(NDEG.EQ.1)THEN

@@ -238,7 +238,7 @@ c    *                                    component, a, b)
 c                 enddo 
 c                 enddo 
 c                 endif 
-
+c
 c--------------------------------------------------------------------------
 c   Contract the density block with the block of integrals.
 c--------------------------------------------------------------------------

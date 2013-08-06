@@ -1,19 +1,4 @@
-/*
-*  Copyright (c) 2003-2010 University of Florida
-*
-*  This program is free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  The GNU General Public License is included in this distribution
-*  in the file COPYRIGHT.
-*/ 
+
 #include <unistd.h>	/* for NULL */
 #include <string.h>	/* for strcmp */
 #include <strings.h>	/* for strcasecmp */
@@ -26,8 +11,6 @@
 #endif
 #include "f77_name.h"	/* for F77_NAME */
 #include "f_types.h"	/* for f_int */
-
-extern void F77_NAME(errex,ERREX)();
 
 /******************************************************************************/
 
@@ -182,7 +165,7 @@ const ASV_nl_t ASV_nl[] =
 {/*60*/  "ISYM",	"SYM#METRY",	h_ICHAR_handle,	2,	""},
 /*       *alias,	*oppar,		ichar,		ideflt,	*units */
 {/*61*/  "IBASIS",	"BAS#IS",	h_ICHAR_string,	0,	""},
-{/*62*/  "IDFGHI",	"SPHER#ICAL",	h_ICHAR_handle,	1,	""},
+{/*62*/  "IDFGHI",	"SPHER#ICAL",	h_ICHAR_handle, 1,	""},
 {/*63*/  "IRESET",	"RESET#_FLAGS",	h_ICHAR_handle,	0,	""},
 {/*64*/  "IPTORB",	"PER#T_ORB",	h_ICHAR_handle,	2,	""},
 {/*65*/  "IGNBS1",	"GENBAS_1#",	h_ICHAR_f_int,	0,	""},
@@ -229,7 +212,7 @@ const ASV_nl_t ASV_nl[] =
 {/*103*/ "IRESRM",	"RESRAMAN#",	h_ICHAR_handle,	0,	""},
 {/*104*/ "IPSI",	"PSI#",		h_ICHAR_handle,	0,	""},
 {/*105*/ "IGEOPT",	"GEOM_OPT#",	h_ICHAR_handle,	0,	""},
-{/*106*/ "IEXTRN",	"EXTERNAL#",	h_ICHAR_handle,	0,	""},
+{/*106*/ "IEXTRN",	"EXTERNAL#",	h_ICHAR_handle,	2,	""},
 {/*107*/ "IHESUP",	"HESS_UPD#ATE",	h_ICHAR_handle,	0,	""},
 {/*108*/ "IINHES",	"INIT_HESS#IAN",h_ICHAR_handle,	0,	""},
 {/*109*/ "IEXTRP",	"EXTRAP#OLATE",	h_ICHAR_handle,	0,	""},
@@ -373,9 +356,9 @@ const ASV_nl_t ASV_nl[] =
 /*       *alias,	*oppar,		ichar,		ideflt,	*units */
 {/*241*/ "IGLBMM",	"GLOBAL_MEM#",	h_ICHAR_f_int,	0,	"Words"},
 {/*242*/ "IPRPNT",	"PRP_INT#S",	h_ICHAR_handle,	0,	""},
-{/*243*/ "IFNOKP",	"FNO_KEEP#",	h_ICHAR_f_int,	0,	"percent"},
-{/*244*/ "IFNOPT",	"FNO_POST#",	h_ICHAR_handle,	0,	""},
-{/*245*/ "IFNOAC",	"FNO_ACT#IVE",	h_ICHAR_f_int,	0,	"percent"},
+{/*243*/ "ITRUNC",      "TRUNC#_ORBS",  h_ICHAR_handle, 0,      ""},
+{/*244*/ "IFNOKP",      "FNO_KEEP#",    h_ICHAR_f_int,  0,      "percent"},
+{/*245*/ "IFNOBS",      "FNO_BSSE#",    h_ICHAR_handle, 0,      ""},
 {/*246*/ "INAT",	"NATURAL#",	h_ICHAR_handle,	0,	""},
 {/*247*/ "ICCSYM",	"ACC_SYM#",	h_ICHAR_string,	0,	""},
 {/*248*/ "IUNO_R",	"UNO_REF#",	h_ICHAR_handle,	0,	""},
@@ -386,10 +369,10 @@ const ASV_nl_t ASV_nl[] =
 {/*253*/ "ISCF",	"SCF_TYPE#",	h_ICHAR_handle,	0,	""},
 {/*254*/ "IDIRCT",	"DIRECT#",	h_ICHAR_handle,	0,	""},
 {/*255*/ "BSNGST",	"SINGLE_STOR#E",h_ICHAR_handle,	0,	""},
-{/*256*/ "","",0,0,""},
-{/*257*/ "","",0,0,""},
-{/*258*/ "","",0,0,""},
-{/*259*/ "","",0,0,""},
+{/*256*/ "IOOMPC",      "OOMP_CYC#",    h_ICHAR_f_int , 50,     ""},
+{/*257*/ "DKHORDER",    "DKH_ORD#ER",   h_ICHAR_f_int,  0,      ""},
+{/*258*/ "UNCONTRACT",  "UNCONT#RACT",  h_ICHAR_handle, 0,      ""},
+{/*259*/ "IOPT_CTRL",   "OPT_CONT#ROL", h_ICHAR_handle, 0,      ""},
 {/*260*/ "","",0,0,""}
 }; /* end ASV_nl[] definition */
 #define MAX_ASVs 260
@@ -423,14 +406,14 @@ void asv_update_handle(const f_int * index,
             if (strcmp(value,"0"))
             {
                 printf("\n     ERROR: The value token is not recognized.\n");
-                F77_NAME(errex, ERREX)();
+                exit(1);
             }
         }
         else if ((pos<0) || (count_strings(handles)<=pos))
         {
             printf("\n     ERROR: %li is outside the acceptable interval "
                    "[0,%li]\n",pos,count_strings(handles)-1);
-            F77_NAME(errex, ERREX)();
+            exit(1);
         }
     }
     f_flags.ioppar[*index] = pos;
@@ -473,7 +456,7 @@ void asv_handle_proc(const f_int * index, const char * value)
       /*32-35*/ "CCSD-T",	"CC3",		"CCSDT-T1T2",	"CCSDTQ-1",
       /*36-39*/ "CCSDTQF-1",	"CCSDTQ-2",	"CCSDTQ-3",	"CCSDTQ",
       /*40-43*/ "ACCSD",	"HFDFT",	"ACCSD(T)",	"CCSD(TQf)",
-      /*44-47*/ "CCSDT(Qf)",	""
+      /*44-47*/ "CCSDT(Qf)",	"OO-MP2",       "OO-MBPT(2)",   ""
             };
             asv_update_handle(index,value,handles);
             break;
@@ -569,7 +552,9 @@ void asv_handle_proc(const f_int * index, const char * value)
                 "READ_AO_MOS",	/* 5 */
                 "MIN_BASIS",	/* 6 */
                 "HUCKEL",	/* 7 */
-                "OVERRIDE"      /* 8 */
+                "OVERRIDE",     /* 8 */
+                "ATOMIC"        /* 9 */
+                "AODENS"        /* 10 */
                 ""
             };
             asv_update_handle(index,value,handles);
@@ -585,7 +570,7 @@ void asv_handle_proc(const f_int * index, const char * value)
                 "CART",		/* 2 */
                 "FULL",		/* 3 */
                 "RIC" ,         /* 4 */
-                ""
+                ""             
             };
             asv_update_handle(index,value,handles);
             break;
@@ -674,6 +659,20 @@ void asv_handle_proc(const f_int * index, const char * value)
                 "IGTS",		/* 6 - used to be ENERONLY? */
                 "QSD",		/* 7 */
                 ""
+            };
+            asv_update_handle(index,value,handles);
+            break;
+        }
+
+        case h_IOPPAR_opt_control:
+        {
+            const char *handles[] =
+            {
+                "NONE",         /* 0 */
+                "LST",          /* 1 */
+                "QST",          /* 2 */
+                "CONSTRAINED",  /* 3 */
+                "COMBO"         /* 4 - reserved for QST/LST and constrained*/
             };
             asv_update_handle(index,value,handles);
             break;
@@ -1098,9 +1097,16 @@ void asv_handle_proc(const f_int * index, const char * value)
 
         case h_IOPPAR_scf_type:
         {
-            const char *handles[] = { "HF", "KS", "HFDFT", "" };
+            const char *handles[] = { "HF", "KS", "HFDFT", "OEPX", "OEP2","" };
             asv_update_handle(index,value,handles);
             break;
+        }
+
+        case h_IOPPAR_trunc_orbs:
+        {
+            const char *handles[] = { "NONE", "FNO", "OVOS", "" };
+            asv_update_handle(index,value,handles);
+            break;      
         }
 
         case h_IOPPAR_noreori:
@@ -1302,7 +1308,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
          /* There had better not be a value token with a negation. */
             printf("\n     ERROR: Negation flag found with value token.\n"
                      "     key = '%s'; value = '%s'\n",key,value);
-            F77_NAME(errex, ERREX)();
+            exit(1);
         }
         key++; while (isspace(*key)) key++;
     }
@@ -1330,7 +1336,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
             {
                 printf("\n     ERROR: missing \"}\" in value token\n"
                          "            key = '%s'; value = '%s'\n",key,value);
-                F77_NAME(errex, ERREX)();
+                exit(1);
             }
             value += 2; /* skip the "${" characters */
             while (isspace(*value)) value++;
@@ -1402,7 +1408,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                                "matching '%s'\n",
                                ASV_nl[lASV].alias,ASV_nl[var].alias
                               );
-                        F77_NAME(errex, ERREX)();
+                        exit(1);
                     }
                 } /* end if key token matches ASV alias */
             } /* end loop over ASV aliases */
@@ -1430,7 +1436,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                                        "after matching '%s'\n",
                                        ASV_nl[lASV].oppar,ASV_nl[var].oppar
                                       );
-                                F77_NAME(errex, ERREX)();
+                                exit(1);
                             }
                         } /* end if key token matches ASV stub */
                     } /* end if key definition contains a stub */
@@ -1443,7 +1449,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
         {
          /* complain if the key token is unmatched */
             printf("     ERROR: '%s' does not match a known ASV!\n",key);
-            F77_NAME(errex, ERREX)();
+            exit(1);
         }
         else
         {
@@ -1485,7 +1491,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                         {
                             printf("String copy failed, only %li characters"
                                    " copied.\n",*size);
-                            F77_NAME(errex, ERREX)();
+                            exit(1);
                             memmove(data,value,(size_t)*size);
                         }
                         break;
@@ -1499,7 +1505,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                         {
                             printf("\n     ERROR: The value token is not "
                                    "recognized.\n");
-                            F77_NAME(errex, ERREX)();
+                            exit(1);
                         }
                      /* This block is mainly for processing units. If any
                         other units are added besides data sizes, then
@@ -1540,7 +1546,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                                                     printf("ERROR: '%s' is not "
                                                            "a valid unit.\n",
                                                            czUnit);
-                                                    F77_NAME(errex, ERREX)();
+                                                    exit(1);
                                                     break;
                                             }
                                          /* switch on a unit */
@@ -1555,7 +1561,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                                                     printf("ERROR: '%s' is not "
                                                            "a valid unit.\n",
                                                            czUnit);
-                                                    F77_NAME(errex, ERREX)();
+                                                    exit(1);
                                                     break;
                                             }
                                             break;
@@ -1592,7 +1598,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                                    "but destination is only %li Bytes.\n",
                                    Bytes,*size
                                   );
-                            F77_NAME(errex, ERREX)();
+                            exit(1);
                             *size=0;
                         }
                         break;
@@ -1610,7 +1616,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                     default:
                     {
                         printf("ERROR: An unknown type has been entered!\n");
-                        F77_NAME(errex, ERREX)();
+                        exit(1);
                         break;
                     }
                 } /* end ichar switch */
@@ -1638,7 +1644,7 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
                 {
                     printf("     ERROR: %s (%s) requires a value!\n",
                            key,keyname);
-                    F77_NAME(errex, ERREX)();
+                    exit(1);
                 }
             } /* end if (value) */
         } /* end if ((var<0)||(MAX_ASVs<=var)) */
@@ -1659,15 +1665,6 @@ F77_NAME(asv_update_kv,ASV_UPDATE_KV)
 }
 
 /******************************************************************************/
-
-void F77_NAME(init_flags, INIT_FLAGS) ()
-{
-   /* initialize the f_flags global structure */
-   int iASV;
-
-   for (iASV=0;iASV<MAX_ASVs;iASV++)
-      f_flags.ioppar[iASV] = ASV_nl[iASV].ideflt;
-}
 
 int cli_prog(int argc, char *argv[])
 /*int main(int argc, char *argv[])*/
@@ -1707,3 +1704,4 @@ int cli_prog(int argc, char *argv[])
 
     return 0;
 }
+

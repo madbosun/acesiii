@@ -278,94 +278,94 @@ c --- p-functions ---
       enddo 
 
 c --- d-functions --- 
-      x_scale(2,1) = 1.0/dsqrt(3.0d0)  
+      x_scale(2,1) = 1.0*dsqrt(3.0d0)  
       x_scale(2,2) = 1.0 
       x_scale(2,3) = 1.0 
-      x_scale(2,4) = 1.0/dsqrt(3.0d0)  
+      x_scale(2,4) = 1.0*dsqrt(3.0d0)  
       x_scale(2,5) = 1.0 
-      x_scale(2,6) = 1.0/dsqrt(3.0d0)  
+      x_scale(2,6) = 1.0*dsqrt(3.0d0)  
 
 c --- f-functions --- 
-      x_scale(3, 1) = 1.0/dsqrt(15.0d0) 
-      x_scale(3, 2) = 1.0/dsqrt(3.0d0) 
-      x_scale(3, 3) = 1.0/dsqrt(3.0d0) 
-      x_scale(3, 4) = 1.0/dsqrt(3.0d0) 
-      x_scale(3, 5) = 1.0/dsqrt(1.0d0) 
-      x_scale(3, 6) = 1.0/dsqrt(3.0d0) 
-      x_scale(3, 7) = 1.0/dsqrt(15.0d0) 
-      x_scale(3, 8) = 1.0/dsqrt(3.0d0) 
-      x_scale(3, 9) = 1.0/dsqrt(3.0d0) 
-      x_scale(3, 10) = 1.0/dsqrt(15.0d0)
+      x_scale(3, 1) = 1.0*dsqrt(15.0d0) 
+      x_scale(3, 2) = 1.0*dsqrt(3.0d0) 
+      x_scale(3, 3) = 1.0*dsqrt(3.0d0) 
+      x_scale(3, 4) = 1.0*dsqrt(3.0d0) 
+      x_scale(3, 5) = 1.0*dsqrt(1.0d0) 
+      x_scale(3, 6) = 1.0*dsqrt(3.0d0) 
+      x_scale(3, 7) = 1.0*dsqrt(15.0d0) 
+      x_scale(3, 8) = 1.0*dsqrt(3.0d0) 
+      x_scale(3, 9) = 1.0*dsqrt(3.0d0) 
+      x_scale(3, 10) = 1.0*dsqrt(15.0d0)
 
 c --- g-functions --- 
-      x_scale(4, 1) = 1.0/dsqrt(105.0d0) 
-      x_scale(4, 2) = 1.0/dsqrt(15.0d0) 
-      x_scale(4, 3) = 1.0/dsqrt(15.0d0) 
-      x_scale(4, 4) = 1.0/dsqrt(9.0d0) 
-      x_scale(4, 5) = 1.0/dsqrt(3.0d0) 
-      x_scale(4, 6) = 1.0/dsqrt(9.0d0) 
-      x_scale(4, 7) = 1.0/dsqrt(15.0d0) 
-      x_scale(4, 8) = 1.0/dsqrt(8.0d0) 
-      x_scale(4, 9) = 1.0/dsqrt(3.0d0) 
-      x_scale(4, 10) = 1.0/dsqrt(15.0d0) 
-      x_scale(4, 11) = 1.0/dsqrt(105.0d0) 
-      x_scale(4, 12) = 1.0/dsqrt(15.0d0) 
-      x_scale(4, 13) = 1.0/dsqrt(9.0d0) 
-      x_scale(4, 14) = 1.0/dsqrt(15.0d0) 
-      x_scale(4, 15) = 1.0/dsqrt(105.0d0) 
+      x_scale(4, 1) = 1.0*dsqrt(105.0d0) 
+      x_scale(4, 2) = 1.0*dsqrt(15.0d0) 
+      x_scale(4, 3) = 1.0*dsqrt(15.0d0) 
+      x_scale(4, 4) = 1.0*dsqrt(9.0d0) 
+      x_scale(4, 5) = 1.0*dsqrt(3.0d0) 
+      x_scale(4, 6) = 1.0*dsqrt(9.0d0) 
+      x_scale(4, 7) = 1.0*dsqrt(15.0d0) 
+      x_scale(4, 8) = 1.0*dsqrt(8.0d0) 
+      x_scale(4, 9) = 1.0*dsqrt(3.0d0) 
+      x_scale(4, 10) = 1.0*dsqrt(15.0d0) 
+      x_scale(4, 11) = 1.0*dsqrt(105.0d0) 
+      x_scale(4, 12) = 1.0*sqrt(15.0d0) 
+      x_scale(4, 13) = 1.0*dsqrt(9.0d0) 
+      x_scale(4, 14) = 1.0*dsqrt(15.0d0) 
+      x_scale(4, 15) = 1.0*dsqrt(105.0d0) 
 
 c --- h-functions --- 
-      x_scale(5, 1) = 1.0/dsqrt(945.0d0) 
-      x_scale(5, 2) = 1.0/dsqrt(105.0d0) 
-      x_scale(5, 3) = 1.0/dsqrt(105.0d0) 
-      x_scale(5, 4) = 1.0/dsqrt(45.0d0) 
-      x_scale(5, 5) = 1.0/dsqrt(15.0d0) 
-      x_scale(5, 6) = 1.0/dsqrt(45.0d0) 
-      x_scale(5, 7) = 1.0/dsqrt(45.0d0) 
-      x_scale(5, 8) = 1.0/dsqrt(45.0d0) 
-      x_scale(5, 9) = 1.0/dsqrt(9.0d0) 
-      x_scale(5, 10) = 1.0/dsqrt(45.0d0) 
-      x_scale(5, 11) = 1.0/dsqrt(105.0d0) 
-      x_scale(5, 12) = 1.0/dsqrt(15.0d0) 
-      x_scale(5, 13) = 1.0/dsqrt(9.0d0) 
-      x_scale(5, 14) = 1.0/dsqrt(15.0d0) 
-      x_scale(5, 15) = 1.0/dsqrt(105.0d0) 
-      x_scale(5, 16) = 1.0/dsqrt(945.0d0) 
-      x_scale(5, 17) = 1.0/dsqrt(105.0d0) 
-      x_scale(5, 18) = 1.0/dsqrt(45.0d0) 
-      x_scale(5, 19) = 1.0/dsqrt(45.0d0) 
-      x_scale(5, 20) = 1.0/dsqrt(105.0d0) 
-      x_scale(5, 21) = 1.0/dsqrt(945.0d0) 
+      x_scale(5, 1) = 1.0*dsqrt(945.0d0) 
+      x_scale(5, 2) = 1.0*dsqrt(105.0d0) 
+      x_scale(5, 3) = 1.0*dsqrt(105.0d0) 
+      x_scale(5, 4) = 1.0*dsqrt(45.0d0) 
+      x_scale(5, 5) = 1.0*dsqrt(15.0d0) 
+      x_scale(5, 6) = 1.0*dsqrt(45.0d0) 
+      x_scale(5, 7) = 1.0*dsqrt(45.0d0) 
+      x_scale(5, 8) = 1.0*dsqrt(45.0d0) 
+      x_scale(5, 9) = 1.0*dsqrt(9.0d0) 
+      x_scale(5, 10) = 1.0*dsqrt(45.0d0) 
+      x_scale(5, 11) = 1.0*dsqrt(105.0d0) 
+      x_scale(5, 12) = 1.0*dsqrt(15.0d0) 
+      x_scale(5, 13) = 1.0*dsqrt(9.0d0) 
+      x_scale(5, 14) = 1.0*dsqrt(15.0d0) 
+      x_scale(5, 15) = 1.0*dsqrt(105.0d0) 
+      x_scale(5, 16) = 1.0*dsqrt(945.0d0) 
+      x_scale(5, 17) = 1.0*dsqrt(105.0d0) 
+      x_scale(5, 18) = 1.0*dsqrt(45.0d0) 
+      x_scale(5, 19) = 1.0*dsqrt(45.0d0) 
+      x_scale(5, 20) = 1.0*dsqrt(105.0d0) 
+      x_scale(5, 21) = 1.0*dsqrt(945.0d0) 
 
 c --- i-functions --- 
-      x_scale(6, 1) = 1.0/dsqrt(10395.0d0) 
-      x_scale(6, 2) = 1.0/dsqrt(945.0d0) 
-      x_scale(6, 3) = 1.0/dsqrt(945.0d0) 
-      x_scale(6, 4) = 1.0/dsqrt(315.0d0) 
-      x_scale(6, 5) = 1.0/dsqrt(105.0d0) 
-      x_scale(6, 6) = 1.0/dsqrt(315.0d0) 
-      x_scale(6, 7) = 1.0/dsqrt(225.0d0) 
-      x_scale(6, 8) = 1.0/dsqrt(45.0d0) 
-      x_scale(6, 9) = 1.0/dsqrt(45.0d0) 
-      x_scale(6, 10) = 1.0/dsqrt(225.0d0) 
-      x_scale(6, 11) = 1.0/dsqrt(315.0d0) 
-      x_scale(6, 12) = 1.0/dsqrt(45.0d0) 
-      x_scale(6, 13) = 1.0/dsqrt(27.0d0) 
-      x_scale(6, 14) = 1.0/dsqrt(45.0d0) 
-      x_scale(6, 15) = 1.0/dsqrt(315.0d0) 
-      x_scale(6, 16) = 1.0/dsqrt(945.0d0) 
-      x_scale(6, 17) = 1.0/dsqrt(105.0d0) 
-      x_scale(6, 18) = 1.0/dsqrt(45.0d0) 
-      x_scale(6, 19) = 1.0/dsqrt(45.0d0) 
-      x_scale(6, 20) = 1.0/dsqrt(105.0d0) 
-      x_scale(6, 21) = 1.0/dsqrt(945.0d0) 
-      x_scale(6, 22) = 1.0/dsqrt(10395.0d0) 
-      x_scale(6, 23) = 1.0/dsqrt(945.0d0) 
-      x_scale(6, 24) = 1.0/dsqrt(315.0d0) 
-      x_scale(6, 25) = 1.0/dsqrt(225.0d0) 
-      x_scale(6, 26) = 1.0/dsqrt(315.0d0) 
-      x_scale(6, 27) = 1.0/dsqrt(945.0d0) 
-      x_scale(6, 28) = 1.0/dsqrt(10395.0d0) 
+      x_scale(6, 1) = 1.0*dsqrt(10395.0d0) 
+      x_scale(6, 2) = 1.0*dsqrt(945.0d0) 
+      x_scale(6, 3) = 1.0*dsqrt(945.0d0) 
+      x_scale(6, 4) = 1.0*dsqrt(315.0d0) 
+      x_scale(6, 5) = 1.0*dsqrt(105.0d0) 
+      x_scale(6, 6) = 1.0*dsqrt(315.0d0) 
+      x_scale(6, 7) = 1.0*dsqrt(225.0d0) 
+      x_scale(6, 8) = 1.0*dsqrt(45.0d0) 
+      x_scale(6, 9) = 1.0*dsqrt(45.0d0) 
+      x_scale(6, 10) = 1.0*dsqrt(225.0d0) 
+      x_scale(6, 11) = 1.0*dsqrt(315.0d0) 
+      x_scale(6, 12) = 1.0*dsqrt(45.0d0) 
+      x_scale(6, 13) = 1.0*dsqrt(27.0d0) 
+      x_scale(6, 14) = 1.0*dsqrt(45.0d0) 
+      x_scale(6, 15) = 1.0*dsqrt(315.0d0) 
+      x_scale(6, 16) = 1.0*dsqrt(945.0d0) 
+      x_scale(6, 17) = 1.0*dsqrt(105.0d0) 
+      x_scale(6, 18) = 1.0*dsqrt(45.0d0) 
+      x_scale(6, 19) = 1.0*dsqrt(45.0d0) 
+      x_scale(6, 20) = 1.0*dsqrt(105.0d0) 
+      x_scale(6, 21) = 1.0*dsqrt(945.0d0) 
+      x_scale(6, 22) = 1.0*dsqrt(10395.0d0) 
+      x_scale(6, 23) = 1.0*dsqrt(945.0d0) 
+      x_scale(6, 24) = 1.0*dsqrt(315.0d0) 
+      x_scale(6, 25) = 1.0*sqrt(225.0d0) 
+      x_scale(6, 26) = 1.0*dsqrt(315.0d0) 
+      x_scale(6, 27) = 1.0*dsqrt(945.0d0) 
+      x_scale(6, 28) = 1.0*dsqrt(10395.0d0) 
 
 
       do ishell = 1, nshells
@@ -429,30 +429,30 @@ c---------------------------------------------------------------------------
 c   Do not allow any scaling OR reordering  
 c   NOT used currently ??? 
 c---------------------------------------------------------------------------
-
-      do ishell = 1, nshells
-         if (iangular(ishell) .eq. 0) xscale=1.0    ! s shell
-         if (iangular(ishell) .eq. 1) xscale=1.0    ! p shell
-         if (iangular(ishell) .eq. 2) xscale=1.0/dsqrt(3.0d0) ! d shell
-         if (iangular(ishell) .eq. 3) xscale=1.0/dsqrt(4.0d0) ! f shell
-
+CSSS
+CSSS     do ishell = 1, nshells
+CSSS         if (iangular(ishell) .eq. 0) xscale=1.0    ! s shell
+CSSS         if (iangular(ishell) .eq. 1) xscale=1.0    ! p shell
+CSSS         if (iangular(ishell) .eq. 2) xscale=1.0/dsqrt(3.0d0) ! d shell
+CSSS         if (iangular(ishell) .eq. 3) xscale=1.0/dsqrt(4.0d0) ! f shell
+CSSS
 c---------------------------------------------------------------------------
 c   Angular momentum of the shell determines the number of shell components.
 c---------------------------------------------------------------------------
+CSSS
+CSSS         nsh_coords = (iangular(ishell)+1)*(iangular(ishell)+2)/2
+CSSS         nctr      = nfps(ishell) / nsh_coords
 
-         nsh_coords = (iangular(ishell)+1)*(iangular(ishell)+2)/2
-         nctr      = nfps(ishell) / nsh_coords
-
-         do i = 1, nctr
-         do j = 1, nsh_coords
-            erd_index(ierd) = ierd  
-            scalars(ierd)   = xscale  
-            write(6,*) ' SCALARS :', ierd, scalars(ierd) 
-            ierd = ierd + 1
-         enddo
-         enddo
-
-      enddo
+CSSS         do i = 1, nctr
+CSSS         do j = 1, nsh_coords
+CSSS            erd_index(ierd) = ierd  
+CSSS            scalars(ierd)   = xscale  
+CSSS            write(6,*) ' SCALARS :', ierd, scalars(ierd) 
+CSSS            ierd = ierd + 1
+CSSS         enddo
+CSSS         enddo
+CSSS
+CSSS      enddo
 
       return
       end

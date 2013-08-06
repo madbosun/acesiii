@@ -984,7 +984,7 @@ c-----------------------------------------------------------------------
       enddo  
 
       etotal = 0.5d0*(ea + eb) 
-c     write(6,*) ' Total SCF energy(-NN) = ', etotal 
+      write(6,*) ' Total SCF energy(-NN) = ', etotal 
 
       return 
       end 

@@ -104,9 +104,11 @@ c--------------------------------------------------------------------------
 c   Reorder the Fock array to correspond to ERD order.
 c--------------------------------------------------------------------------
 
+         go to 10 
          if (intpkg .eq. flocke_package)
      *       call apply_erd_fockorder(xxx(ixeps), n, ibuf(ierdind),
      *                                xxx(iscale_fac)) 
+10       continue 
 
       endif  
 

@@ -1,19 +1,6 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
+#include "flags.h"
       SUBROUTINE ANLYSHES(HESMOD, DIAGHES, QST_TANGENT, LST_TANGENT,
-     &                    HES, GRDMOD, SCRATCH, VEC, NOPT, NX,
+     &                    HES, GRDMOD, SCRATCH, PMAT, VEC, NOPT, NX,
      &                    NCYCLE, INR, IVEC, IMODE, IDIE, TS, 
      &                    NRORMANR, RFA, EVFTS, IGTS, QSD, LUOUT,
      &                    QSTLST_CLIMB, NATOMS,
@@ -30,10 +17,12 @@ C
       IMPLICIT DOUBLE PRECISION (A-H, O-Z)
 C
       LOGICAL TS, NRORMANR, RFA, EVFTS, IGTS, QSD
-      LOGICAL LST, QST, QSTORLST, QSTLST_CLIMB
+      LOGICAL LST, QST, QSTORLST, QSTLST_CLIMB, FAILED, RX_PR_EXIST
+C
+#include "jodaflags.com"
 C
       DIMENSION HESMOD(NOPT, NOPT), DIAGHES(NOPT, NOPT), 
-     &          SCRATCH(NX*NX), VEC(NOPT)
+     &          SCRATCH(NX*NX), VEC(NOPT), PMAT(NX*NX)
       DIMENSION QST_TANGENT(NOPT), LST_TANGENT(NOPT), GRDMOD(NOPT),
      &          HES(NOPT, NOPT)
 C
@@ -55,9 +44,10 @@ C
           WRITE(LUOUT,2110)
  2110     FORMAT (T3,' The eigenvectors of the Hessian matrix: ')
           CALL HESSOUT(DIAGHES, NOPT, NOPT, 1)
-C
-          WRITE(LUOUT,2103)
+#endif
+#ifdef _DEBUG_LVL0
           Write(6,*)
+          WRITE(LUOUT,2103)
 2103      FORMAT(T3,' The eigenvalues of the Hessian matrix: ')
           WRITE(LUOUT,2101)((HESMOD(I,J),J=I,I),I=1,NOPT)
 2101      FORMAT((T3, 6(F10.5,1X)))
@@ -67,8 +57,8 @@ C
          If (Dabs(HesMoD(Imode, Imode)) .LT.  1.0D-09)
      &           HesMOD(Imode, Imode) = 0.0D0
          If (Dabs(GrdMod(Imode)) .LT. 1.0D-09) GrdMod(Imode) = 0.0D0
-      Enddo
-C
+      Enddo 
+       
       DO 1102 J = 1, NOPT
          SCRATCH(J) = HESMOD(J,J)
          IF (HESMOD(J,J).LT.0.0D0) INEG = INEG + 1
@@ -78,22 +68,47 @@ C
       WRITE(LUOUT, 2102) INEG
  2102 FORMAT(T1,' There are ',i2,' Negative Eigenvalues.')
 C
-      CALL DGETREC(0,'JOBARC','RXSTRUCT',ILENGTH,TMP)
-      QST = (ILENGTH.GT.0)
-      CALL DGETREC(0,'JOBARC','PRSTRUCT',ILENGTH,TMP)
-      LST = (ILENGTH.GT.0.AND..NOT.QST)
+      CALL DGETREC(0,'JOBARC','RXSTRUCT',ILENGTH1,TMP)
+      CALL DGETREC(0,'JOBARC','PRSTRUCT',ILENGTH2,TMP)
+      IF (ILENGTH1 .GT. 0 .AND. ILENGTH2 .GT. 0) RX_PR_EXIST = .TRUE. 
+
+      IF (IFLAGS2(h_IFLAGS2_opt_control) .EQ. 1 
+     &                                   .AND. RX_PR_EXIST) THEN
+         LST = .TRUE. 
+      ELSE IF (IFLAGS2(h_IFLAGS2_opt_control) .EQ. 2 
+     &                                   .AND. RX_PR_EXIST) THEN
+         QST = .TRUE.
+      ENDIF 
+ 
       QSTORLST = (NCYCLE.LE.4.AND.(QST.OR.LST).AND.TS)
+
+#ifdef _DEBUG_LVL0
+      Write(6,*)
+      Write(6,"(a,3l)") "Logicals;LST,QST,QSTORLST :", LST, QST, 
+     &                                                 QSTORLST
+      Write(6,*)
+#endif
 
 C I doubt that if we are following an eigenvector that does not
 C correspond to the lowest eiegenvalue, the QST or LST is
 C useful. That is the reason for test IVEC > 1.
+C
       IF (TS.AND.IVEC.GE.1.AND.QSTORLST) THEN
 
 C Get the LST and QST direction vectors. The formulas directly taken from the
 C Schlegel, Isreal Journal of Chemistry 33, 449, 1993.
-         CALL EVAL_QSTLST_PATH(QST_TANGENT, LST_TANGENT, SCRATCH,
-     &                         LST, QST)
 
+         If (iFlags2(h_IFLAGS2_geom_opt) .EQ. 1) Then
+            CALL EVAL_QSTLST_PATH_UDI(QST_TANGENT, LST_TANGENT, 
+     &                                SCRATCH, LST, QST)
+         Else if (iFlags2(h_IFLAGS2_geom_opt) .EQ. 2) then
+            CALL EVAL_QSTLST_PATH_XYZ(QST_TANGENT, LST_TANGENT, 
+     &                                SCRATCH, LST, QST)
+         Else if (iFlags2(h_IFLAGS2_geom_opt) .Gt. 2) Then
+            CALL EVAL_QSTLST_PATH_RIC(QST_TANGENT, LST_TANGENT, 
+     &                                SCRATCH, PMAT, LST, QST)   
+         Endif
+         
 C We need to decide whether we choose QST or LST climbing or eigenvector
 C following.
 C The recommendation in Schlegel et al. is "estimated displacement
@@ -119,9 +134,12 @@ C meant is that the eigenvector that has maximum overlap with the tangent.
             CALL QSTLST_OR_EVEC(LST_TANGENT, GRDMOD, HESMOD, DIAGHES,
      &                          HES, SCRATCH, IMODE, QSTLST_CLIMB)
             IF (QSTLST_CLIMB) THEN
+               CALL FOLOWTANGENT(HESMOD, DIAGHES, LST_TANGENT,
+     &                           SCRATCH, NX, NOPT, IMODE)
+            ELSE
                CALL WHAT2FOLLOW(HESMOD, DIAGHES, LST_TANGENT,
      &                          SCRATCH, NX, NOPT, IMODE)
-            ELSE
+   
                CALL FOLOWDFLT(HESMOD, DIAGHES, SCRATCH, VEC, TS,
      &                        NRORMANR, RFA, IVEC, IMODE, NCYCLE,
      &                        NX, NOPT)
@@ -130,9 +148,12 @@ C meant is that the eigenvector that has maximum overlap with the tangent.
             CALL QSTLST_OR_EVEC(QST_TANGENT, GRDMOD, HESMOD, DIAGHES,
      &                          HES, SCRATCH, IMODE, QSTLST_CLIMB)
             IF (QSTLST_CLIMB) THEN
+               CALL FOLOWTANGENT(HESMOD, DIAGHES, QST_TANGENT,
+     &                           SCRATCH, NX, NOPT, IMODE)
+            ELSE
                CALL WHAT2FOLLOW(HESMOD, DIAGHES, QST_TANGENT,
      &                          SCRATCH, NX, NOPT, IMODE)
-            ELSE
+
                CALL FOLOWDFLT(HESMOD, DIAGHES, SCRATCH, VEC, TS,
      &                        NRORMANR, RFA, IVEC, IMODE, NCYCLE,
      &                        NX, NOPT)
@@ -153,6 +174,11 @@ C the previous vector. I think we should add the capability to follow the
 C lowest, next to lowest, and so on regardless of what happens in the previous
 C cycle. It might just even work better!!!
 C Ajith Perera 07/04.
+C
+  10       CONTINUE
+C
+           QSTLST_CLIMB = .FALSE. 
+C
            CALL FOLOWDFLT(HESMOD, DIAGHES, SCRATCH, VEC, TS, NRORMANR,
      &                    RFA, IVEC, IMODE, NCYCLE, NX, NOPT)
 

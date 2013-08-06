@@ -875,7 +875,7 @@ ACES_LIBS = \
    tools \
    acescore p_acescore acesutil \
    libr crust oed erd gamess p_gamess \
-   symcor ecp \
+   symcor_a2 ecp \
    libr2 librt3 trp eomtrp\
    imm omm symtools diagtools \
    sbtools \
@@ -893,15 +893,15 @@ LIST_DEF_LIBS ?= libr:acesutil:acescore:tools
 # (The first element in each sublist is ${CURR}.  The remaining elements are
 # libraries the binary needs to be linked against in order.)
 ACES_LINK_LISTS = \
-   a2proc:joda:symcor:libr:sbtools:acesutil:acescore:tools \
-   repair:joda:symcor:libr:sbtools:acesutil:acescore:tools \
+   a2proc:joda:symcor_a2:libr:sbtools:acesutil:acescore:tools \
+   repair:joda:symcor_a2:libr:sbtools:acesutil:acescore:tools \
    asv:joda \
    ccsdtq:vcc:trp:librt3:libr2:${LIST_DEF_LIBS} \
    cphf:crust:${LIST_DEF_LIBS} \
    dens:libr2:crust:${LIST_DEF_LIBS} \
    rspdens:libr2:crust:${LIST_DEF_LIBS} \
    findif:joda:symcor:ecp:${LIST_DEF_LIBS} \
-   joda:symcor:ecp:${LIST_DEF_LIBS} \
+   joda:symcor_a2:ecp:${LIST_DEF_LIBS} \
    lambda:eomtrp:trp:librt3:libr2:${LIST_DEF_LIBS} \
    nmr:libr2:${LIST_DEF_LIBS} \
    vcc:trp:librt3:libr2:crust:${LIST_DEF_LIBS} \

@@ -232,6 +232,9 @@ c---------------------------------------------------------------------------
      *            stack_line(7)
          print *,'Total words requred: ',total_words,
      *           ' actual number available: ',nscr
+         print *,'Memory shortfall: Overhead',
+     *         ((noverhead_words)*8)/(1024*1024),
+     *          ' Mbytes'
          print *,'Memory shortfall: ',
      *         ((total_words-nscr)*8)/(1024*1024),
      *          ' Mbytes'

@@ -1,17 +1,3 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
 
       SUBROUTINE FOLOWDFLT(HESMOD, DIAGHES, SCRATCH, VEC, TS, NRORMANR,
      &                     RFA, IVEC, IMODE, NCYCLE, NX, NOPT)
@@ -56,7 +42,7 @@ C Ajith Perera 07/04
       IF (ICYCLE.GT.0.AND.TS) THEN
          ZOVLP = 0.d0
          DO 1833 I=1, NOPT
-            SVH = xdot(NOPT,VEC,1,DIAGHES(1,I),1)
+            SVH = xddot(NOPT,VEC,1,DIAGHES(1,I),1)
             IF (DABS(SVH).GT.ZOVLP) THEN
                ZOVLP = DABS(SVH)
                IMODE = I
@@ -95,7 +81,9 @@ C Ajith Perera 07/04
  1241       FORMAT(T3,' Negative eigenvalues present in Hessian have ',
      &         'been converted to their absolute values.')
          END IF
-      END IF
+      ELSE IF (INEG.GT.0.AND.RFA) THEN
+            IMODE = 0
+      ENDIF
 
 c Save the eigenvector being followed for use in the next step
       DO 10 I = 1, NOPT

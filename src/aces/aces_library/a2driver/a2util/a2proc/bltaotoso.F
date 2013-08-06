@@ -36,7 +36,7 @@ C
       character*6 iblnk
 cch
       INTEGER   AND,OR,EOR,DSTRT
-      LOGICAL IFIF,LPRT,LHARM,DELE
+      LOGICAL IFIF,LPRT,LHARM,DELE,LABBASIS_EXIST
       DIMENSION NXBAS(8),JCNTAM(28,7),KDELB(200)
       DIMENSION I2(21), ITRAN(MXCBF,224), CUN(MXTNCC),
      1            CONTUN(MXTNCC), CTEMP(NFUNMX,NFUNMX), 
@@ -1154,9 +1154,18 @@ C
          ENDDO
       ENDIF
 C
+      CALL PUTREC(20,'JOBARC','NIRREP  ',1,MAXLOP)
+      CALL PUTREC(20,'JOBARC','NUMBASIR',MAXLOP,NXBAS)
       CALL PUTREC(20,'JOBARC','FULLSOAO',NORB*NORB*IINTFP,CJUNK)
-cSSS      WRITE(6,*) '  @READIN-I, SYMTRANS matrix '
-cSSS      CALL OUTPUT(CJUNK,1,NORB,1,NORB,NORB,NORB,1)
+
+C#ifdef _DEBUG_LVL0
+      Write(6,"(a,i4)") "The number of irreps", Maxlop
+      Write(6,"(a)") "The number of basis function for irrep"
+      Write(6,"(8i4)") (Nxbas(i), i=1, maxlop)
+      Write(6,*)
+      WRITE(6,*) '  @READIN-I, SYMTRANS matrix '
+      CALL OUTPUT(CJUNK,1,NORB,1,NORB,NORB,NORB,1)
+C#endif
 C
 C This is the full cartesian basis AO -> SO transformation.
 C Include in this info the number of function in each irrep too,
@@ -1192,7 +1201,13 @@ C
 C
       CALL PUTREC(20,'JOBARC','CSYMTRAN',NORB*NORB*IINTFP,CJUNK)
 
-      OPEN(UNIT=1, FILE='LABBASIS',STATUS='NEW')
+      INQUIRE(FILE="LABBASIS",EXIST=LABBASIS_EXIST)
+
+      IF (LABBASIS_EXIST) THEN
+          OPEN(UNIT=1, FILE='LABBASIS',STATUS='OLD')
+      ELSE
+          OPEN(UNIT=1, FILE='LABBASIS',STATUS='NEW')
+      ENDIF 
       DO I = 1, NORXB
          WRITE(1,'(3X, A4,3X,A4)') MAMN(I), JPRX(I)
       ENDDO

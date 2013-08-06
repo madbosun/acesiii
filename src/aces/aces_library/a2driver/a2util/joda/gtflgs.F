@@ -237,7 +237,6 @@ c COMMON BLOCKS
 #define MONSTER_FLAGS /* use ioppar */
 #include "jodaflags.com"
 #include "machsp.com"
-
 c ----------------------------------------------------------------------
 
 c DECLARATIONS AND DATA STATEMENTS
@@ -1245,45 +1244,48 @@ C
           call asv_update_kv(szTmp,iASV,szData,0)
       Endif
 #endif
-
+C This joda will not be used for any geo. optimizations. Only
+C thing that it does is to help post-SCF printing and parallel 
+C finite difference calculations. Always use the sym=off option.
+C 07/2013, Ajith Perera
 c Turn off symmetry if subgroup=C1.
-      if (ioppar(h_IOPPAR_subgroup).eq.1) then
-         call asv_update_kv('!sym'//achar(0),iASV,szData,0)
-      end if
-      if ((ioppar(h_IOPPAR_geom_opt) .ge. 2)) Then
-         szTmp = 'SYMMETRY=NONE'//achar(0)
-         if (ioppar(h_IOPPAR_sym).ne.0) then
-             call asv_update_kv(szTmp,iASV,szData,0)
-         Endif
+CSSS      if (ioppar(h_IOPPAR_subgroup).eq.1) then
+CSSS         call asv_update_kv('!sym'//achar(0),iASV,szData,0)
+CSSS      end if
+CSSS      if ((ioppar(h_IOPPAR_geom_opt) .ge. 2)) Then
+CSSS         szTmp = 'SYMMETRY=NONE'//achar(0)
+CSSS         if (ioppar(h_IOPPAR_sym).ne.0) then
+CSSS             call asv_update_kv(szTmp,iASV,szData,0)
+CSSS         Endif
 C
 C For geo. opt with FULL/RIC and SYM=NONE turn on the NOREORI
 C if it is not given as an input. Ajith Perera, 12/08
 C 
-          if (ioppar(h_IOPPAR_noreori) .eq. 2 .and. .not.
-     &        ioppar(h_IOPPAR_vib).ge.1 ) then
-             szTmp = 'NOREORI=ON'//achar(0)
-             call asv_update_kv(szTmp,iASV,szData,0)
-          endif
+CSSS          if (ioppar(h_IOPPAR_noreori) .eq. 2 .and. .not.
+CSSS     &        ioppar(h_IOPPAR_vib).ge.1 ) then
+CSSS             szTmp = 'NOREORI=ON'//achar(0)
+CSSS             call asv_update_kv(szTmp,iASV,szData,0)
+CSSS          endif
 C
 C For Cartesian only optimizations (geo_opt=cart) set the opt_method
 C to RFA. Ajith Perera, 04/2011.
 C
-          if ((ioppar(h_IOPPAR_geom_opt) .eq. 2) .and.
-     &         (ioppar(h_IOPPAR_opt_method) .ne. 4)) Then
-          Write(6,"(5x,a,a)") "Cartesian only minima searches only RFA", 
-     &                     " algorithm is "
-          Write(6,"(5x,a)") "allowed: Changing to RFA."
-               szTmp = "OPT_METHOD=RFA"//achar(0)
-               call asv_update_kv(szTmp,iASV,szData,0)
-          endif
-      endif
+CSSS          if ((ioppar(h_IOPPAR_geom_opt) .eq. 2) .and.
+CSSS     &         (ioppar(h_IOPPAR_opt_method) .ne. 4)) Then
+CSSS          Write(6,"(5x,a,a)") "Cartesian only minima searches only RFA", 
+CSSS     &                     " algorithm is "
+CSSS          Write(6,"(5x,a)") "allowed: Changing to RFA."
+CSSS               szTmp = "OPT_METHOD=RFA"//achar(0)
+CSSS               call asv_update_kv(szTmp,iASV,szData,0)
+CSSS          endif
+CSS      endif
 C
 C For internal Coordinates do not allow symmetry=none (symmetry=none do no harm
 C except when dummy atoms are present but there is no need of this). 
-C Ajith Perera 02/2012
+C Ajith Perera 02/2012; Ammendment; for post ACESIII joda runs always
+C turn the  symmetry off, 07/2013, Ajith Perera
 C
-      if ((ioppar(h_IOPPAR_coordinates).ne.3) .and.
-     &   (ioppar(h_IOPPAR_sym).eq.0)) then
+      if ((ioppar(h_IOPPAR_sym).eq.1)) then
           szTmp = 'SYMMETRY=OFF'//achar(0)
           call asv_update_kv(szTmp,iASV,szData,0)
       endif

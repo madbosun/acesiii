@@ -51,6 +51,8 @@ C     XYZTol  Tolerance for comparison of cartesian coordinates
       CHARACTER*6 RESULT
 
       ICOMP = 0
+      Write(6,"(3(1x,f10.5))") (Q(j), j=1, 3*natom)
+      Write(6,*)
       CALL ZERO(SCR,3*NATOM)
 c      CALL IZERO(NORD,NATOM)
     
@@ -77,6 +79,15 @@ c      CALL IZERO(NORD,NATOM)
      &              1.0d0,V(itmp),       3,
      &                    Q,             3,
      &              0.0d0,SCR(3*NATOM+1),3)
+
+#ifdef _DEBUG_LVL0
+         Write(6,"(3(1x,f10.5))") (Q(j), j=1, 3*natom)
+         Write(6,*)
+         Write(6,"(3(1x,f10.5))") (V(itmp+j), j=1, 9*norder)
+         Write(6,*) 
+         Write(6,"(3(1x,f10.5))") (scr(3*natom+j), j=1, 3*natom)
+#endif
+
          CALL COMPARE2(SCR(3*NATOM+1),SCR,NORD,ICOMP,SYMTOL)
          CALL STPTR(NATOM,NORD,NORD(NATOM+1),IPTR(1,I))
          IF (ICOMP.EQ.0) THEN

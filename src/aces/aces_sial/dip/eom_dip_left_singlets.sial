@@ -27470,6 +27470,8 @@
 #
 # --------- print out the excitation energies------  
 #
+       totenerg += root1
+       execute print_scalar totenerg
 #
        execute print_scalar root1
        execute print_scalar root2

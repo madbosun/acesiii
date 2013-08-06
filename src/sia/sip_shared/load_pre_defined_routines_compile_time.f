@@ -214,9 +214,11 @@ c    *                       compute_abac_batch)
       dummy = load_user_sub('pardo_sects'//char(0), 0)
       dummy = load_user_sub('get_ijk'//char(0), 0)
       dummy = load_user_sub('set_ijk_aaa'//char(0), 0)
+      dummy = load_user_sub('set_ijk_aaa_nosymm'//char(0), 0)
       dummy = load_user_sub('stripi'//char(0), 0)
       dummy = load_user_sub('sum_64ss'//char(0), 0)
       dummy = load_user_sub('set_ijk_aab'//char(0), 0)
+      dummy = load_user_sub('set_ijk_aab_nosymm'//char(0), 0)
       dummy = load_user_sub('get_my_rank'//char(0), 0)
       dummy = load_user_sub('broadcast_array'//char(0), 0)
       dummy = load_user_sub('checkpoint'//char(0), 0)
@@ -350,7 +352,18 @@ c
 c -------------------------------------------------------------------- 
 c Instructions needed in the CCSD(T) gradient  
 c --------------------------------------------------------------------
-c
+C Ajith Perera, miscellaneous developments. 
+
+      dummy = load_user_sub('sum_2d_array'//char(0), 0)
+
+      dummy = load_user_sub('compute_1soi_xbatch'//char(0),0)
+      dummy = load_user_sub('compute_1soi_ybatch'//char(0),0)
+      dummy = load_user_sub('compute_1soi_zbatch'//char(0),0)
+
+      dummy = load_user_sub('compute_2soi_xbatch'//char(0),0)
+      dummy = load_user_sub('compute_2soi_ybatch'//char(0),0)
+      dummy = load_user_sub('compute_2soi_zbatch'//char(0),0)
+
       dummy = load_user_sub('index_match'//char(0), 0)
       dummy = load_user_sub('ecp_dercont'//char(0), 0) 
 c--------------------------------------------------------------------

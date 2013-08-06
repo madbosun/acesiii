@@ -121,6 +121,7 @@ C  in the file COPYRIGHT.
       external timestamp
       external pardo_sects, get_ijk, set_ijk_aaa, stripi,
      *         sum_64ss, set_ijk_aab
+      external set_ijk_aaa_nosymm, set_ijk_aab_nosymm 
       external get_my_rank, broadcast_array
       external checkpoint, get_restart_status, commit_checkpoint
       external crash
@@ -159,6 +160,15 @@ c VFL SCF instructions
       external compute_ubatch7
       external compute_ubatch8
 
+C Ajith Perera, SOI instructions
+
+      external compute_1soi_xbatch, compute_1soi_ybatch,
+     &         compute_1soi_zbatch
+
+      external compute_2soi_xbatch, compute_2soi_ybatch,
+     &         compute_2soi_zbatch
+
+c------------------------------------------------------
       external form_iad
       external form_ibd
       external set_itol
@@ -211,6 +221,11 @@ c
       external add_scal2diag,calc_trace,v_nuc_nuc,vccs_change_x
       external write_coefficients,read_coefficients
       external scf_atom_coeff
+c--------------------------------------------------------------------
+c Ajith Perera, miscellaneous developments.
+c-------------------------------------------------------------------
+      external sum_2d_array
+c-------------------------------------------------------------------
 c
 c -------------------------------------------------------------------- 
 c Instructions needed in the CCSD(T) gradient and ecpgradient   
@@ -224,7 +239,7 @@ c--------------------------------------------------------------------
       external init_section
       external prestrict
       external doprestrict
-c
+
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
       dummy = load_user_sub('energy_denominator' // char(0),
@@ -398,8 +413,7 @@ c     dummy = load_user_sub('open_amp'//char(0), open_amp)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dip'//char(0),
      *                                      place_one_dip)
-      call set_upgrade_flag(dummy) 
-      dummy = load_user_sub('place_one_dip_2'//char(0),
+      Dummy = load_user_sub('place_one_dip_2'//char(0),
      *                                      place_one_dip_2)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dip_3'//char(0),
@@ -499,9 +513,13 @@ c    *                       compute_abac_batch)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('get_ijk'//char(0), get_ijk)
       dummy = load_user_sub('set_ijk_aaa'//char(0), set_ijk_aaa)
+      dummy = load_user_sub('set_ijk_aaa_nosymm'//char(0), 
+     *                       set_ijk_aaa_nosymm)
       dummy = load_user_sub('stripi'//char(0), stripi)
       dummy = load_user_sub('sum_64ss'//char(0), sum_64ss)
       dummy = load_user_sub('set_ijk_aab'//char(0), set_ijk_aab)
+      dummy = load_user_sub('set_ijk_aab_nosymm'//char(0), 
+     *                       set_ijk_aab_nosymm)
       dummy = load_user_sub('get_my_rank'//char(0), get_my_rank)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('broadcast_array'//char(0), broadcast_array)
@@ -643,6 +661,25 @@ c      dummy = load_user_sub('vccs_change_x'//char(0), vccs_change_x)
       dummy = load_user_sub('scf_atom_coeff'//char(0), scf_atom_coeff)
 c
 c -------------------------------------------------------------------- 
+c Ajith Perera, miscellaneous developments.
+c-------------------------------------------------------------------
+      dummy = load_user_sub('sum_2d_array'//char(0), sum_2d_array)
+      call set_upgrade_flag(dummy)
+
+      dummy = load_user_sub('compute_1soi_xbatch'//char(0),
+     &                       compute_1soi_xbatch)
+      dummy = load_user_sub('compute_1soi_ybatch'//char(0),
+     &                       compute_1soi_ybatch)
+      dummy = load_user_sub('compute_1soi_zbatch'//char(0),
+     &                       compute_1soi_zbatch)
+
+      dummy = load_user_sub('compute_2soi_xbatch'//char(0),
+     &                       compute_2soi_xbatch)
+      dummy = load_user_sub('compute_2soi_ybatch'//char(0),
+     &                       compute_2soi_ybatch)
+      dummy = load_user_sub('compute_2soi_zbatch'//char(0),
+     &                       compute_2soi_zbatch)
+
 c Instructions needed in the CCSD(T) gradient and ecpgradient   
 c --------------------------------------------------------------------
 c

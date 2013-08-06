@@ -72,7 +72,7 @@ c   o since JODA does not call crapsi, have it turn on FPEs
 
 c      m      = max(mxatms, maxredunco) chenged 3/5/2012 VFL  
        m      = max(3*mxatms, maxredunco) 
-       memreq = 15*m*m + 34*m
+       memreq = 16*m*m + 34*m
 
 c   o gather parallel statistics (needed by gfname in ja_init)
 c      call aces_com_parallel_aces
@@ -366,7 +366,7 @@ c------------------------------------------------------------------------------
          call abort_job()
       endif
 
-      call gentranmat(iz(ixz), gentranmat_ints)
+CSSS      call gentranmat(iz(ixz), gentranmat_ints)
 
 c---------------------------------------------------------------------------
 c   Free any heap memory that might have been used.  It must be made
