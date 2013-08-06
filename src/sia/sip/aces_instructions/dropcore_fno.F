@@ -12,7 +12,7 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine dump_amp(array_table, narray_table, 
+      subroutine dropcore_fno(array_table, narray_table, 
      *                    index_table,
      *                    nindex_table, segment_table, nsegment_table,
      *                    block_map_table, nblock_map_table,
@@ -105,38 +105,25 @@ c---------------------------------------------------------------------------
       if (type .eq. static_array) then
          daddr = address_table(array)
          indblk = get_index_from_base(daddr, x, 2)
-         print *,'Dump of static array ',array,' daddr = ',daddr,
-     *      ' range = ',(val1(i),val2(i),i=1,nindex)
       else
          block = find_current_block(array, array_table(1,array),
      *                             index_table, nindex_table,
      *                             segment_table, nsegment_table,
      *                             block_map_table, blkndx)
-         print *,'Task ',me,' at line number ',current_line,
-     *     ' ARRAY ',array,' BLOCK ',block,' ind = ',
-     *   (index(i),i=1,nindex),' seg = ',(seg(i),i=1,nindex),
-     *   ' actual size = ',n 
          if (block .lt. 0) return 
 
-         if (type .eq. distributed_array .and.
-     *       block_map_table(c_processor,map+block-1).eq.proc) then
-            call dump_block_data(array,block)
-         else
-            call dump_block_data(array,block)
-         endif
+C         if (type .eq. distributed_array .and.
+C     *       block_map_table(c_processor,map+block-1).eq.proc) then
+C            call dump_block_data(array,block)
+C         else
+C            call dump_block_data(array,block)
+C         endif
 
          stack = array_table(c_array_stack, array)
          indblk = get_block_index(array, block, stack,
      *                            blkndx, x, .true.)
       endif
 
-      if (nindex .eq. 4) then
-         call print_amp4(me, array, block, 
-     *                   x(indblk), val1(1),val2(1),
-     *                   val1(2),val2(2),
-     *                   val1(3),val2(3),
-     *                   val1(4),val2(4))
-      else if (nindex .eq. 2) then
          if (type .eq. static_array) then
             na1 = array_table(c_index_range1,array)
             na2 = array_table(c_index_range2,array)
@@ -148,147 +135,42 @@ c---------------------------------------------------------------------------
             ni1 = val1(2)
             ni2 = val2(2)
          endif
-         call print_amp2(me, array, block,
-     *                   x(indblk), val1(1),val2(1),
-     *                   val1(2),val2(2), na1,na2,ni1,ni2)
-      endif
-      
+      call dropcore(me, array, block,
+     *                x(indblk), val1(1),val2(1),
+     *                val1(2),val2(2), na1,na2,ni1,ni2)
+     
       return
       end
 
-      subroutine print_amp4(me, array, block, x, 
-     *                           a1,a2,i1,i2,b1,b2,j1,j2)
-      implicit none
-      include 'trace.h'
-
-      integer me, array, block
-      integer a1,a2,b1,b2,i1,i2,j1,j2
-      double precision x(a1:a2,i1:i2,b1:b2,j1:j2)
-
-
-      integer a,b,i,j
-      double precision val
-      double precision xmax, xmin, sumsq
-
-      xmax = x(a1,i1,b1,j1)
-      xmin = x(a1,i1,b1,j1)
-      sumsq = 0.
-      do j = j1,j2
-      do b = b1,b2
-      do i = i1,i2
-      do a = a1,a2
-         xmax = max(x(a,i,b,j), xmax)
-         xmin = min(x(a,i,b,j), xmin)
-         sumsq = sumsq + x(a,i,b,j)*x(a,i,b,j)
-         write(6,*) a, i, b, j, x(a,i,b,j) 
-      enddo
-      enddo
-      enddo
-      enddo
-
-      write(2,*) 'TWO PARTICLE AMPLITUDES ' 
-      do j = j1,j2
-      do b = b1,b2
-      do i = i1,i2
-      do a = a1,a2
-         write(2,100) a, i, b, j, x(a,i,b,j) 
-      enddo
-      enddo
-      enddo
-      enddo
-
-100   format (4I4, F12.8) 
- 
-      print *,'Task ',me,' line ',current_line,
-     *        ' Array, block = ',array,block,
-     *        ' first = ',
-     *        x(a1,i1,b1,j1), 
-     *        ' last = ',x(a2,i2,b2,j2),
-     *        ' xmin, xmax, sumsq = ',xmin,xmax,sumsq,
-     *        ' ranges ',a1,a2,i1,i2,b1,b2,j1,j2
-      return
-      end
-
-      subroutine print_amp2(me, array, block, x, 
+      subroutine dropcore(me, array, block, x, 
      *                           a1,a2,i1,i2, na1, na2,ni1,ni2)
       implicit none
-      include 'trace.h'
+      include 'int_gen_parms.h'
+      integer max_basis
+      parameter (max_basis = 2000)
 
       integer me, array, block
       integer a1,a2,i1,i2
       integer na1,na2,ni1,ni2
       double precision x(na1:na2,ni1:ni2)
+      integer a,i, k
+      integer ndropmo_a
+      integer modrop_a(max_basis)
 
-
-      integer a,i
-      double precision val
-      double precision xmax, xmin, sumsq
-      integer mxcol, imin,imax
-
-      xmax = x(a1,i1)
-      xmin = x(a1,i1)
-      sumsq = 0.
-
-      print *,'Task ',me,' line ',current_line,
-     *        ' Array, block = ',array,block 
-
-      do i = i1,i2
-      do a = a1,a2
-         xmax = max(x(a,i), xmax)
-         xmin = min(x(a,i), xmin)
-         sumsq = sumsq + x(a,i)*x(a,i)
-C         write(6,*) a, i, x(a,i) 
-      enddo
-      enddo
-
-      mxcol = 7
-      imin = i1
-      imax = i1 + mxcol - 1
-      do while (imin .lt. i2) 
-          if(imax .gt. i2) imax = i2
-          write(6,9028) (i, i=imin,imax)
-          do a = a1,a2
-              write(6,9048) a,(x(a,i),i=imin,imax)
-          enddo
-          imin = imax + 1
-          imax = imax + mxcol
-      enddo
- 9028 FORMAT(/,6X,10(4X,I4,4X),/)
- 9048 FORMAT(I5,1X,10F12.7)
-
-
-      write(1,*) ' ONE PARTICLE AMPLITUDES '
-
-      do i = i1,i2
-      do a = a1,a2
-         write(1,100) a, i, x(a,i) 
-      enddo
-      enddo
-
-100   format (2I4, F12.8) 
- 
-      print *,'Task ',me,' line ',current_line,
-     *        ' Array, block = ',array,block,
-     *        ' first = ',
-     *        x(a1,i1), 
-     *        ' last = ',x(a2,i2),
-     *        ' xmin, xmax, sumsq = ',xmin,xmax,sumsq,
-     *        ' ranges ',a1,a2,i1,i2
-
-      if (trace) then
-         do i = i1,i2
-c         do a = a1,a2
-            a = a1
-            if (dabs(x(a,i)) .le. 1.e-12) then
-               val = 0.
-            else 
-                val = x(a,i)
-            endif
-            print *,'Task ',me,' array, a,b ',array,a,i,' value ',
-     *         val
-c         enddo
-         enddo
+      call igetrec(1, 'JOBARC', 'OCCUPYA0', 1, nalpha_occupied)
+      CALL IGETREC(20,'JOBARC','NUMDROPA',1,NDROPMO_A)
+      if (ndropmo_a .gt. 0) then
+          CALL IGETREC(20,'JOBARC','MODROPA',NDROPMO_A,MODROP_A)
+          do i = 1,ndropmo_a
+              k = modrop_a(i)
+              if(k .le. nalpha_occupied) then
+                  do a = na1,na2
+                      x(a,k) = 0.d0
+                  enddo
+              end if
+          end do
       endif
+
       return
       end
 

@@ -239,7 +239,12 @@ c--------------------------------------------------------------------
       external init_section
       external prestrict
       external doprestrict
-
+c--------------------------------------------------------------------
+c Jason Byrd misc. development additions
+c--------------------------------------------------------------------
+      external sort_fno
+      external dropcore_fno
+c
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
       dummy = load_user_sub('energy_denominator' // char(0),
@@ -413,7 +418,8 @@ c     dummy = load_user_sub('open_amp'//char(0), open_amp)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dip'//char(0),
      *                                      place_one_dip)
-      Dummy = load_user_sub('place_one_dip_2'//char(0),
+      call set_upgrade_flag(dummy) 
+      dummy = load_user_sub('place_one_dip_2'//char(0),
      *                                      place_one_dip_2)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dip_3'//char(0),
@@ -691,6 +697,11 @@ c--------------------------------------------------------------------
       dummy = load_user_sub('init_section'//char(0),init_section)
       dummy = load_user_sub('prestrict'//char(0), prestrict)
       dummy = load_user_sub('doprestrict'//char(0),doprestrict)
+c--------------------------------------------------------------------
+c Jason Byrd misc. development additions
+c--------------------------------------------------------------------
+      dummy = load_user_sub('sort_fno'//char(0),sort_fno)
+      dummy = load_user_sub('dropcore_fno'//char(0),dropcore_fno)
 c--------------------------------------------------------------------
 c
 

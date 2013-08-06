@@ -90,13 +90,6 @@ c---------------------------------------------------------------------------
             enddo
             go to 1000 
          endif
-C----Debuggin (no sorting of shells)
-
-            do i = 1, nshells
-               ixshells(i) = i
-            enddo
-            go to 1000 
-C----Debuggin ends
 c---------------------------------------------------------------------------
 c   Reorder data according to the index array returned by binpack.
 c---------------------------------------------------------------------------

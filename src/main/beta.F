@@ -525,7 +525,7 @@ c--------------------------------------------------------------------------
             print *,'====>> SIAL_PROGRAM parameter is required.'
             ierr = ierr + 1
          else
-            print *,'Next SIAL program: ',sial_program
+            print *,'Next SIAL program: ',trim(sial_program)
          endif
 
 c--------------------------------------------------------------------------
@@ -700,6 +700,14 @@ c-------------------------------------------------------------------
          else
            init_scf = .false.
            stack_algorithm_type = 1
+         endif
+
+C JNB
+         if (sial_program(1:3) .eq. 'fno' .or.
+     *       sial_program(1:3) .eq. 'FNO') then
+            if_fno = .true.
+         else
+             if_fno = .false.
          endif
 
 c-------------------------------------------------------------------
