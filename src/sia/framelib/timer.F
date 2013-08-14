@@ -42,7 +42,7 @@ c---------------------------------------------------------------------------
 
       old_max_timers = max_allocated_timers 
 
-      max_timers = mx_noptable
+c     max_timers = mx_noptable
 
 #if defined VERY_DETAILED_TIMERS
       max_timers = max_timers * 8
@@ -52,12 +52,15 @@ c---------------------------------------------------------------------------
       max_timers = max_timers * 4
 #endif
       max_timers = max_timers + 5
+cVFL 8/12/2013 quick hack 
+      max_timers = max_allocated_timers  
       if (max_timers .gt. old_max_timers) then
           print *, 'max_timers ', max_timers, ' gt ', old_max_timers
           call abort_job()
       endif
 
       if (dbg) print *,'max_timers set to ', max_timers
+      print *,'VFL max_timers set to ', max_timers
 
       do i = 1, max_timers
          tdesc(i) = ' '
