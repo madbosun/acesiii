@@ -123,7 +123,10 @@ c---------------------------------------------------------------------------
       open(66,file='summary.out') 
       if (me .eq. 0) write(66,5)  
 
-      thresh = 0.00005d0
+C non-conservative production threshold
+      thresh = 1.d-4
+C conservative production threshold
+c      thresh = 5.d-5
       harddrop = .false.
       ndrop = 0 
       minp = SPab(1,1)
@@ -134,10 +137,10 @@ c---------------------------------------------------------------------------
       call igetrec(1, 'JOBARC', 'OCCUPYA0', 1, nalpha_occupied)
       CALL IGETREC(20,'JOBARC','NUMDROPA',1,NDROPMO_A)
       if (ndropmo_a .gt. 0) then
-          harddrop = .true.
           CALL IGETREC(20,'JOBARC','MODROPA',NDROPMO_A,MODROP_A)
           do i = 1,ndropmo_a
               if(modrop_a(i) .gt. nalpha_occupied) then
+                  harddrop = .true.
                   ndrop = ndrop + 1
               end if
           end do
