@@ -124,6 +124,12 @@ C
       if ( abs (scalar_table(sind) - 1) .LT. 0.0001 ) imoment = 1
       if ( abs (scalar_table(sind) - 2) .LT. 0.0001 ) imoment = 2
       if ( abs (scalar_table(sind) - 3) .LT. 0.0001 ) imoment = 3
+      if ( abs (scalar_table(sind) - 4) .LT. 0.0001 ) imoment = 4
+      if ( abs (scalar_table(sind) - 5) .LT. 0.0001 ) imoment = 5
+      if ( abs (scalar_table(sind) - 6) .LT. 0.0001 ) imoment = 6
+      if ( abs (scalar_table(sind) - 7) .LT. 0.0001 ) imoment = 7
+      if ( abs (scalar_table(sind) - 8) .LT. 0.0001 ) imoment = 8
+      if ( abs (scalar_table(sind) - 9) .LT. 0.0001 ) imoment = 9
 
       natoms = scalar_table(xind)
       scalar_table(xind) = 0.0D0
@@ -143,8 +149,56 @@ C
             ZCOORD = acenter(I,3)
             DNUC = DNUC + charge(I)*ZCOORD
          ENDDO ! I
+C XX
+      ELSE IF (imoment .EQ. 4) THEN
+         DO I = 1, natoms
+            XCOORD = acenter(I,1)
+            YCOORD = acenter(I,2)
+            ZCOORD = acenter(I,3)
+            DNUC = DNUC + charge(I)*XCOORD*XCOORD
+         ENDDO ! I
+C YY
+      ELSE IF (imoment .EQ. 5) THEN
+         DO I = 1, natoms
+            XCOORD = acenter(I,1)
+            YCOORD = acenter(I,2)
+            ZCOORD = acenter(I,3)
+            DNUC = DNUC + charge(I)*YCOORD*YCOORD
+         ENDDO ! I
+C ZZ
+      ELSE IF (imoment .EQ. 6) THEN
+         DO I = 1, natoms
+            XCOORD = acenter(I,1)
+            YCOORD = acenter(I,2)
+            ZCOORD = acenter(I,3)
+            DNUC = DNUC + charge(I)*ZCOORD*ZCOORD
+         ENDDO ! I
+C XY
+      ELSE IF (imoment .EQ. 7) THEN
+         DO I = 1, natoms
+            XCOORD = acenter(I,1)
+            YCOORD = acenter(I,2)
+            ZCOORD = acenter(I,3)
+            DNUC = DNUC + charge(I)*XCOORD*YCOORD
+         ENDDO ! I
+C XZ
+      ELSE IF (imoment .EQ. 8) THEN
+         DO I = 1, natoms
+            XCOORD = acenter(I,1)
+            YCOORD = acenter(I,2)
+            ZCOORD = acenter(I,3)
+            DNUC = DNUC + charge(I)*XCOORD*ZCOORD
+         ENDDO ! I
+C YZ
+      ELSE IF (imoment .EQ. 9) THEN
+         DO I = 1, natoms
+            XCOORD = acenter(I,1)
+            YCOORD = acenter(I,2)
+            ZCOORD = acenter(I,3)
+            DNUC = DNUC + charge(I)*YCOORD*ZCOORD
+         ENDDO ! I
       ELSE
-         WRITE(*,*) "Wrong type of moment; should be 1, 2, or 3."
+         WRITE(*,*) "Wrong type of moment; should be 1-9,"
       ENDIF
       scalar_table(xind) = DNUC
 
