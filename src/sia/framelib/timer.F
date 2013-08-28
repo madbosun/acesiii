@@ -60,7 +60,7 @@ cVFL 8/12/2013 quick hack
       endif
 
       if (dbg) print *,'max_timers set to ', max_timers
-      print *,'VFL max_timers set to ', max_timers
+c      print *,'VFL max_timers set to ', max_timers
 
       do i = 1, max_timers
          tdesc(i) = ' '
