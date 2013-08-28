@@ -64,6 +64,7 @@
 # ---------------
 #
       index kiter    = 1, cc_iter  
+      INDEX  jatom    = 1, natoms
       aoindex mu     = 1, norb
       aoindex nu     = 1, norb
       aoindex lambda = 1, norb
@@ -694,7 +695,48 @@
       scalar enew 
       scalar ecrit 
       scalar ediff
-#    ------------------------------------------------------------------------
+#
+#    dipole moment components
+#    ------------------------
+     scalar emoment
+     scalar etemp1
+     scalar etemp2
+     scalar etemp3
+     scalar sumx
+     scalar sumy
+     scalar sumz
+     scalar sumxx
+     scalar sumyy
+     scalar sumzz
+     scalar sumxy
+     scalar sumxz
+     scalar sumyz
+     scalar dip_mom_x
+     scalar dip_mom_y
+     scalar dip_mom_z
+     scalar quad_mom_xx
+     scalar quad_mom_yy
+     scalar quad_mom_zz
+     scalar quad_mom_xy
+     scalar quad_mom_xz
+     scalar quad_mom_yz
+     scalar tmpnuc
+     scalar dipnucx
+     scalar dipnucy
+     scalar dipnucz
+     scalar dipnucxx
+     scalar dipnucyy
+     scalar dipnuczz
+     scalar dipnucxy
+     scalar dipnucxz
+     scalar dipnucyz
+     temp txx1(mu,nu)
+     temp txx2(mu,nu)
+     temp txx3(mu,nu)
+     temp txx4(mu,nu)
+     temp txx5(mu,nu)
+     temp txx6(mu,nu)
+     distributed AO_DENS(mu,nu)
 #
 #    ------------------------------------------------------------------------
 #
@@ -3998,6 +4040,168 @@
       ENDPARDO i, i1
       execute sip_barrier
 #
+# dipole moments
+# ----------------------------------------------
+#
+
+      etemp1 = 0.0
+      etemp2 = 0.0
+      etemp3 = 0.0
+
+      sumx = 0.0
+      sumy = 0.0
+      sumz = 0.0
+
+      PARDO  mu, nu
+         GET Dpq(mu,nu)
+         GET DHF(mu,nu)
+         Tpq(mu,nu)  = Dpq(mu,nu)
+         Tpq(mu,nu) += DHF(mu,nu)
+         Tpq(mu,nu) *= 2.0  
+         PUT AO_DENS(mu,nu) = Tpq(mu,nu)
+      ENDPARDO  mu, nu
+
+      PARDO  mu, nu
+
+         get AO_DENS(mu,nu)
+
+         txx1 (mu,nu) = 0.0
+         txx2 (mu,nu) = 0.0
+         txx3 (mu,nu) = 0.0
+
+         emoment = 1.0
+         EXECUTE  RETURN_1ST_MOM  txx1  emoment
+         emoment = 2.0
+         EXECUTE  RETURN_1ST_MOM  txx2  emoment
+         emoment = 3.0
+         EXECUTE  RETURN_1ST_MOM  txx3  emoment
+
+         etemp = AO_DENS (mu,nu) * txx1 (mu,nu)
+         sumx += etemp
+
+         etemp = AO_DENS (mu,nu) * txx2 (mu,nu)
+         sumy += etemp
+
+         etemp = AO_DENS (mu,nu) * txx3 (mu,nu)
+         sumz += etemp
+#
+         txx1 (mu,nu) = 0.0
+         txx2 (mu,nu) = 0.0
+         txx3 (mu,nu) = 0.0
+         txx4 (mu,nu) = 0.0
+         txx5 (mu,nu) = 0.0
+         txx6 (mu,nu) = 0.0
+
+         emoment = 1.0
+         EXECUTE  RETURN_2ND_MOM  txx1  emoment
+         emoment = 2.0
+         EXECUTE  RETURN_2ND_MOM  txx2  emoment
+         emoment = 3.0
+         EXECUTE  RETURN_2ND_MOM  txx3  emoment
+         emoment = 4.0
+         EXECUTE  RETURN_2ND_MOM  txx4  emoment
+         emoment = 5.0
+         EXECUTE  RETURN_2ND_MOM  txx5  emoment
+         emoment = 6.0
+         EXECUTE  RETURN_2ND_MOM  txx6  emoment
+
+         etemp = AO_DENS (mu,nu) * txx1 (mu,nu)
+         sumxx += etemp
+
+         etemp = AO_DENS (mu,nu) * txx2 (mu,nu)
+         sumyy += etemp
+
+         etemp = AO_DENS (mu,nu) * txx3 (mu,nu)
+         sumzz += etemp
+
+         etemp = AO_DENS (mu,nu) * txx4 (mu,nu)
+         sumxy += etemp
+
+         etemp = AO_DENS (mu,nu) * txx5 (mu,nu)
+         sumxz += etemp
+
+         etemp = AO_DENS (mu,nu) * txx6 (mu,nu)
+         sumyz += etemp
+
+      ENDPARDO  mu, nu
+
+      EXECUTE  SIP_BARRIER
+
+      COLLECTIVE  dip_mom_x += sumx
+      COLLECTIVE  dip_mom_y += sumy
+      COLLECTIVE  dip_mom_z += sumz
+
+      COLLECTIVE  quad_mom_xx += sumxx
+      COLLECTIVE  quad_mom_yy += sumyy
+      COLLECTIVE  quad_mom_zz += sumzz
+      COLLECTIVE  quad_mom_xy += sumxy
+      COLLECTIVE  quad_mom_xz += sumxz
+      COLLECTIVE  quad_mom_yz += sumyz
+
+      EXECUTE  SIP_BARRIER
+
+      dip_mom_x *= -1.0
+      dip_mom_y *= -1.0
+      dip_mom_z *= -1.0
+
+      execute sip_barrier
+
+# nuclear contribution
+      tmpnuc = 0.0
+      DO jatom
+         tmpnuc = tmpnuc + 1.0
+      ENDDO jatom
+
+      dipnucx = tmpnuc
+      dipnucy = dipnucx
+      dipnucz = dipnucy
+
+      emoment = 1.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnucx
+      emoment = 2.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnucy
+      emoment = 3.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnucz
+
+      dip_mom_x += dipnucx
+      dip_mom_y += dipnucy
+      dip_mom_z += dipnucz
+      execute sip_barrier
+#
+      emoment = 4.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnucxx
+      emoment = 5.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnucyy
+      emoment = 6.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnuczz
+      emoment = 7.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnucxy
+      emoment = 8.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnucxz
+      emoment = 9.0
+      EXECUTE  NUC_DIPOLE_MOMENT  emoment    dipnucyz
+
+      quad_mom_xx += dipnucxx
+      quad_mom_yy += dipnucyy
+      quad_mom_zz += dipnuczz
+      quad_mom_xy += dipnucxy
+      quad_mom_xz += dipnucxz
+      quad_mom_yz += dipnucyz
+      execute sip_barrier
+
+      execute print_scalar dip_mom_x
+      execute print_scalar dip_mom_y
+      execute print_scalar dip_mom_z
+
+      execute print_scalar quad_mom_xx
+      execute print_scalar quad_mom_yy
+      execute print_scalar quad_mom_zz
+      execute print_scalar quad_mom_xy
+      execute print_scalar quad_mom_xz
+      execute print_scalar quad_mom_yz 
+
+      EXECUTE  SIP_BARRIER
+#
 # Finally contract with the derivative integrals
 # ----------------------------------------------
 #
@@ -4485,6 +4689,7 @@
 # -------------------------------------------------------------------------------
          create Ipq
          create Dpq
+         create AO_DENS
          create DHF
          create DHFa
          create DHFb
