@@ -94,6 +94,10 @@
       moaindex q2= baocc, eavirt
       moaindex q3= baocc, eavirt
 # 
+      mobindex qq = bbocc, ebvirt 
+      mobindex qq1= bbocc, ebvirt 
+      temp txqq(mu,qq) 
+#
 # Declare one-particle density arrays 
 # ----------------------------------- 
 #
@@ -393,6 +397,7 @@
       scalar escf_a 
       scalar escf_b 
       scalar etemp 
+      scalar dens_temp 
       scalar esum 
       scalar esum1
       scalar energy 
@@ -425,6 +430,7 @@
       scalar worder  
       scalar n1 
       scalar n2 
+      scalar max_iter 
 
       distributed Fa(mu,nu,kdiis) 
       distributed Fb(mu,nu,kdiis) 
@@ -2558,9 +2564,63 @@
       damp1  = 1.0/etemp         # 1/(1+damp)  
       execute print_scalar damp 
       execute print_scalar damp1
+      create Dhfa 
+      create Dhfb 
+      create Fpq_a 
+      create Fpq_b 
 
+      dens_temp =  -1.0 
 
-#
+      DO mu
+      DO nu
+         txx(mu,nu) = 0.0
+         Fockrohf_a(mu,nu) = txx(mu,nu)
+         Fockrohf_b(mu,nu) = txx(mu,nu)
+         txx(mu,nu) = oed_ovl(mu,nu) 
+      ENDDO nu
+      ENDDO mu
+      DO mu 
+         DO p 
+            txp(mu,p) = 0.0 
+            ca(mu,p)  = txp(mu,p) 
+         ENDDO p 
+         DO qq  
+            txqq(mu,qq) = 0.0 
+            cb(mu,qq)  = txqq(mu,qq) 
+         ENDDO qq 
+      ENDDO mu 
+
+      DO qq  
+      DO qq1  
+         Fock_b(qq,qq1) = zero  
+      ENDDO qq1  
+      ENDDO qq 
+
+      DO p 
+      DO p1  
+         Fock_a(p,p1) = zero  
+      ENDDO p1  
+      ENDDO p 
+
+      execute scf_atom dens_temp  
+
+      execute print_scalar dens_temp 
+      if dens_temp == one  
+         PARDO mu, nu   
+               txx(mu,nu) = 0.0 
+               PUT Fpq_a(mu,nu) = txx(mu,nu) 
+               PUT Fpq_b(mu,nu) = txx(mu,nu) 
+         ENDPARDO mu, nu   
+         execute sip_barrier 
+         execute blocks_to_list Fpq_a 
+         execute blocks_to_list Fpq_b 
+         execute write_blocks_to_list
+         execute sip_barrier 
+      endif # dens_temp  
+      execute sip_barrier 
+      mone = -1.0 
+      if dens_temp == mone  
+
 #     Perform initial (aa|bb) integral computation to set Schwartz paramaters 
 #     ----------------------------------------------------------------------- 
 #
@@ -2579,7 +2639,6 @@
       ENDDO mu
 
       zero = 0.0 
-      mone = -1.0 
       one = 1.0 
       two = 2.0 
       three = 3.0 
@@ -2606,17 +2665,6 @@
 #
 #     Create the one-particle arrays needed for the computation. 
 #     ---------------------------------------------------------- 
-#
-#     Fock matrix
-#     ----------- 
-      CREATE Fpq_a  
-      CREATE Fpq_b  
-#
-#     New HF density 
-#     -------------- 
-#
-      CREATE DHFa   
-      CREATE DHFb   
 #
 #     Old HF density 
 #     -------------- 
@@ -2734,21 +2782,6 @@
          Fockrohf_b(mu,nu) = txx(mu,nu)  
       ENDDO nu 
       ENDDO mu 
-
-      etemp = -1.0 
-      execute scf_atom etemp 
-      if etemp == 1.0 
-
-         DO mu 
-         DO nu 
-            txx(mu,nu)      = Fockrohf_a(mu,nu)  
-            PUT Dhfa(mu,nu) = txx(mu,nu)
-            txx(mu,nu)      = Fockrohf_b(mu,nu)  
-            PUT Dhfb(mu,nu) = txx(mu,nu)
-         ENDDO nu 
-         ENDDO mu 
-
-      endif 
       
       execute sip_barrier
 #
@@ -2786,6 +2819,7 @@
 # ---------------- 
 #
       DO kiter 
+
          diis_count += 1.0 
 #
 #        Create 1-particle arrays 
@@ -3016,8 +3050,10 @@
 #     Release unneeded memory blocks.
 #
       execute sip_barrier
+
       DELETE DHFA
       DELETE DHFB
+
       DELETE DHFA_OLD
       DELETE DHFB_OLD
 
@@ -3050,19 +3086,22 @@
 #     Put the final Fock arrays into predefined arrays 
 #     ------------------------------------------------ 
 #
+
       DO p 
       DO p1  
          GET FTa(p,p1) 
          Fock_a(p,p1) = FTa(p,p1) 
       ENDDO p1  
       ENDDO p 
-#
+
       execute sip_barrier 
       execute blocks_to_list Fpq_a 
       execute blocks_to_list Fpq_b 
       execute write_blocks_to_list
       execute sip_barrier 
 
+      endif # dens_temp  
+      execute print_scalar dens_temp 
       scfeneg  = energy2 
       totenerg = scfeneg
       execute sip_barrier

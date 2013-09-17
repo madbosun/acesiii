@@ -55,6 +55,9 @@
       index   d2     = 1, 10 
       index   d3     = 1, 10 
       index   d4     = 1, 10 
+      index   iiter1 = 1, 1
+      index   jjter1 = 1, 1
+      index   jjter2 = 2, 2
 #
       aoindex mu     = 1, norb
       aoindex nu     = 1, norb
@@ -107,35 +110,13 @@
       distributed FTpq_b(mu,nu) 
       distributed CBT_a(mu,p) 
       distributed CBT_b(mu,q) 
+
+      static dflags11(iiter1,jjter1)
+      static dflags12(iiter1,jjter2)
 #
 # Declare temporary arrays 
 # ------------------------ 
 #
-      temp Txxxx(mu,nu,lambda,sigma) 
-      temp TSxxxx(mu,nu,lambda,sigma) 
-      temp T1xxxx(mu,nu,lambda,sigma) 
-      temp T2xxxx(mu,nu,lambda,sigma) 
-      temp T3xxxx(mu,nu,lambda,sigma) 
-      temp T4xxxx(mu,nu,lambda,sigma) 
-      temp T5xxxx(mu,nu,lambda,sigma) 
-      temp Txxxi(mu,nu,lambda,i) 
-      temp T1xxxi(mu,nu,lambda,i) 
-      temp T2xxxi(mu,nu,lambda,i) 
-      temp T3xxxi(mu,nu,lambda,i) 
-      temp T4xxxi(mu,nu,lambda,i) 
-      temp TAxxxi(mu,nu,lambda,i) 
-      temp TBxxxi(mu,nu,lambda,i) 
-      temp Txxxj(mu,nu,lambda,j) 
-      temp T1xxxj(mu,nu,lambda,j) 
-      temp T2xxxj(mu,nu,lambda,j) 
-      temp T3xxxj(mu,nu,lambda,j) 
-      temp T4xxxj(mu,nu,lambda,j) 
-      temp TAxxxj(mu,nu,lambda,j) 
-      temp TBxxxj(mu,nu,lambda,j) 
-      temp Txixx(mu,i,nu,lambda) 
-      temp Txjxx(mu,j,nu,lambda) 
-      temp Tixxx(i,mu,nu,lambda) 
-      temp Tjxxx(j,mu,nu,lambda) 
       temp Ixi(mu,i) 
       temp I1xi(mu,i) 
       temp Ixj(mu,j) 
@@ -183,8 +164,6 @@
       temp T1xq(mu,q) 
       temp Tqq(q,q1) 
       temp T1qq(q,q1) 
-      temp tij(i,j) 
-      temp t1ij(i,j) 
 #
 # Declare served arrays 
 # --------------------- 
@@ -219,6 +198,7 @@
 #
 # Scalars used in DIIS procedure 
 # ------------------------------ 
+       scalar dens_check 
 #
        scalar b11
        scalar b12
@@ -426,11 +406,15 @@
       scalar done 
       scalar donea 
       scalar doneb 
+      scalar zero 
+      scalar mone 
       scalar one
       scalar two
       scalar three
       scalar four
+      scalar pcount 
       scalar ncount1 
+      scalar rank 
 #
 # Parameters needed for DIIS 
 
@@ -442,7 +426,6 @@
       scalar worder  
       scalar n1 
       scalar n2 
-      scalar rank 
 
       distributed Fa(mu,nu,kdiis) 
       distributed Fb(mu,nu,kdiis) 
@@ -463,19 +446,19 @@
 #     Initialize the Fock matrix to the bare 1-electron hamiltonian.
 #     -------------------------------------------------------------- 
 #
-      execute get_my_rank rank 
-      if rank == 0.0 
-      DO mu  
-      DO nu 
+       execute get_my_rank rank 
+       if rank == 0.0 
+          DO mu 
+          DO nu 
 #
-            Txx(mu,nu) = 0.0 
+            Txx(mu,nu)      = 0.0  
             execute return_h1 Txx 
             PUT Fpq_a(mu,nu) = Txx(mu,nu) 
             PUT Fpq_b(mu,nu) = Txx(mu,nu) 
 #
-      ENDDO nu 
-      ENDDO mu  
-      endif 
+          ENDDO nu 
+          ENDDO mu  
+       endif 
 #
      #execute print_scalar scfeneg
       ENDPROC IGUESS   
@@ -584,115 +567,6 @@
 #
 # ---------------------------------------------------------------------------- 
 #
-      PROC SCFENERGY 
-#     -------------- 
-#
-#     The total SCF energy is computed from a know Hartee-Fock density.  
-#     ----------------------------------------------------------------- 
-#
-      esum   = 0.0 
-      etemp  = 0.0 
-      energy = 0.0 
-      energy1= 0.0 
-      energy2= 0.0 
-      execute sip_barrier 
-#
-#     One-particle contribution. 
-#     -------------------------- 
-#
-      PARDO mu, nu 
-#
-            GET DHFa(mu,nu) 
-            GET DHFb(mu,nu) 
-#
-            Txx(mu,nu)   = oed_nai(mu,nu)  
-            Txx(mu,nu)  += oed_kin(mu,nu)  
-#
-            T1xx(mu,nu)  = DHFa(mu,nu) 
-            T1xx(mu,nu) += DHFb(mu,nu) 
-#          
-            etemp = Txx(mu,nu)*T1xx(mu,nu)  
-            esum += etemp 
-#
-      ENDPARDO mu, nu 
-      execute sip_barrier 
-#
-      collective energy1 += esum  
-      execute sip_barrier 
-     #execute print_scalar energy1 
-#
-#     Two-particle contribution. 
-#     -------------------------- 
-#
-      esum   = 0.0 
-      etemp  = 0.0 
-      execute sip_barrier 
-      PARDO mu, lambda
-#
-            DO nu
-            DO sigma
-#
-               GET DHFa(nu,sigma) 
-               GET DHFa(nu,lambda) 
-               GET DHFa(mu,lambda) 
-               GET DHFa(mu,sigma) 
-#
-               GET DHFb(nu,sigma) 
-               GET DHFb(nu,lambda) 
-               GET DHFb(mu,lambda) 
-               GET DHFb(mu,sigma) 
-#
-               compute_integrals            AOINT(mu,lambda,nu,sigma)
-#
-#              ------------------------------------------------------------- 
-#
-               txx(nu,sigma)              = DHFa(nu,sigma) 
-               t1xx(nu,lambda)            = DHFa(nu,lambda) 
-#
-               Txxxx(mu,nu,lambda,sigma)  = DHFa(mu,lambda)^txx(nu,sigma)   
-               T1xxxx(mu,nu,lambda,sigma) = DHFa(mu,sigma)^t1xx(nu,lambda)   
-               Txxxx(mu,nu,lambda,sigma) -= T1xxxx(mu,nu,lambda,sigma) 
-#
-               txx(nu,sigma)              = DHFb(nu,sigma) 
-               t1xx(nu,lambda)            = DHFb(nu,lambda) 
-#
-               T1xxxx(mu,nu,lambda,sigma) = DHFb(mu,lambda)^txx(nu,sigma)   
-               Txxxx(mu,nu,lambda,sigma) += T1xxxx(mu,nu,lambda,sigma) 
-               T1xxxx(mu,nu,lambda,sigma) = DHFb(mu,sigma)^t1xx(nu,lambda)   
-               Txxxx(mu,nu,lambda,sigma) -= T1xxxx(mu,nu,lambda,sigma) 
-#
-#              ------------------------------------------------------------- 
-#
-               T1xxxx(mu,nu,lambda,sigma) = DHFa(mu,lambda)^DHFb(nu,sigma)   
-               Txxxx(mu,nu,lambda,sigma) += T1xxxx(mu,nu,lambda,sigma) 
-#
-               T1xxxx(mu,nu,lambda,sigma) = DHFb(mu,lambda)^DHFa(nu,sigma)   
-               Txxxx(mu,nu,lambda,sigma) += T1xxxx(mu,nu,lambda,sigma) 
-#
-#              ------------------------------------------------------------- 
-#
-               etemp  = AOINT(mu,lambda,nu,sigma)*Txxxx(mu,nu,lambda,sigma) 
-               etemp *= 0.5 
-               esum  += etemp 
-#
-            ENDDO sigma
-            ENDDO nu
-#
-       ENDPARDO mu, lambda
-       execute sip_barrier 
-#
-       collective energy2 += esum  
-       execute sip_barrier 
-      #execute print_scalar energy2 
-       energy  = energy1 
-       energy += energy2 
-      #execute print_scalar energy 
-#
-       ENDPROC SCFENERGY 
-#      ----------------- 
-#
-# ---------------------------------------------------------------------------- 
-#
        PROC FOCK_MATRIX  
 #      ----------------- 
 #
@@ -731,8 +605,8 @@
              Txx(mu,nu)        = 0.0  
              execute return_h1 txx 
 #
-             PUT Fpq_a(mu,nu) += Txx(mu,nu) 
-             PUT Fpq_b(mu,nu) += Txx(mu,nu) 
+             PUT Fpq_a(mu,nu)  = Txx(mu,nu) 
+             PUT Fpq_b(mu,nu)  = Txx(mu,nu) 
 #
        ENDDO nu   
        ENDDO mu    
@@ -1312,6 +1186,207 @@
 #
 # ---------------------------------------------------------------------------- 
 #
+       PROC FOCK_MATRIX_FAST   
+#      --------------------- 
+#
+#      The complete Fock matrix is constructed. Eight fold symmetry of the
+#      two-electron integrals is incorporated. 
+#      ------------------------------------------------------------------
+#
+#      Put the density into local arrays 
+#      --------------------------------- 
+#
+#      Initialize the Fock matrix to the bare 1-electron hamiltonian.
+#      -------------------------------------------------------------- 
+#
+       execute sip_barrier
+       DO mu
+       DO nu
+#
+          Txx(mu,nu)        = 0.0
+          Fockrohf_a(mu,nu) = Txx(mu,nu)
+          Fockrohf_b(mu,nu) = Txx(mu,nu)
+       ENDDO nu
+       ENDDO mu 
+
+       execute sip_barrier
+#
+#      Add contributions containing two-particle integral contributions.
+#      -----------------------------------------------------------------
+#
+############# CLASS 6  ############
+##  Do four-center part (mu nu |la si)->(mu nu |si la ),(nu mu|la si),(nu mu|si la)
+##                      (la si |mu nu),(si la |mu nu),(la si |nu mu),(si la |nu mu)
+##
+        PARDO mu, nu, lambda, sigma
+##
+                 WHERE mu      < nu
+                 WHERE lambda  < sigma
+                 WHERE mu     < lambda
+                 WHERE nu     != sigma
+                 WHERE nu     != lambda
+                 WHERE mu     != sigma
+##
+                    execute compute_ubatch1 aoint(mu,nu,lambda,sigma)
+##
+        ENDPARDO mu, nu, lambda, sigma
+##
+#
+############ CLASS 3  ############
+#  Do two-center part (mu mu |mu nu)->(mu nu |mu mu ),(mu mu|nu mu),(nu mu|mu mu)
+#  Do three-center part (mu mu |nu lambda)->(mu mu |lambda nu ),(nu lambda|mu mu),(lambda nu|mu mu)
+#
+       PARDO mu, nu, lambda, sigma 
+#
+          WHERE mu == nu
+          WHERE lambda  < sigma
+#
+                execute compute_ubatch2 aoint(mu,nu,lambda,sigma)
+#
+       ENDPARDO mu, nu, lambda, sigma 
+#
+############ CLASS 5  ############
+###################  CLASS A ##############
+#  Do three-center part (mu nu |mu la)->(mu nu |la mu ),(nu mu|mu la),(nu mu|la mu)
+#                       (mu la |mu nu),(la mu |mu nu ),(mu la |nu mu),(la mu |nu mu)
+#
+#
+       PARDO mu, nu, lambda, sigma
+                WHERE nu < sigma
+                WHERE mu < nu
+                WHERE lambda < sigma
+                WHERE mu==lambda
+#
+                   execute compute_ubatch4 aoint(mu,nu,lambda,sigma)
+#
+       ENDPARDO mu, nu, lambda, sigma
+
+###################  CLASS B ##############
+#  Do three-center part (mu nu |mu la)->(mu nu |la mu ),(nu mu|mu la),(nu mu|la mu)
+#                       (mu la |mu nu),(la mu |mu nu ),(mu la |nu mu),(la mu |nu mu)
+# 
+      PARDO mu, nu, lambda, sigma 
+                WHERE mu < nu
+                WHERE lambda < sigma
+                WHERE mu < sigma
+                WHERE nu == lambda
+#
+                   execute compute_ubatch4 aoint(mu,nu,lambda,sigma)
+#
+       ENDPARDO mu, nu, lambda, sigma
+#
+# 
+###################  CLASS C ##############
+#  Do three-center part (mu nu |mu la)->(mu nu |la mu ),(nu mu|mu la),(nu mu|la mu)
+#                       (mu la |mu nu),(la mu |mu nu ),(mu la |nu mu),(la mu |nu mu)
+#
+       PARDO mu, nu, lambda, sigma
+                WHERE mu < nu
+                WHERE lambda < sigma
+                WHERE mu < lambda
+                WHERE nu == sigma
+#
+                   execute compute_ubatch4 aoint(mu,nu,lambda,sigma)
+#
+       ENDPARDO mu, nu, lambda, sigma
+#
+############ CLASS 4  ############
+#  Do two-center part (mu nu |mu nu)->(mu nu |nu mu ),(nu mu|mu nu),(nu mu|nu mu)
+#
+       PARDO mu, nu, lambda, sigma
+                WHERE mu < nu
+                WHERE lambda < sigma 
+                WHERE nu == sigma
+                WHERE mu == lambda
+#
+                   execute compute_ubatch8 aoint(mu,nu,lambda,sigma)
+#
+       ENDPARDO mu, nu, lambda, sigma
+#
+#          
+############ CLASS 2  ############
+#  Do two-center part (mu mu |nu nu)->(nu nu |mu mu )
+#
+       PARDO mu, nu, lambda, sigma
+#
+             WHERE mu < lambda
+             WHERE mu == nu
+             WHERE lambda == sigma
+#
+                   execute compute_ubatch7 aoint(mu,nu,lambda,sigma)
+#
+       ENDPARDO mu, nu, lambda, sigma 
+#
+############ END CLASS 2  ############
+#
+#
+############ CLASS 1  ############
+#  Do one-center part (mu mu |mu mu)
+#
+       PARDO mu, nu, lambda, sigma
+             WHERE nu == mu
+             WHERE sigma == mu
+             WHERE lambda == mu 
+#
+                   execute compute_ubatch6 aoint(mu,nu,lambda,sigma)
+#
+       ENDPARDO mu, nu, lambda, sigma
+#
+       execute sip_barrier
+#      
+       DO mu
+       DO nu
+#         
+          Txx(mu,nu)        = Fockrohf_a(mu,nu)
+          PUT Fpq_a(mu,nu) += Txx(mu,nu)
+#      
+       ENDDO nu
+       ENDDO mu 
+#      
+       DO mu
+       DO nu
+#         
+          Txx(mu,nu)        = Fockrohf_b(mu,nu)
+          PUT Fpq_b(mu,nu) += Txx(mu,nu)
+#      
+       ENDDO nu
+       ENDDO mu 
+#
+#      DO mu   
+#      DO nu   
+#
+#         PUT Fpq_a(mu,nu) += LFpq_a(mu,nu) 
+#         PUT Fpq_b(mu,nu) += LFpq_b(mu,nu) 
+#
+#      ENDDO nu   
+#      ENDDO mu    
+#
+       execute sip_barrier
+#
+       execute get_my_rank rank 
+       if rank == 0.0 
+       DO mu    
+       DO nu   
+#
+             Txx(mu,nu)        = 0.0  
+             execute return_h1 txx 
+#
+             PUT Fpq_a(mu,nu) += Txx(mu,nu) 
+             PUT Fpq_b(mu,nu) += Txx(mu,nu) 
+#
+       ENDDO nu   
+       ENDDO mu    
+       endif 
+
+#
+       ENDPROC FOCK_MATRIX_FAST   
+#      ------------------------ 
+#
+# ---------------------------------------------------------------------------- 
+#
+#
+# ---------------------------------------------------------------------------- 
+#
        PROC HF_ENERGY  
 #      -------------- 
 #
@@ -1331,8 +1406,8 @@
              GET DHFa(mu,nu) 
              GET DHFb(mu,nu) 
 #
-             Txx(mu,nu)   = 0.0 
-             execute return_h1 txx  
+             Txx(mu,nu)   = 0.0  
+             execute return_h1 txx 
 #
              T1xx(mu,nu)  = Txx(mu,nu) 
              T1xx(mu,nu) += Fpq_a(mu,nu) 
@@ -1349,13 +1424,14 @@
        ENDDO nu 
        ENDDO mu  
        endif 
+
        execute sip_barrier 
 
        esum *= 0.5 
        collective energy += esum 
        energy += scfeneg 
 #
-      #execute print_scalar energy 
+       execute print_scalar energy 
 #
        ENDPROC HF_ENERGY   
 #      ----------------- 
@@ -1980,8 +2056,8 @@
 #
 # ---------------------------------------------------------------------------- 
 #
-       PROC DIISN   
-#      ----------  
+       PROC DIISN_A   
+#      ------------ 
 #
 # The DIIS expansion coefficients are computed using the 5 previous iterations.
 #
@@ -2007,7 +2083,7 @@
           n2+= 1.0 
        if n2 <= worder 
           tdd(d1,d2) = 0.0 
-          execute sip_barrier 
+         #execute sip_barrier 
           DO a  
           DO i 
              GET           Fai(a,i,d1) 
@@ -2019,18 +2095,18 @@
              tdd(d1,d2) += t1dd(d1,d2)  
           ENDDO i 
           ENDDO a  
-          DO b  
-          DO j 
-             GET           Fbj(b,j,d1) 
-             GET           Fbj(b,j,d2) 
-             tbj(b,j)    = Fbj(b,j,d1) 
-             t1bj(b,j)   = Fbj(b,j,d2) 
-             etemp       = tbj(b,j)*t1bj(b,j) 
-             t1dd(d1,d2) = etemp 
-             tdd(d1,d2) += t1dd(d1,d2)  
-          ENDDO j 
-          ENDDO b  
-          execute sip_barrier 
+          DO b
+          DO j
+             GET           Fbj(b,j,d1)
+             GET           Fbj(b,j,d2)
+             tbj(b,j)    = Fbj(b,j,d1)
+             t1bj(b,j)   = Fbj(b,j,d2)
+             etemp       = tbj(b,j)*t1bj(b,j)
+             t1dd(d1,d2) = etemp
+             tdd(d1,d2) += t1dd(d1,d2)
+          ENDDO j
+          ENDDO b
+         #execute sip_barrier 
           BB(d1,d2) = tdd(d1,d2) 
 
           if d1 == 1 
@@ -2500,18 +2576,498 @@
                  etemp = c10
               endif 
               t1xx(mu,nu) *= etemp   
-              txx(mu,nu)   = t1xx(mu,nu) 
+              txx(mu,nu)  += t1xx(mu,nu) 
            endif 
            ENDDO d1   
 #
-           PUT Fpq_b(mu,nu) += txx(mu,nu) 
+           PUT Fpq_b(mu,nu) = txx(mu,nu) 
+#
+       ENDPARDO mu, nu 
+       execute sip_barrier 
+#
+       ENDPROC DIISN_A 
+#
+#
+       PROC DIISN_B 
+#
+# The DIIS expansion coefficients are computed using the 5 previous iterations.
+#
+#      Zero out scalars.
+#      -----------------
+#
+       CALL ZERO_SCALAR 
+#
+       execute sip_barrier 
+#
+#      Determine the 'B-matrix'. 
+#      ------------------------- 
+#
+#      Contributions from Fai histories. 
+#      --------------------------------- 
+#
+       n1 = 0.0 
+       DO d1 
+          n1+= 1.0 
+       if n1 <= worder 
+          n2 = 0.0 
+       DO d2 
+          n2+= 1.0 
+       if n2 <= worder 
+          tdd(d1,d2) = 0.0 
+          execute sip_barrier 
+          DO b  
+          DO j 
+             GET           Fbj(b,j,d1) 
+             GET           Fbj(b,j,d2) 
+             tbj(b,j)    = Fbj(b,j,d1) 
+             t1bj(b,j)   = Fbj(b,j,d2) 
+             etemp       = tbj(b,j)*t1bj(b,j) 
+             t1dd(d1,d2) = etemp 
+             tdd(d1,d2) += t1dd(d1,d2)  
+          ENDDO j 
+          ENDDO b  
+          execute sip_barrier 
+          BB(d1,d2) = tdd(d1,d2) 
+
+          if d1 == 1 
+             if d2 == 1 
+                execute return_sval BB Tb11
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb12
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb13
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb14
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb15
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb16
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb17
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb18
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb19
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb110 
+             endif 
+          endif 
+
+
+          if d1 == 2 
+             if d2 == 1 
+                execute return_sval BB Tb21
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb22
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb23
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb24
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb25
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb26
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb27
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb28
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb29
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb210 
+             endif 
+          endif 
+
+
+          if d1 == 3 
+             if d2 == 1 
+                execute return_sval BB Tb31
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb32
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb33
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb34
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb35
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb36
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb37
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb38
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb39
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb310 
+             endif 
+          endif 
+
+
+          if d1 == 4 
+             if d2 == 1 
+                execute return_sval BB Tb41
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb42
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb43
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb44
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb45
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb46
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb47
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb48
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb49
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb410 
+             endif 
+          endif 
+
+
+          if d1 == 5 
+             if d2 == 1 
+                execute return_sval BB Tb51
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb52
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb53
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb54
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb55
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb56
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb57
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb58
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb59
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb510 
+             endif 
+          endif 
+
+
+          if d1 == 6 
+             if d2 == 1 
+                execute return_sval BB Tb61
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb62
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb63
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb64
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb65
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb66
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb67
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb68
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb69
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb610 
+             endif 
+          endif 
+
+
+          if d1 == 7 
+             if d2 == 1 
+                execute return_sval BB Tb71
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb72
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb73
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb74
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb75
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb76
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb77
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb78
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb79
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb710 
+             endif 
+          endif 
+
+
+          if d1 == 8 
+             if d2 == 1 
+                execute return_sval BB Tb81
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb82
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb83
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb84
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb85
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb86
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb87
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb88
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb89
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb810 
+             endif 
+          endif 
+
+
+          if d1 == 9 
+             if d2 == 1 
+                execute return_sval BB Tb91
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb92
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb93
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb94
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb95
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb96
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb97
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb98
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb99
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb910 
+             endif 
+          endif 
+
+
+          if d1 == 10 
+             if d2 == 1 
+                execute return_sval BB Tb101
+             endif 
+             if d2 == 2 
+                execute return_sval BB Tb102
+             endif 
+             if d2 == 3 
+                execute return_sval BB Tb103
+             endif 
+             if d2 == 4 
+                execute return_sval BB Tb104
+             endif 
+             if d2 == 5 
+                execute return_sval BB Tb105
+             endif 
+             if d2 == 6 
+                execute return_sval BB Tb106
+             endif 
+             if d2 == 7 
+                execute return_sval BB Tb107
+             endif 
+             if d2 == 8 
+                execute return_sval BB Tb108
+             endif 
+             if d2 == 9 
+                execute return_sval BB Tb109
+             endif 
+             if d2 == 10  
+                execute return_sval BB Tb1010 
+             endif 
+          endif 
+
+       endif 
+       ENDDO d2 
+       endif 
+       ENDDO d1 
+#
+#      Now the unique elements of the 'B-matrix' have been computed and the array filled out.
+#      --------------------------------------------------------------------------------------
+#
+#      Put the elements of the 'B-matrix', which have been computed as scalars into the
+#      R-matrix.
+#      --------------------------------------------------------------------------------
+#
+      #execute print_scalar Tb11 
+      #execute print_scalar Tb12 
+      #execute print_scalar Tb22 
+      #execute print_scalar Tb13 
+      #execute print_scalar Tb23 
+      #execute print_scalar Tb33 
+
+       CALL SETUP_DIIS 
+#
+       execute compute_diis # --> New instruction
+#
+       c1 = Tb11
+       c2 = Tb22
+       c3 = Tb33
+       c4 = Tb44
+       c5 = Tb55
+       c6 = Tb66
+       c7 = Tb77
+       c8 = Tb88
+       c9 = Tb99
+       c10 = Tb1010
+#
+       execute sip_barrier
+#
+#      Done computing the c-vector.
+#      ----------------------------
+#
+#      Form the update Density matrix using the c-vector. 
+#      -----------------------------------------------
+#
+       PARDO mu, nu 
+#
+           txx(mu,nu) = 0.0 
+#
+           n1 = 0.0 
+           DO d1   
+              n1 += 1.0 
+           if n1 <= worder 
+              GET            Fb(mu,nu,d1) 
+              t1xx(mu,nu)  = Fb(mu,nu,d1) 
+              if d1 == 1 
+                 etemp = c1 
+              endif 
+              if d1 == 2 
+                 etemp = c2 
+              endif 
+              if d1 == 3 
+                 etemp = c3 
+              endif 
+              if d1 == 4 
+                 etemp = c4 
+              endif 
+              if d1 == 5 
+                 etemp = c5 
+              endif 
+              if d1 == 6 
+                 etemp = c6 
+              endif 
+              if d1 == 7 
+                 etemp = c7 
+              endif 
+              if d1 == 8 
+                 etemp = c8 
+              endif 
+              if d1 == 9 
+                 etemp = c9 
+              endif 
+              if d1 == 10  
+                 etemp = c10
+              endif 
+              t1xx(mu,nu) *= etemp   
+              txx(mu,nu)  += t1xx(mu,nu) 
+           endif 
+           ENDDO d1   
+#
+           PUT Fpq_b(mu,nu) = txx(mu,nu) 
 #
        ENDPARDO mu, nu 
 #
        execute sip_barrier 
 #
-       ENDPROC DIISN   
-#      -------------  
+       ENDPROC DIISN_B   
+#      --------------- 
+#
+       PROC DIISN 
+            CALL DIISN_A 
+           #CALL DIISN_B 
+       ENDPROC DIISN 
 #
 # ---------------------------------------------------------------------------- 
 #
@@ -2528,17 +3084,21 @@
 #     ---------------------- 
 #
       ecrit  = scf_conv # Energy tolerance  
+     #damp   = 0.0 
       etemp  = 1.0 
       etemp += damp  
       damp1  = 1.0/etemp         # 1/(1+damp)  
       execute print_scalar damp 
       execute print_scalar damp1
+      zero = 0.0 
+      mone = -1.0 
       one = 1.0 
       two = 2.0 
       three = 3.0 
       four = 4.0 
+      pcount = 0.0 
       diis_count = 0.0  
-      diis_start = 4.0 
+      diis_start = 2.0 
       diis_end = 150.0 
       diis_order = 8.0 
       diis_max_order = 10.0 
@@ -2593,17 +3153,32 @@
       CREATE Qxx 
       execute sip_barrier 
 #
-#     Construct the initial guess of the Fock matrix.
-#     -----------------------------------------------
-#    
+      execute print_scalar damp1
+
       CALL IGUESS 
-      execute sip_barrier
 
 #     Construct the array S**(-1/2) 
 #     ----------------------------- 
 #
       CALL OVER_HALF 
       #execute sip_barrier
+#
+#     Perform initial (aa|bb) integral computation to set Schwartz paramaters 
+#     ----------------------------------------------------------------------- 
+#
+      DO mu
+      DO nu
+      DO lambda
+      DO sigma
+            IF mu == lambda
+            IF nu == sigma
+               execute compute_aabb_batch aoint(mu,nu,lambda,sigma)
+            ENDIF
+            ENDIF
+      ENDDO sigma
+      ENDDO lambda
+      ENDDO nu
+      ENDDO mu 
 #
 #     Construct S^(-1/2) F S^(-1/2) 
 #     ----------------------------- 
@@ -2639,18 +3214,44 @@
 #
       CALL HFIDENS
       execute sip_barrier
+
+# Check for an existing density 
+# ----------------------------- 
+
+#     Put static predefined arrays into scope 
+
+      DO mu
+      DO nu
+         txx(mu,nu) = 0.0
+         Fockrohf_a(mu,nu) = txx(mu,nu)
+         Fockrohf_b(mu,nu) = txx(mu,nu)
+         txx(mu,nu) = oed_ovl(mu,nu)  
+      ENDDO nu
+      ENDDO mu
+
+      dens_check = -1.0
+      execute scf_atom dens_check  
 #
-#     Damp the HF density 
-#     ------------------- 
+      if dens_check == 1.0
+      execute get_my_rank rank 
+      if rank == 0.0 
+
+         DO mu
+         DO nu
+            txx(mu,nu)      = Fockrohf_a(mu,nu)
+            PUT Dhfa(mu,nu) = txx(mu,nu)
+            txx(mu,nu)      = Fockrohf_b(mu,nu)
+            PUT Dhfb(mu,nu) = txx(mu,nu)
+         ENDDO nu
+         ENDDO mu
+
+      endif
+      endif
+
+      execute sip_barrier
 #
-#     CALL HF_DAMP 
-#     execute sip_barrier
-#
-#     Compute the energy 
-#     ------------------ 
-#
-      CALL HF_ENERGY 
-      energy1 = energy 
+      CALL HF_ENERGY
+      energy1 = energy
       execute sip_barrier
 #
 #     Replace 'old' HF density by 'new' HF density 
@@ -2675,6 +3276,7 @@
 #
       DO kiter 
          diis_count += 1.0 
+         pcount     += 1.0 
 #
 #        Create 1-particle arrays 
 #        ------------------------ 
@@ -2690,7 +3292,24 @@
 #        Construct the new Fock matrix 
 #        -----------------------------
 #
-         CALL FOCK_MATRIX  
+
+         DO mu
+         DO nu
+            GET              DHFa(mu,nu)
+            GET              DHFb(mu,nu)
+            oed_ovl(mu,nu) = DHFa(mu,nu) # 13
+            oed_kin(mu,nu) = DHFb(mu,nu) # 12
+         ENDDO nu
+         ENDDO mu
+
+         DO iiter1
+         DO jjter2
+             execute set_flags2 dflags12(iiter1,jjter2)
+         ENDDO jjter2
+         ENDDO iiter1
+
+         CALL FOCK_MATRIX_FAST   
+        #CALL FOCK_MATRIX   
          execute sip_barrier 
 #
          CALL HF_ENERGY 
@@ -2728,6 +3347,10 @@
 #
 
          if diis_count >= diis_start 
+             damp   = 0.0 
+             etemp  = 1.0
+             etemp += damp
+             damp1  = 1.0/etemp
          if diis_count <= diis_end 
             worder -= diis_start  
             worder += 1.0  
@@ -2878,6 +3501,26 @@
             one = -1.0
             execute print_rel_info one pinf
          endif
+
+         if pcount > 10.0 
+            execute get_my_rank rank
+            if rank == 0.0
+               DO mu
+               DO p
+                  txp(mu,p) = ca(mu,p)
+               ENDDO p
+               ENDDO mu
+            execute print_rel_info zero ca
+               DO mu
+               DO q
+                  txq(mu,q) = cb(mu,q)
+               ENDDO q
+               ENDDO mu
+            execute print_rel_info mone cb
+               pcount = 0.0 
+         endif 
+ 
+      endif
 #
       ENDDO kiter 
 #
@@ -2941,27 +3584,23 @@
       execute print_rel_info two pinf
       execute print_rel_info three Fock_a  
       execute print_rel_info four Fock_b  
-#
-#
-# Compute S^2
-# -----------
-
-      esum = 0.0
       execute get_my_rank rank
       if rank == 0.0
-      DO i
-      DO j
-         tij(i,j) = 0.0
-      DO mu
-         t1ij(i,j) = ca(mu,i)*cb(mu,j)
-         tij(i,j) += t1ij(i,j)
-      ENDDO mu
-         etemp = tij(i,j)*tij(i,j)
-         esum += etemp
-      ENDDO j
-      ENDDO i
-      execute print_scalar esum
+         DO mu
+         DO p
+            txp(mu,p) = ca(mu,p)
+         ENDDO p
+         ENDDO mu
+      execute print_rel_info zero ca
+         DO mu
+         DO q
+            txq(mu,q) = cb(mu,q)
+         ENDDO q
+         ENDDO mu
+      execute print_rel_info mone cb
+ 
       endif
+#
 #
       scfeneg  = energy2 
       totenerg = scfeneg

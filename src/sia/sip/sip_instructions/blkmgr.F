@@ -169,7 +169,7 @@ c--------------------------------------------------------------------------
       persistent_list_tail = 0
 
       blkmgr_init_flag = .true.
-      dbg = .true. 
+C      dbg = .true. 
       if (dbg) then
          print *,'Task ',blkmgr_comm_rank,
      *        ' BLKMGR has been initialized with ',
@@ -178,7 +178,7 @@ c--------------------------------------------------------------------------
          print *,'Task ',blkmgr_comm_rank,
      *     ' stack base_addr: ',(stack_base_addr(i),i=1,nblkmgr_stacks)
       endif
-      dbg = .false. 
+C      dbg = .false. 
       return
       end
 

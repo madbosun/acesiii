@@ -195,6 +195,7 @@
       temp t1ai(a,i) 
       temp tbj(b,j) 
       temp t1bj(b,j) 
+      scalar dens_check 
 #
 # Scalars used in DIIS procedure 
 # ------------------------------ 
@@ -414,6 +415,7 @@
       scalar four
       scalar ncount1 
       scalar rank 
+      scalar pcount
 #
 # Parameters needed for DIIS 
 
@@ -2557,8 +2559,21 @@
       etemp  = 1.0 
       etemp += damp  
       damp1  = 1.0/etemp         # 1/(1+damp)  
+      pcount = 0.0 
       execute print_scalar damp 
       execute print_scalar damp1
+
+      DO mu 
+      DO nu 
+         txx(mu,nu) = 0.0 
+         Fockrohf_a(mu,nu) = txx(mu,nu)  
+         Fockrohf_b(mu,nu) = txx(mu,nu)  
+         txx(mu,nu) = oed_ovl(mu,nu)  
+      ENDDO nu 
+      ENDDO mu 
+
+      dens_check = -1.0 
+      execute scf_atom dens_check  
 
 #
 #     Perform initial (aa|bb) integral computation to set Schwartz paramaters 
@@ -2666,6 +2681,30 @@
             etemp = txx(mu,nu)*txx(mu,nu)
             esum += etemp
       ENDPARDO mu, nu
+      execute sip_barrier
+ 
+      execute print_scalar dens_check 
+
+      if dens_check == 1.0 
+         execute get_my_rank rank 
+         if rank == 0.0 
+
+         DO mu 
+         DO nu 
+            txx(mu,nu)      = Fockrohf_a(mu,nu)  
+            PUT Dhfa(mu,nu) = txx(mu,nu)
+            txx(mu,nu)      = Fockrohf_b(mu,nu)  
+            PUT Dhfb(mu,nu) = txx(mu,nu)
+         ENDDO nu 
+         ENDDO mu 
+
+         damp = 0.0 
+         damp1 = 1.0 
+
+         endif 
+
+      endif 
+      execute sip_barrier
 
 #     Construct the array S**(-1/2) 
 #     ----------------------------- 
@@ -2727,29 +2766,6 @@
 #     ---------------------- 
 #
       CALL HFIDENS
-
-      DO mu 
-      DO nu 
-         txx(mu,nu) = 0.0 
-         Fockrohf_a(mu,nu) = txx(mu,nu)  
-         Fockrohf_b(mu,nu) = txx(mu,nu)  
-      ENDDO nu 
-      ENDDO mu 
-
-      etemp = -1.0 
-      execute scf_atom etemp 
-      if etemp == 1.0 
-
-         DO mu 
-         DO nu 
-            txx(mu,nu)      = Fockrohf_a(mu,nu)  
-            PUT Dhfa(mu,nu) = txx(mu,nu)
-            txx(mu,nu)      = Fockrohf_b(mu,nu)  
-            PUT Dhfb(mu,nu) = txx(mu,nu)
-         ENDDO nu 
-         ENDDO mu 
-
-      endif 
       
       execute sip_barrier
 #
@@ -2788,6 +2804,7 @@
 #
       DO kiter 
          diis_count += 1.0 
+         pcount     += 1.0 
 #
 #        Create 1-particle arrays 
 #        ------------------------ 
@@ -3012,6 +3029,18 @@
             one = -10.0
             execute print_rel_info one pinf
          endif
+         if pcount > 10.0 
+            execute get_my_rank rank
+            if rank == 0.0
+            DO mu
+            DO p
+               txp(mu,p) = ca(mu,p)
+            ENDDO p
+            ENDDO mu
+         execute print_rel_info zero ca
+         endif
+           pcount = 0.0 
+         endif 
 #
       ENDDO kiter 
 #

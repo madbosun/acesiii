@@ -142,7 +142,6 @@ c---------------------------------------------------------------------------
 c   Perform contraction of the data block with the integrals.
 c---------------------------------------------------------------------------
 
-      Write(6,*) "Entering contract ecp_der"
       call contract_ecp_derv_integrals(x(iarray), 
      *               1, n, 1, n)
 

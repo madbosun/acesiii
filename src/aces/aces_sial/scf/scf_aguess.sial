@@ -73,21 +73,21 @@
        ENDPARDO mu, nu 
 #
       execute sip_barrier 
-     #execute get_my_rank rank 
-     #if rank == 0.0 
-      PARDO katom  
+     execute get_my_rank rank 
+     if rank == 0.0 
+      DO katom  
         DO jatom 
          IF katom == jatom  
 
             tatom(katom,jatom) = atom(katom,jatom) 
             execute return_sval tatom etemp   
-           #execute print_scalar etemp 
+            execute print_scalar etemp 
             execute scf_atom etemp 
  
          ENDIF # katom == jatom  
         ENDDO jatom 
-      ENDPARDO katom   
-     #endif 
+      ENDDO katom   
+     endif 
 #
       ENDPROC IGUESS   
 #     -------------- 

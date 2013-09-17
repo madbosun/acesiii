@@ -237,14 +237,14 @@ c ------------------------------------------------------------------------
      *                 dbuf(dpkgscr+nfirst-1),a1,a2,b1,b2,1.0d0)
 
                endif ! nints 
-
-               IF (ECP .eq. 1) then 
-                  do a = a1, a2 
-                  do b = b1, b2 
-cTURN OFF VFL                     z(a,b) = z(a,b)+ecp_erd(a,b)
-                  enddo 
-                  enddo 
-               endif 
+C needs to be commented out ~victor
+c              IF (ECP .eq. 1) then 
+c                 do a = a1, a2 
+c                 do b = b1, b2 
+c                    z(a,b) = z(a,b)+ecp_erd(a,b)
+c                 enddo 
+c                 enddo 
+c              endif 
 
             endif 
          enddo   ! n shells
