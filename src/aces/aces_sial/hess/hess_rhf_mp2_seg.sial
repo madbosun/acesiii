@@ -105,7 +105,7 @@
 # Declare indices. 
 # ---------------- 
 #
-     index   kiter  = 1, 500 
+     index   kiter  = 1, 100 
      index   iatom  = 1, natoms  
      index   ix     = 1, 3 # 3  
      index   jatom  = 1, natoms  
@@ -1088,60 +1088,18 @@
 #     Compute integrals and perform first stage of the transformation.
 #     ----------------------------------------------------------------
 #
-     DO mu
-     DO nu
+     PARDO mu, nu, lambda, sigma 
 #
-         IF mu <= nu
+           compute_integrals              AOINT(mu,nu,lambda,sigma)
 #
-         create Tint(mu,nu,*,*)
-         create DDxxxi(mu,nu,*,*)
-         execute sip_barrier
+           DO i
 #
-         PARDO lambda, sigma
+              V0xxxi(mu,nu,lambda,i)     = aoint(mu,nu,lambda,sigma)*ca(sigma,i)
+              Prepare Vxxxi(mu,nu,lambda,i) += V0xxxi(mu,nu,lambda,i)
 #
-              IF lambda <=sigma
+           ENDDO i
 #
-                 compute_integrals              AOINT(mu,nu,lambda,sigma)
-                 txxxx(mu,nu,lambda,sigma)    = aoint(mu,nu,lambda,sigma)
-                 t1xxxx(mu,nu,sigma,lambda)   = aoint(mu,nu,lambda,sigma)
-                 PUT Tint(mu,nu,lambda,sigma) = txxxx(mu,nu,lambda,sigma)
-                 PUT Tint(mu,nu,sigma,lambda) = t1xxxx(mu,nu,sigma,lambda)
-#
-              ENDIF
-#
-         ENDPARDO lambda, sigma
-         execute sip_barrier
-#
-         PARDO lambda, sigma
-#
-                GET Tint(mu,nu,lambda,sigma)
-#
-                DO i
-#
-                 V0xxxi(mu,nu,lambda,i)     = Tint(mu,nu,lambda,sigma)*ca(sigma,i)
-                 PUT DDxxxi(mu,nu,lambda,i) += V0xxxi(mu,nu,lambda,i)
-#
-                ENDDO i
-#
-         ENDPARDO lambda, sigma
-         execute sip_barrier
-#
-         PARDO lambda, i
-               GET                             DDxxxi(mu,nu,lambda,i)
-               txxxi(mu,nu,lambda,i)         = DDxxxi(mu,nu,lambda,i)
-               t1xxxi(nu,mu,lambda,i)        = txxxi(mu,nu,lambda,i)
-               Prepare Vxxxi(mu,nu,lambda,i) = txxxi(mu,nu,lambda,i)
-               Prepare Vxxxi(nu,mu,lambda,i) = t1xxxi(nu,mu,lambda,i)
-         ENDPARDO lambda, i
-         execute sip_barrier
-#
-         delete Tint(mu,nu,*,*)
-         delete DDxxxi(mu,nu,*,*)
-#
-         ENDIF # mu <= nu
-#
-     ENDDO nu
-     ENDDO mu
+     ENDPARDO mu, nu, lambda, sigma 
 #
       execute server_barrier
 #
@@ -3377,74 +3335,17 @@
 #     Compute integrals and perform first stage of the transformation. 
 #     ---------------------------------------------------------------- 
 #
-     DO mu
-     DO nu
+     PARDO mu, nu, lambda, sigma 
 #
-         IF mu <= nu
+           execute der2_comp              AOINT(mu,nu,lambda,sigma)
+           DO i
 #
-         create Tint(mu,nu,*,*)
-         create DDxxxi(mu,nu,*,*)
-         execute sip_barrier
+               V0xxxi(mu,nu,lambda,i)     = aoint(mu,nu,lambda,sigma)*ca(sigma,i)
+               Prepare Vxxxi(mu,nu,lambda,i) += V0xxxi(mu,nu,lambda,i)
 #
-         PARDO lambda, sigma
+           ENDDO i
 #
-              IF lambda < sigma
-#
-                 execute der2_comp              AOINT(mu,nu,lambda,sigma)
-                 txxxx(mu,nu,lambda,sigma)    = aoint(mu,nu,lambda,sigma)
-                 t1xxxx(mu,nu,sigma,lambda)   = aoint(mu,nu,lambda,sigma)
-                 PUT Tint(mu,nu,lambda,sigma) = txxxx(mu,nu,lambda,sigma)
-                 PUT Tint(mu,nu,sigma,lambda) = t1xxxx(mu,nu,sigma,lambda)
-#
-              ENDIF
-#
-         ENDPARDO lambda, sigma
-#
-         PARDO lambda, sigma
-#
-              IF lambda ==sigma
-#
-                 execute der2_comp              AOINT(mu,nu,lambda,sigma)
-                 txxxx(mu,nu,lambda,sigma)    = aoint(mu,nu,lambda,sigma)
-                #t1xxxx(mu,nu,sigma,lambda)   = aoint(mu,nu,lambda,sigma)
-                 PUT Tint(mu,nu,lambda,sigma) = txxxx(mu,nu,lambda,sigma)
-                #PUT Tint(mu,nu,sigma,lambda) = t1xxxx(mu,nu,sigma,lambda)
-#
-              ENDIF
-#
-         ENDPARDO lambda, sigma
-         execute sip_barrier
-#
-         PARDO lambda, sigma
-#
-                GET Tint(mu,nu,lambda,sigma)
-#
-                DO i
-#
-                 V0xxxi(mu,nu,lambda,i)     = Tint(mu,nu,lambda,sigma)*ca(sigma,i)
-                 PUT DDxxxi(mu,nu,lambda,i) += V0xxxi(mu,nu,lambda,i)
-#
-                ENDDO i
-#
-         ENDPARDO lambda, sigma
-         execute sip_barrier
-#
-         PARDO lambda, i
-               GET                             DDxxxi(mu,nu,lambda,i)
-               txxxi(mu,nu,lambda,i)         = DDxxxi(mu,nu,lambda,i)
-               t1xxxi(nu,mu,lambda,i)        = txxxi(mu,nu,lambda,i)
-               Prepare Vxxxi(mu,nu,lambda,i) = txxxi(mu,nu,lambda,i)
-               Prepare Vxxxi(nu,mu,lambda,i) = t1xxxi(nu,mu,lambda,i)
-         ENDPARDO lambda, i
-         execute sip_barrier
-#
-         delete Tint(mu,nu,*,*)
-         delete DDxxxi(mu,nu,*,*)
-#
-         ENDIF # mu <= nu
-#
-     ENDDO nu
-     ENDDO mu
+     ENDPARDO mu, nu, lambda, sigma 
 #
       execute server_barrier 
 #
@@ -12672,6 +12573,27 @@
 #           ENDDO iatom
 #
 #        ENDPARDO b, j, b1, j1
+#
+         execute sip_barrier 
+         esum = 0.0  
+         execute sip_barrier 
+#
+         PARDO a, i 
+#
+            DO iatom 
+            DO ix   
+#
+               GET        Cainew(a,i,iatom,ix)
+               tai(a,i) = Cainew(a,i,iatom,ix) 
+               etemp    = tai(a,i)*tai(a,i)
+#              Add new contribution to the sum of the squares
+#              ----------------------------------------------
+               esum += etemp
+#
+            ENDDO ix   
+            ENDDO iatom 
+#
+         ENDPARDO a, i 
 #
          execute sip_barrier
 #
