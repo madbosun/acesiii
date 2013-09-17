@@ -12,7 +12,7 @@
 #
 #  The GNU General Public License is included in this distribution
 #  in the file COPYRIGHT.
-      SIAL EXPAND_LCCD_RHF  
+      SIAL EXPAND_LCCD_UHF  
 #
 # ---------------------------------------------------------------------------
 #
@@ -34,45 +34,45 @@
       moaindex a2= bavirt, eavirt
       moaindex a3= bavirt, eavirt
 #
-      moaindex j = baocc, eaocc
-      moaindex j1= baocc, eaocc
-      moaindex j2= baocc, eaocc
-      moaindex j3= baocc, eaocc
+      mobindex j = bbocc, ebocc
+      mobindex j1= bbocc, ebocc
+      mobindex j2= bbocc, ebocc
+      mobindex j3= bbocc, ebocc
 #
-      moaindex b = bavirt, eavirt
-      moaindex b1= bavirt, eavirt
-      moaindex b2= bavirt, eavirt
-      moaindex b3= bavirt, eavirt
+      mobindex b = bbvirt, ebvirt
+      mobindex b1= bbvirt, ebvirt
+      mobindex b2= bbvirt, ebvirt
+      mobindex b3= bbvirt, ebvirt
 #
       moaindex p = baocc, eavirt
       moaindex p1= baocc, eavirt
       moaindex p2= baocc, eavirt
       moaindex p3= baocc, eavirt
 #
-      moaindex q = baocc, eavirt
-      moaindex q1= baocc, eavirt
-      moaindex q2= baocc, eavirt
-      moaindex q3= baocc, eavirt
+      mobindex q = bbocc, ebvirt
+      mobindex q1= bbocc, ebvirt
+      mobindex q2= bbocc, ebvirt
+      mobindex q3= bbocc, ebvirt
 #
-# Declare integral arrays. 
+# Declare amplitude arrays. 
 # ------------------------ 
 #
+      served T2old_aa(a,i,a1,i1)  
       served T2old_ab(a,i,b,j)  
-#
-# Declare truncated Hartree-Fock coefficients. 
-# -------------------------------------------- 
+      served T2old_bb(b,j,b1,j1)  
 #
 # ---------------------------------------------------------------------------
 #
-# Read transformed integrals. 
-# ---------------------------
+# Read amplitude arrays.  
+# ----------------------
 #
       execute sip_barrier
 #
+      execute list_to_blocks T2old_aa
       execute list_to_blocks T2old_ab
+      execute list_to_blocks T2old_bb
 #
       execute dropmo_expand_basis  
       execute server_barrier
-      execute sip_barrier
 # 
-      ENDSIAL EXPAND_LCCD_RHF  
+      ENDSIAL EXPAND_LCCD_UHF  

@@ -20,6 +20,7 @@
 # --------------- 
 #
       index kiter    = 1, cc_iter   
+      index kptr1    = 1, 2
 #
       aoindex mu     = 1, norb 
       aoindex nu     = 1, norb
@@ -179,6 +180,7 @@
 # -------------------------- 
 #
       served T2new_ab(a,i,b,j)
+      served T2old_aa(a,i,a1,i1)
       served T2old_ab(a,i,b,j)
 #
       served Tau_ab(a,i,b,j)
@@ -192,6 +194,12 @@
 # --------------------- 
 #
       temp AOINT(mu,nu,lambda,sigma) 
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      scalar one
+      scalar two
+      scalar ncount1
+      scalar ncount2
 #
 # Arrays needed for AOLADDER contribution
 # ---------------------------------------
@@ -213,7 +221,6 @@
      temp TXaibj(a,i,nu,j)
      temp TZaibj(a,i,nu,j)
      temp Taixj(a,i,nu,j)
-     temp T1aixj(a,i,nu,j)
      temp TYaibj(a,i,b,j)
 #
      served TAO_ab(lambda,i,sigma,j)
@@ -269,18 +276,20 @@
 # Distributed two-particle arrays 
 # ------------------------------- 
 #
+      served Vxxxi(mu,nu,lambda,i)
       served Vxixi(mu,i1,lambda,i)
       served Vxxii(mu,nu,i1,i)
       served Vixxi(i1,nu,lambda,i)
       served Vxipi(mu,i,p,i1)
       served Vixai(i,mu,a,i1)
       served Vxaii(mu,a,i,i1)
+      served Vxaai(mu,a1,a,i)
+      served Vxxai(mu,nu,a,i)
 #
 # Declare scalars 
 # --------------- 
 #
       scalar etemp
-      scalar exponent  
       scalar esum
       scalar esuma
       scalar esumb
@@ -493,23 +502,18 @@
           ENDDO sigma
 
           DO i
+             T1xxxi(mu,nu,lambda,i)         = Lxxxi(mu,nu,lambda,i)
+             PREPARE Vxxxi(mu,nu,lambda,i)  = T1xxxi(mu,nu,lambda,i)
+              
            DO i1
+#
               Txxii(mu,nu,i1,i)          = Lxxxi(mu,nu,lambda,i)*ca(lambda,i1)
               PREPARE Vxxii(mu,nu,i1,i) += Txxii(mu,nu,i1,i)
-           ENDDO i1
-           ENDDO i
-
-          DO i
-           DO i1
               Txixi(mu,i1,lambda,i)      = Lxxxi(mu,nu,lambda,i)*ca(nu,i1)
               PREPARE Vxixi(mu,i1,lambda,i) += Txixi(mu,i1,lambda,i)
-           ENDDO i1
-           ENDDO i
-
-          DO i
-           DO i1
               Tixxi(i1,nu,lambda,i)      = Lxxxi(mu,nu,lambda,i)*ca(mu,i1)
               PREPARE Vixxi(i1,nu,lambda,i) += Tixxi(i1,nu,lambda,i)
+#
            ENDDO i1
            ENDDO i
 #    
@@ -517,6 +521,35 @@
 #
      ENDPARDO mu, nu, lambda
      execute server_barrier
+#
+#    ------------------------------------------------------------------------
+#
+     PARDO mu, nu, i
+#
+        ALLOCATE Lxxai(mu,nu,*,i)
+#
+        DO lambda
+           REQUEST Vxxxi(mu,nu,lambda,i) i
+
+           DO a
+              Txxai(mu,nu,a,i) = Vxxxi(mu,nu,lambda,i)*ca(lambda,a)
+              Lxxai(mu,nu,a,i) += Txxai(mu,nu,a,i)
+           ENDDO a
+
+        ENDDO lambda
+#
+        DO a
+           PREPARE Vxxai(mu,nu,a,i) = Lxxai(mu,nu,a,i)
+        ENDDO a
+
+        DEALLOCATE Lxxai(mu,nu,*,i)
+#
+     ENDPARDO mu, nu, i
+#
+#    ------------------------------------------------------------------------
+#
+     execute server_barrier
+     destroy Vxxxi
 #
 #    ------------------------------------------------------------------------
 #
@@ -535,6 +568,8 @@
      PARDO mu, nu, i, i1
 #
            REQUEST Vxixi(mu,i,nu,i1) i1
+           REQUEST Vxxii(mu,nu,i,i1) i1
+           REQUEST Vixxi(i,mu,nu,i1) i1
 #
            DO p
 #
@@ -543,28 +578,12 @@
 #
            ENDDO p
 #
-     ENDPARDO mu, nu, i, i1
-#
-     PARDO mu, nu, i, i1
-#
-           REQUEST Vxxii(mu,nu,i,i1) i1
-#
            DO a
 #
               Txaii(mu,a,i,i1)          = Vxxii(mu,nu,i,i1)*ca(nu,a)
-              PREPARE Vxaii(mu,a,i,i1) += Txaii(mu,a,i,i1)
-#
-           ENDDO a
-#
-     ENDPARDO mu, nu, i, i1
-#
-     PARDO mu, nu, i, i1
-#
-           REQUEST Vixxi(i,mu,nu,i1) i1
-#
-           DO a
-#
               Tixai(i,mu,a,i1)          = Vixxi(i,mu,nu,i1)*ca(nu,a)
+#
+              PREPARE Vxaii(mu,a,i,i1) += Txaii(mu,a,i,i1)
               PREPARE Vixai(i,mu,a,i1) += Tixai(i,mu,a,i1)
 #
            ENDDO a
@@ -573,7 +592,32 @@
 #
 #    ------------------------------------------------------------------------
 #
+     PARDO mu, a, i
+#
+        ALLOCATE Lxaai(mu,*,a,i)
+
+        DO nu
+           REQUEST Vxxai(mu,nu,a,i) i
+#
+           DO a1
+#
+              T1xaai(mu,a1,a,i) = Vxxai(mu,nu,a,i)*ca(nu,a1)
+              Lxaai(mu,a1,a,i) += T1xaai(mu,a1,a,i)
+#
+           ENDDO a1
+        ENDDO nu
+#
+        DO a1
+           PREPARE Vxaai(mu,a1,a,i) = Lxaai(mu,a1,a,i)
+        ENDDO a1
+
+        DEALLOCATE Lxaai(mu,*,a,i)
+     ENDPARDO mu, a, i
+#
+#    ------------------------------------------------------------------------
+#
      execute server_barrier
+     destroy Vxxai
 #
      ENDPROC TRAN_TRAN3
 #
@@ -738,6 +782,33 @@
 #
 #    ------------------------------------------------------------------------ 
 #
+#    Form Half back transformed cluster arrays  
+#    -----------------------------------------
+#
+#    AB spin combination
+#     -------------------
+#
+     PARDO b, a, j, i
+#
+           REQUEST T2old_ab(a,i,b,j) a
+#
+           DO mu
+#
+              Taixj(a,i,mu,j) = T2old_ab(a,i,b,j)*ca(mu,b)
+#
+              DO nu
+#
+                 Txixi(nu,i,mu,j)           = Taixj(a,i,mu,j)*ca(nu,a)
+                 PREPARE TAO_ab(nu,i,mu,j) += Txixi(nu,i,mu,j)
+#
+              ENDDO nu
+#
+           ENDDO mu
+#
+      ENDPARDO b, a, j, i
+#
+     execute server_barrier   
+#
 #    Contract AOINT with half back transformed Amplitudes 
 #    ----------------------------------------------------    
 #
@@ -745,9 +816,6 @@
         WHERE mu < nu 
 #
            compute_integrals aoint(lambda,mu,sigma,nu)
-          #execute temp_x    aoint etemp 
-
-          #if etemp > 0.00000001 
 #
            DO i
            DO j
@@ -761,8 +829,6 @@
 #
            ENDDO j
            ENDDO i
-
-          #endif 
 #
      ENDPARDO mu, nu, lambda, sigma
 #
@@ -785,6 +851,46 @@
 #
      execute server_barrier  
 #
+#    Perform final transformation
+#    ----------------------------
+#
+        PARDO nu, i, j
+#
+              allocate LDaixj(*,i,nu,j)
+#
+              DO mu
+#
+                 REQUEST T2AO_ab(mu,i,nu,j) j
+#
+                 DO a
+                    Taixj(a,i,nu,j)   = T2AO_ab(mu,i,nu,j)*ca(mu,a)
+                    LDaixj(a,i,nu,j) += Taixj(a,i,nu,j)
+                 ENDDO a
+#
+              ENDDO mu
+#
+              DO a
+                 PREPARE TDaixj(a,i,nu,j) = LDaixj(a,i,nu,j)
+              ENDDO a
+#
+              deallocate LDaixj(*,i,nu,j)
+#
+        ENDPARDO nu, i, j
+        execute server_barrier
+#
+        PARDO a, i, j, nu
+#
+              REQUEST TDaixj(a,i,nu,j) a
+#
+              DO b
+#
+                 Taibj(a,i,b,j)             = TDaixj(a,i,nu,j)*ca(nu,b)
+                 PREPARE T2new_ab(a,i,b,j) += Taibj(a,i,b,j)
+#
+              ENDDO b
+#
+        ENDPARDO a, i, j, nu
+#
 #    ------------------------------------------------------------------------ 
 #
      ENDPROC AOLADDER  
@@ -805,37 +911,42 @@
       PROC WMEBJAA 
 #     ------------
 #
+      PARDO a, a1, i, i1  
+#
+               REQUEST              Viaai(i1,a1,a,i) i  
+               REQUEST              Vaaii(a,a1,i1,i) i  
+
+               TYaiai(a1,i1,a,i)          = 0.0  
+#
+               Taiai(a1,i1,a,i)           = Vaaii(a,a1,i1,i)
+               TYaiai(a1,i1,a,i)         -= Taiai(a1,i1,a,i)
+               Taiai(a1,i1,a,i)           = Viaai(i1,a1,a,i)
+               TYaiai(a1,i1,a,i)         += Taiai(a1,i1,a,i)
+               PREPARE TAUP_aa(a1,i1,a,i) = TYaiai(a1,i1,a,i) 
+#
+      ENDPARDO a, a1, i, i1  
+      execute server_barrier 
+#
 # Contributions to T2new_ab 
 # ------------------------- 
 #
-      PARDO j, b, a, i  
-            Taibj(a,i,b,j) = 0.0  
+      PARDO a, i, a1, i1 
 #
-            DO i1   
-            DO a1  
+            REQUEST TAUP_aa(a,i,a1,i1)  i 
 #
-               REQUEST              Viaai(i,a,a1,i1) i  
-               REQUEST              Vaaii(a1,a,i,i1) i  
-               REQUEST              T2old_ab(a1,i1,b,j) j  
-
-               TYaiai(a,i,a1,i1)   = 0.0  
+            DO j  
+            DO b
 #
-               Taiai(a,i,a1,i1)    = Vaaii(a1,a,i,i1)
-               TYaiai(a,i,a1,i1)  -= Taiai(a,i,a1,i1)
-               Taiai(a,i,a1,i1)    = Viaai(i,a,a1,i1)
-               TYaiai(a,i,a1,i1)  += Taiai(a,i,a1,i1)
+               REQUEST                      T2old_ab(a1,i1,b,j) j  
+               R1aibj(a,i,b,j)            = TAUP_aa(a,i,a1,i1)*T2old_ab(a1,i1,b,j) 
+               Taibj(b,j,a,i)             = R1aibj(a,i,b,j) 
+               PREPARE T2new_ab(a,i,b,j) += R1aibj(a,i,b,j)
+               PREPARE T2new_ab(b,j,a,i) += Taibj(b,j,a,i)
 #
-               R1aibj(a,i,b,j)     = TYaiai(a,i,a1,i1)*T2old_ab(a1,i1,b,j) 
-               Taibj(a,i,b,j)     += R1aibj(a,i,b,j) 
+            ENDDO b  
+            ENDDO j  
 #
-            ENDDO a1   
-            ENDDO i1   
-
-            R1aibj(b,j,a,i)            = taibj(a,i,b,j) 
-            PREPARE T2new_ab(a,i,b,j) += taibj(a,i,b,j)
-            PREPARE T2new_ab(b,j,a,i) += R1aibj(b,j,a,i)
-#
-      ENDPARDO j, b, a, i 
+      ENDPARDO a, i, a1, i1 
 #
       ENDPROC WMEBJAA 
 #     ---------------
@@ -851,12 +962,9 @@
 # ------------------------ 
 #
       PARDO i1, a1, a, i
-            REQUEST                     T2old_ab(a1,i1,a,i) a 
-            REQUEST                     T2old_ab(a1,i,a,i1) a 
-            taiai(a1,i1,a,i)          = T2old_ab(a1,i1,a,i) 
-            t1aiai(a1,i1,a,i)         = T2old_ab(a1,i,a,i1) 
-            taiai(a1,i1,a,i)         -= t1aiai(a1,i1,a,i) 
-            tpppp(a1,i1,i,a)          = taiai(a1,i1,a,i) 
+#
+            REQUEST T2old_aa(a1,i1,a,i) i 
+            tpppp(a1,i1,i,a) = T2old_aa(a1,i1,a,i) 
 #
             DO j 
             DO b 
@@ -871,6 +979,7 @@
             ENDDO j 
 #
       ENDPARDO i1, a1, a, i
+      execute server_barrier 
 #
       ENDPROC WMEBJAB 
 #     ---------------
@@ -909,35 +1018,6 @@
             ENDDO i
 #
       ENDPARDO a, j, i1, b1
-
-#    Perform final transformation of LADDER contribution 
-#    ---------------------------------------------------
-#
-        PARDO nu, i, j
-#
-              allocate LDaixj(*,i,nu,j)
-#
-              DO mu
-#
-                 REQUEST T2AO_ab(mu,i,nu,j) j
-#
-                 DO a
-                    Taixj(a,i,nu,j)   = T2AO_ab(mu,i,nu,j)*ca(mu,a)
-                    LDaixj(a,i,nu,j) += Taixj(a,i,nu,j)
-                 ENDDO a
-#
-              ENDDO mu
-
-              DO a 
-              DO b 
-                 Taibj(a,i,b,j)             = LDaixj(a,i,nu,j)*ca(nu,b) 
-                 PREPARE T2new_ab(a,i,b,j) += Taibj(a,i,b,j)
-              ENDDO b 
-              ENDDO a
-#
-              deallocate LDaixj(*,i,nu,j)
-#
-        ENDPARDO nu, i, j
 #
       ENDPROC WMJBEab
 #     ---------------
@@ -961,6 +1041,9 @@
      PROC ENERGY_NEW 
 # 
 #    ------------------------------------------------------------------------ 
+#
+     one = 1.0
+     two = 2.0
 #
      ecorrab = 0.0 
      esumab  = 0.0 
@@ -990,6 +1073,30 @@
     #ecorrT  = ecorraa + ecorrbb
      ecorrT = ecorrab 
      execute print_scalar ecorrT  
+     if kiter > 0
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == one
+               tpinf(kiter,kptr1) = ecorrab
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == two
+               etemp = ecorrab
+               etemp+= scfeneg
+               tpinf(kiter,kptr1) = etemp
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+         etemp = 32
+         execute print_rel_info etemp pinf
+      endif
 # 
 #    ------------------------------------------------------------------------ 
 # 
@@ -1013,44 +1120,9 @@
 #
           PARDO mu, nu, i, j
                 Txixi(mu,i,nu,j)           = 0.0
+                PREPARE TAO_ab(mu,i,nu,j)  = Txixi(mu,i,nu,j)
                 PREPARE T2AO_ab(mu,i,nu,j) = Txixi(mu,i,nu,j)
           ENDPARDO mu, nu, i, j
-#
-          PARDO mu, nu, i, j
-                Txixi(mu,i,nu,j)           = 0.0
-                PREPARE TAO_ab(mu,i,nu,j) = Txixi(mu,i,nu,j)
-          ENDPARDO mu, nu, i, j
-
-          execute server_barrier 
-#
-#    Form Half back transformed cluster arrays  
-#    -----------------------------------------
-#
-#    AB spin combination
-#     -------------------
-#
-     PARDO mu, a, j, i
-#
-           taixj(a,i,mu,j) = 0.0 
-#
-           DO b
-#
-              REQUEST            T2old_ab(a,i,b,j) a
-              T1aixj(a,i,mu,j) = T2old_ab(a,i,b,j)*ca(mu,b)
-              Taixj(a,i,mu,j) += T1aixj(a,i,mu,j) 
-#
-           ENDDO b
-#
-            DO nu
-#
-               Txixi(nu,i,mu,j)           = Taixj(a,i,mu,j)*ca(nu,a)
-               PREPARE TAO_ab(nu,i,mu,j) += Txixi(nu,i,mu,j)
-#
-            ENDDO nu
-#
-      ENDPARDO mu, a, j, i
-
-          execute server_barrier 
 #
      ENDPROC T2NEW_ZERO
 # 
@@ -2321,6 +2393,7 @@
 #
 #    proc do_checkpoint
 
+#    execute checkpoint t2old_aa
 #    execute checkpoint t2old_ab
 #    execute checkpoint t1a_old
 #    execute checkpoint E1aibj
@@ -2376,6 +2449,18 @@
 # Get initial second-order guess 
 # ------------------------------ 
       CALL IGUESS_UHF
+      EXECUTE SIP_BARRIER  
+      EXECUTE SERVER_BARRIER  
+#
+      PARDO a, i, b, j 
+            REQUEST                     T2old_ab(a,i,b,j) a 
+            REQUEST                     T2old_ab(a,j,b,i) a 
+            taiai(a,i,b,j)            = T2old_ab(a,i,b,j) 
+            t1aiai(a,i,b,j)           = T2old_ab(a,j,b,i) 
+            taiai(a,i,b,j)           -= t1aiai(a,i,b,j) 
+            PREPARE T2old_aa(a,i,b,j) = taiai(a,i,b,j) 
+      ENDPARDO a, i, b, j 
+#
       EXECUTE SERVER_BARRIER  
 #
 # Calculate the second-order energy 
@@ -2388,11 +2473,26 @@
 
       EXECUTE SERVER_BARRIER  
 #
+      PARDO a, i, b, j 
+            REQUEST                     T2old_ab(a,i,b,j) a 
+            REQUEST                     T2old_ab(a,j,b,i) a 
+            taiai(a,i,b,j)            = T2old_ab(a,i,b,j) 
+            t1aiai(a,i,b,j)           = T2old_ab(a,j,b,i) 
+            taiai(a,i,b,j)           -= t1aiai(a,i,b,j) 
+            PREPARE T2old_aa(a,i,b,j) = taiai(a,i,b,j) 
+      ENDPARDO a, i, b, j 
+#
+      EXECUTE SERVER_BARRIER  
+#
 #        Zero-out the new two-particle amplitude arrays
 #        ---------------------------------------------- 
 #
          CALL T2NEW_ZERO
 #
+#        Form one-particle intermediates 
+#        ------------------------------- 
+         EXECUTE SERVER_BARRIER  
+# 
 #        Calculate new two-particle amplitudes 
 #        ------------------------------------- 
 #
@@ -2453,6 +2553,15 @@
          CALL MOVET2
 #
          EXECUTE SERVER_BARRIER  
+         PARDO a, i, b, j 
+               REQUEST                     T2old_ab(a,i,b,j) a 
+               REQUEST                     T2old_ab(a,j,b,i) a 
+               taiai(a,i,b,j)            = T2old_ab(a,i,b,j) 
+               t1aiai(a,i,b,j)           = T2old_ab(a,j,b,i) 
+               taiai(a,i,b,j)           -= t1aiai(a,i,b,j) 
+               PREPARE T2old_aa(a,i,b,j) = taiai(a,i,b,j) 
+         ENDPARDO a, i, b, j 
+         EXECUTE SERVER_BARRIER  
 #
 #        Check on convergence 
 #        -------------------- 
@@ -2486,6 +2595,8 @@
       totenerg  = ecorrT  
       totenerg += scfeneg  
       execute print_scalar totenerg  
+      etemp = 33
+      execute print_rel_info etemp pinf 
 #
 # Write amplitudes to file
 # ------------------------

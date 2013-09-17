@@ -421,4 +421,46 @@ lambdaT_uhf_ao_sv1.sio
 CCSDT_Aiso.sio
 ENDJOBFLOW CCSDPT_RELAX_DENS_AISO
 
+JOBFLOW LCCD_RHF_GRAD
+scf_aguess.sio
+scf_rhf_aguess.sio
+lccd_rhf.sio
+expand_lccd_rhf.sio
+lccd_gtran_rhf.sio
+lccd_g1_rhf.sio
+lccd_g2_rhf.sio
+ENDJOBFLOW LCCD_RHF_GRAD
+
+JOBFLOW LCCD_RHF
+scf_aguess.sio
+scf_rhf_aguess.sio
+lccd_rhf.sio
+ENDJOBFLOW LCCD_RHF
+
+JOBFLOW LCCD_UHF
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+lccd_rhf.sio
+ENDJOBFLOW LCCD_UHF
+
+JOBFLOW LCCD_RHF_GRAD
+scf_aguess.sio
+scf_rhf_aguess.sio
+lccd_rhf.sio
+expand_lccd_rhf.sio
+lccd_gtran_rhf.sio
+lccd_g1_rhf.sio
+lccd_g2_rhf.sio
+ENDJOBFLOW LCCD_RHF_GRAD
+
+JOBFLOW LCCD_UHF_GRAD
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+lccd_uhf.sio
+expand_lccd_uhf.sio
+lccd_gtran_uhf.sio
+lccd_g1_uhf.sio
+lccd_g2_uhf.sio
+ENDJOBFLOW LCCD_RHF_GRAD
+
 

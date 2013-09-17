@@ -85,6 +85,7 @@
       temp dx4(mu,nu,lambda,sigma) 
       temp dy4(mu,nu,lambda,sigma) 
       temp dz4(mu,nu,lambda,sigma) 
+      served AODENS(mu,lambda,nu,sigma) 
 #
 # Declare served arrays
 # ---------------------
@@ -192,6 +193,7 @@
       temp T1XXXX(mu,nu,lambda,sigma) 
       temp T2XXXX(mu,nu,lambda,sigma) 
       temp T3XXXX(mu,nu,lambda,sigma) 
+      temp T4XXXX(mu,nu,lambda,sigma) 
       temp P1XXXX(mu,nu,lambda,sigma) 
 #
       temp Txaai(mu,a,a1,i) 
@@ -508,6 +510,7 @@
       scalar etemp 
       scalar esum
       scalar enew 
+      scalar efact 
       scalar eacbd
       scalar gfact 
       scalar ifact 
@@ -1836,9 +1839,31 @@
             ENDDO j 
             ENDDO i 
 #
-            Pxxxx(mu,nu,lambda,sigma) += Txxxx(mu,nu,lambda,sigma)  
+            Pxxxx(mu,nu,lambda,sigma)          += Txxxx(mu,nu,lambda,sigma)  
 #
-            T1xxxx(mu,lambda,nu,sigma)  = Pxxxx(mu,nu,lambda,sigma) 
+            T1xxxx(mu,lambda,nu,sigma)          = Pxxxx(mu,nu,lambda,sigma) 
+            PREPARE AODENS(mu,lambda,nu,sigma) += T1xxxx(mu,lambda,nu,sigma) 
+#
+      ENDPARDO mu, nu, lambda, sigma  
+      execute server_barrier 
+#
+      PARDO mu, nu, lambda, sigma 
+         WHERE mu < lambda  
+         WHERE nu < sigma 
+#
+            REQUEST                      AODENS(mu,lambda,nu,sigma) mu 
+            REQUEST                      AODENS(lambda,mu,nu,sigma) mu 
+            REQUEST                      AODENS(mu,lambda,sigma,nu) mu 
+            REQUEST                      AODENS(lambda,mu,sigma,nu) mu 
+
+            T1xxxx(mu,lambda,nu,sigma) = AODENS(mu,lambda,nu,sigma) 
+            T2xxxx(mu,lambda,nu,sigma) = AODENS(lambda,mu,nu,sigma)  
+            T3xxxx(mu,lambda,nu,sigma) = AODENS(mu,lambda,sigma,nu)  
+            T4xxxx(mu,lambda,nu,sigma) = AODENS(lambda,mu,sigma,nu)  
+
+            T1xxxx(mu,lambda,nu,sigma)+= T2xxxx(mu,lambda,nu,sigma)    
+            T1xxxx(mu,lambda,nu,sigma)+= T3xxxx(mu,lambda,nu,sigma)    
+            T1xxxx(mu,lambda,nu,sigma)+= T4xxxx(mu,lambda,nu,sigma)    
 #
 #           INTEGRAL BLOCK 1 
 #           ---------------- 
@@ -1858,9 +1883,105 @@
             execute compute_derivative_integrals 
 #
             execute DCONT2 T1xxxx(mu,lambda,nu,sigma) 
+
 #
       ENDPARDO mu, nu, lambda, sigma  
-      execute server_barrier 
+#
+      PARDO mu, nu, lambda, sigma 
+         WHERE mu == lambda  
+         WHERE nu < sigma 
+#
+            REQUEST                      AODENS(mu,lambda,nu,sigma) mu 
+            REQUEST                      AODENS(mu,lambda,sigma,nu) mu 
+
+            T1xxxx(mu,lambda,nu,sigma) = AODENS(mu,lambda,nu,sigma) 
+            T3xxxx(mu,lambda,nu,sigma) = AODENS(mu,lambda,sigma,nu)  
+
+            T1xxxx(mu,lambda,nu,sigma)+= T3xxxx(mu,lambda,nu,sigma)    
+#
+#           INTEGRAL BLOCK 1 
+#           ---------------- 
+            execute der_int_setup dx1(mu,lambda,nu,sigma) 
+            execute der_int_setup dy1(mu,lambda,nu,sigma) 
+            execute der_int_setup dz1(mu,lambda,nu,sigma) 
+            execute der_int_setup dx2(mu,lambda,nu,sigma) 
+            execute der_int_setup dy2(mu,lambda,nu,sigma) 
+            execute der_int_setup dz2(mu,lambda,nu,sigma) 
+            execute der_int_setup dx3(mu,lambda,nu,sigma) 
+            execute der_int_setup dy3(mu,lambda,nu,sigma) 
+            execute der_int_setup dz3(mu,lambda,nu,sigma) 
+            execute der_int_setup dx4(mu,lambda,nu,sigma) 
+            execute der_int_setup dy4(mu,lambda,nu,sigma) 
+            execute der_int_setup dz4(mu,lambda,nu,sigma) 
+#
+            execute compute_derivative_integrals 
+#
+            execute DCONT2 T1xxxx(mu,lambda,nu,sigma) 
+
+#
+      ENDPARDO mu, nu, lambda, sigma  
+#
+      PARDO mu, nu, lambda, sigma 
+         WHERE mu < lambda  
+         WHERE nu == sigma 
+#
+            REQUEST                      AODENS(mu,lambda,nu,sigma) mu 
+            REQUEST                      AODENS(lambda,mu,nu,sigma) mu 
+
+            T1xxxx(mu,lambda,nu,sigma) = AODENS(mu,lambda,nu,sigma) 
+            T2xxxx(mu,lambda,nu,sigma) = AODENS(lambda,mu,nu,sigma)  
+
+            T1xxxx(mu,lambda,nu,sigma)+= T2xxxx(mu,lambda,nu,sigma)    
+#
+#           INTEGRAL BLOCK 1 
+#           ---------------- 
+            execute der_int_setup dx1(mu,lambda,nu,sigma) 
+            execute der_int_setup dy1(mu,lambda,nu,sigma) 
+            execute der_int_setup dz1(mu,lambda,nu,sigma) 
+            execute der_int_setup dx2(mu,lambda,nu,sigma) 
+            execute der_int_setup dy2(mu,lambda,nu,sigma) 
+            execute der_int_setup dz2(mu,lambda,nu,sigma) 
+            execute der_int_setup dx3(mu,lambda,nu,sigma) 
+            execute der_int_setup dy3(mu,lambda,nu,sigma) 
+            execute der_int_setup dz3(mu,lambda,nu,sigma) 
+            execute der_int_setup dx4(mu,lambda,nu,sigma) 
+            execute der_int_setup dy4(mu,lambda,nu,sigma) 
+            execute der_int_setup dz4(mu,lambda,nu,sigma) 
+#
+            execute compute_derivative_integrals 
+#
+            execute DCONT2 T1xxxx(mu,lambda,nu,sigma) 
+
+#
+      ENDPARDO mu, nu, lambda, sigma  
+#
+      PARDO mu, nu, lambda, sigma 
+         WHERE mu == lambda  
+         WHERE nu == sigma 
+#
+            REQUEST                      AODENS(mu,lambda,nu,sigma) mu 
+            T1xxxx(mu,lambda,nu,sigma) = AODENS(mu,lambda,nu,sigma) 
+#
+#           INTEGRAL BLOCK 1 
+#           ---------------- 
+            execute der_int_setup dx1(mu,lambda,nu,sigma) 
+            execute der_int_setup dy1(mu,lambda,nu,sigma) 
+            execute der_int_setup dz1(mu,lambda,nu,sigma) 
+            execute der_int_setup dx2(mu,lambda,nu,sigma) 
+            execute der_int_setup dy2(mu,lambda,nu,sigma) 
+            execute der_int_setup dz2(mu,lambda,nu,sigma) 
+            execute der_int_setup dx3(mu,lambda,nu,sigma) 
+            execute der_int_setup dy3(mu,lambda,nu,sigma) 
+            execute der_int_setup dz3(mu,lambda,nu,sigma) 
+            execute der_int_setup dx4(mu,lambda,nu,sigma) 
+            execute der_int_setup dy4(mu,lambda,nu,sigma) 
+            execute der_int_setup dz4(mu,lambda,nu,sigma) 
+#
+            execute compute_derivative_integrals 
+#
+            execute DCONT2 T1xxxx(mu,lambda,nu,sigma) 
+
+      ENDPARDO mu, nu, lambda, sigma  
 #
       ENDPROC PDCONT 
 #     -------------- 
@@ -2195,3 +2316,51 @@
                     ENDSIAL TWO_HERM_GRAD_V2_CO   
 #
 # ---------------------------------------------------------------------- 
+#
+                 ml = 0.0
+                 mm = 0.0
+                 ll = 0.0
+
+                 DO m
+                    if m <= mu
+                       mm += 1.0
+                    endif
+                 ENDDO m
+
+                 DO l
+                    if l <= lambda
+                       ll += 1.0
+                    endif
+                 ENDDO l
+
+                 etemp = ll - 1.0
+                 etemp *= n_seg
+                 ml += etemp
+#
+                 ns = 0.0
+                 nn = 0.0
+
+                 DO n
+                    if n <= nu
+                       nn += 1.0
+                    endif
+                 ENDDO n
+
+                 ss = 0.0
+                 DO s
+                    if s <= sigma
+                       ss += 1.0
+                    endif
+                 ENDDO s
+
+                 etemp = ss - 1.0
+                 etemp *= n_seg
+                 ns += etemp
+
+                 efact = 1.0
+                 if ml < ns
+                    efact = 2.0
+                 endif
+
+                if ml <= ns
+#
