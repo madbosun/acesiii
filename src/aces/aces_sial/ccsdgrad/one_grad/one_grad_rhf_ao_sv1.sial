@@ -377,6 +377,7 @@
       temp Tbj(b,j)
       temp T1bj(b,j)
       temp Tpq(mu,nu)
+      static Spq(mu,nu)
       temp T1pq(mu,nu)
       temp tpp(p,p1) 
       temp tqq(q,q1) 
@@ -7160,18 +7161,22 @@
 # ----------------------------------------------
 #
       execute get_my_rank rank
-      if rank == 0.0 
-         DO mu 
-         DO nu
-            GET           Dpq(mu,nu)
-            GET           DHF(mu,nu)
-            Tpq(mu,nu)  = Dpq(mu,nu)
-            Tpq(mu,nu) += DHF(mu,nu)
-            Tpq(mu,nu) *= 2.0  
-            EXECUTE HCONT1 Tpq(mu,nu)
-         ENDDO nu
-         ENDDO mu 
-      endif 
+      if rank == 0.0
+          DO mu
+          DO nu
+                GET Dpq(mu,nu)
+                GET DHF(mu,nu)
+                Tpq(mu,nu)  = Dpq(mu,nu)
+                Tpq(mu,nu) += DHF(mu,nu)
+                Tpq(mu,nu) *= 2.0
+                Spq(mu,nu)  = Tpq(mu,nu) 
+                EXECUTE HCONT1 Tpq(mu,nu)
+          ENDDO nu
+          ENDDO mu 
+
+          execute ecp_dercont Spq  
+       endif 
+
 #
 # -----------------------------------------------------------------------------
 #
