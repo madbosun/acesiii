@@ -20,6 +20,7 @@
 # --------------- 
 #
       index kiter    = 1, cc_iter   
+      index kptr1    = 1, 2
 #
       aoindex mu     = 1, norb 
       aoindex nu     = 1, norb
@@ -295,6 +296,15 @@
       scalar ediff 
       scalar mp2_energy
       scalar restart
+#
+# needed for formatted printing
+#
+      static pinf(kiter,kptr1)
+      temp tpinf(kiter,kptr1)
+      scalar one
+      scalar two
+      scalar ncount1
+      scalar ncount2
 #
 # Arrays/Scalars used exclusively in DIIS procedure. 
 # -------------------------------------------------- 
@@ -990,6 +1000,30 @@
     #ecorrT  = ecorraa + ecorrbb
      ecorrT = ecorrab 
      execute print_scalar ecorrT  
+     if kiter > 0
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == one
+               tpinf(kiter,kptr1) = ecorrab
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+            ncount1 = 0.0
+         DO kptr1
+            ncount1 = ncount1 + 1.0
+            if ncount1 == two
+               etemp = ecorrab
+               etemp+= scfeneg
+               tpinf(kiter,kptr1) = etemp
+               pinf(kiter,kptr1)  = tpinf(kiter,kptr1)
+            endif
+         ENDDO kptr1
+
+         etemp = 32
+         execute print_rel_info etemp pinf
+      endif
 # 
 #    ------------------------------------------------------------------------ 
 # 
@@ -2360,6 +2394,8 @@
 # ------------------ 
 #
       ecrit = cc_conv  
+      one = 1.0
+      two = 2.0
 #
 # Read transformed integrals from lists 
 # ------------------------------------- 
@@ -2486,6 +2522,8 @@
       totenerg  = ecorrT  
       totenerg += scfeneg  
       execute print_scalar totenerg  
+      etemp = 33
+      execute print_rel_info etemp pinf
 #
 # Write amplitudes to file
 # ------------------------
