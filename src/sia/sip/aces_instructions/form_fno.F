@@ -180,7 +180,7 @@ C            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),''
 20    format(5x,'DETERMINING FNO SUBSPACE BASED ON % DROP: ',I3,'%')  
 21    format(5x,'DETERMINING FNO SUBSPACE BASED ON THRESHOLD: ',F12.8)  
 999   format(I4,100F10.7)
-11    format(5x,I3,1F14.8,2x,A)
+11    format(5x,I5,1F14.8,2x,A)
 30    format(5x,'Dropping ',I8,' natural orbitals out of ',I8,
      *       ' total virtuals')
 31    format(5x,'If this is the first run, use DROPMO=',I8,'-',I8)
