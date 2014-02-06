@@ -69,9 +69,14 @@ c            31   UHF CIS Singles amplitude header
 c
 c            32   RHF LCCD iteration, energy  
 c            33   RHF LCCD iteration, energy  
+c            
+c            34   CC expectation value of <S2>
+c
+c            35   CIS(D) state energy
 c   
 c--------------------------------------------------------------------------
-
+C Changes to make GNU complier happy, C. Taylor, 08/2013.
+C
       implicit none
       include 'interpreter.h'
       include 'trace.h'
@@ -154,7 +159,7 @@ c---------------------------------------------------------------------------
       if (dabs(scalar_table(sind)+10.0) .le. 0.001) then 
          if (me .eq. 0) then 
          write(66,10) 
-         flush(66) 
+         call flush(66) 
          call abort_job() 
          endif 
       endif 
@@ -396,7 +401,7 @@ c---------------------------------------------------------------------------
       if (dabs(scalar_table(sind)+2.0) .le. 0.001) then 
          if (me .eq. 0) then 
          write(66,20) 
-         flush(66) 
+         call flush(66) 
          call abort_job() 
          endif 
       endif 
@@ -433,8 +438,33 @@ c---------------------------------------------------------------------------
           call print_lccd_cinfo(x(iarray),scalar_table(sind),
      *             1,n1,1,n2)
       endif 
+c--------------------------------------------------------------------------
+c   CC Expectation value of <S2> Print flag 34 
+c--------------------------------------------------------------------------
+      if (scalar_table(sind) .eq. 34.0) then
+          call print_cc_s2expect(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif 
 
-      flush(66) 
+c----------------------------------------------------------------------------
+c   CIS(D) excitation energy(RHF) Print Flag = 35
+c---------------------------------------------------------------------------
+
+      if (scalar_table(sind) .eq. 35.0) then 
+          call print_cisd_rhf_cinfo(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif 
+
+c--------------------------------------------------------------------------
+c   Print a banner Print flag -100 for density. The array is fictious.
+c   Use the CA from any SIAL code. 
+c--------------------------------------------------------------------------
+      if (scalar_table(sind) .eq. -100.0) then
+          call print_banner(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif 
+
+      call flush(66) 
 
       return 
       end 
@@ -797,7 +827,6 @@ c
 
       if (me .eq. 0) then 
 
-      write(66,*) ' ' 
       write(66,10) 
       write(66,11) 
       write(66,10) 
@@ -1579,6 +1608,139 @@ c              write(66,99) a-1, (array1(a-1,i), i=b1, b2)
 101   format(2x,60('-'))
 102   format(2x,"Final LCCD energy = ",F20.10,2x,"After",2x,I8,2x,
      *       "iterations")
+
+      return
+      end
+c
+      subroutine print_cc_s2expect(array1,sval,a1,a2,b1,b2)
+
+c---------------------------------------------------------------------------
+c Print the refrence and correlated expectation values of S^2.
+c Ajith Perera, 12/2013.
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2
+      double precision array1(a1:a2,b1:b2), sval, stemp
+      double precision nref, s2ref, s2cc, nocc_tot, nopn_tot
+
+      open(66,file='summary.out')
+
+      nocc_tot = dfloat(nalpha_occupied + nbeta_occupied)
+      nopn_tot = dfloat(nalpha_occupied - nbeta_occupied)
+      
+      nref = (nocc_tot + (nopn_tot*nopn_tot/2.0D0))/2.0D0
+
+      if (me .eq. 0)then
+         s2ref = array1(1,1)
+         s2cc  = array1(2,1)
+         Write(66, *)
+         Write(66, 101)
+         Write(66, "(2x,a)") 
+     &        "The <0|S**2|0> and <CC|S**2|CC> is computed."
+         Write(66, 101)
+         Write(66,*) 
+         Write(66, 100) s2ref + Nref
+         Write(66, 200) s2ref + s2cc + Nref
+
+      endif
+
+ 100  FORMAT(T15,'Reference state <S**2>   : ',F15.10,'.')
+ 200  FORMAT(T15,'Final CC  state <S**2>   : ',F15.10,'.')
+ 101  format(2x,60('-'))
+
+      return
+      end
+
+      subroutine print_banner(array1,sval,a1,a2,b1,b2)
+
+c---------------------------------------------------------------------------
+c Print a message; Use -100, -99, ... for sval to control the message.
+c Ajith Perera, 12/2013.
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+
+      integer ival, a, a1, a2, b, b1, b2   
+      double precision array1(a1:a2,b1:b2), sval
+c
+      open(66,file='summary.out')
+
+      ival = sval
+
+      If (me .eq. 0) then
+
+      Write(66,*)
+      Write(66, 101)
+
+         If (ival .eq. -100)
+     &      Write(66,"(2x,a)")
+     &      "The CC one- and two-particle densities are computed."
+
+      Write(66, 101)
+      Write(66,*)
+
+      Endif
+
+101   format(2x,60('-'))
+
+      Return 
+      End
+      
+      subroutine print_cisd_rhf_cinfo(array1,sval,a1,a2,b1,b2) 
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2   
+      integer ieom_roots 
+      double precision array1(a1:a2,b1:b2), sval, stemp   
+      double precision efinal, conv   
+
+      open(66,file='summary.out') 
+
+      ival = sval 
+      conv = 27.21138505 
+      amax = eom_roots 
+
+      if (me .eq. 0)then
+
+         do i = a2,a1,-1
+             if (i.eq.1.0) then
+             write(66,10) 
+             write(66,100) 
+             write(66,30) 
+             write(66,100) 
+             endif
+             if (i .le. amax) then  
+             if (dabs(array1(i,1)) .gt. 0.0001) then
+                 write(66,20) i, array1(i,1), array1(i,2)  
+                 return
+             endif
+             endif 
+         enddo 
+
+      endif 
+
+
+100   format(2x,60('-'))
+10    format(2x,"CIS(D) excitation energies")  
+20    format(2x,I4,5x,F20.8,x,F20.8)  
+30    format(2x,'ROOT',15x,'Correlation',15x,'CIS(D) Excitation E')  
 
       return
       end

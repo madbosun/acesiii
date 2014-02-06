@@ -168,6 +168,8 @@ C Ajith Perera, SOI instructions
       external compute_2soi_xbatch, compute_2soi_ybatch,
      &         compute_2soi_zbatch
 
+      external write_vecs2jarc
+
 c------------------------------------------------------
       external form_iad
       external form_ibd
@@ -244,6 +246,12 @@ c Jason Byrd misc. development additions
 c--------------------------------------------------------------------
       external sort_fno
       external dropcore_fno
+c--------------------------------------------------------------------
+c Watson, Interface options for scf_xxxx.sial codes
+c--------------------------------------------------------------------
+      external read_interface
+      external get_interface
+      external c1_full_print
 c
       dummy = load_user_sub('sip_barrier' // char(0),
      *                       sip_barrier)
@@ -418,7 +426,10 @@ c     dummy = load_user_sub('open_amp'//char(0), open_amp)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('place_one_dip'//char(0),
      *                                      place_one_dip)
-      call set_upgrade_flag(dummy) 
+C
+C This need to get upgraded as the rest!!, Ajith Perera, 08/2013.
+CSSS      call set_upgrade_flag(dummy) 
+C
       dummy = load_user_sub('place_one_dip_2'//char(0),
      *                                      place_one_dip_2)
       call set_upgrade_flag(dummy) 
@@ -549,7 +560,7 @@ C
       dummy = load_user_sub('second_moment'//char(0), second_moment)
       dummy = load_user_sub('energy_ty_denominator'//char(0),
      *                       energy_ty_denominator)
-      call set_upgrade_flag(dummy) 
+C      call set_upgrade_flag(dummy) 
       dummy = load_user_sub('reorder_energy'//char(0),reorder_energy)
       call set_upgrade_flag(dummy) 
       dummy = load_user_sub('return_1st_mom'//char(0), return_1st_mom)
@@ -686,6 +697,9 @@ c-------------------------------------------------------------------
       dummy = load_user_sub('compute_2soi_zbatch'//char(0),
      &                       compute_2soi_zbatch)
 
+      dummy = load_user_sub('write_vecs2jarc'//char(0),
+     &                       write_vecs2jarc)
+
 c Instructions needed in the CCSD(T) gradient and ecpgradient   
 c --------------------------------------------------------------------
 c
@@ -703,6 +717,16 @@ c--------------------------------------------------------------------
       dummy = load_user_sub('sort_fno'//char(0),sort_fno)
       dummy = load_user_sub('dropcore_fno'//char(0),dropcore_fno)
 c--------------------------------------------------------------------
+c--------------------------------------------------------------------
+c Watson, added for general interfaces (ie. read FCIDUMP file for c Molpro)
+c--------------------------------------------------------------------
+c      dummy = load_user_sub('read_interface'//char(0),read_interface)
+c      dummy = load_user_sub('get_interface'//char(0),get_interface)
+c      call set_upgrade_flag(dummy)
+      dummy = load_user_sub('c1_full_print'//char(0),c1_full_print)
+      call set_upgrade_flag(dummy)
+c--------------------------------------------------------------------
+c
 c
 
       return

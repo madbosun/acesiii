@@ -128,11 +128,17 @@
       served Vaajj(a,a1,j,j1)
       served Viabj(i,a,b,j)
 #
+      temp tomegacis(kindex12,jindex28)
+      distributed omegacis(kindex12,jindex28)
+#
 # VFL arrays to use simple indeces
 
       distributed VC1A(a,i,k21)
       distributed VCH1A(a,i,k20)
       distributed VTEMP1A(a,i,k20)
+
+      static amp_print_a (a,i)
+      static amp_print_b (b,j)
 
       distributed ax(j20,k20)
       local Lax(j20,k20)
@@ -464,6 +470,49 @@
       distributed VSTART1A11(a,i)
       distributed VSTART1A12(a,i)
 #
+## CIS density matrices and transition moments.
+#
+      STATIC DENS_OO_AA(p,p1)
+      STATIC DENS_VV_AA(p,p1)
+      STATIC AO_DENSITY(mu,nu)
+      STATIC HF_DENSITY(mu,nu)
+
+      Distributed CIS_VEC_AO(mu,nu)
+      Distributed Intxa(mu,a)
+      Distributed Intxb(mu,b)
+
+      Temp tmpii(i,i1)
+      Temp tmppp(p,p1)
+      Temp tmpxa(mu,a)
+      Temp tmpjj(j,j1)
+      Temp tmpxb(mu,b)
+      Temp tmpaa(a,a1)
+      Temp tmpbb(b,b1)
+      Temp tmpxx(mu,nu)
+      Temp Txa(mu,a)
+      Temp Txi(mu,i)
+      Temp Tmp_tia(i,a1)
+
+      Temp txx(mu,nu)
+      Temp txx2(mu,nu)
+      Temp txx3(mu,nu)
+
+      Scalar DIP_MOM_X
+      Scalar DIP_MOM_Y
+      Scalar DIP_MOM_Z
+      Scalar DIP_SQR_X
+      Scalar DIP_SQR_Y
+      Scalar DIP_SQR_Z
+      Scalar CIS_ENEG
+      Scalar SQR_SUM
+      Scalar CIS_TMOM
+      Scalar FACT_43
+      Scalar Two
+      Scalar Three
+      Scalar Four
+      Scalar Onehalf
+      Scalar Idens 
+#
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #
 # Declare scalars
@@ -646,6 +695,7 @@
       scalar Vtemp_18
       scalar Vtemp_19
       scalar Vtemp_20
+      scalar amplthresh
 #
       scalar V1_1
       scalar V1_2
@@ -900,6 +950,32 @@
       scalar root10
       scalar root11
       scalar root12
+#
+      scalar root_1
+      scalar root_2
+      scalar root_3
+      scalar root_4
+      scalar root_5
+      scalar root_6
+      scalar root_7
+      scalar root_8
+      scalar root_9
+      scalar root_10
+      scalar root_11
+      scalar root_12
+#
+      scalar tmom1
+      scalar tmom2
+      scalar tmom3
+      scalar tmom4
+      scalar tmom5
+      scalar tmom6
+      scalar tmom7
+      scalar tmom8
+      scalar tmom9
+      scalar tmom10
+      scalar tmom11
+      scalar tmom12
 #
       scalar Aeig10
       scalar Aeigv10
@@ -1649,6 +1725,7 @@
       execute blocks_to_list VSTART1A11
       execute blocks_to_list VSTART1A12
       execute blocks_to_list VSTART1A12
+      execute blocks_to_list omegacis
 #
       execute write_blocks_to_list
       execute sip_barrier
@@ -23909,6 +23986,8 @@
       create VCEND1B10
       create VCEND1B11
       create VCEND1B12
+#
+      create omegacis
 #======================================================
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #--end of script generated part of the code
@@ -24183,6 +24262,48 @@
        endif
 #
        enddo jindex12
+#
+       do jindex28
+             eroot = 0.0 
+             if imax == 1.0
+                eroot = root1 
+             endif 
+             if imax == 2.0
+                eroot = root2 
+             endif 
+             if imax == 3.0
+                eroot = root3 
+             endif 
+             if imax == 4.0
+                eroot = root4 
+             endif 
+             if imax == 5.0
+                eroot = root5 
+             endif 
+             if imax == 6.0
+                eroot = root6 
+             endif 
+             if imax == 7.0
+                eroot = root7 
+             endif 
+             if imax == 8.0
+                eroot = root8 
+             endif 
+             if imax == 9.0
+                eroot = root9 
+             endif 
+             if imax == 10.0
+                eroot = root10 
+             endif 
+             if imax == 11.0
+                eroot = root11 
+             endif 
+             if imax == 12.0
+                eroot = root12 
+             endif 
+             tomegacis(kindex12,jindex28) = eroot  
+             put omegacis(kindex12,jindex28) = tomegacis(kindex12,jindex28)
+       enddo jindex28
 #
         if imax == 1.0
         root1 = 1001.0
@@ -24830,7 +24951,673 @@
       execute server_barrier
 #
       ENDPROC NORM_VEC
+#     ----------------
+      PROC XPROP
+#     ----------
 #
+# Compute the density matrices and the transition moments for CIS.
+#
+      ONE     = 1.0
+      TWO     = 2.0
+      FOUR    = 4.0
+      THREE   = 3.0
+      ONEHALF = 0.5
+      FACT_43 = FOUR/THREE
+
+      Sum1 = 0.0
+      Sum2 = 0.0
+      Sum3 = 0.0
+
+      etemp1 = 0.0
+      etemp2 = 0.0
+      etemp3 = 0.0
+
+      DO p
+      DO p1
+            tmppp(p,p1) = 0.0
+            DENS_OO_AA(p,p1) = tmppp(p,p1)
+            DENS_VV_AA(p,p1) = tmppp(p,p1)
+      ENDDO p1
+      ENDDO p
+  
+      DO mu
+      DO nu 
+         txx(mu,nu) = 0.0
+         AO_DENSITY(mu,nu) = txx(mu,nu)
+      ENDDO nu
+      ENDDO mu
+
+      EXECUTE SIP_BARRIER 
+
+      DO i 
+      DO i1
+      DO a
+         tmpii(i,i1)  = amp_print_a(a,i)*amp_print_a(a,i1)
+         DENS_OO_AA(i,i1) += tmpii(i,i1)
+      ENDDO a
+      ENDDO i1
+      ENDDO i
+
+      DO a1
+      DO i
+      DO a
+         tmp_tia(i,a1) = amp_print_a(a1,i)
+         tmpaa(a,a1)   = amp_print_a(a,i)*tmp_tia(i,a1)
+         DENS_VV_AA(a,a1) += tmpaa(a,a1)
+      ENDDO a
+      ENDDO i
+      ENDDO a1
+
+      EXECUTE SIP_BARRIER
+       
+      DO i 
+      DO i1
+         tmpii(i,i1) = DENS_OO_AA(i,i1)
+         DO mu
+            txi(mu,i1) = tmpii(i,i1) * CA(mu,i)
+            DO nu
+               txx(mu,nu) = txi(mu,i1) * CA(nu,i1)
+               AO_DENSITY (mu,nu) += txx(mu,nu)
+            ENDDO nu
+         ENDDO mu
+      ENDDO i1
+      ENDDO i
+
+      DO a 
+      DO a1
+         tmpaa(a,a1) = DENS_VV_AA(a,a1)
+         DO mu
+            txa(mu,a1) = tmpaa(a,a1) * CA(mu,a)
+            DO nu
+               txx(mu,nu) = txa(mu,a1) * CA(nu,a1)
+               AO_DENSITY (mu, nu) += txx(mu,nu)
+            ENDDO nu
+         ENDDO mu
+      ENDDO a1
+      ENDDO a
+
+      EXECUTE SIP_BARRIER
+     
+#bn_debug
+#      esum = 0.0
+#      PARDO i, i1
+#            execute dump_amp DENS_OO_AA(i,i1)
+#            etemp = DENS_OO_AA(i,i1)*DENS_OO_AA(i,i1)
+#            esum += etemp
+#      ENDPARDO i, i1
+#      EXECUTE PRINT_SCALAR ESUM
+#      esum = 0.0
+#      PARDO a, a1
+#            execute dump_amp DENS_VV_AA(a,a1)
+#            etemp = DENS_VV_AA(a,a1)*DENS_VV_AA(a,a1)
+#            esum += etemp
+#      ENDPARDO a, a1
+#      EXECUTE PRINT_SCALAR ESUM
+#en_debug
+
+      PARDO p, p1
+            tmppp(p,p1) = 0.0
+            tmppp(p,p1) = DENS_OO_AA(p,p1) 
+            tmppp(p,p1) = DENS_VV_AA(p,p1) 
+      ENDPARDO p, p1
+
+#
+#  Transition moments 
+#
+      PARDO mu, nu
+            Txx (mu,nu) = 0.0
+            PUT CIS_VEC_AO(mu,nu) = Txx (mu,nu)
+      ENDPARDO mu, nu
+
+      PARDO mu, a
+            Txa(mu,a) = 0.0
+            PUT INTxa(mu,a) = Txa(mu,a)
+      ENDPARDO mu, a
+
+      PARDO mu, a
+      DO i
+         GET INTxa(mu,a)
+         tmpxa(mu,a)  = amp_print_a(a,i)*Ca(mu,i)
+         PUT INTxa(mu,a) += tmpxa(mu,a)
+      ENDDO i
+      ENDPARDO mu, a
+
+      EXECUTE SIP_BARRIER
+    
+      PARDO mu, nu
+      DO a
+         GET INTxa(mu,a)
+         GET CIS_VEC_AO(mu,nu)  
+         tmpxx(mu,nu)  = INTxa(mu,a)*Ca(nu,a)
+         CIS_VEC_AO(mu,nu) += tmpxx(mu,nu)
+      ENDDO a
+      ENDPARDO mu, nu
+
+
+      EXECUTE SIP_BARRIER
+#bn_debug
+      esum = 0.0
+      PARDO mu, nu
+            GET  CIS_VEC_AO (mu,nu)
+            etemp = CIS_VEC_AO (mu,nu)* CIS_VEC_AO (mu,nu)
+            esum += etemp
+      ENDPARDO mu, nu
+      EXECUTE PRINT_SCALAR ESUM
+#      esum = 0.0
+#      PARDO i, i1
+#            execute dump_amp DENS_OO_AA(i,i1)
+#            etemp = DENS_OO_AA(i,i1)*DENS_OO_AA(i,i1)
+#            esum += etemp
+#      ENDPARDO i, i1
+#      EXECUTE PRINT_SCALAR ESUM
+#      esum = 0.0
+#      PARDO a, a1
+#            execute dump_amp DENS_VV_AA(a,a1)
+#            etemp = DENS_VV_AA(a,a1)*DENS_VV_AA(a,a1)
+#            esum += etemp
+#      ENDPARDO a, a1
+#      EXECUTE PRINT_SCALAR ESUM
+#en_debug
+
+#bn_debug
+      execute print_scalar sum1
+      execute print_scalar sum2
+      execute print_scalar sum3
+      execute print_scalar etemp1
+      execute print_scalar etemp2
+      execute print_scalar etemp3
+#en_debug
+#
+      PARDO  mu, nu
+
+         GET  CIS_VEC_AO (mu,nu)
+
+         txx  (mu,nu) = 0.0
+         txx2 (mu,nu) = 0.0
+         txx3 (mu,nu) = 0.0
+
+         EXECUTE  RETURN_1ST_MOM  txx   ONE
+         EXECUTE  RETURN_1ST_MOM  txx2  TWO
+         EXECUTE  RETURN_1ST_MOM  txx3  THREE
+
+         etemp = CIS_VEC_AO (mu,nu) * txx  (mu,nu)
+#         etemp = Txx (mu,nu) * txx  (mu,nu)
+         sum1 += etemp
+
+         etemp = CIS_VEC_AO (mu,nu) * txx2 (mu,nu)
+#         etemp = Txx2 (mu,nu) * txx2 (mu,nu)
+         sum2 += etemp
+
+         etemp = CIS_VEC_AO (mu,nu) * txx3 (mu,nu)
+#         etemp = Txx3 (mu,nu) * txx3 (mu,nu)
+         sum3 += etemp
+
+      ENDPARDO  mu, nu
+
+      EXECUTE  SIP_BARRIER
+
+      COLLECTIVE  etemp1 += sum1
+      COLLECTIVE  etemp2 += sum2
+      COLLECTIVE  etemp3 += sum3
+
+      EXECUTE  SERVER_BARRIER
+
+      etemp1 *= -1.0
+      etemp2 *= -1.0
+      etemp3 *= -1.0
+#bn_debug
+      execute print_scalar etemp1
+      execute print_scalar etemp2
+      execute print_scalar etemp3
+#en_debug
+
+      DIP_MOM_X = etemp1
+      DIP_MOM_Y = etemp2
+      DIP_MOM_Z = etemp3
+
+      DIP_SQR_X = DIP_MOM_X*DIP_MOM_X
+      DIP_SQR_Y = DIP_MOM_Y*DIP_MOM_Y
+      DIP_SQR_Z = DIP_MOM_Z*DIP_MOM_Z
+
+      SQR_SUM =  DIP_SQR_X
+      SQR_SUM += DIP_SQR_Y
+      SQR_SUM += DIP_SQR_Z
+
+#      EXECUTE SQUARE_ROOT SQR_SUM ONEHALF
+#bn_debug
+      execute print_scalar SQR_SUM
+      execute print_scalar CIS_ENEG
+#en_debug
+   
+      CIS_ENEG = CIS_ENEG
+      CIS_TMOM = CIS_ENEG*SQR_SUM
+      CIS_TMOM = FACT_43*CIS_TMOM
+#bn_debug
+      execute print_scalar CIS_TMOM
+#en_debug
+
+      EXECUTE  SIP_BARRIER
+
+      ENDPROC XPROP
+#     -------------
+      PROC AMPL_PRINT
+#      --------------
+       amplthresh=0.01
+       execute server_barrier
+#  
+
+       EXECUTE  GET_MY_RANK  RANK
+
+       allocate lai(*,*)
+       allocate lbj(*,*)
+      
+       CREATE CIS_VEC_AO
+       CREATE INTxa 
+
+       DO mu
+       DO nu
+          txx(mu,nu) = 0.0
+          HF_DENSITY(mu,nu) = 0.0
+       ENDDO nu
+       ENDDO mu
+       EXECUTE  SIP_BARRIER
+
+       DO mu
+       Do nu
+       DO i 
+          txi(nu, i) = CA (nu,i)
+          txx (mu,nu) = CA (mu,i) * txi (nu,i)
+          txx (mu,nu) *= 2.0
+          HF_DENSITY(mu,nu) +=  txx (mu,nu)
+
+       ENDDO i
+       ENDDO nu
+       ENDDO mu
+
+       EXECUTE  SIP_BARRIER
+
+       IF RANK == 0.0
+          IDENS = 1  
+          EXECUTE  DENS2JOBARC  HF_DENSITY IDENS
+       ENDIF
+
+       if rootmax >= 1.0
+          DO i
+          DO a
+            GET   VSTART1A1 (a,i)
+            amp_print_a (a,i) = VSTART1A1 (a,i)
+          ENDDO a 
+          ENDDO i 
+    
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_1
+          CALL XPROP
+          TMOM1 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  2.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 2.0
+          DO i
+          DO a
+            GET   VSTART1A2 (a,i)
+            amp_print_a (a,i) = VSTART1A2 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_2
+          CALL XPROP
+          TMOM2 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  5.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 3.0
+          DO i
+          DO a
+            GET   VSTART1A3 (a,i)
+            amp_print_a (a,i) = VSTART1A3 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_3
+          CALL XPROP
+          TMOM3 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  8.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 4.0
+          DO i
+          DO a
+            GET   VSTART1A4 (a,i)
+            amp_print_a (a,i) = VSTART1A4 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_4
+          CALL XPROP
+          TMOM4 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  11.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF 
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 5.0
+          DO i
+          DO a
+            GET   VSTART1A5 (a,i)
+            amp_print_a (a,i) = VSTART1A5 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_5
+          CALL XPROP
+          TMOM5 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  14.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 6.0
+          DO i
+          DO a
+            GET   VSTART1A6 (a,i)
+            amp_print_a (a,i) = VSTART1A6 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_6
+          CALL XPROP
+          TMOM6 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  17.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 7.0
+          DO i
+          DO a
+            GET   VSTART1A7 (a,i)
+            amp_print_a (a,i) = VSTART1A7 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_7
+          CALL XPROP
+          TMOM7 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  20.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 8.0
+          DO i
+          DO a
+            GET   VSTART1A8 (a,i)
+            amp_print_a (a,i) = VSTART1A8 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_8
+          CALL XPROP
+          TMOM8 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  23.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 9.0
+          DO i
+          DO a
+            GET   VSTART1A9 (a,i)
+            amp_print_a (a,i) = VSTART1A9 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_9
+          CALL XPROP
+          TMOM9 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  26.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 10.0
+          DO i
+          DO a
+            GET   VSTART1A10 (a,i)
+            amp_print_a (a,i) = VSTART1A10 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_10
+          CALL XPROP
+          TMOM10 = CIS_TMOM
+
+          EXECUTE SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  29.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax >= 11.0
+          DO i
+          DO a
+            GET   VSTART1A11 (a,i)
+            amp_print_a (a,i) = VSTART1A11 (a,i)
+          ENDDO a 
+          ENDDO i 
+       
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_11
+          CALL XPROP
+          TMOM11 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  31.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       if rootmax == 12.0
+          DO i
+          DO a
+            GET   VSTART1A12 (a,i)
+            amp_print_a (a,i) = VSTART1A12 (a,i)
+          ENDDO a
+          ENDDO i
+
+          DO j
+          DO b
+            amp_print_b (b,j) = 0.0
+          ENDDO b
+          ENDDO j
+
+          CIS_ENEG = ROOT_12
+          CALL XPROP
+          TMOM12 = CIS_TMOM
+
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  34.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
+          EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
+          EXECUTE  SIP_BARRIER
+       endif
+
+       deallocate lai (*,*)
+       deallocate lbj (*,*)
+
+     ENDPROC AMPL_PRINT
+
 #======================================================
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #--end of script generated part of the code
@@ -24863,7 +25650,7 @@
 #
        eomthresh=0.0001
       #rootmax=7.0
-      #eomthresh=eom_tol  #
+       eomthresh=eom_tol  #
        rootmax=eom_roots  # Watson Added
        EXECUTE  PRINT_SCALAR  eom_roots
        EXECUTE  PRINT_SCALAR  eom_tol
@@ -25285,6 +26072,23 @@
        execute print_scalar root10
        execute print_scalar root11
        execute print_scalar root12
+
+#
+# Save the roots with a set of different scalar names. This is
+# much cleaner than to extract these values from pinf array.
+#
+       root_1=root1
+       root_2=root2
+       root_3=root3
+       root_4=root4
+       root_5=root5
+       root_6=root6
+       root_7=root7
+       root_8=root8
+       root_9=root9
+       root_10=root10
+       root_11=root11
+       root_12=root12
 #
        evfev = 27.21138505 
        root1*=evfev
@@ -25355,7 +26159,7 @@
                 eroot = root12 
              endif 
                 tpinf(kindex12,jindex28) = eroot  
-                 pinf(kindex12,jindex28) = tpinf(kindex12,jindex28)  
+                pinf(kindex12,jindex28) = tpinf(kindex12,jindex28)  
           ENDDO jindex28   
           ENDDO kindex12 
              etemp = 28.0 
@@ -25368,6 +26172,7 @@
        EXECUTE SERVER_BARRIER
 #
        Call NORM_VEC
+       CALL AMPL_PRINT
 
        call WRITEOUT
 #
