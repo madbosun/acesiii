@@ -641,6 +641,8 @@ c---------------------------------------------------------------------------
      *          opcode .le. fl_load_value_op) go to 2300
 
             if (opcode .eq. sp_ldi_sym_op) go to 2300
+C bypass for automatically generated case
+            if (opcode .eq. where_op) go to 2300
 
 c---------------------------------------------------------------------------
 c   Does this instruction create a temp result block?
