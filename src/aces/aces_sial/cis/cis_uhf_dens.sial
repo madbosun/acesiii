@@ -1,5 +1,5 @@
-#  Copyright (c) 1997-1999, 2003 Massachusetts Institute of Technology
-# 
+a  Copyright (c) 2003-2010 University of Florida
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -10,12 +10,9 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-#  USA
-#
-                  SIAL CIS_RHF_MO
+#  The GNU General Public License is included in this distribution
+#  in the file COPYRIGHT.
+			SIAL CIS_UHF_MO
 #
 #***********************************************************
 #
@@ -41,25 +38,25 @@
       moaindex a2= bavirt, eavirt
       moaindex a3= bavirt, eavirt
 #
-      moaindex j = baocc, eaocc
-      moaindex j1= baocc, eaocc
-      moaindex j2= baocc, eaocc
-      moaindex j3= baocc, eaocc
+      mobindex j = bbocc, ebocc
+      mobindex j1= bbocc, ebocc
+      mobindex j2= bbocc, ebocc
+      mobindex j3= bbocc, ebocc
 #
-      moaindex b = bavirt, eavirt
-      moaindex b1= bavirt, eavirt
-      moaindex b2= bavirt, eavirt
-      moaindex b3= bavirt, eavirt
+      mobindex b = bbvirt, ebvirt
+      mobindex b1= bbvirt, ebvirt
+      mobindex b2= bbvirt, ebvirt
+      mobindex b3= bbvirt, ebvirt
 #
       moaindex p = baocc, eavirt
       moaindex p1= baocc, eavirt
       moaindex p2= baocc, eavirt
       moaindex p3= baocc, eavirt
 #
-      moaindex q = baocc, eavirt
-      moaindex q1= baocc, eavirt
-      moaindex q2= baocc, eavirt
-      moaindex q3= baocc, eavirt
+      mobindex q = bbocc, ebvirt
+      mobindex q1= bbocc, ebvirt
+      mobindex q2= bbocc, ebvirt
+      mobindex q3= bbocc, ebvirt
 #
 #     eom indeces
 #
@@ -107,12 +104,11 @@
       index kindex19 =1, 19
       index jindex20 =1, 20
       index kindex20 =1, 20
-
-      index jindex28 = 1, 1 
       index j20 =1, 20
       index k20 =1, 20
       index j21 =1, 21
       index k21 =1, 21
+      index jindex28 = 1, 1 
 #
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #
@@ -128,14 +124,15 @@
       served Vaajj(a,a1,j,j1)
       served Viabj(i,a,b,j)
 #
-      temp tomegacis(kindex12,jindex28)
-      distributed omegacis(kindex12,jindex28)
-#
 # VFL arrays to use simple indeces
 
       distributed VC1A(a,i,k21)
       distributed VCH1A(a,i,k20)
       distributed VTEMP1A(a,i,k20)
+
+      distributed VC1B(b,j,k21)
+      distributed VCH1B(b,j,k20)
+      distributed VTEMP1B(b,j,k20)
 
       static amp_print_a (a,i)
       static amp_print_b (b,j)
@@ -177,10 +174,6 @@
       temp atemp20(jindex20,kindex20)
 #
       local L1ai(a,i) 
-      static pinf(kindex12,jindex28) 
-      temp tpinf(kindex12,jindex28) 
-      scalar rank 
-      scalar eroot 
 
       scalar six 
       scalar kcount
@@ -188,6 +181,11 @@
       scalar esum
       scalar esum1
       scalar temp3  
+
+      temp tpinf(kindex12,jindex28) 
+      static pinf(kindex12,jindex28)
+      scalar eroot 
+      scalar rank 
 # END VFL arrays to use simple indeces
 #
 #    served arrays used in EOM
@@ -452,10 +450,13 @@
       distributed VCEND1B12(b,j)
 #
       distributed VCE1A(a,i)
+      distributed VCE1B(b,j)
 #
       distributed VCACT1A(a,i)
+      distributed VCACT1B(b,j)
 #
       distributed VCHACT1A(a,i)
+      distributed VCHACT1B(b,j)
 #
       distributed VSTART1A1(a,i)
       distributed VSTART1A2(a,i)
@@ -470,10 +471,25 @@
       distributed VSTART1A11(a,i)
       distributed VSTART1A12(a,i)
 #
-## CIS density matrices and transition moments.
+      distributed VSTART1B1(b,j)
+      distributed VSTART1B2(b,j)
+      distributed VSTART1B3(b,j)
+      distributed VSTART1B4(b,j)
+      distributed VSTART1B5(b,j)
+      distributed VSTART1B6(b,j)
+      distributed VSTART1B7(b,j)
+      distributed VSTART1B8(b,j)
+      distributed VSTART1B9(b,j)
+      distributed VSTART1B10(b,j)
+      distributed VSTART1B11(b,j)
+      distributed VSTART1B12(b,j)
 #
+# CIS density matrices and transition moments.
+# 
       STATIC DENS_OO_AA(p,p1)
+      STATIC DENS_OO_BB(q,q1)
       STATIC DENS_VV_AA(p,p1)
+      STATIC DENS_VV_BB(q,q1)
       STATIC AO_DENSITY(mu,nu)
       STATIC HF_DENSITY(mu,nu)
 
@@ -482,21 +498,25 @@
       Distributed Intxb(mu,b)
 
       Temp tmpii(i,i1)
-      Temp tmppp(p,p1)
+      Temp tmp_tia(i,a)
+      Temp tmp_tjb(j,b)
       Temp tmpxa(mu,a)
       Temp tmpjj(j,j1)
       Temp tmpxb(mu,b)
+      Temp tmppp(p,p1)
+      Temp tmpqq(q,q1)
       Temp tmpaa(a,a1)
       Temp tmpbb(b,b1)
+      Temp txi(mu,i)
+      Temp txj(mu,j)
+      Temp txa(mu,a)
+      Temp txb(mu,b)
       Temp tmpxx(mu,nu)
-      Temp Txa(mu,a)
-      Temp Txi(mu,i)
-      Temp Tmp_tia(i,a1)
 
       Temp txx(mu,nu)
       Temp txx2(mu,nu)
       Temp txx3(mu,nu)
-
+  
       Scalar DIP_MOM_X
       Scalar DIP_MOM_Y
       Scalar DIP_MOM_Z
@@ -506,12 +526,11 @@
       Scalar CIS_ENEG
       Scalar SQR_SUM
       Scalar CIS_TMOM
-      Scalar FACT_43
+      Scalar FACT_23
       Scalar Two
       Scalar Three
-      Scalar Four
       Scalar Onehalf
-      Scalar Idens 
+      Scalar Idens
 #
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #
@@ -569,6 +588,7 @@
       scalar sval7
       scalar sval8
       scalar sval9
+      scalar amplthresh
 #
 #     eom scalars
 #
@@ -695,7 +715,6 @@
       scalar Vtemp_18
       scalar Vtemp_19
       scalar Vtemp_20
-      scalar amplthresh
 #
       scalar V1_1
       scalar V1_2
@@ -1043,6 +1062,7 @@
       scalar xmax20
       scalar xm20
       scalar ort20
+
 #======================================================
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #--end of script generated part of the code
@@ -1121,7 +1141,7 @@
       served Vjxxj(j1,nu,lambda,j)
       served Vxjqj(mu,j,q,j1)
       served Vjxbj(j,mu,b,j1)
-      served Vxbjj(mu,b,j,j1)     
+      served vxbjj(mu,b,j,j1)     
 #
       temp Txixj(mu,i,nu,j)
       temp Txiqj(mu,i,q,j)
@@ -1204,10 +1224,10 @@
 #
 #    ------------------------------------------------------------------------
 #
-    #execute load_balance_off  
      execute sip_barrier
 #
       PARDO mu, nu, lambda
+        WHERE mu < nu 
             allocate L0xxxi(mu,nu,lambda,*) 
             allocate L0xxxj(mu,nu,lambda,*) 
             DO  sigma
@@ -1220,7 +1240,7 @@
                 ENDDO i
 #
                 DO j
-                   txxxj(mu,nu,lambda,j)  = daoint(mu,nu,lambda,sigma)*ca(sigma,j)
+                   txxxj(mu,nu,lambda,j)  = daoint(mu,nu,lambda,sigma)*cb(sigma,j)
                    L0xxxj(mu,nu,lambda,j) += txxxj(mu,nu,lambda,j)
                 ENDDO j
 #
@@ -1249,12 +1269,138 @@
               txxjx(nu,mu,j,lambda) = L0xxxj(mu,nu,lambda,j)
 #
               DO j1
-                 Txxjj(nu,mu,j,j1)  = txxjx(nu,mu,j,lambda)*ca(lambda,j1)
+                 Txxjj(nu,mu,j,j1)  = txxjx(nu,mu,j,lambda)*cb(lambda,j1)
                  prepare Vxxjj(nu,mu,j,j1) += Txxjj(nu,mu,j,j1)
               ENDDO j1
 #
               DO j1
-                 Tjxxj(j1,nu,lambda,j)  = L0xxxj(mu,nu,lambda,j)*ca(mu,j1)
+                 Tjxxj(j1,nu,lambda,j)  = L0xxxj(mu,nu,lambda,j)*cb(mu,j1)
+                 prepare Vjxxj(j1,nu,lambda,j) += Tjxxj(j1,nu,lambda,j)
+              ENDDO j1
+#
+              DO i1
+                 Tixxj(i1,nu,lambda,j)  = L0xxxj(mu,nu,lambda,j)*ca(mu,i1)
+                 prepare Vixxj(i1,nu,lambda,j) += Tixxj(i1,nu,lambda,j)
+              ENDDO i1
+#
+           ENDDO j
+#
+        deallocate L0xxxi(mu,nu,lambda,*)
+        deallocate L0xxxj(mu,nu,lambda,*)
+      ENDPARDO mu, nu, lambda 
+#
+      PARDO mu, nu, lambda
+        WHERE mu > nu 
+            allocate L0xxxi(mu,nu,lambda,*) 
+            allocate L0xxxj(mu,nu,lambda,*) 
+            DO  sigma
+#
+                compute_integrals daoint(mu,nu,lambda,sigma)
+#
+                DO i
+                   txxxi(mu,nu,lambda,i)  = daoint(mu,nu,lambda,sigma)*ca(sigma,i)
+                   L0xxxi(mu,nu,lambda,i) += txxxi(mu,nu,lambda,i)
+                ENDDO i
+#
+                DO j
+                   txxxj(mu,nu,lambda,j)  = daoint(mu,nu,lambda,sigma)*cb(sigma,j)
+                   L0xxxj(mu,nu,lambda,j) += txxxj(mu,nu,lambda,j)
+                ENDDO j
+#
+           ENDDO  sigma
+#     
+           DO i
+#     
+              txixx(lambda,i,mu,nu) = L0xxxi(mu,nu,lambda,i)
+              txxix(nu,mu,i,lambda) = L0xxxi(mu,nu,lambda,i)
+#
+              DO i1
+                 Txxii(nu,mu,i,i1)  = txxix(nu,mu,i,lambda)*ca(lambda,i1)
+                 prepare Vxxii(nu,mu,i,i1) += Txxii(nu,mu,i,i1)
+              ENDDO i1
+#
+              DO i1
+                 Tixxi(i1,nu,lambda,i)  = L0xxxi(mu,nu,lambda,i)*ca(mu,i1)
+                 prepare Vixxi(i1,nu,lambda,i) += Tixxi(i1,nu,lambda,i)
+              ENDDO i1
+#
+           ENDDO i
+#
+           DO j
+#     
+              txjxx(lambda,j,mu,nu) = L0xxxj(mu,nu,lambda,j)
+              txxjx(nu,mu,j,lambda) = L0xxxj(mu,nu,lambda,j)
+#
+              DO j1
+                 Txxjj(nu,mu,j,j1)  = txxjx(nu,mu,j,lambda)*cb(lambda,j1)
+                 prepare Vxxjj(nu,mu,j,j1) += Txxjj(nu,mu,j,j1)
+              ENDDO j1
+#
+              DO j1
+                 Tjxxj(j1,nu,lambda,j)  = L0xxxj(mu,nu,lambda,j)*cb(mu,j1)
+                 prepare Vjxxj(j1,nu,lambda,j) += Tjxxj(j1,nu,lambda,j)
+              ENDDO j1
+#
+              DO i1
+                 Tixxj(i1,nu,lambda,j)  = L0xxxj(mu,nu,lambda,j)*ca(mu,i1)
+                 prepare Vixxj(i1,nu,lambda,j) += Tixxj(i1,nu,lambda,j)
+              ENDDO i1
+#
+           ENDDO j
+#
+        deallocate L0xxxi(mu,nu,lambda,*)
+        deallocate L0xxxj(mu,nu,lambda,*)
+      ENDPARDO mu, nu, lambda 
+#
+      PARDO mu, nu, lambda
+        WHERE mu == nu 
+            allocate L0xxxi(mu,nu,lambda,*) 
+            allocate L0xxxj(mu,nu,lambda,*) 
+            DO  sigma
+#
+                compute_integrals daoint(mu,nu,lambda,sigma)
+#
+                DO i
+                   txxxi(mu,nu,lambda,i)  = daoint(mu,nu,lambda,sigma)*ca(sigma,i)
+                   L0xxxi(mu,nu,lambda,i) += txxxi(mu,nu,lambda,i)
+                ENDDO i
+#
+                DO j
+                   txxxj(mu,nu,lambda,j)  = daoint(mu,nu,lambda,sigma)*cb(sigma,j)
+                   L0xxxj(mu,nu,lambda,j) += txxxj(mu,nu,lambda,j)
+                ENDDO j
+#
+           ENDDO  sigma
+#     
+           DO i
+#     
+              txixx(lambda,i,mu,nu) = L0xxxi(mu,nu,lambda,i)
+              txxix(nu,mu,i,lambda) = L0xxxi(mu,nu,lambda,i)
+#
+              DO i1
+                 Txxii(nu,mu,i,i1)  = txxix(nu,mu,i,lambda)*ca(lambda,i1)
+                 prepare Vxxii(nu,mu,i,i1) += Txxii(nu,mu,i,i1)
+              ENDDO i1
+#
+              DO i1
+                 Tixxi(i1,nu,lambda,i)  = L0xxxi(mu,nu,lambda,i)*ca(mu,i1)
+                 prepare Vixxi(i1,nu,lambda,i) += Tixxi(i1,nu,lambda,i)
+              ENDDO i1
+#
+           ENDDO i
+#
+           DO j
+#     
+              txjxx(lambda,j,mu,nu) = L0xxxj(mu,nu,lambda,j)
+              txxjx(nu,mu,j,lambda) = L0xxxj(mu,nu,lambda,j)
+#
+              DO j1
+                 Txxjj(nu,mu,j,j1)  = txxjx(nu,mu,j,lambda)*cb(lambda,j1)
+                 prepare Vxxjj(nu,mu,j,j1) += Txxjj(nu,mu,j,j1)
+              ENDDO j1
+#
+              DO j1
+                 Tjxxj(j1,nu,lambda,j)  = L0xxxj(mu,nu,lambda,j)*cb(mu,j1)
                  prepare Vjxxj(j1,nu,lambda,j) += Tjxxj(j1,nu,lambda,j)
               ENDDO j1
 #
@@ -1270,7 +1416,6 @@
       ENDPARDO mu, nu, lambda 
 #
      execute server_barrier
-    #execute load_balance_on 
 #
 #    ------------------------------------------------------------------------
 #
@@ -1449,7 +1594,7 @@
 #
               DO b
 #
-                 Txbjj(mu,b,j,j1)  = Vxxjj(mu,nu,j,j1)*ca(nu,b)
+                 Txbjj(mu,b,j,j1)  = Vxxjj(mu,nu,j,j1)*cb(nu,b)
                  Lxbjj(mu,b,j,j1) += Txbjj(mu,b,j,j1)
 #
               ENDDO b
@@ -1479,7 +1624,7 @@
 #
               DO b1
 #
-                 Tbbjj(b1,b,j,j1)  = Vxbjj(mu,b,j,j1)*ca(mu,b1)
+                 Tbbjj(b1,b,j,j1)  = Vxbjj(mu,b,j,j1)*cb(mu,b1)
                  Lbbjj(b1,b,j,j1) += Tbbjj(b1,b,j,j1)
 #
               ENDDO b1
@@ -1524,7 +1669,7 @@
 #
               DO b
 #
-                 Tjxbj(j,mu,b,j1)  = Vjxxj(j,mu,nu,j1)*ca(nu,b)
+                 Tjxbj(j,mu,b,j1)  = Vjxxj(j,mu,nu,j1)*cb(nu,b)
                  Ljxbj(j,mu,b,j1) += Tjxbj(j,mu,b,j1)
 #
               ENDDO b
@@ -1554,7 +1699,7 @@
 #
               DO b1
 #
-                 Tjbbj(j,b1,b,j1)  = Vjxbj(j,mu,b,j1)*ca(mu,b1)
+                 Tjbbj(j,b1,b,j1)  = Vjxbj(j,mu,b,j1)*cb(mu,b1)
                  Ljbbj(j,b1,b,j1) += Tjbbj(j,b1,b,j1)
 #
               ENDDO b1
@@ -1602,7 +1747,7 @@
 #
               DO b
 #
-                 Tixbj(i,mu,b,j)  = Vixxj(i,mu,nu,j)*ca(nu,b)
+                 Tixbj(i,mu,b,j)  = Vixxj(i,mu,nu,j)*cb(nu,b)
                  Lixbj(i,mu,b,j) += Tixbj(i,mu,b,j)
 #
               ENDDO b
@@ -1702,30 +1847,29 @@
     ##execute blocks_to_list                Viabj
 #
       execute blocks_to_list VSTART1A1
-      execute blocks_to_list VSTART1A1
+      execute blocks_to_list VSTART1B1
       execute blocks_to_list VSTART1A2
-      execute blocks_to_list VSTART1A2
+      execute blocks_to_list VSTART1B2
       execute blocks_to_list VSTART1A3
-      execute blocks_to_list VSTART1A3
+      execute blocks_to_list VSTART1B3
       execute blocks_to_list VSTART1A4
-      execute blocks_to_list VSTART1A4
+      execute blocks_to_list VSTART1B4
       execute blocks_to_list VSTART1A5
-      execute blocks_to_list VSTART1A5
+      execute blocks_to_list VSTART1B5
       execute blocks_to_list VSTART1A6
-      execute blocks_to_list VSTART1A6
+      execute blocks_to_list VSTART1B6
       execute blocks_to_list VSTART1A7
-      execute blocks_to_list VSTART1A7
+      execute blocks_to_list VSTART1B7
       execute blocks_to_list VSTART1A8
-      execute blocks_to_list VSTART1A8
+      execute blocks_to_list VSTART1B8
       execute blocks_to_list VSTART1A9
-      execute blocks_to_list VSTART1A9
+      execute blocks_to_list VSTART1B9
       execute blocks_to_list VSTART1A10
-      execute blocks_to_list VSTART1A10
+      execute blocks_to_list VSTART1B10
       execute blocks_to_list VSTART1A11
-      execute blocks_to_list VSTART1A11
+      execute blocks_to_list VSTART1B11
       execute blocks_to_list VSTART1A12
-      execute blocks_to_list VSTART1A12
-      execute blocks_to_list omegacis
+      execute blocks_to_list VSTART1B12
 #
       execute write_blocks_to_list
       execute sip_barrier
@@ -1767,19 +1911,61 @@
 #
       ENDPARDO a, i
 #
+      PARDO b, j
+#
+            tbj(b,j) = 0.0
+#
+            DO j1
+#
+               GET         VCACT1B(b,j1)
+               t2bj(b,j) = VCACT1B(b,j1)*fock_b(j1,j)
+               tbj(b,j) -= t2bj(b,j)
+#
+            eNDDO j1
+#
+            DO b1
+#
+               GET         VCACT1B(b1,j)
+               t1bj(b,j) = VCACT1B(b1,j)*fock_b(b,b1)
+               tbj(b,j) += t1bj(b,j)
+#
+            ENDDO b1
+#
+            PUT VCHACT1B(b,j) = tbj(b,j)
+#
+            DO k20
+               if k20 == spdim
+                  t2bjS(b,j,k20)     = tbj(b,j)
+                  PUT VCH1B(b,j,k20) = t2bjS(b,j,k20)
+               endif
+            ENDDO k20
+#
+      ENDPARDO b, j
+#
       execute sip_barrier 
 #
       PARDO a, i, b, j 
 #
             REQUEST              Viabj(i,a,b,j) a 
-            GET                  VCACT1A(b,j)
-            t2ai(a,i)          = Viabj(i,a,b,j)*VCACT1A(b,j)
+            GET                  VCACT1B(b,j)
+            GET                  VCACT1A(a,i)
+            t2ai(a,i)          = Viabj(i,a,b,j)*VCACT1B(b,j)
             PUT VCHACT1A(a,i) += t2ai(a,i)
 #
             DO k20
                if k20 == spdim
                   t2aiS(a,i,k20)     = t2ai(a,i)
                   PUT VCH1A(a,i,k20)+= t2aiS(a,i,k20)
+               endif
+            ENDDO k20
+#
+            t1bj(b,j)          = Viabj(i,a,b,j)*VCACT1A(a,i)
+            PUT VCHACT1B(b,j) += t1bj(b,j)
+#
+            DO k20
+               if k20 == spdim
+                  t2bjS(b,j,k20)     = t1bj(b,j)
+                  PUT VCH1B(b,j,k20)+= t2bjS(b,j,k20)
                endif
             ENDDO k20
 #
@@ -1801,6 +1987,23 @@
 #
       ENDPARDO a, i, a1, i1     
 #
+      PARDO b, j, b1, j1  
+#
+            REQUEST             Vjbbj(j1,b1,b,j) j
+            GET                 VCACT1B(b1,j1)
+            tbj(b,j)          = Vjbbj(j1,b1,b,j)*VCACT1B(b1,j1)
+            PUT VCHACT1B(b,j)+= tbj(b,j)
+#
+            DO k20
+               if k20 == spdim
+                  t2bjS(b,j,k20)     = tbj(b,j)
+                  PUT VCH1B(b,j,k20)+= t2bjS(b,j,k20)
+               endif
+            ENDDO k20
+#
+      ENDPARDO b, j, b1, j1    
+     #execute sip_barrier
+#
       ENDPROC R1ANEW
 #     --------------
 #
@@ -1821,6 +2024,20 @@
 #
      ENDPARDO a, i
 #
+     PARDO b, j
+#
+           GET        VCHACT1B(b,j)
+           tbj(b,j) = VCHACT1B(b,j)
+#
+            DO k20
+               if k20 == spdim
+                  t2bjS(b,j,k20)     = tbj(b,j)
+                  PUT VCH1B(b,j,k20) = t2bjS(b,j,k20)
+               endif
+            ENDDO k20
+#
+     ENDPARDO b, j
+#
      ENDPROC UPDATE
 #    -------------- 
 #
@@ -1832,6 +2049,11 @@
                 PUT VCHACT1A(a,i) = tai(a,i)
           ENDPARDO a, i
 #
+          PARDO b, j
+                tbj(b,j) = 0.0
+                PUT VCHACT1B(b,j) = tbj(b,j)
+          ENDPARDO b, j
+#
      ENDPROC VCHACT_ZERO
 #    -------------------- 
 #
@@ -1840,101 +2062,319 @@
 #
      allocate lai(*,*)
 #
-     sqr=1.0
+     sqr=2.0
      exponent=0.5
      execute square_root sqr exponent
      etemp=1.0/sqr
 #
      PARDO a, i
-           lai(a,i)=0.0
-           execute place_one lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A1(a,i)=tai(a,i)
-     ENDPARDO a, i
 #
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one2 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A2(a,i)=tai(a,i)
-     ENDPARDO a, i
+     lai(a,i)=0.0
+     execute place_one lai etemp
+     tai(a,i)=lai(a,i)
+     put VSTART1A1(a,i)=tai(a,i)
+     put VSTART1A2(a,i)=tai(a,i)
 #
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one3 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A3(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one4 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A4(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one5 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A5(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one6 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A6(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     etemp *= -1.0 
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A7(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one2 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A8(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one3 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A9(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one4 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A10(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one5 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A11(a,i)=tai(a,i)
-     ENDPARDO a, i
-#
-     PARDO a, i
-           lai(a,i)=0.0
-           execute place_one6 lai etemp
-           tai(a,i)=lai(a,i)
-           put VSTART1A12(a,i)=tai(a,i)
      ENDPARDO a, i
 #
      deallocate lai(*,*)
 #
-     execute sip_barrier 
-
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_oneb lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B1(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_oneb lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B2(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+#
+#
+     allocate lai(*,*)
+#
+     sqr=2.0
+     exponent=0.5
+     execute square_root sqr exponent
+     etemp=1.0/sqr
+#
+     PARDO a, i
+#
+     lai(a,i)=0.0
+     execute place_one2 lai etemp
+     tai(a,i)=lai(a,i)
+     put VSTART1A3(a,i)=tai(a,i)
+     put VSTART1A4(a,i)=tai(a,i)
+#
+     ENDPARDO a, i
+#
+     deallocate lai(*,*)
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one2b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B3(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one2b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B4(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+     allocate lai(*,*)
+#
+     sqr=2.0
+     exponent=0.5
+     execute square_root sqr exponent
+     etemp=1.0/sqr
+#
+     PARDO a, i
+#
+     lai(a,i)=0.0
+     execute place_one3 lai etemp
+     tai(a,i)=lai(a,i)
+     put VSTART1A5(a,i)=tai(a,i)
+     put VSTART1A6(a,i)=tai(a,i)
+#
+     ENDPARDO a, i
+#
+     deallocate lai(*,*)
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one3b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B5(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one3b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B6(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+#
+#
+#
+     allocate lai(*,*)
+#
+     sqr=2.0
+     exponent=0.5
+     execute square_root sqr exponent
+     etemp=1.0/sqr
+#
+     PARDO a, i
+#
+     lai(a,i)=0.0
+     execute place_one4 lai etemp
+     tai(a,i)=lai(a,i)
+     put VSTART1A7(a,i)=tai(a,i)
+     put VSTART1A8(a,i)=tai(a,i)
+#
+     ENDPARDO a, i
+#
+     deallocate lai(*,*)
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one4b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B7(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one4b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B8(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+#
+#
+#
+     allocate lai(*,*)
+#
+     sqr=2.0
+     exponent=0.5
+     execute square_root sqr exponent
+     etemp=1.0/sqr
+#
+     PARDO a, i
+#
+     lai(a,i)=0.0
+     execute place_one5 lai etemp
+     tai(a,i)=lai(a,i)
+     put VSTART1A9(a,i)=tai(a,i)
+     put VSTART1A10(a,i)=tai(a,i)
+#
+     ENDPARDO a, i
+#
+     deallocate lai(*,*)
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one5b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B9(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one5b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B10(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+#
+#
+#
+     allocate lai(*,*)
+#
+     sqr=2.0
+     exponent=0.5
+     execute square_root sqr exponent
+     etemp=1.0/sqr
+#
+     PARDO a, i
+#
+     lai(a,i)=0.0
+     execute place_one6 lai etemp
+     tai(a,i)=lai(a,i)
+     put VSTART1A11(a,i)=tai(a,i)
+     put VSTART1A12(a,i)=tai(a,i)
+#
+     ENDPARDO a, i
+#
+     deallocate lai(*,*)
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one6b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B11(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
+#
+     allocate lbj(*,*)
+#
+     etemp*=-1.0
+#
+     PARDO b, j
+#
+     lbj(b,j)=0.0
+     execute place_one6b lbj etemp
+     tbj(b,j)=lbj(b,j)
+     put VSTART1B12(b,j)=tbj(b,j)
+#
+     ENDPARDO b, j
+#
+     deallocate lbj(*,*)
+#
      ENDPROC startvec2
 #    ----------------- 
 #
@@ -1957,6 +2397,22 @@
 #
      ENDPARDO a, i
 #
+     PARDO b, j
+#
+           GET                VSTART1B1(b,j)
+           tbj(b,j)         = VSTART1B1(b,j)
+           PUT VCE1B(b,j)   = tbj(b,j)
+           PUT VCACT1B(b,j) = tbj(b,j)
+#
+           DO k21
+              if k21 == 1
+                tbjS(b,j,k21)     = tbj(b,j)
+                PUT VC1B(b,j,k21) = tbjS(b,j,k21)
+              endif
+           ENDDO k21
+#
+     ENDPARDO b, j
+#
      execute sip_barrier
 #
      ENDPROC copy_starttoev
@@ -1970,6 +2426,12 @@
            tai(a,i)       = VCACT1A(a,i)
            PUT VCE1A(a,i) = tai(a,i)
      ENDPARDO a, i
+#
+     PARDO b, j
+           GET              VCACT1B(b,j)
+           tbj(b,j)       = VCACT1B(b,j)
+           PUT VCE1B(b,j) = tbj(b,j)
+     ENDPARDO b, j
 #
      execute sip_barrier
 #
@@ -1995,6 +2457,22 @@
            ENDDO k21
      ENDPARDO a, i
 #
+     PARDO b, j
+           DO k21
+              if k21 == 21
+                 GET        VC1B(b,j,k21)
+                 tbj(b,j) = VC1B(b,j,k21)
+                 PUT VCACT1B(b,j) = Tbj(b,j)
+                 DO j21
+                    if j21 == 13
+                       tbjS(b,j,j21)     = Tbj(b,j)
+                       PUT VC1B(b,j,j21) = tbjS(b,j,j21)
+                    endif
+                 ENDDO j21
+              endif
+           ENDDO k21
+     ENDPARDO b, j
+#
      ENDPROC copy_toVCactual_tr
 #    -------------------------- 
 #
@@ -2010,6 +2488,16 @@
               endif
            ENDDO k21
      ENDPARDO a, i
+#
+     PARDO b, j
+           DO k21
+              if k21 == spdim
+                 GET                VC1B(b,j,k21)
+                 tbj(b,j)         = VC1B(b,j,k21)
+                 PUT VCACT1B(b,j) = tbj(b,j)
+              endif
+           ENDDO k21
+     ENDPARDO b, j
 #
      execute sip_barrier
 #
@@ -2030,6 +2518,17 @@
            ENDDO k21
      ENDPARDO a, i
 #
+     PARDO b, j
+           DO k21
+              if k21 > spdim
+                 GET                VC1B(b,j,k21)
+                 tbj(b,j)         = VC1B(b,j,k21)
+                 PUT VCACT1B(b,j) = tbj(b,j)
+                 exit 
+              endif
+           ENDDO k21
+     ENDPARDO b, j
+#
      execute sip_barrier
 #
      ENDPROC copy_toVCactual_2
@@ -2049,6 +2548,17 @@
            ENDDO k21
      ENDPARDO a, i
 #
+     PARDO b, j
+           DO k21
+              if k21 > spdim
+                 GET                 VC1B(b,j,k21)
+                 tbj(b,j)          = VC1B(b,j,k21)
+                 PUT VCHACT1B(b,j) = tbj(b,j)
+                 exit 
+              endif
+           ENDDO k21
+     ENDPARDO b, j
+#
      execute sip_barrier
 #
      ENDPROC copy_toVCHactual_2
@@ -2057,7 +2567,18 @@
      PROC HCmult
 #    -----------
 #
+     #call VCHACT_ZERO
+#
+     #execute sip_barrier
+#
       call R1ANEW
+     #call R1BNEW
+#
+     #execute sip_barrier
+#
+     #call UPDATE
+#
+     #execute sip_barrier
 #
      ENDPROC HCmult
 #    --------------
@@ -5219,6 +5740,32 @@
 #
 # -----------------------------------------------------------------
 #
+      PARDO b, j
+#
+           get VCACT1B(b,j)
+           get VCHACT1B(b,j)
+           get VCONV1B(b,j)
+           tbj(b,j)=VCACT1B(b,j)
+           tbj(b,j)*=omega
+           tbj(b,j)*=-1.0
+           tbj(b,j)+=VCHACT1b(b,j)
+#    
+           t1bj(b,j)=VCONV1B(b,j)
+           t1bj(b,j)*=-1.0
+           t11bj(b,j)=omega
+           t1bj(b,j)+=t11bj(b,j)
+           execute apply_den2 tbj t1bj 
+#
+            DO j21
+               if j21 > spdim
+                  tbjS(b,j,j21)     = tbj(b,j)
+                  PUT VC1B(b,j,j21) = tbjS(b,j,j21)
+                  exit
+               ENDIF
+            ENDDO j21
+#
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
      ENDPROC RESID
@@ -5314,7 +5861,26 @@
             ENDDO k21 
             PUT VCACT1A(a,i) = tai(a,i)
       ENDPARDO a, i
-      endif 
+#
+      PARDO b, j
+            tbj(b,j) = 0.0 
+            DO k21 
+               if k21 <= spdim 
+                  GET                 VC1B(b,j,k21)  
+                  t1bj(b,j)         = VC1B(b,j,k21) 
+                  DO k20 
+                     if k20 == k21 
+                        t20(k20,k20)      = Aeig(k20,k20) 
+                        execute return_sval t20 temp3 
+                     endif 
+                  ENDDO k20 
+                  t1bj(b,j)        *= temp3  
+                  tbj(b,j)         += t1bj(b,j) 
+               endif 
+            ENDDO k21 
+            PUT VCACT1B(b,j) = tbj(b,j)
+      ENDPARDO b, j
+      endif # spdim > 1 
 #
       execute sip_barrier
 #
@@ -5345,7 +5911,22 @@
             ENDDO k20 
             PUT VCHACT1A(a,i) = tai(a,i)
       ENDPARDO a, i
-      endif 
+#
+      PARDO b, j
+            tbj(b,j) = 0.0 
+            DO k20 
+               if k20 <= spdim 
+                  GET                 VCH1B(b,j,k20)  
+                  t1bj(b,j)         = VCH1B(b,j,k20) 
+                  t20(k20,k20)      = Aeig(k20,k20) 
+                  execute return_sval t20 temp3 
+                  t1bj(b,j)        *= temp3  
+                  tbj(b,j)         += t1bj(b,j) 
+               endif 
+            ENDDO k20 
+            PUT VCHACT1B(b,j) = tbj(b,j)
+      ENDPARDO b, j
+      endif # spdim > 1 
 #
       execute sip_barrier
 #
@@ -5369,6 +5950,14 @@
            etemp     = tai(a,i)*t2ai(a,i)
            sum1     += etemp
      ENDPARDO a, i
+#
+     PARDO b, j
+           get         VCACT1B(b,j)
+           tbj(b,j)  = VCACT1B(b,j)
+           t2bj(b,j) = tbj(b,j)
+           etemp     = tbj(b,j)*t2bj(b,j)
+           sum2     += etemp
+     ENDPARDO b, j
 #
      etemp1 = sum1 + sum2
      EXECUTE SIP_BARRIER
@@ -5394,6 +5983,14 @@
            etemp     = tai(a,i)*t2ai(a,i)
            sum1     += etemp
      ENDPARDO a, i
+#
+     PARDO b, j
+           get         VCHACT1B(b,j)
+           tbj(b,j)  = VCHACT1B(b,j)
+           t2bj(b,j) = tbj(b,j)
+           etemp     = tbj(b,j)*t2bj(b,j)
+           sum2     += etemp
+     ENDPARDO b, j
 #
      EXECUTE SIP_BARRIER
 #
@@ -5463,6 +6060,49 @@
      ENDPARDO a, i
 #
 #
+     PARDO b, j
+#
+     GET VCE1B(b,j)
+     tbj(b,j)=VCE1B(b,j)
+#
+     if iroot == 1.0
+     put VCEND1B1(b,j)=tbj(b,j)
+     endif
+     if iroot == 2.0
+     put VCEND1B2(b,j)=tbj(b,j)
+     endif
+     if iroot == 3.0
+     put VCEND1B3(b,j)=tbj(b,j)
+     endif
+     if iroot == 4.0
+     put VCEND1B4(b,j)=tbj(b,j)
+     endif
+     if iroot == 5.0
+     put VCEND1B5(b,j)=tbj(b,j)
+     endif
+     if iroot == 6.0
+     put VCEND1B6(b,j)=tbj(b,j)
+     endif
+     if iroot == 7.0
+     put VCEND1B7(b,j)=tbj(b,j)
+     endif
+     if iroot == 8.0
+     put VCEND1B8(b,j)=tbj(b,j)
+     endif
+     if iroot == 9.0
+     put VCEND1B9(b,j)=tbj(b,j)
+     endif
+     if iroot == 10.0
+     put VCEND1B10(b,j)=tbj(b,j)
+     endif
+     if iroot == 11.0
+     put VCEND1B11(b,j)=tbj(b,j)
+     endif
+     if iroot == 12.0
+     put VCEND1B12(b,j)=tbj(b,j)
+     endif
+#
+     ENDPARDO b, j
      execute sip_barrier
      execute server_barrier
 #
@@ -5484,6 +6124,14 @@
            put VCHACT1A(a,i) = tai(a,i)
      ENDPARDO a, i
 #
+#
+     PARDO b, j
+           get                 VCACT1B(b,j)
+           tbj(b,j)          = VCACT1B(b,j)
+           tbj(b,j)         *= mult
+           put VCHACT1B(b,j) = tbj(b,j)
+     ENDPARDO b, j
+#
      execute sip_barrier
 #
      ENDPROC SCALEVCACT
@@ -5503,6 +6151,18 @@
               endif 
            ENDDO k21 
      ENDPARDO a, i 
+#
+     PARDO b, j 
+           get         VCHACT1B(b,j)
+           tbj(b,j)  = VCHACT1B(b,j)
+           tbj(b,j) *= mult
+           DO k21 
+              if k21 > spdim 
+                 PUT VC1B(b,j,k21) = tbj(b,j) 
+                 exit 
+              endif 
+           ENDDO k21 
+     ENDPARDO b, j 
 #
      ENDPROC SCALEVCACT_2
 #    -------------------- 
@@ -5524,6 +6184,19 @@
             ENDDO k21
       ENDPARDO a, i
 #
+      PARDO b, j
+            GET VCHACT1B(b,j)
+            DO k21
+               if k21 <= spdim
+                  GET                  VC1B(b,j,k21)
+                  tbj(b,j)           = VC1B(b,j,k21)
+                  etemp              = VCHACT1B(b,j)*tbj(b,j)
+                  etemp             *= -1.0
+                  t1(k21,k21)        = etemp
+                  PUT orth(k21,k21) += t1(k21,k21)
+               endif
+            ENDDO k21
+      ENDPARDO b, j
       execute sip_barrier 
 #
       ENDPROC ORTCOEFS
@@ -5556,6 +6229,30 @@
             sum1            += etemp
       ENDPARDO a, i
 #
+      PARDO b, j
+            GET        VCHACT1B(b,j)
+            tbj(b,j) = VCHACT1B(b,j)
+            DO k21
+               if k21 <= spdim
+                  GET         VC1B(b,j,k21)
+                  GET         orth(k21,k21)
+                  t1bj(b,j) = VC1B(b,j,k21)
+#
+                  t1(k21,k21)       = orth(k21,k21)
+                  execute return_sval t1 fact
+                  t1bj(b,j)*= fact
+                  tbj(b,j) += t1bj(b,j)
+#
+               endif
+            ENDDO k21
+#
+            PUT VCACT1B(b,j) = tbj(b,j)
+#
+            t2bj(b,j)        = tbj(b,j)
+            etemp            = tbj(b,j)*t2bj(b,j)
+            sum2            += etemp
+      ENDPARDO b, j 
+#
       execute sip_barrier
 #
 # -------- rewrite vector to spdim+1 record ---------
@@ -5569,6 +6266,16 @@
                endif 
             ENDDO k21 
       ENDPARDO a, i 
+#
+      PARDO b, j 
+            GET VCACT1B(b,j) 
+            DO k21 
+               if k21 > spdim 
+                  PUT VC1B(b,j,k21) = VCACT1B(b,j) 
+                  exit 
+               endif 
+            ENDDO k21 
+      ENDPARDO b, j 
 #
       execute sip_barrier
 #
@@ -5653,7 +6360,7 @@
 #
      PARDO b, b1
 #     GET HBAR_bb(b,b1)
-           Sbb(b,b1)      = fock_a(b,b1)
+           Sbb(b,b1)      = fock_b(b,b1)
            execute return_diagonal Sbb Sdbb
            tbb(b,b1)      = Sdbb(b,b1)
            put DDbb(b,b1) = tbb(b,b1)
@@ -5663,7 +6370,7 @@
 #
      PARDO j, j1
 #     GET HBAR_jj(j1,j)
-           Sjj(j1,j)      = fock_a(j1,j)
+           Sjj(j1,j)      = fock_b(j1,j)
            execute return_diagonal Sjj Sdjj
            tjj(j1,j)      = Sdjj(j1,j)
            put DDjj(j1,j) = tjj(j1,j)
@@ -21475,22 +22182,22 @@
               MYvev(k20,j20) = V4_2  
            endif 
            if k20 == 5 
-              MYvev(k20,j20) = V5_2  
+              MYvev(k20,j20) = V5_2
            endif 
            if k20 == 6 
-              MYvev(k20,j20) = V6_2  
+              MYvev(k20,j20) = V6_2 
            endif 
            if k20 == 7 
-              MYvev(k20,j20) = V7_2  
+              MYvev(k20,j20) = V7_2
            endif 
            if k20 == 8 
               MYvev(k20,j20) = V8_2  
            endif 
            if k20 == 9 
-              MYvev(k20,j20) = V9_2  
+              MYvev(k20,j20) = V9_2
            endif 
            if k20 == 10
-              MYvev(k20,j20) = V10_2  
+              MYvev(k20,j20) = V10_2
            endif 
            if k20 == 11
               MYvev(k20,j20) = V11_2  
@@ -22258,6 +22965,29 @@
             ENDDO j20
       ENDPARDO a, i
 #
+      PARDO b, j
+            DO j20
+               if j20 <= 12
+                  tbj(b,j) = 0.0
+                  DO k21
+                     if k21 <= 20
+                        GET         VC1B(b,j,k21)
+                        t1bj(b,j) = VC1B(b,j,k21)
+                        do k20
+                           if k20 == k21
+                              t20(j20,k20)      = MYvev(j20,k20)
+                              execute return_sval t20 fact
+                           endif
+                        enddo k20
+                        t1bj(b,j)*= fact
+                        tbj(b,j) += t1bj(b,j)
+                     endif # k21 <= 20
+                  ENDDO k21
+                  t2bjS(b,j,j20)       = tbj(b,j)
+                  PUT VTEMP1B(b,j,j20) = t2bjS(b,j,j20)
+               endif # j20 <= 12
+            ENDDO j20
+      ENDPARDO b, j
       execute sip_barrier
       execute server_barrier
 #
@@ -22277,6 +23007,21 @@
                endif # k20 <= 12
             ENDDO k20
       ENDPARDO a, i
+#
+      PARDO b, j
+            DO k20
+               if k20 <= 12
+                  GET        VTEMP1B(b,j,k20)
+                  tbj(b,j) = VTEMP1B(b,j,k20)
+                  do k21
+                     if k21 == k20
+                        tbjs(b,j,k21)         = tbj(b,j)
+                        PUT VC1B(b,j,k21) = tbjS(b,j,k21)
+                     endif # k21 == k20
+                  enddo k21
+               endif # k20 <= 12
+            ENDDO k20
+      ENDPARDO b, j
 #
       execute sip_barrier
 #
@@ -22339,6 +23084,50 @@
 #
       PROC ConstrA_b
 #     --------------
+#
+      PARDO b, j
+            DO k20
+            IF k20 == spdim
+               GET         VCH1B(b,j,k20)
+               t1bj(b,j) = VCH1B(b,j,k20)
+               DO k21
+               if k21 <= spdim
+                  DO j20
+                     IF j20 == k21
+                        GET                VC1B(b,j,k21)
+                        tbj(b,j)         = VC1B(b,j,k21)
+                        etemp            = tbj(b,j)*t1bj(b,j)
+                        t20(j20,k20)     = etemp
+                        Lax(j20,k20) += t20(j20,k20)
+                     endif # j20 == k21
+                  ENDDO j20
+               endif
+               ENDDO k21
+            endif
+            ENDDO k20
+      ENDPARDO b, j
+#
+      PARDO b, j
+            DO k21
+            IF k21 == spdim
+                  DO j20
+                     IF j20 == k21
+                        GET          VC1B(b,j,k21)
+                        tbj(b,j)   = VC1B(b,j,k21)
+                        DO k20
+                          if k20 < spdim
+                             GET                VCH1B(b,j,k20)
+                             t1bj(b,j)        = VCH1B(b,j,k20)
+                             etemp            = tbj(b,j)*t1bj(b,j)
+                             t20(j20,k20)     = etemp
+                             Lax(j20,k20) += t20(j20,k20)
+                          endif
+                        ENDDO k20
+                     endif # j20 == k21
+                  ENDDO j20
+            endif
+            ENDDO k21
+      ENDPARDO b, j
 #
       ENDPROC ConstrA_b
 #     -----------------
@@ -23019,6 +23808,26 @@
             ENDDO j20
       ENDPARDO a, i
 #
+      PARDO b, j
+            DO j20
+               if j20 <= 12
+                  tbj(b,j) = 0.0
+                  DO k20
+                     GET                  VCH1B(b,j,k20)
+                     t1bj(b,j)          = VCH1B(b,j,k20)
+
+                     t20(j20,k20)       = MYvev(j20,k20)
+                     execute return_sval t20 fact
+
+                     t1bj(b,j)         *= fact
+                     tbj(b,j)          += t1bj(b,j)
+                  ENDDO k20
+                  t2bjS(b,j,j20)       = tbj(b,j)
+                  PUT VTEMP1B(b,j,j20) = t2bjS(b,j,j20)
+               endif # j20 <= 12
+            ENDDO j20
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
 #   rewrite temporary vectors into the usual ones
@@ -23033,6 +23842,17 @@
                endif # k20 <= 12
             ENDDO k20
       ENDPARDO a, i
+#
+      PARDO b, j
+            DO k20
+               if k20 <= 12
+                  GET                  VTEMP1B(b,j,k20)
+                  tbj(b,j)           = VTEMP1B(b,j,k20)
+                  t2bjs(b,j,k20)     = tbj(b,j)
+                  PUT VCH1B(b,j,k20) = t2bjS(b,j,k20)
+               endif # k20 <= 12
+            ENDDO k20
+      ENDPARDO b, j
 #
       execute sip_barrier 
 #
@@ -23925,15 +24745,21 @@
 #     --------------- 
 #
        create VC1A 
+       create VC1B 
        create VCH1A 
+       create VCH1B 
        create VTEMP1A 
+       create VTEMP1B 
 #
        create VEV
        create VCE1A
+       create VCE1B
        create VCONV1A
        create VCONV1B
        create VCACT1A
+       create VCACT1B
        create VCHACT1A
+       create VCHACT1B
        create Fae_a
        create Fae_b
        create Fmi_a
@@ -23962,6 +24788,18 @@
       create VSTART1A10
       create VSTART1A11
       create VSTART1A12
+      create VSTART1B1
+      create VSTART1B2
+      create VSTART1B3
+      create VSTART1B4
+      create VSTART1B5
+      create VSTART1B6
+      create VSTART1B7
+      create VSTART1B8
+      create VSTART1B9
+      create VSTART1B10
+      create VSTART1B11
+      create VSTART1B12
       create VCEND1A1
       create VCEND1A2
       create VCEND1A3
@@ -23986,8 +24824,6 @@
       create VCEND1B10
       create VCEND1B11
       create VCEND1B12
-#
-      create omegacis
 #======================================================
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #--end of script generated part of the code
@@ -24058,6 +24894,57 @@
       PUT VCE1A(a,i)=tai(a,i)
 #
       ENDPARDO a, i
+#
+      PARDO b, j
+      if iroot == 2.0
+      get VSTART1B2(b,j)
+      tbj(b,j)=VSTART1B2(b,j)
+      endif
+      if iroot == 3.0
+      get VSTART1B3(b,j)
+      tbj(b,j)=VSTART1B3(b,j)
+      endif
+      if iroot == 4.0
+      get VSTART1B4(b,j)
+      tbj(b,j)=VSTART1B4(b,j)
+      endif
+      if iroot == 5.0
+      get VSTART1B5(b,j)
+      tbj(b,j)=VSTART1B5(b,j)
+      endif
+      if iroot == 6.0
+      get VSTART1B6(b,j)
+      tbj(b,j)=VSTART1B6(b,j)
+      endif
+      if iroot == 7.0
+      get VSTART1B7(b,j)
+      tbj(b,j)=VSTART1B7(b,j)
+      endif
+      if iroot == 8.0
+      get VSTART1B8(b,j)
+      tbj(b,j)=VSTART1B8(b,j)
+      endif
+      if iroot == 9.0
+      get VSTART1B9(b,j)
+      tbj(b,j)=VSTART1B9(b,j)
+      endif
+      if iroot == 10.0
+      get VSTART1B10(b,j)
+      tbj(b,j)=VSTART1B10(b,j)
+      endif
+      if iroot == 11.0
+      get VSTART1B11(b,j)
+      tbj(b,j)=VSTART1B11(b,j)
+      endif
+      if iroot == 12.0
+      get VSTART1B12(b,j)
+      tbj(b,j)=VSTART1B12(b,j)
+      endif
+#
+      PUT VCHACT1B(b,j)=tbj(b,j)
+      PUT VCE1B(b,j)=tbj(b,j)
+#
+      ENDPARDO b, j
 #
       ENDPROC start_copy
 #
@@ -24131,6 +25018,57 @@
       PUT VCACT1A(a,i)=tai(a,i)
 #
       ENDPARDO a, i
+#
+      PARDO b, j
+      if iroot == 2.0
+      get VSTART1B2(b,j)
+      tbj(b,j)=VSTART1B2(b,j)
+      endif
+      if iroot == 3.0
+      get VSTART1B3(b,j)
+      tbj(b,j)=VSTART1B3(b,j)
+      endif
+      if iroot == 4.0
+      get VSTART1B4(b,j)
+      tbj(b,j)=VSTART1B4(b,j)
+      endif
+      if iroot == 5.0
+      get VSTART1B5(b,j)
+      tbj(b,j)=VSTART1B5(b,j)
+      endif
+      if iroot == 6.0
+      get VSTART1B6(b,j)
+      tbj(b,j)=VSTART1B6(b,j)
+      endif
+      if iroot == 7.0
+      get VSTART1B7(b,j)
+      tbj(b,j)=VSTART1B7(b,j)
+      endif
+      if iroot == 8.0
+      get VSTART1B8(b,j)
+      tbj(b,j)=VSTART1B8(b,j)
+      endif
+      if iroot == 9.0
+      get VSTART1B9(b,j)
+      tbj(b,j)=VSTART1B9(b,j)
+      endif
+      if iroot == 10.0
+      get VSTART1B10(b,j)
+      tbj(b,j)=VSTART1B10(b,j)
+      endif
+      if iroot == 11.0
+      get VSTART1B11(b,j)
+      tbj(b,j)=VSTART1B11(b,j)
+      endif
+      if iroot == 12.0
+      get VSTART1B12(b,j)
+      tbj(b,j)=VSTART1B12(b,j)
+      endif
+#
+      PUT VCACT1B(b,j)=tbj(b,j)
+#
+      ENDPARDO b, j
+#
 #
       ENDPROC start_copy_tr
 #
@@ -24262,48 +25200,6 @@
        endif
 #
        enddo jindex12
-#
-       do jindex28
-             eroot = 0.0 
-             if imax == 1.0
-                eroot = root1 
-             endif 
-             if imax == 2.0
-                eroot = root2 
-             endif 
-             if imax == 3.0
-                eroot = root3 
-             endif 
-             if imax == 4.0
-                eroot = root4 
-             endif 
-             if imax == 5.0
-                eroot = root5 
-             endif 
-             if imax == 6.0
-                eroot = root6 
-             endif 
-             if imax == 7.0
-                eroot = root7 
-             endif 
-             if imax == 8.0
-                eroot = root8 
-             endif 
-             if imax == 9.0
-                eroot = root9 
-             endif 
-             if imax == 10.0
-                eroot = root10 
-             endif 
-             if imax == 11.0
-                eroot = root11 
-             endif 
-             if imax == 12.0
-                eroot = root12 
-             endif 
-             tomegacis(kindex12,jindex28) = eroot  
-             put omegacis(kindex12,jindex28) = tomegacis(kindex12,jindex28)
-       enddo jindex28
 #
         if imax == 1.0
         root1 = 1001.0
@@ -24439,6 +25335,101 @@
       execute sip_barrier
       execute server_barrier
 #
+      PARDO b, j
+#
+        if imax == 1.0
+        get VCEND1B1(b,j)
+        tbj(b,j)=VCEND1B1(b,j)
+        endif
+        if imax == 2.0
+        get VCEND1B2(b,j)
+        tbj(b,j)=VCEND1B2(b,j)
+        endif
+        if imax == 3.0
+        get VCEND1B3(b,j)
+        tbj(b,j)=VCEND1B3(b,j)
+        endif
+        if imax == 4.0
+        get VCEND1B4(b,j)
+        tbj(b,j)=VCEND1B4(b,j)
+        endif
+        if imax == 5.0
+        get VCEND1B5(b,j)
+        tbj(b,j)=VCEND1B5(b,j)
+        endif
+        if imax == 6.0
+        get VCEND1B6(b,j)
+        tbj(b,j)=VCEND1B6(b,j)
+        endif
+        if imax == 7.0
+        get VCEND1B7(b,j)
+        tbj(b,j)=VCEND1B7(b,j)
+        endif
+        if imax == 8.0
+        get VCEND1B8(b,j)
+        tbj(b,j)=VCEND1B8(b,j)
+        endif
+        if imax == 9.0
+        get VCEND1B9(b,j)
+        tbj(b,j)=VCEND1B9(b,j)
+        endif
+        if imax == 10.0
+        get VCEND1B10(b,j)
+        tbj(b,j)=VCEND1B10(b,j)
+        endif
+        if imax == 11.0
+        get VCEND1B11(b,j)
+        tbj(b,j)=VCEND1B11(b,j)
+        endif
+        if imax == 12.0
+        get VCEND1B12(b,j)
+        tbj(b,j)=VCEND1B12(b,j)
+        endif
+#
+#
+        if kindex12 == 1
+        PUT VSTART1B1(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 2
+        PUT VSTART1B2(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 3
+        PUT VSTART1B3(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 4
+        PUT VSTART1B4(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 5
+        PUT VSTART1B5(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 6
+        PUT VSTART1B6(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 7
+        PUT VSTART1B7(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 8
+        PUT VSTART1B8(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 9
+        PUT VSTART1B9(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 10
+        PUT VSTART1B10(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 11
+        PUT VSTART1B11(b,j) = tbj(b,j)
+        endif
+        if kindex12 == 12
+        PUT VSTART1B12(b,j) = tbj(b,j)
+        endif
+#
+#
+      ENDPARDO b, j
+#
+      execute sip_barrier
+      execute server_barrier
+#
        enddo kindex12
 #
        ENDPROC SORT_VEC
@@ -24475,6 +25466,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B1(b,j)
+      tbj(b,j)=VSTART1B1(b,j)
+      t2bj(b,j)=VSTART1B1(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B1(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24494,6 +25494,13 @@
       tai(a,i)*=sqr
       put VSTART1A1(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B1(b,j)
+      tbj(b,j)=VCEND1B1(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B1(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24516,6 +25523,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B2(b,j)
+      tbj(b,j)=VSTART1B2(b,j)
+      t2bj(b,j)=VSTART1B2(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B2(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24535,6 +25551,13 @@
       tai(a,i)*=sqr
       put VSTART1A2(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B2(b,j)
+      tbj(b,j)=VCEND1B2(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B2(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24557,6 +25580,14 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B3(b,j)
+      tbj(b,j)=VSTART1B3(b,j)
+      t2bj(b,j)=VSTART1B3(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B3(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
 #
@@ -24577,6 +25608,13 @@
       tai(a,i)*=sqr
       put VSTART1A3(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B3(b,j)
+      tbj(b,j)=VCEND1B3(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B3(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24599,6 +25637,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B4(b,j)
+      tbj(b,j)=VSTART1B4(b,j)
+      t2bj(b,j)=VSTART1B4(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B4(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24618,6 +25665,13 @@
       tai(a,i)*=sqr
       put VSTART1A4(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B4(b,j)
+      tbj(b,j)=VCEND1B4(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B4(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24640,6 +25694,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B5(b,j)
+      tbj(b,j)=VSTART1B5(b,j)
+      t2bj(b,j)=VSTART1B5(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B5(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24659,6 +25722,13 @@
       tai(a,i)*=sqr
       put VSTART1A5(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B5(b,j)
+      tbj(b,j)=VCEND1B5(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B5(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24681,6 +25751,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B6(b,j)
+      tbj(b,j)=VSTART1B6(b,j)
+      t2bj(b,j)=VSTART1B6(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B6(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24700,6 +25779,13 @@
       tai(a,i)*=sqr
       put VSTART1A6(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B6(b,j)
+      tbj(b,j)=VCEND1B6(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B6(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24722,6 +25808,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B7(b,j)
+      tbj(b,j)=VSTART1B7(b,j)
+      t2bj(b,j)=VSTART1B7(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B7(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24741,6 +25836,13 @@
       tai(a,i)*=sqr
       put VSTART1A7(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B7(b,j)
+      tbj(b,j)=VCEND1B7(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B7(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24763,6 +25865,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B8(b,j)
+      tbj(b,j)=VSTART1B8(b,j)
+      t2bj(b,j)=VSTART1B8(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B8(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24782,6 +25893,13 @@
       tai(a,i)*=sqr
       put VSTART1A8(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B8(b,j)
+      tbj(b,j)=VCEND1B8(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B8(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24804,6 +25922,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B9(b,j)
+      tbj(b,j)=VSTART1B9(b,j)
+      t2bj(b,j)=VSTART1B9(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B9(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24823,6 +25950,13 @@
       tai(a,i)*=sqr
       put VSTART1A9(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B9(b,j)
+      tbj(b,j)=VCEND1B9(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B9(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24845,6 +25979,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B10(b,j)
+      tbj(b,j)=VSTART1B10(b,j)
+      t2bj(b,j)=VSTART1B10(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B10(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24864,6 +26007,13 @@
       tai(a,i)*=sqr
       put VSTART1A10(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B10(b,j)
+      tbj(b,j)=VCEND1B10(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B10(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24886,6 +26036,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B11(b,j)
+      tbj(b,j)=VSTART1B11(b,j)
+      t2bj(b,j)=VSTART1B11(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B11(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24905,6 +26064,13 @@
       tai(a,i)*=sqr
       put VSTART1A11(a,i)=tai(a,i)
       ENDPARDO a, i
+#
+      PARDO b, j
+      get VCEND1B11(b,j)
+      tbj(b,j)=VCEND1B11(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B11(b,j)=tbj(b,j)
+      ENDPARDO b, j
 #
       execute sip_barrier
       execute server_barrier
@@ -24927,6 +26093,15 @@
 #
       sum2=0.0
 #
+      PARDO b, j
+      get VSTART1B12(b,j)
+      tbj(b,j)=VSTART1B12(b,j)
+      t2bj(b,j)=VSTART1B12(b,j)
+      etemp=tbj(b,j)*t2bj(b,j)
+      sum2+=etemp
+      put VCEND1B12(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
 #
       collective etemp1+=sum1
@@ -24947,11 +26122,18 @@
       put VSTART1A12(a,i)=tai(a,i)
       ENDPARDO a, i
 #
+      PARDO b, j
+      get VCEND1B12(b,j)
+      tbj(b,j)=VCEND1B12(b,j)
+      tbj(b,j)*=sqr
+      put VSTART1B12(b,j)=tbj(b,j)
+      ENDPARDO b, j
+#
       execute sip_barrier
       execute server_barrier
 #
       ENDPROC NORM_VEC
-#     ----------------
+#    -------------------
       PROC XPROP
 #     ----------
 #
@@ -24959,10 +26141,9 @@
 #
       ONE     = 1.0
       TWO     = 2.0
-      FOUR    = 4.0
       THREE   = 3.0
       ONEHALF = 0.5
-      FACT_43 = FOUR/THREE
+      FACT_23 = TWO/THREE
 
       Sum1 = 0.0
       Sum2 = 0.0
@@ -24974,22 +26155,23 @@
 
       DO p
       DO p1
-            tmppp(p,p1) = 0.0
-            DENS_OO_AA(p,p1) = tmppp(p,p1)
-            DENS_VV_AA(p,p1) = tmppp(p,p1)
+         tmppp(p,p1) = 0.0
+         DENS_OO_AA(p,p1) = tmppp(p,p1)
+         DENS_VV_AA(p,p1) = tmppp(p,p1)
       ENDDO p1
       ENDDO p
-  
-      DO mu
-      DO nu 
-         txx(mu,nu) = 0.0
-         AO_DENSITY(mu,nu) = txx(mu,nu)
-      ENDDO nu
-      ENDDO mu
 
-      EXECUTE SIP_BARRIER 
+      DO q
+      DO q1
+         tmpqq(q,q1) = 0.0
+         DENS_OO_BB(q,q1) = tmpqq(q,q1)
+         DENS_VV_BB(q,q1) = tmpqq(q,q1)
+      ENDDO q1
+      ENDDO q
 
-      DO i 
+      EXECUTE SIP_BARRIER
+
+      DO i
       DO i1
       DO a
          tmpii(i,i1)  = amp_print_a(a,i)*amp_print_a(a,i1)
@@ -24998,19 +26180,38 @@
       ENDDO i1
       ENDDO i
 
+      DO j
+      DO j1
+      DO b
+         tmpjj(j,j1)  = amp_print_b(b,j)*amp_print_b(b,j1)
+         DENS_OO_BB(j,j1) += tmpjj(j,j1)
+      ENDDO b
+      ENDDO j1
+      ENDDO j
+
       DO a1
       DO i
       DO a
          tmp_tia(i,a1) = amp_print_a(a1,i)
-         tmpaa(a,a1)   = amp_print_a(a,i)*tmp_tia(i,a1)
+         tmpaa(a,a1)  = amp_print_a(a,i)*tmp_tia(i,a1)
          DENS_VV_AA(a,a1) += tmpaa(a,a1)
       ENDDO a
       ENDDO i
       ENDDO a1
 
+      DO b1
+      DO j
+      DO b
+         tmp_tjb(j,b1) = amp_print_b(b1,j)
+         tmpbb(b,b1)  = amp_print_b(b,j)*tmp_tjb(j,b1) 
+         DENS_VV_BB(b,b1) += tmpbb(b,b1)
+      ENDDO b
+      ENDDO j
+      ENDDO b1
+
       EXECUTE SIP_BARRIER
-       
-      DO i 
+
+      DO i
       DO i1
          tmpii(i,i1) = DENS_OO_AA(i,i1)
          DO mu
@@ -25023,7 +26224,20 @@
       ENDDO i1
       ENDDO i
 
-      DO a 
+      DO j
+      DO j1
+         tmpjj(j,j1) = DENS_OO_BB(j,j1)
+         DO mu
+            txj(mu,j1) = tmpjj(j,j1) * CB(mu,j)
+            DO nu
+               txx(mu,nu) = txj(mu,j1) * CB(nu,j1)
+               AO_DENSITY (mu,nu) += txx(mu,nu)
+            ENDDO nu
+         ENDDO mu
+      ENDDO j1
+      ENDDO j 
+
+      DO a
       DO a1
          tmpaa(a,a1) = DENS_VV_AA(a,a1)
          DO mu
@@ -25036,43 +26250,39 @@
       ENDDO a1
       ENDDO a
 
-      EXECUTE SIP_BARRIER
+      DO b
+      DO b1
+         tmpbb(b,b1) = DENS_VV_BB(b,b1)
+         DO mu
+            txb(mu,b1) = tmpbb(b,b1) * CB(mu,b)
+            DO nu
+               txx(mu,nu) = txb(mu,b1) * CB(nu,b1)
+               AO_DENSITY (mu, nu) += txx(mu,nu)
+            ENDDO nu
+         ENDDO mu
+      ENDDO b1
+      ENDDO b
      
-#bn_debug
-#      esum = 0.0
-#      PARDO i, i1
-#            execute dump_amp DENS_OO_AA(i,i1)
-#            etemp = DENS_OO_AA(i,i1)*DENS_OO_AA(i,i1)
-#            esum += etemp
-#      ENDPARDO i, i1
-#      EXECUTE PRINT_SCALAR ESUM
-#      esum = 0.0
-#      PARDO a, a1
-#            execute dump_amp DENS_VV_AA(a,a1)
-#            etemp = DENS_VV_AA(a,a1)*DENS_VV_AA(a,a1)
-#            esum += etemp
-#      ENDPARDO a, a1
-#      EXECUTE PRINT_SCALAR ESUM
-#en_debug
-
-      PARDO p, p1
-            tmppp(p,p1) = 0.0
-            tmppp(p,p1) = DENS_OO_AA(p,p1) 
-            tmppp(p,p1) = DENS_VV_AA(p,p1) 
-      ENDPARDO p, p1
-
+      EXECUTE SIP_BARRIER
 #
-#  Transition moments 
-#
+# Density building is complete; start the transition moments
+# 
+      PARDO mu, a
+            tmpxa(mu,a) = 0.0
+            PUT INTxa(mu,a) = tmpxa(mu,a)
+      ENDPARDO mu, a
+
+      PARDO mu, b
+            tmpxb(mu,b) = 0.0
+            PUT INTxb(mu,b) = tmpxb(mu,b)
+      ENDPARDO mu, b
+
       PARDO mu, nu
-            Txx (mu,nu) = 0.0
-            PUT CIS_VEC_AO(mu,nu) = Txx (mu,nu)
+            tmpxx(mu,nu) = 0.0
+            PUT CIS_VEC_AO(mu,nu) = tmpxx(mu,nu)
       ENDPARDO mu, nu
 
-      PARDO mu, a
-            Txa(mu,a) = 0.0
-            PUT INTxa(mu,a) = Txa(mu,a)
-      ENDPARDO mu, a
+      EXECUTE SIP_BARRIER
 
       PARDO mu, a
       DO i
@@ -25083,16 +26293,34 @@
       ENDPARDO mu, a
 
       EXECUTE SIP_BARRIER
-    
+
       PARDO mu, nu
       DO a
          GET INTxa(mu,a)
-         GET CIS_VEC_AO(mu,nu)  
+         GET CIS_VEC_AO(mu,nu)
          tmpxx(mu,nu)  = INTxa(mu,a)*Ca(nu,a)
          CIS_VEC_AO(mu,nu) += tmpxx(mu,nu)
       ENDDO a
       ENDPARDO mu, nu
 
+      PARDO mu, b
+      DO j
+         GET INTxb(mu,b)
+         tmpxb(mu,b)  = amp_print_b(b,j)*CB(mu,j)
+         PUT INTxb(mu,b) += tmpxb(mu,b)
+      ENDDO j
+      ENDPARDO mu, b
+
+      EXECUTE SIP_BARRIER
+
+      PARDO mu, nu
+      DO b 
+         GET INTxb(mu,b)
+         GET CIS_VEC_AO(mu,nu)
+         tmpxx(mu,nu)  = INTxb(mu,b)*CB(nu,b)
+         CIS_VEC_AO(mu,nu) += tmpxx(mu,nu)
+      ENDDO b
+      ENDPARDO mu,nu
 
       EXECUTE SIP_BARRIER
 #bn_debug
@@ -25103,31 +26331,8 @@
             esum += etemp
       ENDPARDO mu, nu
       EXECUTE PRINT_SCALAR ESUM
-#      esum = 0.0
-#      PARDO i, i1
-#            execute dump_amp DENS_OO_AA(i,i1)
-#            etemp = DENS_OO_AA(i,i1)*DENS_OO_AA(i,i1)
-#            esum += etemp
-#      ENDPARDO i, i1
-#      EXECUTE PRINT_SCALAR ESUM
-#      esum = 0.0
-#      PARDO a, a1
-#            execute dump_amp DENS_VV_AA(a,a1)
-#            etemp = DENS_VV_AA(a,a1)*DENS_VV_AA(a,a1)
-#            esum += etemp
-#      ENDPARDO a, a1
-#      EXECUTE PRINT_SCALAR ESUM
 #en_debug
 
-#bn_debug
-      execute print_scalar sum1
-      execute print_scalar sum2
-      execute print_scalar sum3
-      execute print_scalar etemp1
-      execute print_scalar etemp2
-      execute print_scalar etemp3
-#en_debug
-#
       PARDO  mu, nu
 
          GET  CIS_VEC_AO (mu,nu)
@@ -25160,7 +26365,7 @@
       COLLECTIVE  etemp2 += sum2
       COLLECTIVE  etemp3 += sum3
 
-      EXECUTE  SERVER_BARRIER
+      EXECUTE  SIP_BARRIER
 
       etemp1 *= -1.0
       etemp2 *= -1.0
@@ -25191,7 +26396,7 @@
    
       CIS_ENEG = CIS_ENEG
       CIS_TMOM = CIS_ENEG*SQR_SUM
-      CIS_TMOM = FACT_43*CIS_TMOM
+      CIS_TMOM = FACT_23*CIS_TMOM
 #bn_debug
       execute print_scalar CIS_TMOM
 #en_debug
@@ -25200,6 +26405,7 @@
 
       ENDPROC XPROP
 #     -------------
+
       PROC AMPL_PRINT
 #      --------------
        amplthresh=0.01
@@ -25210,9 +26416,10 @@
 
        allocate lai(*,*)
        allocate lbj(*,*)
-      
+#
        CREATE CIS_VEC_AO
-       CREATE INTxa 
+       CREATE INTxa
+       CREATE INTxb
 
        DO mu
        DO nu
@@ -25220,11 +26427,12 @@
           HF_DENSITY(mu,nu) = 0.0
        ENDDO nu
        ENDDO mu
+
        EXECUTE  SIP_BARRIER
 
        DO mu
        Do nu
-       DO i 
+       DO i
           txi(nu, i) = CA (nu,i)
           txx (mu,nu) = CA (mu,i) * txi (nu,i)
           txx (mu,nu) *= 2.0
@@ -25234,12 +26442,19 @@
        ENDDO nu
        ENDDO mu
 
-       EXECUTE  SIP_BARRIER
+       DO mu
+       Do nu
+       DO j
+          txj(nu, j) = CB (nu,j)
+          txx (mu,nu) = CB (mu,j) * txj (nu,j)
+          txx (mu,nu) *= 2.0
+          HF_DENSITY(mu,nu) +=  txx (mu,nu)
 
-       IF RANK == 0.0
-          IDENS = 1  
-          EXECUTE  DENS2JOBARC  HF_DENSITY IDENS
-       ENDIF
+       ENDDO j
+       ENDDO nu
+       ENDDO mu
+
+       EXECUTE  SIP_BARRIER
 
        if rootmax >= 1.0
           DO i
@@ -25251,15 +26466,24 @@
     
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B1 (b,j)
+            amp_print_b (b,j) = VSTART1B1 (b,j)
           ENDDO b
-          ENDDO j
+          ENDDO j 
 
           CIS_ENEG = ROOT_1
           CALL XPROP
           TMOM1 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  2.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25274,7 +26498,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B2 (b,j)
+            amp_print_b (b,j) = VSTART1B2 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25283,6 +26508,14 @@
           TMOM2 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  5.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25297,7 +26530,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B3 (b,j)
+            amp_print_b (b,j) = VSTART1B3 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25306,6 +26540,14 @@
           TMOM3 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  8.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25320,7 +26562,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B4 (b,j)
+            amp_print_b (b,j) = VSTART1B4 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25329,6 +26572,14 @@
           TMOM4 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  11.0 
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25343,7 +26594,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B5 (b,j)
+            amp_print_b (b,j) = VSTART1B5 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25352,6 +26604,14 @@
           TMOM5 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  14.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25366,7 +26626,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B6 (b,j)
+            amp_print_b (b,j) = VSTART1B6 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25375,6 +26636,14 @@
           TMOM6 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  17.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25389,7 +26658,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B7 (b,j)
+            amp_print_b (b,j) = VSTART1B7 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25398,6 +26668,14 @@
           TMOM7 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  20.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25412,7 +26690,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B8 (b,j)
+            amp_print_b (b,j) = VSTART1B8 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25421,6 +26700,14 @@
           TMOM8 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  23.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25435,7 +26722,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B9 (b,j)
+            amp_print_b (b,j) = VSTART1B9 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25444,6 +26732,14 @@
           TMOM9 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  26.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25458,7 +26754,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B10 (b,j)
+            amp_print_b (b,j) = VSTART1B10 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25466,7 +26763,15 @@
           CALL XPROP
           TMOM10 = CIS_TMOM
 
-          EXECUTE SIP_BARRIER
+          EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  29.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25481,7 +26786,8 @@
        
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B11 (b,j)
+            amp_print_b (b,j) = VSTART1B11 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25490,6 +26796,14 @@
           TMOM11 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  32.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25499,12 +26813,13 @@
           DO a
             GET   VSTART1A12 (a,i)
             amp_print_a (a,i) = VSTART1A12 (a,i)
-          ENDDO a
-          ENDDO i
-
+          ENDDO a 
+          ENDDO i 
+       
           DO j
           DO b
-            amp_print_b (b,j) = 0.0
+            GET  VSTART1B12 (b,j)
+            amp_print_b (b,j) = VSTART1B12 (b,j)
           ENDDO b
           ENDDO j
 
@@ -25513,6 +26828,14 @@
           TMOM12 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
+          IF RANK == 0.0
+             IDENS =  35.0
+             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
+             IDENS += 1.0
+             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
+          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -25521,7 +26844,9 @@
        deallocate lbj (*,*)
 
      ENDPROC AMPL_PRINT
-
+#    -------------------
+# WARNING: DO NOT SET MAXCYCLE BELOW 25. TERRIBLE THINGS WOULD HAPPEN.
+#
 #======================================================
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #--end of script generated part of the code
@@ -25530,9 +26855,9 @@
 #
 #     BEGIN MAIN PROGRAM
 #
-       execute load_balance_off 
        CALL TRAN_PPPP 
       #CALL READ_AMP
+       execute load_balance_off 
        execute server_barrier
 #
 #***********************************************************
@@ -25553,15 +26878,16 @@
        root12=100000.0
 #
        eomthresh=0.0001
-      #rootmax=7.0
-       eomthresh=eom_tol  #
+      #rootmax=6.0
+#
+      #eomthresh=eom_tol  #
        rootmax=eom_roots  # Watson Added
        EXECUTE  PRINT_SCALAR  eom_roots
        EXECUTE  PRINT_SCALAR  eom_tol
        six = 6.0 
        if eom_roots < six  
           rootmax = 6.0  
-       endif 
+       endif
 #
 # WARNING: DO NOT SET MAXCYCLE BELOW 25. TERRIBLE THINGS WOULD HAPPEN.
 #
@@ -25976,11 +27302,10 @@
        execute print_scalar root10
        execute print_scalar root11
        execute print_scalar root12
-
 #
 # Save the roots with a set of different scalar names. This is
 # much cleaner than to extract these values from pinf array.
-#
+
        root_1=root1
        root_2=root2
        root_3=root3
@@ -25993,7 +27318,7 @@
        root_10=root10
        root_11=root11
        root_12=root12
-#
+# 
        evfev = 27.21138505 
        root1*=evfev
        root2*=evfev
@@ -26023,52 +27348,52 @@
 
        execute get_my_rank rank
        if rank == 0.0
-          DO kindex12  
-          DO jindex28   
-             eroot = 0.0 
-             if kindex12 == 1 
-                eroot = root1 
-             endif 
-             if kindex12 == 2 
-                eroot = root2 
-             endif 
-             if kindex12 == 3 
-                eroot = root3 
-             endif 
-             if kindex12 == 4 
-                eroot = root4 
-             endif 
-             if kindex12 == 5 
-                eroot = root5 
-             endif 
-             if kindex12 == 6 
-                eroot = root6 
-             endif 
-             if kindex12 == 7 
-                eroot = root7 
-             endif 
-             if kindex12 == 8 
-                eroot = root8 
-             endif 
-             if kindex12 == 9 
-                eroot = root9 
-             endif 
-             if kindex12 == 10 
-                eroot = root10 
-             endif 
-             if kindex12 == 11 
-                eroot = root11 
-             endif 
-             if kindex12 == 12 
-                eroot = root12 
-             endif 
-                tpinf(kindex12,jindex28) = eroot  
-                pinf(kindex12,jindex28) = tpinf(kindex12,jindex28)  
-          ENDDO jindex28   
-          ENDDO kindex12 
-             etemp = 28.0 
-             execute print_rel_info etemp pinf  
-       endif 
+          DO kindex12
+          DO jindex28
+             eroot = 0.0
+             if kindex12 == 1
+                eroot = root1
+             endif
+             if kindex12 == 2
+                eroot = root2
+             endif
+             if kindex12 == 3
+                eroot = root3
+             endif
+             if kindex12 == 4
+                eroot = root4
+             endif
+             if kindex12 == 5
+                eroot = root5
+             endif
+             if kindex12 == 6
+                eroot = root6
+             endif
+             if kindex12 == 7
+                eroot = root7
+             endif
+             if kindex12 == 8
+                eroot = root8
+             endif
+             if kindex12 == 9
+                eroot = root9
+             endif
+             if kindex12 == 10
+                eroot = root10
+             endif
+             if kindex12 == 11
+                eroot = root11
+             endif
+             if kindex12 == 12
+                eroot = root12
+             endif
+                tpinf(kindex12,jindex28) = eroot
+                 pinf(kindex12,jindex28) = tpinf(kindex12,jindex28)
+          ENDDO jindex28
+          ENDDO kindex12
+             etemp = 28.0
+             execute print_rel_info Etemp pinf
+       endif
 #
        call SORT_VEC
 #
@@ -26076,18 +27401,24 @@
        EXECUTE SERVER_BARRIER
 #
        Call NORM_VEC
+#
        CALL AMPL_PRINT
 
        call WRITEOUT
 #
        delete VEV
        delete VCE1A
+       delete VCE1B
        delete VCACT1A
+       delete VCACT1B
        delete VCHACT1A
+       delete VCHACT1B
        delete VSTART1A1
        delete VSTART1A2
+       delete VSTART1B1
+       delete VSTART1B2
        execute sip_barrier
        execute server_barrier
 #
-       ENDSIAL CIS_RHF_MO
-#
+       ENDSIAL CIS_UHF_MO
+

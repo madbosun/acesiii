@@ -203,10 +203,6 @@
       served Faa(a,b)
       served Fai(a,i)
       distributed LSFai(a,i)
-      served Wiajb(a,i,b,j)
-      served Wajib(j,a,b,i)
-      served Wajib_2(i,j,a,b)
-      served WTiajb(a,i,b,j)
 #
       served Tau_ab(a,i,b,j)
       served Taup_aa(a,i,a1,i1)
@@ -627,7 +623,7 @@
               PREPARE Vixai(i,mu,a,i1) += Tixai(i,mu,a,i1)
 #
            ENDDO a
-#
+
      ENDPARDO mu, nu, i, i1
 #
      pardo mu,nu,a,i

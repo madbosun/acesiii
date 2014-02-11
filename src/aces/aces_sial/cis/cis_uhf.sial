@@ -26476,14 +26476,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM1 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  2.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26508,14 +26500,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM2 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  5.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26540,14 +26524,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM3 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  8.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26572,14 +26548,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM4 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  11.0 
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26604,14 +26572,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM5 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  14.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26636,14 +26596,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM6 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  17.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26668,14 +26620,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM7 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  20.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26700,14 +26644,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM8 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  23.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26732,14 +26668,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM9 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  26.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26764,14 +26692,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM10 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  29.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26796,14 +26716,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM11 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  32.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
@@ -26828,14 +26740,6 @@ a  Copyright (c) 2003-2010 University of Florida
           TMOM12 = CIS_TMOM
 
           EXECUTE  SIP_BARRIER
-          IF RANK == 0.0
-             IDENS =  35.0
-             EXECUTE  DENS2JOBARC  DENS_OO_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  DENS_VV_AA IDENS
-             IDENS += 1.0
-             EXECUTE  DENS2JOBARC  AO_DENSITY IDENS
-          ENDIF 
           EXECUTE  C1_FULL_PRINT  amp_print_a amp_print_b
           EXECUTE  SIP_BARRIER
        endif
