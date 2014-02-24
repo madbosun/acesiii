@@ -4065,7 +4065,13 @@ ac_config_files="$ac_config_files src/aces/aces_library/special_directory/nlo/Ma
 
 ac_config_files="$ac_config_files src/aces/aces_library/special_directory/erd/Makefile"
 
+ac_config_files="$ac_config_files src/aces/aces_library/special_directory/erd_F12/Makefile"
+
+ac_config_files="$ac_config_files src/aces/aces_library/special_directory/oed_F12/Makefile"
+
 ac_config_files="$ac_config_files src/aces/aces_library/special_directory/direct_integral/Makefile"
+
+ac_config_files="$ac_config_files src/aces/aces_library/special_directory/F12_grid/Makefile"
 
 ac_config_files="$ac_config_files src/aces/aces_library/a2driver/symcor/Makefile"
 
