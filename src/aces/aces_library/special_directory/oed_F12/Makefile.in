@@ -1,0 +1,81 @@
+include ../../../../../GNUmakefile.chssi
+
+#Compilers
+FC=@FC@
+CC=@CC@
+CPP=@CXX@
+SERIAL_CPP=@SERIAL_CPP@
+
+#Compiler flags
+FFLAGS=@FCFLAGS@
+CFLAGS=@CFLAGS@
+CPPFLAGS=@CXXFLAGS@
+
+#ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
+LIBS = @ACESLIBS@
+LIBS:= -lstdc++ -lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -loed -loed -ldup -lsip1 -lsip2 $(LIBS)
+
+#ACESFLAGS variable will be replaced by the autoconf script with location of libraries
+LIB_DIRS= @ACESFLAGS@
+
+SIAL_COMPILER_LIBS= @SIAL_COMPILER_LIBS@
+
+INCLUDE_DIRS := -I../../../../sia/include -I../aces2/include $(INCLUDE_DIRS)
+LIB_DIRS:=-L../../../lib $(LIB_DIRS)
+
+FSOURCE=$(wildcard *.F)
+F_OBJS=$(FSOURCE:.F=.o)
+fSOURCE=$(wildcard *.f)
+f_OBJS:=$(fSOURCE:.f=.o)
+cSOURCE=$(wildcard *.c)
+c_OBJS:=$(cSOURCE:.c=.o)
+CPP_SOURCE=$(wildcard *.cpp)
+CPP_OBJS:=$(CPP_SOURCE:.cpp=.o)
+f90_SOURCE=$(wildcard *.f90)
+f90_OBJS=$(F90_SOURCE:.f90=.o)
+F90_SOURCE=$(wildcard *.F90)
+F90_OBJS=$(F90_SOURCE:.F90=.o)
+
+OEDLIB_F12=../../../../../lib/liboed_F12.a
+
+all: tabula_rasa module.o $(OEDLIB_F12)
+
+tabula_rasa: ;
+	rm -f make.out make.err
+
+module.o: module.F90
+	$(FC) -c $(FFLAGS1) $(INCLUDE_DIRS) $< 1>>make.out 2>>make.err
+
+$(OEDLIB_F12): liboed_F12.a
+	cp liboed_F12.a $(OEDLIB_F12)
+	rm -f make.out make.err
+
+liboed_F12.a: $(F_OBJS) $(f_OBJS) $(c_OBJS) $(f90_OBJS) $(F90_OBJS)
+	ar $(ARFLAGS) liboed_F12.a $(F_OBJS) $(f_OBJS) $(c_OBJS) $(f90_OBJS) $(F90_OBJS)
+
+libclean: ;
+	rm -f liboed_F12.a
+
+ppclean clean distclean: % : tabula_rasa libclean
+	rm -f *.o
+
+rebuild: libclean $(FRAMELIB)
+
+binclean relink archive: % : ;
+
+
+%.o: %.f90
+	$(FC) -c $(FFLAGS1) $(INCLUDE_DIRS) $< 1>>make.out 2>>make.err
+
+%.o: %.F90
+	$(FC) -c $(FFLAGS1) $(INCLUDE_DIRS) $< 1>>make.out 2>>make.err
+
+.f.o:
+	$(FC) -c $(FFLAGS) $(INCLUDE_DIRS) $< 1>>make.out 2>>make.err
+
+.F.o:
+	$(FC) -c $(FFLAGS) $(INCLUDE_DIRS) $< 1>>make.out 2>>make.err
+
+.c.o:
+	$(CC) -c $(CFLAGS) $(INCLUDE_DIRS) $< 1>>make.out 2>>make.err
+
