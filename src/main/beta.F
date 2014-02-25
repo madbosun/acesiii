@@ -32,6 +32,8 @@ c      subroutine beta()
       include 'timerz.h'
       include 'sial_config_params.h'
       include 'checkpoint_data.h'
+      include 'F12.h'
+      include 'eominit.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -97,8 +99,11 @@ c      subroutine beta()
       integer i1, i2
       integer*8 mpierr8, nprocs8
 
-       common /flags/ iflags
-       integer iflags(100) 
+      common /flags/ iflags
+      integer iflags(100) 
+      integer iflags2(500)
+
+      integer istg,n_ipeomcc_roots(1)
 
 #ifdef ALTIX
       pointer (dptr, dbuf)
@@ -1017,6 +1022,36 @@ c--------------------------------------------------------------------------
         if (write_hess)
      *   call handle_hessian(dbuf(ix_hess), dbuf(ix_nnhess),
      *                       ncenters, write_hess)
+
+C
+C Explicitly correlated contribution
+c
+            istg=0
+            call getrec(1,'JOBARC', 'STGF12', 1, istg)
+            if(istg.eq.1) then 
+            write(6,*) 
+     & 'Explicitly-correlated calculation
+     &  with slater-type  geminals will be performed'
+            call getrec(1,'JOBARC','F12GAMMA',1,F12GAMMA)
+            write(6,*) 'Exponential parameter is',F12GAMMA
+              if(.not.dryrun) then
+            write(6,*) 'Construction of the grid for calculation 
+     &of 3 and 4-electron integrals'
+              call F12_grid()
+              endif
+            endif
+            if(istg.eq.0) write(6,*) 
+     & 'Lame calculation - slater-type geminals are not included'
+c---------------------------------------------------------------------------
+c---------------------------------------------------------------------------
+           call igetrec(1,'JOBARC','IFLAGS2',500,iflags2)    
+           n_ip_roots = 0
+           if(iflags2(114).eq.5) then
+           call igetrec(20,'JOBARC','IPSYM_A',1,n_ipeomcc_roots) 
+           n_ip_roots = n_ipeomcc_roots(1)
+           write(6,*) 'IP-EOMCC calculation:'
+     & ,n_ip_roots,' roots requested'
+            endif
 
 c---------------------------------------------------------------------------
 c   Write SCFENEG, TOTENERG, GRADIENT, and HESSIAN data to JOBARC.

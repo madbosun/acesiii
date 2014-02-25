@@ -54,6 +54,6 @@ SERIAL_CPP=icpc
 INCLUDE_DIRS=-I$$MPIHOME/include 
 LIB_DIRS=-L/opt/intel/mkl/11.1.064/lib/em64t/ -L/opt/intel/fce/10.1.015/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -lmkl_def -lmkl_p4n -lmkl_mc
 SIAL_COMPILER_LIBS=-lsial -lsip_shared -laces2  -lifcore
-LIBS=-lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -ldup -lsip1 -lsip2 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lstdc++
+LIBS=-lsip1 -lsip2 -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lerd -loed -lerd_F12 -loed_F12 -lF12grid -ldup -lsip1 -lsip2 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_lapack -lstdc++
 endif 
 

@@ -377,6 +377,48 @@ c Jason Byrd misc. development additions
 c--------------------------------------------------------------------
       dummy = load_user_sub('sort_fno'//char(0), 0)
       dummy = load_user_sub('dropcore_fno'//char(0), 0)
+C
+C Jason Byrd
+c--------Explicitly-correlated part-------------------------------------
+      dummy = load_user_sub('f12_integrals'//char(0), 0)
+      dummy = load_user_sub('f12_c_coef'//char(0), 0)
+      dummy = load_user_sub('mkexch'//char(0), 0)
+      dummy = load_user_sub('get_grid_size'//char(0), 0)
+      dummy = load_user_sub('grid_point_range'//char(0), 0)
+      dummy = load_user_sub('f12_2center_moobj'//char(0), 0)
+      dummy = load_user_sub('f12_2center_mxobj'//char(0), 0)
+      dummy = load_user_sub('f12_2center_myobj'//char(0), 0)
+      dummy = load_user_sub('f12_2center_mzobj'//char(0), 0)
+      dummy = load_user_sub('grid_point_weight'//char(0), 0)
+      dummy = load_user_sub('int1_setup'//char(0), 0)
+      dummy = load_user_sub('f12_1el_gen'//char(0), 0)
+      dummy = load_user_sub('energy_numerator'//char(0), 0)
+      dummy = load_user_sub('lindep_remove'//char(0), 0)
+c---------Equation-of-motion part---------------------------------------
+      dummy = load_user_sub('eomiter'//char(0), 0)
+      dummy = load_user_sub('eomdiag'//char(0), 0)
+      dummy = load_user_sub('eomchunk'//char(0), 0)
+      dummy = load_user_sub('eomnewvec'//char(0), 0)
+      dummy = load_user_sub('eomovermax'//char(0), 0)
+      dummy = load_user_sub('eominitguess_ip'//char(0), 0)
+      dummy = load_user_sub('eomcopyroots'//char(0), 0)
+      dummy = load_user_sub('apply_den1'//char(0), 0)
+      dummy = load_user_sub('apply_den3'//char(0), 0)
+      dummy = load_user_sub('addrootindex'//char(0), 0)
+      dummy = load_user_sub('eomgetroot'//char(0), 0)
+      dummy = load_user_sub('eomprintcorrnorm'//char(0), 0)
+      dummy = load_user_sub('setauxvec'//char(0), 0)
+      dummy = load_user_sub('eomovertable'//char(0), 0)
+      dummy = load_user_sub('make_3body_diag_ip'//char(0), 0)
+      dummy = load_user_sub('eomtargetroot'//char(0), 0)
+      dummy = load_user_sub('eomiproots'//char(0), 0)
+c----------(T) correction for IP-EOMCC----------------------------------
+      dummy = load_user_sub('denom_eomip_pt'//char(0), 0)
+      dummy = load_user_sub('apply_den5'//char(0), 0)
+c-------------frozen-orbital F12 calculation----------------------------
+      dummy = load_user_sub('frag_index_range'//char(0), 0)
+c-----------f12 info----------------------------------------------------
+      dummy = load_user_sub('f12info'//char(0), 0)
 c-------------------------------------------------------------------- 
 c
       return

@@ -27,6 +27,7 @@ c summary of the basis set.
       integer iflags(100)
 
       include 'int_gen_parms.h'
+      include 'frag_def.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -77,7 +78,8 @@ c---------------------------------------------------------------------------
          ECP = iflags(71) 
          if (intpkg .eq. gamess_package .or.
      *       intpkg .eq. gamess_derivative_package) go to 1000
-         if ((aat_database(1:1) .eq. ' ') .and. (ECP .eq. 0)) then
+         if ((aat_database(1:1) .eq. ' ') 
+     *        .and.(.not. frag_calc) .and. (ECP .eq. 0)) then
             call binpack(nshells, nfps, sip_mx_ao_segsize, ixshells)
          else
 

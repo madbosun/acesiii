@@ -24,6 +24,11 @@ c-------------------------------------------------------------------------
       include 'machine_types.h'
       include 'fmo.h'
       include 'scflindep.h'
+      include 'F12.h'
+      include 'F12_gr.h'
+      include 'eominit.h'
+      include 'frag_def.h'
+      include 'dropmo.h'
 
       integer ierr, len
       integer*8 ixx, c_loc64
@@ -60,6 +65,31 @@ c---------------------------------------------------------------------------
      *               mpi_comm_world, ierr) 
 
 c---------------------------------------------------------------------------
+c  Explicitly correlated stuff
+c---------------------------------------------------------------------------
+
+      call mpi_bcast(STGF12, 1, mpi_logical, 0, 
+     *               mpi_comm_world, ierr)
+
+      call mpi_bcast(F12GAMMA, 1, mpi_double_precision, 0, 
+     *               mpi_comm_world, ierr)
+
+      call mpi_bcast(NPT, 1, mpi_integer, 0,
+     *               mpi_comm_world, ierr)
+
+      call mpi_bcast(PTX, 1000001, mpi_double_precision, 0,
+     *               mpi_comm_world, ierr)
+
+      call mpi_bcast(PTY, 1000001, mpi_double_precision, 0,
+     *               mpi_comm_world, ierr)
+
+      call mpi_bcast(PTZ, 1000001, mpi_double_precision, 0,
+     *               mpi_comm_world, ierr)
+
+      call mpi_bcast(PTW, 1000001, mpi_double_precision, 0,
+     *               mpi_comm_world, ierr)
+
+c---------------------------------------------------------------------------
 c  Broadcast ecp labeled common block.
 c---------------------------------------------------------------------------
 
@@ -84,6 +114,28 @@ c---------------------------------------------------------------------------
 c---------------------------------------------------------------------------
 c---------------------------------------------------------------------------
  
+c--------------------------------------------------------------------------|
+c             Set number of EOM target roots                               |
+c--------------------------------------------------------------------------|
+      call mpi_bcast(n_ip_roots,1,mpi_integer,0,mpi_comm_world, ierr)
+
+c--------------------------------------------------------------------------|
+c             Dropmo data                                |
+      write(6,*) ' MODROPA in SEND:', ndropmo_a, ndropmo_b
+      call mpi_bcast(ndropmo_a,1,mpi_integer,0,mpi_comm_world, ierr)
+      call mpi_bcast(ndropmo_b,1,mpi_integer,0,mpi_comm_world, ierr)
+c--------------------------------------------------------------------------|
+
+c---------------------------------------------------------------------------
+c     Fragment data 
+c---------------------------------------------------------------------------
+
+      call mpi_bcast(frag_calc,1,mpi_logical,0,mpi_comm_world, ierr)
+      call mpi_bcast(nfrags,1,mpi_integer,0,mpi_comm_world, ierr)
+      call mpi_bcast(natoms_frag,101,mpi_integer,0,mpi_comm_world, ierr)
+      len = 100*100 + 1
+      call mpi_bcast(watom_frag,len,mpi_integer,0,mpi_comm_world, ierr)
+      call mpi_bcast(fdrop_flag,1,mpi_logical,0,mpi_comm_world, ierr)
  
       return
       end

@@ -22,6 +22,7 @@ C  in the file COPYRIGHT.
       include 'trace.h'
       include 'dropmo.h'
       include 'sial_config_params.h'
+      include 'frag_def.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
