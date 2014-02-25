@@ -258,8 +258,8 @@ const ASV_nl_t ASV_nl[] =
 {/*147*/ "","",0,0,""},
 {/*148*/ "","",0,0,""},
 {/*149*/ "","",0,0,""},
-{/*150*/ "","",0,0,""},
-{/*151*/ "","",0,0,""},
+{/*150*/ "IF12STG",     "STGF12",       h_ICHAR_handle, 0,      ""},
+{/*151*/ "IF12GAMMA",   "F12GAMMA",     h_ICHAR_string, 1.5,    ""}
 {/*152*/ "","",0,0,""},
 {/*153*/ "","",0,0,""},
 {/*154*/ "","",0,0,""},
@@ -1088,6 +1088,15 @@ void asv_handle_proc(const f_int * index, const char * value)
             break;
         }
 
+/*---------Explicitly - correlated calculations---------------*/
+        case h_IOPPAR_stgf12:
+        {
+            const char *handles[] = { "OFF", "ON", "" };
+            asv_update_handle(index,value,handles);
+            break;
+        }
+/*------------------------------------------------------------*/
+
         case h_IOPPAR_prp_ints:
         {
             const char *handles[] = { "PARTIAL", "FULL", "" };
@@ -1705,3 +1714,10 @@ int cli_prog(int argc, char *argv[])
     return 0;
 }
 
+/*-------------Transformation of the string to double precision----------------*/
+void
+F77_NAME(str2d,STR2D) (const char* sgamma, double *dgamma)
+{
+*dgamma = atof(sgamma);
+return 0;
+}

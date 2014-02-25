@@ -324,6 +324,8 @@ c   o only print the logs and summaries on the first run
          bVerbose = .true.
       end if
 
+      call putrec(1,'JOBARC','STGF12',1,0)
+
 c   o nIrrps tracks the number of irreps in all of the user's value
 c     tokens. Originally, we would load COMPNIRR from JOBARC, but this
 c     method fails if a low-order point group finished running in a
@@ -768,6 +770,17 @@ c         o BASIS
                end if
                goto 101
             end if
+
+c---------Explicitly-correlated calculation option----------------------
+            if (iASV.eq.h_IOPPAR_stgf12) then
+              if (ioppar(h_IOPPAR_stgf12).eq.1) then
+              call putrec(1,'JOBARC','STGF12',1,1)
+              else
+              call putrec(1,'JOBARC','STGF12',1,0)
+              endif
+              goto 101
+            endif
+c-----------------------------------------------------------------------
 
 c YAU - add a conditional for SUBGROUP that sets nIrrps
 

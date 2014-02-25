@@ -183,6 +183,7 @@ c PARAMETERS
 #include "fnamelen.par"
 #include "linelen.par"
 #include "scflindep.h"
+#include "F12.h"
       integer    dim_iflags,     dim_iflags2
       parameter (dim_iflags=100, dim_iflags2=500)
       INTEGER    nParam
@@ -327,6 +328,12 @@ c   o only print the logs and summaries on the first run
          bVerbose = .true.
       end if
 
+C DB 02/2014
+c----------Explicitly - correlated part----------------------
+      call putrec(1,'JOBARC','STGF12',1,0)
+      STGF12=.false.
+      F12GAMMA=1.5 
+c-----------------------------------------------------------
       lindep_tol = 9 
 
 c   o nIrrps tracks the number of irreps in all of the user's value
@@ -771,6 +778,24 @@ c---------Basis linear dependency threshold-----------------------------
             goto 101
             endif
 
+C DB 02/2014
+c---------Explicitly-correlated part----------------------------------
+            if (iASV.eq.h_IOPPAR_stgf12) then
+              if (ioppar(h_IOPPAR_stgf12).eq.1) then
+              call putrec(1,'JOBARC','STGF12',1,1)
+              STGF12=.true.
+              else
+              call putrec(1,'JOBARC','STGF12',1,0)
+              STGF12=.false. 
+              endif
+              goto 101
+            endif
+
+            if (iASV.eq.h_IOPPAR_f12gamma) then
+            call str2d(szData(1:ValueSize)//char(0),F12GAMMA)
+            call putrec(1,'JOBARC','F12GAMMA',1,F12GAMMA)
+            goto 101
+            endif
 c---------Integral threshold--------------------------------------------
             if (iASV.eq.h_IOPPAR_intgrl_tol) then
             intgrl_tol = ioppar(h_IOPPAR_intgrl_tol)
