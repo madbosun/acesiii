@@ -1,0 +1,865 @@
+#----------------------------------------------------------------------------------------|
+# The purpose of this part is to  generate necessary set of F12-related integrals        |
+# and transform them into molecular integrals. Then store molecular integrals on disc    |
+#     Added to ACES3 by Denis Bokhan, Moscow Lomonosov State University,                 |
+#                               Russian  Federation                                      |
+#     Integral tranfsormation written by Victor Lotrich, QTP, University of Florida      |
+#                               Gainesville, FL, USA                                     |
+#----------------------------------------------------------------------------------------|
+
+                           SIAL F12_2EL_TRAN_RHF 
+
+# ---- Definition of the indices--------------------
+
+      aoindex mu     = 1, norb
+      aoindex nu     = 1, norb
+      aoindex lambda = 1, norb
+      aoindex sigma  = 1, norb
+      moaindex    p  = baocc, eavirt 
+      moaindex   p1  = baocc, eavirt 
+      moaindex   p2  = baocc, eavirt 
+      moaindex    a  = bavirt, eavirt
+      moaindex   a1  = bavirt, eavirt
+      moaindex   a2  = bavirt, eavirt
+      moaindex   a3  = bavirt, eavirt
+      moaindex    i  = baocc, eaocc 
+      moaindex   i1  = baocc, eaocc 
+      moaindex   i2  = baocc, eaocc 
+      moaindex   i3  = baocc, eaocc 
+      moaindex   i4  = baocc, eaocc 
+
+# ---- Definition of the arrays---------------------
+#
+      served V4xixi(mu,i,nu,i1) 
+      served V4xipi(mu,i,p,i1) 
+      served V4pipi(p,i,p,i1) 
+
+#----------Coulomb---------------------------------
+
+      served V0xixi(mu,i1,lambda,i)
+      served V0xaxi(mu,a1,lambda,i)
+      served V0xxii(mu,lambda,i1,i)
+
+      served V0xiai(mu,i1,a1,i)
+      served V0xaii(mu,a1,i1,i)
+      served V0xaai(mu,a1,a2,i1) 
+      served V0xiii(mu,i1,i2,i3)
+
+      served V0iiii(i,i1,i2,i3)
+      served V0aiai(a2,i1,a1,i)
+      served V0aaii(a1,a2,i1,i)
+      served V0aiii(a1,i1,i2,i)
+      served V0piii(p1,i1,i2,i)
+      served V0aaai(a1,a2,a3,i)
+
+#----------------Slater------------------------
+      served V2xpxi(mu,p1,lambda,i) 
+      served V2xipi(mu,p,p1,i1) 
+      served V2pipi(p2,i,p1,i1)
+      served V2piai(p2,i,a1,i1)
+      served V2piii(p1,i,i1,i2)
+
+      served V2xixi(mu,i1,lambda,i)
+      served V2xaxi(mu,a1,lambda,i)
+      served V2xxii(mu,lambda,i1,i)
+
+      served V2xiai(mu,i1,a1,i)
+      served V2xaii(mu,a1,i1,i)
+      served V2xaai(mu,a1,a2,i1) 
+      served V2xiii(mu,i1,i2,i3)
+
+      served V2iiii(i,i1,i2,i3)
+      served V2aiai(a2,i1,a1,i)
+      served V2aaii(a1,a2,i1,i)
+      served V2aiii(a1,i1,i2,i)
+      served V2aaai(a1,a2,a3,i) 
+#----------------Yukawa-----------------------------  
+      served V1xixi(mu,i1,lambda,i)
+      served V1xiii(mu,i1,i2,i3)
+      served V1xiai(mu,i1,a1,i)  
+
+      served V1aiai(a,i,a1,i1)
+      served V1iiii(i,i1,i2,i3)
+      served V1aiii(a1,i1,i2,i)
+#---------------------------------------------------
+      served V4xiii(mu,i,i2,i1)
+      served V4xiai(mu,i,a2,i1)
+      served V4aiai(a1,i,a2,i1)  
+      served V4iiii(i,i1,i2,i3) 
+      served V0pppi(p2,p,p1,i1) 
+
+#--------------Slater squared-----------------------
+      served V3xixi(mu,i1,lambda,i) 
+      served V3iiii(i,i1,i2,i3) 
+      served V3xiii(mu,i1,i2,i3)
+#---------------------------------------------------
+
+      temp f12int(mu,nu,lambda,sigma)
+      temp aoint(mu,nu,lambda,sigma)
+
+      temp txxxi(mu,nu,lambda,i) 
+
+#--------------------------------------------------
+#----Second index transformation-------------------
+      temp txixi(mu,i,lambda,i1)
+      temp txaxi(mu,a1,lambda,i)
+      temp txxii(mu,lambda,i1,i)
+#-----Third index transformation-------------------
+      temp txiai(mu,i1,a1,i)
+      temp txaii(mu,a1,i1,i)
+      temp txaai(mu,a1,a2,i)
+#-----Fourth index transformation------------------
+      temp taiai(a2,i1,a1,i)
+      temp taaii(a1,a2,i1,i)
+      temp taiii(a1,i1,i2,i)
+      temp tpiii(p,i1,i2,i)
+      temp tpipi(p,i1,p1,i)
+      temp tpiai(p,i1,a2,i)
+      temp taaai(a1,a2,a3,i)
+#--------------------------------------------------
+#--------------------------------------------------
+  
+      temp txipi(mu,i,p1,i1) 
+      temp txpxi(mu,p1,lambda,i)   
+      temp Txppi(mu,p,p1,i1)     
+      temp Tpppi(p2,p,p1,i1)    
+      temp Txiii(mu,i,i2,i1)       
+      temp Tiiii(i3,i,i2,i1)      
+
+      local V1_4(mu,nu,lambda,i) 
+
+      scalar i_flag 
+      scalar one 
+      scalar two 
+      scalar three 
+      scalar four 
+      scalar five 
+      scalar six 
+
+#--- Procedure which calculate atomic integrals-----
+ 
+       PROC CALC_TYPE0  
+#      --------------- 
+
+        PARDO mu, lambda, nu  
+
+              allocate V1_4(mu,nu,lambda,*) 
+
+              DO sigma 
+
+                 f12int(mu,nu,lambda,sigma)  = 0.0 
+                 compute_integrals f12int(mu,nu,lambda,sigma)   
+
+                 DO i 
+                    txxxi(mu,nu,lambda,i) = f12int(mu,nu,lambda,sigma)*ca(sigma,i)  
+                    V1_4(mu,nu,lambda,i) += txxxi(mu,nu,lambda,i) 
+                 ENDDO i  
+
+              ENDDO sigma 
+
+#------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------
+#-----------Second transformation - occupied index-----------------------------
+              DO i
+              DO i1
+                 txixi(mu,i1,lambda,i)           = V1_4(mu,nu,lambda,i)*ca(nu,i1)
+                 PREPARE V0xixi(mu,i1,lambda,i) += txixi(mu,i1,lambda,i)
+              ENDDO i1
+              ENDDO i
+#-------------------occupied index----------------------------------------------
+              DO i
+              DO i1
+                 txxii(mu,nu,i1,i)           = V1_4(mu,nu,lambda,i)*ca(lambda,i1)
+                 PREPARE V0xxii(mu,nu,i1,i) += txxii(mu,nu,i1,i)
+              ENDDO i1
+              ENDDO i
+#------------------- virtual index ---------------------------------------------
+              DO i
+              DO a1
+                 txaxi(mu,a1,lambda,i)           = V1_4(mu,nu,lambda,i)*ca(nu,a1)
+                 PREPARE V0xaxi(mu,a1,lambda,i) += txaxi(mu,a1,lambda,i)
+              ENDDO a1
+              ENDDO i
+#------------------------------------------------------------------------------
+              deallocate V1_4(mu,nu,lambda,*) 
+ 
+        ENDPARDO mu, lambda, nu  
+#------------------------------------------------------------------------------
+
+             execute server_barrier
+  
+#---------------------------------------------------------------------------------
+#----------Third index transformation---------------------------------------------
+
+            PARDO mu, i2, lambda, i1
+              REQUEST V0xixi(mu,i2,lambda,i1) mu
+#-----------------occupied index--------------------------------------------------
+              DO i3
+              Txiii(mu,i2,i3,i1)           = V0xixi(mu,i2,lambda,i1)*ca(lambda,i3)
+              PREPARE V0xiii(mu,i2,i3,i1) += Txiii(mu,i2,i3,i1)
+               ENDDO i3
+#-----------------virtual index---------------------------------------------------
+              DO a1
+              txiai(mu,i2,a1,i1)           = V0xixi(mu,i2,lambda,i1)*ca(lambda,a1)
+              PREPARE V0xiai(mu,i2,a1,i1) += txiai(mu,i2,a1,i1)
+              ENDDO a1
+              ENDPARDO mu, i2, lambda, i1
+              execute server_barrier
+#-----------------occupied index--------------------------------------------------
+              PARDO mu, lambda, i2, i1
+              REQUEST V0xxii(mu,lambda,i2,i1) mu
+                DO a3
+                 txaii(mu,a3,i2,i1)           = V0xxii(mu,lambda,i2,i1)*ca(lambda,a3)
+                 PREPARE V0xaii(mu,a3,i2,i1) += txaii(mu,a3,i2,i1)
+                ENDDO a3
+              ENDPARDO mu, lambda, i2, i1
+
+        execute server_barrier
+
+#----------------virtual index----------------------------------------------------
+
+              PARDO mu, a1, lambda, i1
+              REQUEST V0xaxi(mu,a1,lambda,i1) mu
+              DO a2
+              txaai(mu,a1,a2,i1)           = V0xaxi(mu,a1,lambda,i1)*ca(lambda,a2)
+              PREPARE V0xaai(mu,a1,a2,i1) += txaai(mu,a1,a2,i1)
+              ENDDO a2
+              ENDPARDO mu, a1, lambda, i1
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+        execute server_barrier
+
+#-----------------Fourth index transformation--------------------------------------
+#-----------------------------(ij|kl)------------------------------------------
+
+        PARDO mu, i2, i3, i1
+              REQUEST V0xiii(mu,i2,i3,i1) mu
+              DO i
+                 Tiiii(i,i2,i3,i1)           = V0xiii(mu,i2,i3,i1)*ca(mu,i)
+                 PREPARE V0iiii(i,i2,i3,i1) += Tiiii(i,i2,i3,i1)
+              ENDDO i
+#------------------------------(pi|jk)------------------------------------------
+              DO p
+                 tpiii(p,i2,i3,i1)           = V0xiii(mu,i2,i3,i1)*ca(mu,p)
+                 PREPARE V0piii(p,i2,i3,i1) += tpiii(p,i2,i3,i1)
+              ENDDO p
+
+
+        ENDPARDO mu, i2, i3, i1
+
+#----------------------------------------------------------------------------------
+
+        PARDO  mu,i2,a1,i1
+               REQUEST V0xiai(mu,i2,a1,i1) mu
+#------------------------------(ai|bj)-----------------------------------------
+               DO a2
+               taiai(a2,i2,a1,i1)              = V0xiai(mu,i2,a1,i1)*ca(mu,a2)
+               PREPARE V0aiai(a2,i2,a1,i1) += taiai(a2,i2,a1,i1)
+               ENDDO a2
+#------------------------------(ai|jk)------------------------------------------
+               DO i
+               taiii(a1,i1,i,i2)                   = V0xiai(mu,i2,a1,i1)*ca(mu,i)
+               PREPARE V0aiii(a1,i1,i,i2)  += taiii(a1,i1,i,i2)
+               ENDDO i
+
+               ENDPARDO mu,i2,a1,i1
+               execute server_barrier
+#------------------------------(ab|ij)----------------------------------------
+
+        execute server_barrier 
+
+        PARDO mu,a3,i2,i1
+                 REQUEST V0xaii(mu,a3,i2,i1) mu
+              DO a2
+              taaii(a2,a3,i2,i1)                  = V0xaii(mu,a3,i2,i1)*ca(mu,a2)
+              PREPARE V0aaii(a2,a3,i2,i1)    += taaii(a2,a3,i2,i1)
+              ENDDO a2
+        ENDPARDO mu,a3,i2,i1
+
+        execute server_barrier
+
+#-----------------------------(ab|ci)----------------------------------------
+
+       PARDO mu,a1,a2,i1
+                REQUEST V0xaai(mu,a1,a2,i1) mu
+             DO a3
+             taaai(a3,a1,a2,i1)                   = V0xaai(mu,a1,a2,i1)*ca(mu,a3)
+             PREPARE V0aaai(a3,a1,a2,i1)     += taaai(a3,a1,a2,i1)
+             ENDDO a3
+       ENDPARDO mu,a1,a2,i1
+
+
+       ENDPROC CALC_TYPE0  
+#      ------------------ 
+
+#---------- End of procedure -----------------------
+
+
+#--- Procedure which calculate atomic integrals-----
+ 
+       PROC CALC_TYPE2  
+#      --------------- 
+
+        PARDO mu, lambda, nu  
+
+              allocate V1_4(mu,nu,lambda,*) 
+#-----------------First index transformation------------------------------------
+              DO sigma 
+
+                 f12int(mu,nu,lambda,sigma)  = 0.0 
+                 execute f12_integrals f12int two  
+
+                 DO i 
+                    txxxi(mu,nu,lambda,i) = f12int(mu,nu,lambda,sigma)*ca(sigma,i)  
+                    V1_4(mu,nu,lambda,i) += txxxi(mu,nu,lambda,i) 
+                 ENDDO i  
+
+              ENDDO sigma 
+#------------------------------------------------------------------------------
+           
+
+#------------------------------------------------------------------------------
+#-----------Second transformation - occupied index-----------------------------
+
+              DO i
+              DO i1
+                 txixi(mu,i1,lambda,i)           = V1_4(mu,nu,lambda,i)*ca(nu,i1)
+                 PREPARE V2xixi(mu,i1,lambda,i) += txixi(mu,i1,lambda,i)
+              ENDDO i1
+              ENDDO i
+
+#------------------- occupied index --------------------------------------------
+
+              DO i
+              DO i1
+                 txxii(mu,nu,i1,i)           = V1_4(mu,nu,lambda,i)*ca(lambda,i1)
+                 PREPARE V2xxii(mu,nu,i1,i) += txxii(mu,nu,i1,i)
+              ENDDO i1
+              ENDDO i
+
+
+#------------------- virtual index ---------------------------------------------
+
+              DO i
+              DO a1
+                 txaxi(mu,a1,lambda,i)           = V1_4(mu,nu,lambda,i)*ca(nu,a1)
+                 PREPARE V2xaxi(mu,a1,lambda,i) += txaxi(mu,a1,lambda,i)
+              ENDDO a1
+              ENDDO i
+
+
+#------------------------------------------------------------------------------
+              DO i 
+              DO p1 
+                 txpxi(mu,p1,lambda,i)           = V1_4(mu,nu,lambda,i)*ca(nu,p1) 
+                 PREPARE V2xpxi(mu,p1,lambda,i) += txpxi(mu,p1,lambda,i)
+              ENDDO p1 
+              ENDDO i 
+
+              deallocate V1_4(mu,nu,lambda,*) 
+ 
+        ENDPARDO mu, lambda, nu  
+#---------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------
+
+        execute server_barrier 
+
+#---------------------------------------------------------------------------------
+#----------Third index transformation---------------------------------------------
+
+            PARDO mu, i2, lambda, i1
+              REQUEST V2xixi(mu,i2,lambda,i1) mu
+#-----------------occupied index--------------------------------------------------
+              DO i3
+                 Txiii(mu,i2,i3,i1)           = V2xixi(mu,i2,lambda,i1)*ca(lambda,i3)
+                 PREPARE V2xiii(mu,i2,i3,i1) += Txiii(mu,i2,i3,i1)
+              ENDDO i3
+#-----------------virtual index---------------------------------------------------
+             DO a1
+                 txiai(mu,i2,a1,i1)           = V2xixi(mu,i2,lambda,i1)*ca(lambda,a1)
+                 PREPARE V2xiai(mu,i2,a1,i1) += txiai(mu,i2,a1,i1)
+              ENDDO a1
+#----------------------------------------------------------------------------------
+            DO p1
+                txipi(mu,i2,p1,i1)           = V2xixi(mu,i2,lambda,i1)*ca(lambda,p1)
+                PREPARE V2xipi(mu,i2,p1,i1) += txipi(mu,i2,p1,i1) 
+            ENDDO p1
+
+            ENDPARDO mu, i2, lambda, i1
+       
+        execute server_barrier
+
+#-----------------occupied index--------------------------------------------------
+            PARDO mu, lambda, i2, i1
+              REQUEST V2xxii(mu,lambda,i2,i1) mu
+                DO a3
+                 txaii(mu,a3,i2,i1)           = V2xxii(mu,lambda,i2,i1)*ca(lambda,a3)
+                 PREPARE V2xaii(mu,a3,i2,i1) += txaii(mu,a3,i2,i1)
+                ENDDO a3
+            ENDPARDO mu, lambda, i2, i1
+
+        execute server_barrier
+
+#----------------virtual index----------------------------------------------------
+
+        PARDO mu, a1, lambda, i1
+              REQUEST V2xaxi(mu,a1,lambda,i1) mu
+              DO a2
+                 txaai(mu,a1,a2,i1)           = V2xaxi(mu,a1,lambda,i1)*ca(lambda,a2)
+                 PREPARE V2xaai(mu,a1,a2,i1) += txaai(mu,a1,a2,i1)
+             ENDDO a2
+        ENDPARDO mu, a1, lambda, i1
+
+        execute server_barrier
+#---------------------------------------------------------------------------------
+
+
+
+
+ 
+#---------------------------------------------------------------------------------
+#        PARDO mu, lambda, p, i1 
+#              REQUEST V2xpxi(mu,p,lambda,i1) mu  
+#              DO p1  
+#                 Txppi(mu,p,p1,i1)           = V2xpxi(mu,p,lambda,i1)*ca(lambda,p1) 
+#                 PREPARE V2xppi(mu,p,p1,i1) += Txppi(mu,p,p1,i1)
+#              ENDDO p1  
+#        ENDPARDO mu, lambda, p, i1 
+
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+
+#        execute server_barrier 
+
+
+#-----------------Fourth index transformation--------------------------------------
+
+#-----------------------------(ij|f12|kl)------------------------------------------
+        PARDO mu, i2, i3, i1
+              REQUEST V2xiii(mu,i2,i3,i1) mu
+              DO i
+                 Tiiii(i,i2,i3,i1)           = V2xiii(mu,i2,i3,i1)*ca(mu,i)
+                 PREPARE V2iiii(i,i2,i3,i1) += Tiiii(i,i2,i3,i1)
+              ENDDO i
+#-------------------------------(pi|f12|kl)----------------------------------------
+              DO p
+                 tpiii(p,i2,i3,i1)           = V2xiii(mu,i2,i3,i1)*ca(mu,p)
+                 PREPARE V2piii(p,i2,i3,i1) += tpiii(p,i2,i3,i1)
+              ENDDO p
+
+        ENDPARDO mu, i2, i3, i1
+
+        execute server_barrier
+
+#-------------------------------(pi|f12|qj)----------------------------------------
+        PARDO mu, i, p1, i1 
+              REQUEST V2xipi(mu,i,p1,i1) mu 
+              DO p 
+                 tpipi(p,i,p1,i1)           = V2xipi(mu,i,p1,i1)*ca(mu,p) 
+                 PREPARE V2pipi(p,i,p1,i1) += tpipi(p,i,p1,i1) 
+              ENDDO p 
+        ENDPARDO mu, i, p1, i1 
+#-----------------------------------------------------------------------------------        
+ 
+        execute server_barrier
+
+        PARDO  mu,i2,a1,i1
+               REQUEST V2xiai(mu,i2,a1,i1) mu 
+#------------------------------(ai|f12|bj)-----------------------------------------
+              DO a2
+                 taiai(a2,i2,a1,i1)              = V2xiai(mu,i2,a1,i1)*ca(mu,a2)          
+                 PREPARE V2aiai(a2,i2,a1,i1) += taiai(a2,i2,a1,i1)
+              ENDDO a2
+             
+#------------------------------(ai|f12|jk)-----------------------------------------
+
+              DO i
+              taiii(a1,i1,i,i2)                   = V2xiai(mu,i2,a1,i1)*ca(mu,i)
+                 PREPARE V2aiii(a1,i1,i,i2)  += taiii(a1,i1,i,i2)
+              ENDDO i
+
+#------------------------------(pi|f12|bj)------------------------------------------              
+
+              DO p2
+                 tpiai(p2,i2,a1,i1)              = V2xiai(mu,i2,a1,i1)*ca(mu,p2)
+                 PREPARE V2piai(p2,i2,a1,i1) += tpiai(p2,i2,a1,i1)
+              ENDDO p2
+
+
+        ENDPARDO mu,i2,a1,i1
+     
+        execute server_barrier       
+     
+#------------------------------(ab|f12|ij)----------------------------------------
+
+        PARDO mu,a3,i2,i1 
+                 REQUEST V2xaii(mu,a3,i2,i1) mu
+              DO a2
+              taaii(a2,a3,i2,i1)                  = V2xaii(mu,a3,i2,i1)*ca(mu,a2)               
+              PREPARE V2aaii(a2,a3,i2,i1)    += taaii(a2,a3,i2,i1)
+              ENDDO a2
+        ENDPARDO mu,a3,i2,i1
+
+        execute server_barrier
+
+#-----------------------------(ab|f12|ci)----------------------------------------
+
+       PARDO mu,a1,a2,i1
+                REQUEST V2xaai(mu,a1,a2,i1) mu
+             DO a3
+             taaai(a3,a1,a2,i1)                   = V2xaai(mu,a1,a2,i1)*ca(mu,a3)
+             PREPARE V2aaai(a3,a1,a2,i1)     += taaai(a3,a1,a2,i1) 
+             ENDDO a3
+       ENDPARDO mu,a1,a2,i1
+
+       ENDPROC CALC_TYPE2  
+#      ------------------ 
+
+#---------- End of procedure -----------------------
+
+
+#--- Procedure which calculate atomic integrals-----
+ 
+       PROC CALC_TYPE1  
+#      --------------- 
+
+        PARDO mu, lambda, nu  
+
+              allocate V1_4(mu,nu,lambda,*) 
+
+              DO sigma 
+
+                 f12int(mu,nu,lambda,sigma)  = 0.0 
+                 execute f12_integrals f12int one   
+
+                 DO i 
+                    txxxi(mu,nu,lambda,i) = f12int(mu,nu,lambda,sigma)*ca(sigma,i)  
+                    V1_4(mu,nu,lambda,i) += txxxi(mu,nu,lambda,i) 
+                 ENDDO i  
+
+              ENDDO sigma 
+
+#------------------------------------------------------------------------------
+##-----------Second transformation - occupied index-----------------------------
+#
+              DO i
+              DO i1
+                    txixi(mu,i1,lambda,i)           = V1_4(mu,nu,lambda,i)*ca(nu,i1)
+                    PREPARE V1xixi(mu,i1,lambda,i) += txixi(mu,i1,lambda,i)
+              ENDDO i1
+              ENDDO i
+
+              deallocate V1_4(mu,nu,lambda,*) 
+ 
+        ENDPARDO mu, lambda, nu  
+#------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------
+
+        execute server_barrier 
+
+#---------------------------------------------------------------------------------
+#----------Third index transformation---------------------------------------------
+
+        PARDO mu, i2, lambda, i1
+        REQUEST V1xixi(mu,i2,lambda,i1) mu
+#-----------------occupied index--------------------------------------------------
+           DO i3
+              Txiii(mu,i2,i3,i1)           = V1xixi(mu,i2,lambda,i1)*ca(lambda,i3)
+              PREPARE V1xiii(mu,i2,i3,i1) += Txiii(mu,i2,i3,i1)
+           ENDDO i3
+#-----------------virtual index---------------------------------------------------
+           DO a1
+           txiai(mu,i2,a1,i1)           = V1xixi(mu,i2,lambda,i1)*ca(lambda,a1)
+           PREPARE V1xiai(mu,i2,a1,i1) += txiai(mu,i2,a1,i1)
+           ENDDO a1
+           ENDPARDO mu, i2, lambda, i1
+
+           execute server_barrier
+
+#--------------------------Fourth transformation-------------------------------------
+#-----------------------------(ij|f12|kl)--------------------------------------------
+        PARDO mu, i2, i3, i1
+           REQUEST V1xiii(mu,i2,i3,i1) mu
+            DO i
+            Tiiii(i,i2,i3,i1)           = V1xiii(mu,i2,i3,i1)*ca(mu,i)
+            PREPARE V1iiii(i,i2,i3,i1) += Tiiii(i,i2,i3,i1)
+            ENDDO i
+        ENDPARDO mu, i2, i3, i1
+
+        execute server_barrier
+
+        PARDO  mu,i2,a1,i1
+               REQUEST V1xiai(mu,i2,a1,i1) mu
+#------------------------------(ai|f12|bj)-----------------------------------------
+              DO a2
+              taiai(a2,i2,a1,i1)           = V1xiai(mu,i2,a1,i1)*ca(mu,a2)
+              PREPARE V1aiai(a2,i2,a1,i1) += taiai(a2,i2,a1,i1)
+              ENDDO a2
+
+#------------------------------(ai|f12|jk)-----------------------------------------
+
+              DO i
+              taiii(a1,i1,i,i2)            = V1xiai(mu,i2,a1,i1)*ca(mu,i)
+              PREPARE V1aiii(a1,i1,i,i2)  += taiii(a1,i1,i,i2)
+              ENDDO i
+        ENDPARDO mu,i2,a1,i1
+#----------------------------------------------------------------------------------
+     
+
+
+
+       ENDPROC CALC_TYPE1  
+#      ------------------ 
+
+#---------- End of procedure -----------------------
+
+#--- Procedure which calculate atomic integrals-----
+ 
+       PROC CALC_TYPE3  
+#      --------------- 
+
+#-------------------------------------------------------------------------------------
+
+        PARDO mu, lambda, nu  
+
+              allocate V1_4(mu,nu,lambda,*) 
+
+#------------------First transformation-----------------------------------------------
+
+              DO sigma 
+
+                 f12int(mu,nu,lambda,sigma)  = 0.0 
+                 execute f12_integrals f12int three  
+
+                 DO i 
+                    txxxi(mu,nu,lambda,i) = f12int(mu,nu,lambda,sigma)*ca(sigma,i)  
+                    V1_4(mu,nu,lambda,i) += txxxi(mu,nu,lambda,i) 
+                 ENDDO i  
+
+              ENDDO sigma 
+
+#-----------------Second transformation-----------------------------------------------
+
+              DO i 
+              DO i1
+                 txixi(mu,i1,lambda,i)           = V1_4(mu,nu,lambda,i)*ca(nu,i1) 
+                 PREPARE V3xixi(mu,i1,lambda,i) += txixi(mu,i1,lambda,i)
+              ENDDO i1 
+              ENDDO i 
+
+              deallocate V1_4(mu,nu,lambda,*) 
+ 
+        ENDPARDO mu, lambda, nu  
+
+#-------------------------------------------------------------------------------------
+
+        execute server_barrier 
+
+        PARDO mu, i, lambda, i1 
+              REQUEST V3xixi(mu,i,lambda,i1) mu  
+              DO i2
+                 Txiii(mu,i,i2,i1)          = V3xixi(mu,i,lambda,i1)*ca(lambda,i2) 
+                 PREPARE V3xiii(mu,i,i2,i1) += Txiii(mu,i,i2,i1)
+              ENDDO i2  
+        ENDPARDO mu, i,lambda, i1 
+
+        execute server_barrier 
+
+#-------------------------(ij|f12**2|kl)---------------------------------------------
+
+        PARDO mu, i, i2, i1 
+              REQUEST V3xiii(mu,i,i2,i1) mu 
+              DO i3 
+                 Tiiii(i3,i,i2,i1)           = V3xiii(mu,i,i2,i1)*ca(mu,i3) 
+                 PREPARE V3iiii(i3,i,i2,i1) += Tiiii(i3,i,i2,i1) 
+              ENDDO i3 
+        ENDPARDO mu, i, i2, i1 
+      
+
+       ENDPROC CALC_TYPE3  
+#      ------------------ 
+
+#---------- End of procedure -----------------------
+
+#--- Procedure which calculate atomic integrals-----
+ 
+       PROC CALC_TYPE4  
+#      --------------- 
+
+        PARDO mu, lambda, nu  
+
+              allocate V1_4(mu,nu,lambda,*) 
+#----------------First integral transformation-------------------------------------
+              DO sigma 
+
+                 f12int(mu,nu,lambda,sigma)  = 0.0 
+                 aoint(mu,nu,lambda,sigma)   = 0.0 
+                 execute f12_integrals aoint four
+                 f12int(mu,nu,lambda,sigma) += aoint(mu,nu,lambda,sigma)  
+                 execute f12_integrals aoint five
+                 f12int(mu,nu,lambda,sigma) += aoint(mu,nu,lambda,sigma)  
+                 execute f12_integrals aoint six
+#                 execute dump_amp aoint
+                 f12int(mu,nu,lambda,sigma) += aoint(mu,nu,lambda,sigma)
+                 f12int(mu,nu,lambda,sigma) *= -0.5  
+
+                 DO i 
+                    txxxi(mu,nu,lambda,i) = f12int(mu,nu,lambda,sigma)*ca(sigma,i)  
+                    V1_4(mu,nu,lambda,i) += txxxi(mu,nu,lambda,i) 
+                 ENDDO i  
+
+              ENDDO sigma 
+#-----------------Second integral transformation-----------------------------------
+
+              DO i 
+              DO i1 
+                 txixi(mu,i1,lambda,i)           = V1_4(mu,nu,lambda,i)*ca(nu,i1) 
+                 PREPARE V4xixi(mu,i1,lambda,i) += txixi(mu,i1,lambda,i)
+              ENDDO i1 
+              ENDDO i 
+
+              deallocate V1_4(mu,nu,lambda,*) 
+ 
+        ENDPARDO mu, lambda, nu  
+#-----------------------------------------------------------------------------------
+
+
+        execute server_barrier 
+
+#------------------Third integral transformation------------------------------------
+
+        PARDO mu, i, lambda, i1 
+              REQUEST V4xixi(mu,i,lambda,i1) mu 
+#------------------Occupied orbitals------------------------------------------------ 
+              DO i2  
+                 Txiii(mu,i,i2,i1)          = V4xixi(mu,i,lambda,i1)*ca(lambda,i2) 
+                 PREPARE V4xiii(mu,i,i2,i1) += Txiii(mu,i,i2,i1)
+              ENDDO i2 
+#------------------virtual orbitals-------------------------------------------------
+              DO a2
+                 txiai(mu,i,a2,i1)          = V4xixi(mu,i,lambda,i1)*ca(lambda,a2)
+                 PREPARE V4xiai(mu,i,a2,i1) += txiai(mu,i,a2,i1)
+              ENDDO a2  
+#-----------------------------------------------------------------------------------
+
+        ENDPARDO mu, i, lambda, i1 
+
+        execute server_barrier 
+
+
+
+
+#----------------------------(ij|[T12,f12]|kl)--------------------------------------
+        PARDO mu, i, i2, i1 
+              REQUEST V4xiii(mu,i,i2,i1) mu 
+              DO i3  
+                 Tiiii(i3,i,i2,i1)          = V4xiii(mu,i,i2,i1)*ca(mu,i3) 
+                 PREPARE V4iiii(i3,i,i2,i1) += Tiiii(i3,i,i2,i1) 
+              ENDDO i3 
+        ENDPARDO mu, i, i2, i1 
+
+        execute server_barrier      
+#----------------------------(ai|[T12,f12]|bj)-------------------------------------- 
+
+        PARDO mu, i, a2, i1
+              REQUEST V4xiai(mu,i,a2,i1) mu
+              DO a1
+                 taiai(a1,i,a2,i1)          = V4xiai(mu,i,a2,i1)*ca(mu,a1)
+                 PREPARE V4aiai(a1,i,a2,i1) += taiai(a1,i,a2,i1)
+              ENDDO a1
+        ENDPARDO mu, i, a2, i1
+        
+
+
+
+       ENDPROC CALC_TYPE4  
+#      ------------------ 
+
+#---------- End of procedure -----------------------
+
+
+#---- Calculation of the integrals------------------
+      one   = 1.0 
+      two   = 2.0 
+      three = 3.0 
+      four  = 4.0 
+      five  = 5.0 
+      six   = 6.0 
+
+      CALL CALC_TYPE0 
+      CALL CALC_TYPE1 
+      CALL CALC_TYPE2 
+      CALL CALC_TYPE3 
+      CALL CALC_TYPE4 
+#
+# Write transformed two-electron integrals to list 
+# ------------------------------------------------ 
+
+#      execute server_barrier
+
+#          PARDO p, i1, i2, i3
+#          REQUEST V0piii(p,i1,i2,i3) p
+#          execute dump_amp V0piii
+#          ENDPARDO p, i1, i2, i3
+
+
+
+#------- Coulomb integrals <pq|ri>------------------
+      execute blocks_to_list                V0iiii
+      execute blocks_to_list                V0aiai
+      execute blocks_to_list                V0aaii
+      execute blocks_to_list                V0aiii
+      execute blocks_to_list                V0piii
+      execute blocks_to_list                V0aaai
+#---------------------------------------------------
+#
+#
+#------- Yukawa integrals (pi|f12/r12|qj)-----------
+      execute blocks_to_list                V1iiii
+      execute blocks_to_list                V1aiii
+      execute blocks_to_list                V1aiai
+#---------------------------------------------------
+
+
+#-------- Slater integrals (pq|f12|rj)--------------
+      execute blocks_to_list                V2iiii
+      execute blocks_to_list                V2aiai
+      execute blocks_to_list                V2aaii
+      execute blocks_to_list                V2aiii
+      execute blocks_to_list                V2aaai
+      execute blocks_to_list                V2pipi
+      execute blocks_to_list                V2piii
+      execute blocks_to_list                V2piai
+#---------------------------------------------------
+
+
+#--------Slater square integrals (ij|f12**2|kl)------
+      execute blocks_to_list                V3iiii
+#--------------------------------------------------
+
+#---kommutator integrals  (ij|[T12,f12]|kl)---------
+      execute blocks_to_list                V4iiii
+      execute blocks_to_list                V4aiai
+#--------------------------------------------------
+
+
+
+#---Here we write arrays of integrals to the disk---
+      execute write_blocks_to_list
+#---------------------------------------------------
+
+      execute server_barrier
+# 
+# Done Write transformed two-electron integrals to list 
+# -----------------------------------------------------
+#
+                           ENDSIAL F12_2EL_TRAN_RHF 
+
+
+
+
+
+
+

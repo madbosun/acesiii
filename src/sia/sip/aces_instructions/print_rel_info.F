@@ -434,6 +434,25 @@ c---------------------------------------------------------------------------
      *             1,n1,1,n2)
       endif 
 
+c---------------------------------------------------------------------------|
+c     Print out MP2-F12 energy                                              |
+c---------------------------------------------------------------------------|
+
+      if (scalar_table(sind) .eq. 40.0) then
+          call print_mp2_f12(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif
+
+
+c---------------------------------------------------------------------------|
+c     Print out IP-EOM-CCSD ionization potentials                           |
+c---------------------------------------------------------------------------|
+
+      if (scalar_table(sind) .eq. 41.0) then
+          call print_ipeomcc(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif
+
       flush(66) 
 
       return 
@@ -1579,6 +1598,94 @@ c              write(66,99) a-1, (array1(a-1,i), i=b1, b2)
 101   format(2x,60('-'))
 102   format(2x,"Final LCCD energy = ",F20.10,2x,"After",2x,I8,2x,
      *       "iterations")
+
+      return
+      end
+
+c-----------------------------------------------------------------------------
+
+      subroutine print_mp2_f12(array1,sval,a1,a2,b1,b2)
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2
+      integer ieom_roots
+      double precision array1(a1:a2,b1:b2), sval, stemp
+      double precision efinal, conv
+
+      open(66,file='summary.out')
+
+      ival = sval
+      conv = 27.21138505
+      ieom_roots = eom_roots
+      amax = max(ieom_roots,6)
+
+      if (me .eq. 0)then
+
+      write(66,*) '===================================================='
+      write(66,*) '|           MP2-F12 calculation                    |'
+      write(66,*) '===================================================='
+      write(66,*) '|    Geminal type:  f12 = exp(-gamma*r12)          |'
+      write(66,*) '|    B-approximation is used                       |'
+      write(66,*) '|    SP-Ansatz is used                             |'
+      write(66,*) '|--------------------------------------------------|'
+      write(66,*) 'MP2 correlation energy is', array1(1,1)
+      write(66,*) 'V-intermediate contribution is', array1(2,1)
+      write(66,*) 'B-intermediate contribution is', array1(3,1)
+      write(66,*) '---------------------------------------------------'
+      write(66,*) 'Total F12 contribution is',array1(4,1)
+      write(66,*) 'MP2-F12 corelation energy is',array1(5,1)
+      write(66,*) '---------------------------------------------------'
+      write(66,*) 'Total energy is', array1(6,1)
+      endif
+
+      return
+      end
+
+      subroutine print_ipeomcc(array1,sval,a1,a2,b1,b2)
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+      include 'eominit.h'
+c
+      integer i, j, ival, amax, a, a1, a2, b, b1, b2
+      integer ieom_roots
+      double precision array1(a1:a2,b1:b2), sval, stemp
+      double precision efinal, conv
+
+      conv = 27.21138505
+      open(66,file='summary.out')
+
+      if (me .eq. 0)then
+
+      write(66,*) '===================================================='
+      write(66,*) '|           IP-EOM-CCSD calculation                |'
+      write(66,*) '===================================================='
+      write(66,*) '---------------------------------------------------'
+      write(66,*) '    Number of requested IP-EOM-CCSD roots',n_ip_roots
+      write(66,*) '---------------------------------------------------'
+      do i=1,1
+      do j=1,n_ip_roots
+      write(66,*) array1(i,j),'            ',array1(i,j)*conv,'e.V.'
+      enddo
+      enddo
+      write(66,*) '---------------------------------------------------'
+      endif
 
       return
       end

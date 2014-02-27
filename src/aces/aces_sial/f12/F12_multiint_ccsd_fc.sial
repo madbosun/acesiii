@@ -1,0 +1,2432 @@
+#----------------------------------------------------------------------------------------|
+# The purpose of this part is to  generate necessary set of F12-related 3-electron and   |
+# 4-electron integrals. Then store corresponding intermediates on the  disc              |
+#     Added to ACES3 by Denis Bokhan, Moscow Lomonosov State University,                 |
+#                               Russian  Federation                                      |
+#----------------------------------------------------------------------------------------|
+
+                           SIAL F12_MULTIINT_CCSD_fc
+
+# -------------- Definition of the indices--------------------
+      aoindex mu     = 1, norb
+      aoindex nu     = 1, norb
+      moaindex    i  = baocc, eaocc
+      moaindex    j  = baocc, eaocc
+      moaindex    k  = baocc, eaocc
+      moaindex    l  = baocc, eaocc
+      moaindex    m  = baocc, eaocc
+      moaindex   i1  = baocc, eaocc
+      moaindex   i2  = baocc, eaocc
+      moaindex   i3  = baocc, eaocc
+      moaindex    p  = baocc, eavirt
+      moaindex    q  = baocc, eavirt
+      moaindex   p1  = baocc, eavirt
+      moaindex   p2  = baocc, eavirt
+      moaindex   a   = bavirt, eavirt
+      moaindex   a1  = bavirt, eavirt
+      moaindex   a2  = bavirt, eavirt
+      moaindex   a3  = bavirt, eavirt
+      moaindex   b   = bavirt, eavirt
+      moaindex   d   = bavirt, eavirt
+         index   g   =1, 1000000
+         index k4=1,4 
+         index   jfrag  = 1, 2 # Nfragments 
+# ---- Definition of the arrays---------------------
+
+#---------Output arrays-----------------------------
+       served V_ijkl(i,i1,i2,i3)
+       served V_ijka(i1,i2,i,a1)
+       served V_ijab(i,a,i1,a1)
+       served X12(p,i,p1,i1)
+       served KF12(p,i,p1,i1) 
+       served K1F12(i,i2,p,i1)
+       served KFF12(i1,i2,i3,i)       
+       served F12F23(p,i1,i2,i3)
+       served KIN3e(i,i1,i2,i3)
+       served LAM1(i,a)
+       served LAM21(a,i1,a1,i2)
+       served LAM22(a,i1,a1,i2)
+       served LAM23(a,i1,a1,i2)
+       served LAM24(a,i1,a1,i2)
+       served T1INT1(a,p)
+       served T1INT2(a,i,a1,i1)
+       served T2INT2(a,i,p,i1)
+       served T2INT21(p,i,a,i1)
+       served T2INT3(a,i,p,i1)
+       served T2INT31(a,p,i,i1) 
+       served C_coef(i,i1,i2,i3)
+       served CC1(i,i1,i2,i3)
+       served CC2(i,i1,i2,i3)
+       served CC3(i,i1,i2,i3)
+       served CC4(i,i1,i2,i3)
+#       served T2INT10(i,a,d,b)
+#       served T2INT11(d,a,j,b)
+      
+ 
+#---------Two-electron integrals----------------
+      served V0iiii(i,j,k,l)
+      served V0aiai(a2,i1,a1,i)
+      served V0aaii(a1,a2,i1,i)
+      served V0aiii(a1,i1,i2,i)
+      served V0piii(p1,i1,i2,i)
+      served V0aaai(a1,a2,a3,i)
+
+      served V1aiai(a,i,a1,i1)
+      served V1iiii(i,i1,i2,i3)
+      served V1aiii(a1,i1,i2,i)
+
+      served V2pipi(p2,i,p1,i1)
+      served V2piai(p2,i,a1,i1)
+      served V2piii(p1,i,i1,i2)
+      served V2iiii(i,i1,i2,i3)
+      served V2aiai(a2,i1,a1,i)
+      served V2aaii(a1,a2,i1,i)
+      served V2aiii(a1,i1,i2,i)
+      served V2aaai(a1,a2,a3,i)
+
+      served V3iiii(i,i1,i2,i3)
+
+      served V4aiai(a1,i,a2,i1)
+      served V4iiii(i,i1,i2,i3)
+#----------------------------------------------
+
+
+#---------Temporal arrays-----------------------
+       temp tV_ijkl(i,i1,i2,i3)
+       temp t1V_ijkl(i,i1,i2,i3)
+       temp tV_ijka(i1,i2,i,a1)
+       temp t1V_ijka(i,k,j,a)
+       temp tV_ijab(i,a,i1,a1)
+       temp t1V_ijab(i,a,j,b)
+       temp tX12(p,i,p1,i1)
+       temp t1X12(p,i,p1,i1)
+       temp tKF12(p,i,p1,i1)
+       temp tK1F12(i,i2,p,i1)
+       temp tKFF12(i1,i2,i3,i)
+       temp t1KFF12(i1,i2,i3,i)
+       temp tF12F23(p,i1,i2,i3)
+       temp tKIN3e(i,i1,i2,i3)
+       temp t1KIN3e(i,i1,i2,i3)
+       temp tLAM1(i,a)
+       temp tLAM21(a,i1,a1,i2)
+       temp tLAM22(a,i1,a1,i2)
+       temp tLAM23(a,i1,a1,i2)
+       temp tLAM24(a,i1,a1,i2)
+       temp tT1INT1(a,p)
+       temp tT1INT2(a,i,a1,i1)
+       temp tT2INT2(a,i,p,i1)
+       temp tT2INT21(p,i,a,i1)
+       temp tT2INT3(a,i,p,i1)
+       temp tT2INT31(a,p,i,i1)
+       temp tmoval(p)
+       temp tmoval1(p)         
+       temp tmoover(p,p1)
+       temp tmpint1(p,p1)
+       temp tmpint2(p,p1)  
+       temp tmp3center(mu,nu)
+       temp tmp3grad(mu,nu) 
+       temp tmp3center_imu(mu,p)
+       temp tmp3center_pi(p,q)
+       temp texch_p(p) 
+       temp texch1_p(p)
+       temp tccusp(i,j,k,l)
+       temp t1ccusp(i,j,k,l)
+       temp tzv(p,q)
+       temp tccc(i,i1,i2)
+       temp tccc1(i,i1,a)
+       temp tccc11(i,a,i1)
+       temp tccc2(i,a,b)
+       temp tccc3(i,p,b)
+       temp tccc4(p,i,b)
+       temp tccc5(j,a,m)
+       temp tccc6(a,i,j)
+       temp tttt2(i,a,b)
+       temp tttt3(i,p,b)
+       temp tttt4(p,i,a)
+       temp tttt5(j,a,m)
+       temp tttt6(a,i,j)
+#       temp tT2INT10(i,a,d,b)
+#       temp ttT2INT10(i,a,d,b)
+#       temp tT2INT11(d,a,j,b)
+
+#--------Local arrays------------------------------
+       local MOVAL(p)  
+       local MOVALX(p)
+       local MOVALY(p)
+       local MOVALZ(p)
+
+       local MOOVER(p,p1)
+       local MOOVERX(p,p1)
+       local MOOVERY(p,p1)
+       local MOOVERZ(p,p1)
+       
+       local l3center_imu(mu,q)
+       local inv_r12_ip(p,q)
+       local slater_ip(p,i)
+       local slater_sq_ip(p,i)
+       local slater_xder_ip(p,i)
+       local slater_yder_ip(p,i)
+       local slater_zder_ip(p,i)
+       local grad_slater_grad_ip(p,i)
+       local Exch_p(p)
+       local overint1(p,q)
+       local overint2(i,p)
+       local overint3(i,i1)
+       local overint4(p,i)   
+#       local lX12(p,i,q,j)
+#       local lKF12(p,i,q,j)
+#       local lKFF12(i,i1,i2,i3)
+#       local lKIN3e(i,i1,i2,i3)
+
+       local GV2(i,i1)
+       local ZV1(p,q)
+       local ZV(i,i1)
+
+       local CCC(i,i1,i2)
+       local CCC1(i,i1,a)
+       local CCC2(i,i1,a)
+       local CCC11(i,j,k)
+#--------Scalar variables----------------------------
+
+       scalar PTW
+       scalar Ng
+       scalar cnt
+       scalar ind
+       scalar int1_type
+       scalar F12GAMMA
+
+      scalar l1
+      scalar l2
+      scalar l3
+      scalar l4
+      scalar nfrags
+      scalar icount
+      scalar icount1
+      scalar i_vstart
+      scalar i_vend
+
+      local wOccA_frag(i)
+
+      temp xi(i)
+      temp xi1(i)
+      temp xi2(i)
+      temp xi3(i)
+      scalar two
+#--------------------------------------------------------------------------------------
+
+      PROC SET_FRAG 
+#     -------------
+
+      two = 2.0
+
+      nfrags = 2.0
+      allocate wOccA_frag(*)
+
+      icount = 0.0
+
+      DO jfrag
+
+         icount   += 1.0
+
+         i_vstart  = icount
+         i_vend    = 6.0
+
+         execute print_scalar i_vstart
+         execute print_scalar i_vend
+
+         execute frag_index_range i_vstart i_vend
+
+         execute print_scalar i_vstart
+         execute print_scalar i_vend
+
+
+         DO i
+            icount1 = 0.0
+            do i1
+               icount1 += 1.0
+               if i == i1
+                  exit
+               endif
+            enddo i1
+            if icount1 >= i_vstart
+            if icount1 <= i_vend
+               wOccA_frag(i) = icount
+            endif
+            endif
+         ENDDO i
+
+      ENDDO jfrag
+
+
+      ENDPROC SET_FRAG
+#     ----------------
+
+#--------------------------------------------------------------------------------------
+#      CALL SET_FRAG
+
+      execute list_to_blocks                V0iiii
+      execute list_to_blocks                V0aiai
+      execute list_to_blocks                V0aaii
+      execute list_to_blocks                V0aiii
+      execute list_to_blocks                V0piii
+      execute list_to_blocks                V0aaai
+
+      execute list_to_blocks                V1iiii
+      execute list_to_blocks                V1aiii
+      execute list_to_blocks                V1aiai
+
+      execute list_to_blocks                V2iiii
+      execute list_to_blocks                V2aiai
+      execute list_to_blocks                V2aaii
+      execute list_to_blocks                V2aiii
+      execute list_to_blocks                V2aaai
+      execute list_to_blocks                V2pipi
+      execute list_to_blocks                V2piii
+      execute list_to_blocks                V2piai
+
+      execute list_to_blocks                V3iiii
+
+      execute list_to_blocks                V4iiii
+      execute list_to_blocks                V4aiai
+
+#---Here we read arrays of integrals from the disk---
+      execute read_list_to_blocks
+#----------------------------------------------------
+       CALL SET_FRAG
+#--------------------------------------------------------------------------------------
+
+
+
+#--------------Make C-coefficients according to cusp conditions-------------------------
+               PARDO i,j,k,l
+               tccusp(i,j,k,l) = 0.0
+               execute f12_c_coef tccusp F12GAMMA
+               PREPARE C_coef(i,j,k,l) = tccusp(i,j,k,l)
+               ENDPARDO i,j,k,l
+
+               execute server_barrier
+
+#-----------Auxiliary intermediates for T1 amplitudes contributions -------------------
+
+               PARDO i,j,k,l
+                REQUEST C_coef(i,j,k,l) i
+                REQUEST C_coef(i,l,k,j) i
+                tccusp(i,j,k,l) = C_coef(i,j,k,l)
+                tccusp(i,j,k,l) *= -2.0
+                t1ccusp(i,j,k,l) = C_coef(i,l,k,j)
+                tccusp(i,j,k,l)  += t1ccusp(i,j,k,l)
+                PREPARE CC1(i,j,k,l) += tccusp(i,j,k,l)
+               ENDPARDO i,j,k,l
+
+               execute server_barrier
+
+               PARDO i,j,k,l
+                REQUEST C_coef(i,j,k,l) i
+                REQUEST C_coef(i,l,k,j) i
+                tccusp(i,j,k,l) = C_coef(i,j,k,l)
+                tccusp(i,j,k,l) *= 2.0
+                t1ccusp(i,j,k,l) = C_coef(i,l,k,j)
+                t1ccusp(i,j,k,l) *= -1.0
+                tccusp(i,j,k,l) += t1ccusp(i,j,k,l)
+                PREPARE CC2(i,j,k,l) += tccusp(i,j,k,l)
+               ENDPARDO i,j,k,l
+
+               execute server_barrier
+
+#---------Auxialiary intermediates for Lambda-contributions---------------------------
+               PARDO i,j,k,l
+                REQUEST C_coef(i,j,k,l) i
+                REQUEST C_coef(i,l,k,j) i
+                tccusp(i,j,k,l) = C_coef(i,j,k,l)
+                tccusp(i,j,k,l) *= -4.0
+                t1ccusp(i,j,k,l) = C_coef(i,l,k,j)
+                t1ccusp(i,j,k,l) *= 2.0
+                tccusp(i,j,k,l)  += t1ccusp(i,j,k,l)
+                PREPARE CC3(i,j,k,l) += tccusp(i,j,k,l)
+               ENDPARDO i,j,k,l
+
+               execute server_barrier
+
+               PARDO i,j,k,l
+                REQUEST C_coef(i,j,k,l) i
+                REQUEST C_coef(i,l,k,j) i
+                tccusp(i,j,k,l) = C_coef(i,j,k,l)
+                tccusp(i,j,k,l) *= 8.0
+                t1ccusp(i,j,k,l) = C_coef(i,l,k,j)
+                t1ccusp(i,j,k,l) *= -4.0
+                tccusp(i,j,k,l)  += t1ccusp(i,j,k,l)
+                PREPARE CC4(i,j,k,l) += tccusp(i,j,k,l)
+               ENDPARDO i,j,k,l
+
+               execute server_barrier
+
+
+#--------------------------------------------------------------------------------------
+
+
+
+#-----------Step 1 - definition of the number of grid points--------------------------
+            Ng = 0.0
+            cnt = 0.0
+            execute get_grid_size Ng
+#---------Loop over the grid points---------------------------------------------------
+            DO g 
+            cnt += 1.0
+#--------Check if g is exceeded the number of grid points------
+            IF cnt > Ng
+            EXIT 
+            ENDIF
+#----------Define to which worker belongs current point g--------------------------------
+            execute grid_point_range cnt ind
+#-----If g belongs to current worker - then do calculation-------------------------------           
+                              IF ind == 1.0 
+#----------Get the weight of current point g---------------------------------------------
+            execute grid_point_weight cnt PTW
+
+#========================================================================================
+#========================================================================================
+#----Generation of values of molecular orbitals and its derivatibeson the grid-----------
+                              allocate MOVAL(*)
+                              allocate MOVALX(*)
+                              allocate MOVALY(*)
+                              allocate MOVALZ(*) 
+
+                               DO p
+#-----------------------------Molecular orbitals---------------------------------------   
+                                MOVAL(p) = 0.0
+                                tmoval(p) = 0.0 
+                                execute F12_2center_moobj tmoval cnt                   
+                                MOVAL(p) = tmoval(p) 
+#-----------------------------Molecular orbitals - X-derivative-----------------------                               
+                               MOVALX(p) = 0.0
+                               tmoval(p) = 0.0
+                               execute F12_2center_mxobj tmoval cnt                 
+                               MOVALX(p) = tmoval(p)
+#-----------------------------Molecular orbitals - Y-derivative-----------------------
+                               MOVALY(p) = 0.0
+                               tmoval(p) = 0.0
+                               execute F12_2center_myobj tmoval cnt 
+                               MOVALY(p) = tmoval(p)
+#-----------------------------Molecular orbitals - Z-derivative-----------------------
+                               MOVALZ(p) = 0.0
+                               tmoval(p) = 0.0
+                               execute F12_2center_mzobj tmoval cnt 
+                               MOVALZ(p) = tmoval(p)
+
+                               ENDDO p 
+#=====================================================================================
+#=====================================================================================
+
+                               allocate MOOVER(*,*)
+                               allocate MOOVERX(*,*)
+                               allocate MOOVERY(*,*)
+                               allocate MOOVERZ(*,*)
+#------------Preparation of MO overlap arrays-----------------------------------------
+                               DO p
+                                DO p1
+                                 tmoval(p) = MOVAL(p)
+                                 tmoval1(p1) =  MOVAL(p1) 
+                                 tmoover(p,p1) = tmoval(p)^tmoval1(p1)
+                                 tmoover(p,p1) *= PTW
+                                 MOOVER(p,p1) = tmoover(p,p1)  
+                                ENDDO p1
+                               ENDDO p
+#-----------------------------------------------------------------------------------
+                               DO p
+                                DO p1
+                                 tmoval(p) = MOVAL(p)
+                                 tmoval1(p1) =  MOVALX(p1)
+                                 tmoover(p,p1) = tmoval(p)^tmoval1(p1)
+                                 tmoover(p,p1) *= PTW
+                                 MOOVERX(p,p1) = tmoover(p,p1)
+                                ENDDO p1
+                               ENDDO p
+#-----------------------------------------------------------------------------------
+                               DO p
+                                DO p1
+                                 tmoval(p) = MOVAL(p)
+                                 tmoval1(p1) =  MOVALY(p1)
+                                 tmoover(p,p1) = tmoval(p)^tmoval1(p1)
+                                 tmoover(p,p1) *= PTW
+                                 MOOVERY(p,p1) = tmoover(p,p1)
+                                ENDDO p1
+                               ENDDO p
+#-----------------------------------------------------------------------------------
+                               DO p
+                                DO p1
+                                 tmoval(p) = MOVAL(p)
+                                 tmoval1(p1) =  MOVALZ(p1)
+                                 tmoover(p,p1) = tmoval(p)^tmoval1(p1)
+                                 tmoover(p,p1) *= PTW
+                                 MOOVERZ(p,p1) = tmoover(p,p1)
+                                ENDDO p1
+                               ENDDO p
+                               
+#=====================================================================================
+#=====================================================================================
+#     Generation of 3-center objects, which are necessary for the calculation        |
+#                   of three and four-electron integrals                             |
+#=====================================================================================
+
+
+#-----------Allocate arrays for 3-center objects--------------------------------------
+                               allocate inv_r12_ip(*,*)
+                               allocate slater_ip(*,*) 
+                               allocate slater_sq_ip(*,*)
+                               allocate slater_xder_ip(*,*)
+                               allocate slater_yder_ip(*,*)
+                               allocate slater_zder_ip(*,*)
+                               allocate grad_slater_grad_ip(*,*)
+
+#---------------Calculation of 1/r_{1g} integrals----------------------------------------
+
+                       int1_type = 1.0
+                       execute int1_setup cnt int1_type   
+
+                               DO mu
+                                 allocate l3center_imu(mu,*)  
+                                DO nu
+                                          tmp3center(mu,nu) = 0.0 
+                                          execute f12_1el_gen tmp3center(mu,nu)
+                                   DO q
+                                   tmp3center_imu(mu,q) = tmp3center(mu,nu)*ca(nu,q)
+                                   l3center_imu(mu,q) += tmp3center_imu(mu,q)
+                                   ENDDO q 
+                                                                
+                                ENDDO nu
+
+                                   DO q
+                                   DO p 
+                                   tmp3center_pi(p,q) = l3center_imu(mu,q)*ca(mu,p)
+                                   inv_r12_ip(p,q) += tmp3center_pi(p,q)
+                                   ENDDO p
+                                   ENDDO q  
+
+                                   deallocate l3center_imu(mu,*)
+                               ENDDO mu
+
+#---------------Calculation of f_{1g} integrals------------------------------------------
+
+                       int1_type = 2.0
+                       execute int1_setup cnt int1_type
+
+
+                               DO mu
+                                 allocate l3center_imu(mu,*)
+                                DO nu
+                                          tmp3center(mu,nu) = 0.0
+                                          execute f12_1el_gen tmp3center(mu,nu)
+                                   DO i
+                                   tmp3center_imu(mu,i) = tmp3center(mu,nu)*ca(nu,i)
+                                   l3center_imu(mu,i) += tmp3center_imu(mu,i)
+                                   ENDDO i
+
+                                ENDDO nu
+
+                                   DO i
+                                   DO p
+                                   tmp3center_pi(p,i) = l3center_imu(mu,i)*ca(mu,p)
+                                   slater_ip(p,i) += tmp3center_pi(p,i)
+                                   ENDDO p
+                                   ENDDO i
+
+                                   deallocate l3center_imu(mu,*)
+                               ENDDO mu
+
+
+#---------------Calculation of f_{1g}^2 integrals----------------------------------------
+
+                       int1_type = 3.0
+                       execute int1_setup cnt int1_type
+
+                               DO mu
+                                 allocate l3center_imu(mu,*)
+                                DO nu
+                                          tmp3center(mu,nu) = 0.0
+                                          execute f12_1el_gen tmp3center(mu,nu)
+                                   DO i
+                                   tmp3center_imu(mu,i) = tmp3center(mu,nu)*ca(nu,i)
+                                   l3center_imu(mu,i) += tmp3center_imu(mu,i)
+                                   ENDDO i
+
+                                ENDDO nu
+
+                                   DO i
+                                   DO p
+                                   tmp3center_pi(p,i) = l3center_imu(mu,i)*ca(mu,p)
+                                   slater_sq_ip(p,i) += tmp3center_pi(p,i)
+                                   ENDDO p
+                                   ENDDO i
+
+                                   deallocate l3center_imu(mu,*)
+                               ENDDO mu
+
+
+#---------------Calculation of d f_{1g} / dx integrals-----------------------------------
+
+                       int1_type = 4.0
+                       execute int1_setup cnt int1_type
+
+
+                               DO mu
+                                 allocate l3center_imu(mu,*)
+                                DO nu
+                                          tmp3center(mu,nu) = 0.0
+                                          execute f12_1el_gen tmp3center(mu,nu)
+                                   DO i
+                                   tmp3center_imu(mu,i) = tmp3center(mu,nu)*ca(nu,i)
+                                   l3center_imu(mu,i) += tmp3center_imu(mu,i)
+                                   ENDDO i
+
+                                ENDDO nu
+
+                                   DO i
+                                   DO p
+                                   tmp3center_pi(p,i) = l3center_imu(mu,i)*ca(mu,p)
+                                   slater_xder_ip(p,i) += tmp3center_pi(p,i)
+                                   ENDDO p
+                                   ENDDO i
+
+                                   deallocate l3center_imu(mu,*)
+                               ENDDO mu
+
+
+#---------------Calculation of d f_{1g} / dy integrals-----------------------------------
+
+                       int1_type = 5.0
+                       execute int1_setup cnt int1_type
+
+
+                               DO mu
+                                 allocate l3center_imu(mu,*)
+                                DO nu
+                                          tmp3center(mu,nu) = 0.0
+                                          execute f12_1el_gen tmp3center(mu,nu)
+                                   DO i
+                                   tmp3center_imu(mu,i) = tmp3center(mu,nu)*ca(nu,i)
+                                   l3center_imu(mu,i) += tmp3center_imu(mu,i)
+                                   ENDDO i
+
+                                ENDDO nu
+
+                                   DO i
+                                   DO p
+                                   tmp3center_pi(p,i) = l3center_imu(mu,i)*ca(mu,p)
+                                   slater_yder_ip(p,i) += tmp3center_pi(p,i)
+                                   ENDDO p
+                                   ENDDO i
+
+                                   deallocate l3center_imu(mu,*)
+                               ENDDO mu
+
+
+#---------------Calculation of d f_{1g} / dz integrals-----------------------------------
+
+                       int1_type = 6.0
+                       execute int1_setup cnt int1_type
+
+
+                               DO mu
+                                 allocate l3center_imu(mu,*)
+                                DO nu
+                                          tmp3center(mu,nu) = 0.0
+                                          execute f12_1el_gen tmp3center(mu,nu)
+                                   DO i
+                                   tmp3center_imu(mu,i) = tmp3center(mu,nu)*ca(nu,i)
+                                   l3center_imu(mu,i) += tmp3center_imu(mu,i)
+                                   ENDDO i
+
+                                ENDDO nu
+
+                                   DO i
+                                   DO p
+                                   tmp3center_pi(p,i) = l3center_imu(mu,i)*ca(mu,p)
+                                   slater_zder_ip(p,i) += tmp3center_pi(p,i)
+                                   ENDDO p
+                                   ENDDO i
+
+                                   deallocate l3center_imu(mu,*)
+                               ENDDO mu
+
+#---------------Calculation of <chi_{i}|grad f_{1g}|grad chi_{j}> integrals--------------
+
+                               DO mu
+                                 allocate l3center_imu(mu,*)
+                                DO nu
+                                          
+                                          tmp3grad(mu,nu) = 0.0
+
+#---------------------X-derivatives---------------------------------------
+                       int1_type = 7.0
+                       execute int1_setup cnt int1_type
+
+                                tmp3center(mu,nu) = 0.0
+                                execute f12_1el_gen tmp3center(mu,nu)
+                                tmp3grad(mu,nu) += tmp3center(mu,nu)
+
+
+#---------------------Y-derivatives---------------------------------------                               
+                       int1_type = 8.0
+                       execute int1_setup cnt int1_type
+
+                                tmp3center(mu,nu) = 0.0
+                                execute f12_1el_gen tmp3center(mu,nu)
+                                tmp3grad(mu,nu) += tmp3center(mu,nu)
+
+#---------------------Z-derivatives---------------------------------------
+                       int1_type = 9.0
+                       execute int1_setup cnt int1_type
+
+                                tmp3center(mu,nu) = 0.0
+                                execute f12_1el_gen tmp3center(mu,nu)
+                                tmp3grad(mu,nu) += tmp3center(mu,nu)                             
+                                
+#------------------------------------------------------------------------
+
+                                   DO i
+                                   tmp3center_imu(mu,i) = tmp3grad(mu,nu)*ca(nu,i)
+                                   l3center_imu(mu,i) += tmp3center_imu(mu,i)
+                                   ENDDO i
+                              
+                                ENDDO nu
+
+                                   DO i
+                                   DO p
+                                   tmp3center_pi(p,i) = l3center_imu(mu,i)*ca(mu,p)
+                                   grad_slater_grad_ip(p,i) += tmp3center_pi(p,i)
+                                   ENDDO p
+                                   ENDDO i
+
+                                   deallocate l3center_imu(mu,*)
+                               ENDDO mu
+
+
+
+#-------------Preparation of the exchange operator-----------------------------------------
+                               allocate Exch_p(*)
+
+                               DO p
+                                    texch_p(p) = 0.0
+                                    texch1_p(p) = 0.0
+                                    Exch_p(p) = 0.0 
+                                    DO m
+                                      tmoval(m) = 0.0
+                                      tmoval(m) = MOVAL(m)
+                                      tmoover(p,m) = 0.0
+                                      tmoover(p,m) = inv_r12_ip(p,m)  
+                                    texch1_p(p) = tmoover(p,m)*tmoval(m)
+                                    texch_p(p) += texch1_p(p)
+                                    ENDDO m
+                                    Exch_p(p) = texch_p(p)
+                               ENDDO p 
+#---------------------------------------------------------------------------------------
+#  Commutator of non-local exchange and Slater geminal X12 = <pq|[K1+K2,f12]|ij>        |
+#              also  KF12 = <ij|(K1+K2)*f12|pq> and K1F12 = <ij|K1*f12|pm>              |
+#---------------------------------------------------------------------------------------
+                              allocate overint1(*,*)
+
+                               DO i
+                                DO p
+
+                                texch_p(p) = 0.0
+                                tmoover(i,p) = 0.0
+                                tmoval(i) = 0.0 
+
+                                tmoval(i) = MOVAL(i)
+                                texch_p(p) = Exch_p(p)
+                                
+                                tmoover(i,p) = tmoval(i)^texch_p(p)
+                                tmoover(i,p) *= PTW
+                                overint1(i,p) = tmoover(i,p)
+                                ENDDO p
+                               ENDDO i
+
+
+                              allocate overint2(*,*) 
+#------------------------Second intermediate----------------------------------------------
+                               DO i
+                                DO p
+                                tmoover(i,p) = 0.0
+                                tmoover(i,p) = Exch_p(i)^MOVAL(p)
+                                tmoover(i,p) *= PTW
+                                overint2(i,p) = tmoover(i,p)
+                                ENDDO p
+                               ENDDO i
+#-----------------------------------------------------------------------------------------
+                               DO p
+                                DO i 
+                                 DO q
+                                  DO j
+
+                                   t1X12(p,i,q,j) = 0.0
+                                   tKF12(p,i,q,j) = 0.0
+#----------------------------------Test---------------------------------------------------
+#
+#                                   
+#--------------------------------------------|                                    
+                                  tX12(p,i,q,j) = 0.0
+                                  tX12(p,i,q,j) = overint1(i,p)^slater_ip(q,j)
+                                  tX12(p,i,q,j) *= -1.0
+                                  t1X12(p,i,q,j) += tX12(p,i,q,j)
+
+                                  tX12(p,i,q,j) = 0.0
+                                  tX12(p,i,q,j) = overint1(j,q)^slater_ip(p,i)
+                                  tX12(p,i,q,j) *= -1.0
+                                  t1X12(p,i,q,j) += tX12(p,i,q,j)
+#--------------------------------------------| 
+
+                                  tX12(p,i,q,j) = 0.0
+                                  tX12(p,i,q,j) = overint2(i,p)^slater_ip(q,j)
+                                  t1X12(p,i,q,j) += tX12(p,i,q,j)
+                                  tKF12(p,i,q,j)  += tX12(p,i,q,j)
+
+                                  tX12(p,i,q,j) = 0.0
+                                  tX12(p,i,q,j) = overint2(j,q)^slater_ip(p,i)
+                                  t1X12(p,i,q,j) += tX12(p,i,q,j)
+                                  tKF12(p,i,q,j)  += tX12(p,i,q,j)
+
+                                  PREPARE X12(p,i,q,j) += t1X12(p,i,q,j)
+                                  PREPARE KF12(p,i,q,j) += tKF12(p,i,q,j) 
+#--------------------------------------------|
+
+                                  ENDDO j
+                                 ENDDO q
+                                ENDDO i
+                               ENDDO p
+#-----------------------------------------------------------------------------------------
+                                DO k
+                                 DO i
+                                  DO q
+                                   DO j
+                                   tK1F12(k,i,q,j) = 0.0
+                                   tK1F12(k,i,q,j) = overint2(i,k)^slater_ip(q,j)
+                                   tK1F12(k,i,q,j) *= -1.0 
+                                   PREPARE K1F12(k,i,q,j) += tK1F12(k,i,q,j)
+                                   ENDDO j
+                                  ENDDO q
+                                 ENDDO i
+                                ENDDO k
+#---------------------------------------------------------------------------------------
+#                         KFF12 = <ij|(K1+K2)*f12^{2}|kl>                              |
+#          and sum_{M,N} <ijMN| f_{14}*f_{34}/r_{24}|MNkl>                             |  
+#---------------------------------------------------------------------------------------
+                              allocate overint3(*,*)
+                              DO i
+                               DO j
+                                tmoover(i,j) = 0.0
+                                overint3(i,j) = 0.0
+#
+                                DO m
+
+                                tmpint1(i,m) = 0.0
+                                tmpint2(j,m) = 0.0
+                                tmpint1(i,m) = slater_ip(i,m)
+                                tmpint2(j,m) = slater_ip(j,m)
+ 
+                                tmoover(i,j) = tmpint1(i,m)*tmpint2(j,m)
+                                overint3(i,j) += tmoover(i,j)
+                                ENDDO m
+
+                               ENDDO j
+                              ENDDO i
+#---------------------------------------------------------------------------------------
+                              DO i
+                               DO k
+                                DO j
+                                 DO l
+                                            t1KFF12(i,k,j,l) = 0.0
+#------------------------------------------------------|                                             
+                                 tKFF12(i,k,j,l) = 0.0
+                                 tKFF12(i,k,j,l) = overint1(i,k)^slater_sq_ip(j,l) 
+                                 tKFF12(i,k,j,l) *= -1.0
+                                 t1KFF12(i,k,j,l) += tKFF12(i,k,j,l) 
+
+                                 tKFF12(i,k,j,l) = 0.0
+                                 tKFF12(i,k,j,l) = overint1(j,l)^slater_sq_ip(i,k)
+                                 tKFF12(i,k,j,l) *= -1.0
+                                 t1KFF12(i,k,j,l) += tKFF12(i,k,j,l)
+
+#------------------------------------------------------|                                 
+                                 tKFF12(i,k,j,l) = 0.0
+                                 tKFF12(i,k,j,l) = overint3(i,k)^overint1(j,l)
+                                 t1KFF12(i,k,j,l) += tKFF12(i,k,j,l)
+
+                                 tKFF12(i,k,j,l) = 0.0
+                                 tKFF12(i,k,j,l) = overint3(j,l)^overint1(i,k)
+                                 t1KFF12(i,k,j,l) += tKFF12(i,k,j,l) 
+
+                                 t1KFF12(i,k,j,l) *= -1.0 
+
+                                 PREPARE KFF12(i,k,j,l) += t1KFF12(i,k,j,l)
+
+                                 ENDDO l
+                                ENDDO j
+                               ENDDO k
+                              ENDDO i
+#----------------------------------------------------------------------------|
+#                         sum_{N} <pjN|f12*f23|Nlk>                          |
+#----------------------------------------------------------------------------|
+                              allocate overint4(*,*)
+                              DO p
+                               DO j
+                                tmoover(p,j) = 0.0 
+                                overint4(p,j) = 0.0
+                               
+                                DO m
+                                tmpint1(j,m) = 0.0
+                                tmpint2(p,m) = 0.0
+                                tmpint1(j,m) = slater_ip(j,m) 
+                                tmpint2(p,m) = slater_ip(p,m) 
+                                
+                                tmoover(p,j) = tmpint1(j,m)*tmpint2(p,m)
+                                overint4(p,j) += tmoover(p,j)
+
+                                ENDDO m
+                               ENDDO j
+                              ENDDO p
+#-----------------------------------------------------------------------------
+                              DO p
+                               DO k
+                                DO j
+                                 DO l
+                                 tF12F23(p,k,j,l) = 0.0
+                                 tF12F23(p,k,j,l) = overint4(p,k)^MOOVER(j,l)
+                                 PREPARE F12F23(p,k,j,l) += tF12F23(p,k,j,l)
+                                 ENDDO l
+                                ENDDO j
+                               ENDDO k
+                              ENDDO p 
+
+
+                              deallocate overint1(*,*)
+                              deallocate overint2(*,*)
+                              deallocate overint3(*,*)
+                              deallocate overint4(*,*)
+#---------------------------------------------------------------------------------------
+#       Three - electron integrals for V_ijkl -intermediate                            |
+#---------------------------------------------------------------------------------------
+                              allocate overint1(*,*)
+                              DO i
+                               DO j
+                                DO m
+                                tmoover(i,j) = inv_r12_ip(j,m)*slater_ip(i,m)
+                                overint1(i,j) += tmoover(i,j)                                 
+                                ENDDO m
+                               ENDDO j
+                              ENDDO i
+#---------------------------------------------------------------------------------------
+                              DO i
+                               DO k
+                                DO j
+                                 DO l
+
+                                 tV_ijkl(i,k,j,l) = overint1(i,k)^MOOVER(j,l)
+                                 t1V_ijkl(i,k,j,l) = overint1(j,l)^MOOVER(i,k)
+                                 tV_ijkl(i,k,j,l) += t1V_ijkl(i,k,j,l)
+                                 tV_ijkl(i,k,j,l) *= -1.0 
+                                 PREPARE V_ijkl(i,k,j,l) += tV_ijkl(i,k,j,l) 
+                                 ENDDO l
+                                ENDDO j
+                               ENDDO k
+                              ENDDO i
+
+
+#---------------------------------------------------------------------------------------
+#       Three - electron integrals for V_ijka -intermediate                            |
+#---------------------------------------------------------------------------------------
+
+                              allocate overint2(*,*)
+                              DO i
+                               DO a
+                                DO m
+                                tmoover(i,a) = inv_r12_ip(a,m)*slater_ip(i,m)
+                                overint2(i,a) += tmoover(i,a)
+                                ENDDO m
+                               ENDDO a
+                              ENDDO i
+#---------------------------------------------------------------------------------------
+                              DO i
+                               DO k
+                                DO j
+                                 DO a
+                                 tV_ijka(i,k,j,a) = overint1(i,k)^MOOVER(j,a)
+                                 t1V_ijka(i,k,j,a) = overint2(j,a)^MOOVER(i,k)
+                                 tV_ijka(i,k,j,a) += t1V_ijka(i,k,j,a)
+                                 tV_ijka(i,k,j,a) *= -1.0
+                                 PREPARE V_ijka(i,k,j,a) += tV_ijka(i,k,j,a)
+                                 ENDDO a
+                                ENDDO j
+                               ENDDO k
+                              ENDDO i
+
+
+#---------------------------------------------------------------------------------------
+#       Three - electron integrals for V_ijab -intermediate                            |
+#---------------------------------------------------------------------------------------
+
+                              DO i
+                               DO a
+                                DO j
+                                 DO b
+                                 tV_ijab(i,a,j,b) = overint2(i,a)^MOOVER(j,b)
+                                 t1V_ijab(i,a,j,b) = overint2(j,b)^MOOVER(i,a)
+                                 tV_ijab(i,a,j,b) += t1V_ijab(i,a,j,b)
+                                 tV_ijab(i,a,j,b) *= -1.0
+                                 PREPARE V_ijab(i,a,j,b) += tV_ijab(i,a,j,b)
+                                 ENDDO b
+                                ENDDO j
+                               ENDDO a
+                              ENDDO i
+
+                              deallocate overint2(*,*)
+                              deallocate overint1(*,*)
+
+
+###########################################################################|
+#        f12 - intermediates for T1 equations of CCSD(F12) method          |
+###########################################################################|
+
+
+#--------------------------------------------------------------------------|
+#                Diagrams d3.18, d3.19 and d3.20 for T1 intermediates      | 
+#--------------------------------------------------------------------------|
+
+#--------------First T1 term-----------------------------------------------|
+
+             allocate GV2(*,*)
+             allocate ZV1(*,*)
+#-------------------------------
+             DO i
+               DO j
+                DO k
+                 DO l
+
+#-----------------------------
+       xi3(i)   = wOccA_frag(i)
+       execute return_sval xi3 l4
+       if l4 == two
+
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+
+#       xi1(k)   = wOccA_frag(k)
+#       execute return_sval xi1 l2
+#       if l2 == two
+
+#       xi2(l)   = wOccA_frag(l)
+#       execute return_sval xi2 l3
+#       if l3 == two
+#-----------------------------
+
+                 REQUEST CC1(i,j,k,l) i
+                 tmoover(k,l) = CC1(i,j,k,l)*MOOVER(i,j)
+                 GV2(k,l) += tmoover(k,l)
+
+                 endif
+                 endif
+#                 endif
+#                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+
+              DO j
+               DO l
+#-----------------------------
+#       xi(j)   = wOccA_frag(j)
+#       execute return_sval xi l1
+#       if l1 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+
+                DO p
+                tzv(p,j) = GV2(j,l)*inv_r12_ip(p,l)
+                ZV1(p,j) += tzv(p,j)
+                ENDDO p
+
+#                endif
+                endif
+               ENDDO l
+              ENDDO j
+#-------------------------------|
+
+              DO p
+              DO a
+              DO j
+#-----------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------              
+                tzv(a,p) = ZV1(p,j)*slater_ip(a,j)
+#------Here we have plus sign since minus sign has already been added to C-coefficients---
+                tzv(a,p) *= 1.0
+#-----------------------------------------------------------------------------------------
+                PREPARE T1INT1(a,p) += tzv(a,p)
+              endif
+              ENDDO j
+              ENDDO a
+              ENDDO p 
+
+
+             deallocate ZV1(*,*)
+             deallocate GV2(*,*)
+
+#--------------Second T1 term------------------------------------------
+#---------------first part---------------------------------------------
+             allocate GV2(*,*)
+             allocate ZV1(*,*)
+#------------------------------
+
+              DO i
+               DO j
+                DO k
+                 DO l
+
+#------------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+
+                 REQUEST CC2(i,j,k,l) i
+                 tmoover(i,j) = CC2(i,j,k,l)*MOOVER(k,l)
+                 tmoover(i,j) *= 2.0
+                 GV2(i,j) += tmoover(i,j)
+
+                 endif
+                 endif
+                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+
+              DO i
+               DO k
+#-----------------------------
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                DO a
+                tzv(i,a) = GV2(i,k)*slater_ip(a,k)
+                ZV1(i,a) += tzv(i,a)
+                ENDDO a
+
+               endif
+               ENDDO k
+              ENDDO i
+#------------------------------|
+
+              DO a
+               DO i
+                DO m
+                 DO b
+                 tT1INT2(a,i,b,m) = ZV1(i,a)^inv_r12_ip(b,m)
+#------Here we have plus sign since minus sign has already been added to C-coefficients---
+                 tT1INT2(a,i,b,m) *= 1.0
+#-----------------------------------------------------------------------------------------
+                 PREPARE T1INT2(a,i,b,m) += tT1INT2(a,i,b,m)
+                 ENDDO b
+                ENDDO m
+               ENDDO i
+              ENDDO a
+
+
+             deallocate ZV1(*,*)
+             deallocate GV2(*,*)
+             
+#-------------second part------------------------------------------------
+
+             allocate CCC(*,*,*)
+             allocate CCC1(*,*,*)
+
+#---------------------------------------------------
+
+              DO i
+               DO j
+                DO k
+                 DO l
+#------------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+
+                 REQUEST CC2(i,j,k,l) i
+                 tccc(i,j,k) = CC2(i,j,k,l)*MOVAL(l)
+                 tccc(i,j,k) *= PTW
+                 tccc(i,j,k) *= -1.0
+                 CCC(i,j,k) += tccc(i,j,k)
+
+                 endif
+                 endif
+                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+#---------------------------------------------------
+
+              DO i
+               DO k
+                DO a
+                 DO j
+#-----------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                 tccc(i,k,j) = CCC(i,j,k)
+                 tmoover(j,a) = slater_ip(a,j)
+                 tccc1(i,k,a) = tccc(i,k,j)*tmoover(j,a)
+                 CCC1(i,k,a) += tccc1(i,k,a)
+                 endif
+                 endif 
+                 ENDDO j
+                ENDDO a
+               ENDDO k
+              ENDDO i
+
+#---------------------------------------------------
+
+              DO i
+                DO a
+                 DO b
+
+                     tccc2(i,a,b) = 0.0
+                     DO k
+#-----------------------------
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                     tmoover(k,b) = inv_r12_ip(b,k)
+                     tccc11(i,a,k) = CCC1(i,k,a)
+                     tttt2(i,a,b) = tccc11(i,a,k)*tmoover(k,b)
+                     tccc2(i,a,b) += tttt2(i,a,b) 
+                     endif
+                     ENDDO k
+
+                  DO m
+#----------------------check-------------------------------
+                  tT1INT2(a,i,b,m) = tccc2(i,a,b)^MOVAL(m)
+#------Here we have plus sign since minus sign has already been added to C-coefficients---
+                  tT1INT2(a,i,b,m) *= 1.0
+#-----------------------------------------------------------------------------------------
+                  PREPARE T1INT2(a,i,b,m) += tT1INT2(a,i,b,m)
+                  ENDDO m
+
+                  ENDDO b
+                ENDDO a
+              ENDDO i
+
+
+             deallocate CCC1(*,*,*)
+             deallocate CCC(*,*,*)
+###########################################################################
+###########################################################################
+
+###########################################################################|
+#        f12 - intermediates for T2 equations of CCSD(F12) method          |
+###########################################################################|
+
+             allocate CCC(*,*,*)
+             allocate CCC1(*,*,*)
+             allocate ZV1(*,*)
+             allocate GV2(*,*)
+#---------------------------------------------
+#              DO i
+#               DO j
+#                DO k
+#                 DO l
+#                 REQUEST CC2(i,j,k,l) j
+#                 tccusp(i,j,k,l) = CC2(j,i,k,l)
+#                 tccc(i,j,k) = tccusp(i,j,k,l)*MOVAL(l)
+#                 tccc(i,j,k) *= PTW
+#------Here we have plus sign since minus sign has already been added to C-coefficients---
+#                 tccc(i,j,k) *= 1.0
+#-----------------------------------------------------------------------------------------
+#                 CCC(i,j,k) += tccc(i,j,k)
+#                 ENDDO l
+#                ENDDO k
+#               ENDDO j
+#              ENDDO i
+#---------------------------------------------
+#              DO i
+#               DO j
+#                DO k
+#                 DO a
+#
+#                 tccc(i,k,j) = CCC(i,j,k)
+#                 tmoover(j,a) = slater_ip(a,j)
+#                 tccc1(i,k,a) = tccc(i,k,j)*tmoover(j,a)
+#                 CCC1(i,k,a) += tccc1(i,k,a)
+#                 ENDDO a
+#                ENDDO k
+#               ENDDO j
+#              ENDDO i
+#---------------------------------------------
+#              DO i
+#               DO k
+#                DO a
+#                tccc11(i,a,k) = CCC1(i,k,a)
+#                tmoval(k) = MOVAL(k)
+#                tmoover(i,a) = tccc11(i,a,k)*tmoval(k)
+#                ZV1(i,a) += tmoover(i,a)
+#                ENDDO a
+#               ENDDO k
+#              ENDDO i
+
+
+
+#-------------------------------------------------------
+
+             DO i
+               DO j
+                DO k
+                 DO l
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(l)   = wOccA_frag(l)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                 REQUEST CC2(i,j,k,l) i
+                 tmoover(i,j) = CC2(i,j,k,l)*MOOVER(k,l)
+                 GV2(i,j) += tmoover(i,j)
+                 endif
+                 endif 
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+
+
+             DO i
+              DO a
+               DO j
+#-----------------------------
+       xi1(j)   = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                  tmoover(i,a) = GV2(i,j)*slater_ip(a,j)
+                  ZV1(i,a) += tmoover(i,a)
+               endif
+               ENDDO j
+              ENDDO a
+             ENDDO i
+
+
+#------------First contribution----------------
+            DO a
+             DO i
+              DO q
+               DO k
+               tT2INT2(a,i,q,k) = inv_r12_ip(q,k)^ZV1(i,a)
+               PREPARE T2INT2(a,i,q,k) += tT2INT2(a,i,q,k)
+               ENDDO k
+              ENDDO q
+             ENDDO i
+            ENDDO a
+
+
+#---------------------------------------------
+             deallocate GV2(*,*)
+             deallocate ZV1(*,*)
+             deallocate CCC1(*,*,*)
+             deallocate CCC(*,*,*)
+             
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+
+            allocate CCC(*,*,*)
+            allocate CCC1(*,*,*)
+            allocate CCC2(*,*,*)
+#---------------------------------------------|
+              DO i
+               DO j
+                DO k
+                 DO l
+#-----------------------------
+       xi1(l)   = wOccA_frag(l)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                 REQUEST C_coef(i,j,k,l) i
+                 tccc(i,j,k) = C_coef(i,j,k,l)*MOVAL(l)
+                 tccc(i,j,k) *= PTW
+                 CCC(i,j,k) += tccc(i,j,k)
+                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+#---------------------------------------------|
+              DO i
+               DO j
+#-----------------------------
+       xi1(j)   = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                DO k
+                 DO a
+                 tccc(i,k,j) = CCC(i,j,k)
+                 tmoover(j,a) = slater_ip(a,j)
+                 tccc1(i,k,a) = tccc(i,k,j)*tmoover(j,a)
+                 CCC1(i,k,a) += tccc1(i,k,a)
+                 ENDDO a
+                ENDDO k
+               endif
+               ENDDO j
+              ENDDO i
+#---------------------------------------------|
+              DO i
+               DO k
+#-----------------------------
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                DO a
+                 DO m
+                 
+                 tccc1(i,m,a) = CCC1(i,k,a)*inv_r12_ip(k,m)
+                 CCC2(i,m,a) += tccc1(i,m,a) 
+                 ENDDO m
+                ENDDO a
+               endif   
+               ENDDO k
+              ENDDO i
+#---------------------------------------------|
+             DO a
+              DO i
+               DO q
+                DO m
+#---------------check------------------------------------
+                tT2INT2(a,i,q,m) = CCC2(i,m,a)^MOVAL(q)
+                tT2INT2(a,i,q,m) *= -1.0 
+                PREPARE T2INT2(a,i,q,m) += tT2INT2(a,i,q,m) 
+                ENDDO m
+               ENDDO q
+              ENDDO i
+             ENDDO a
+
+           deallocate CCC2(*,*,*)
+#----------Inversed term-------------------------------------
+             allocate CCC2(*,*,*)
+
+              DO i
+#-----------------------------
+       xi1(i)   = wOccA_frag(i)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+               DO k
+                DO a
+                 DO m
+                 tccc1(m,k,a) = CCC1(i,k,a)*inv_r12_ip(i,m)
+                 CCC2(m,k,a) += tccc1(m,k,a)
+                 ENDDO m
+                ENDDO a
+               ENDDO k
+              endif
+              ENDDO i
+
+#--------------------------------------------|
+             DO q
+              DO k
+               DO a
+                DO m
+#------------checkpoint----------------------------------
+                 tccc1(m,k,a) = CCC2(m,k,a)
+                 tmoval(q) = MOVAL(q)
+
+#---------------check----------------------------------
+                tT2INT21(q,k,a,m) = tccc1(m,k,a)^tmoval(q)
+                tT2INT21(q,k,a,m) *= -1.0
+                PREPARE T2INT21(q,k,a,m) += tT2INT21(q,k,a,m) 
+                ENDDO m
+               ENDDO a
+              ENDDO k
+             ENDDO q 
+
+
+
+#--------------------------------------------
+             deallocate CCC2(*,*,*)
+             deallocate CCC1(*,*,*)
+             deallocate CCC(*,*,*)
+
+#-------------------------------------------------------------------------|
+#        -----   Intermediates for 2-nd part of diagram d4-12   -----     |
+#-------------------------------------------------------------------------|
+             allocate CCC1(*,*,*)
+             allocate CCC(*,*,*)
+             allocate CCC2(*,*,*)
+#--------------------------------------------------------------------------
+#              DO i
+#               DO j
+#                DO k
+#                 DO l
+#                 REQUEST CC2(i,j,k,l) i
+#                 tccc(i,j,k) = CC2(i,j,k,l)*MOVAL(l)
+#                 tccc(i,j,k) *= PTW
+#------Here we have plus sign since minus sign has already been added to C-coefficients---
+#                 tccc(i,j,k) *= 1.0
+#-----------------------------------------------------------------------------------------
+#                 CCC(i,j,k) += tccc(i,j,k)
+#                 ENDDO l
+#                ENDDO k
+#               ENDDO j
+#              ENDDO i
+
+#              DO i
+#               DO j
+#                DO k
+#                 DO a
+#
+#                 tccc(i,k,j) = CCC(i,j,k)
+#                 tmoover(j,a) = slater_ip(a,j)
+#                 tccc1(i,k,a) = tccc(i,k,j)*tmoover(j,a)
+#                 CCC1(i,k,a) += tccc1(i,k,a)
+#                 ENDDO a
+#                ENDDO k
+#               ENDDO j
+#              ENDDO i
+
+#--------------------First part of direct term---------------------------
+             allocate ZV1(*,*)
+             allocate GV2(*,*)
+
+#              DO i
+#               DO k
+#                DO a
+#                tmoover(i,a) = CCC1(i,k,a)*MOVAL(k)
+#                ZV1(i,a) += tmoover(i,a)
+#                ENDDO a
+#               ENDDO k
+#              ENDDO i
+
+
+
+             DO i
+               DO j
+                DO k
+                 DO l
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(l)   = wOccA_frag(l)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                 REQUEST CC2(i,j,k,l) i
+                 tmoover(i,j) = CC2(i,j,k,l)*MOOVER(k,l)
+                 GV2(i,j) += tmoover(i,j)
+                 endif
+                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+
+
+             DO i
+              DO a
+               DO j
+#-----------------------------
+       xi1(j)   = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                  tmoover(i,a) = GV2(i,j)*slater_ip(a,j)
+                  ZV1(i,a) += tmoover(i,a)
+               endif
+               ENDDO j
+              ENDDO a
+             ENDDO i
+
+
+              DO a
+               DO i
+                DO p
+                 DO k
+                 tT2INT3(a,i,p,k) = ZV1(i,a)^inv_r12_ip(p,k)
+                 PREPARE T2INT3(a,i,p,k) += tT2INT3(a,i,p,k)
+                 ENDDO k
+                ENDDO p
+               ENDDO i
+              ENDDO a
+
+
+#--------------------------------------------
+             deallocate GV2(*,*)
+             deallocate ZV1(*,*)
+             deallocate CCC2(*,*,*)
+             deallocate CCC(*,*,*)
+             deallocate CCC1(*,*,*)
+#--------------------------------------------
+
+#-----------------------Second part of direct term-------------------------------
+             allocate CCC1(*,*,*)
+             allocate CCC(*,*,*)
+#--------------------------------------------
+
+              DO i
+               DO j
+                DO k
+                 DO l
+#-----------------------------
+       xi1(l)   = wOccA_frag(l)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                 REQUEST C_coef(i,j,k,l) i
+                 tccc(i,j,k) = C_coef(i,j,k,l)*MOVAL(l)
+                 tccc(i,j,k) *= PTW
+                 CCC(i,j,k) += tccc(i,j,k)
+                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+
+              DO i
+               DO j
+#-----------------------------
+       xi1(j)   = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                DO k
+                 DO a
+
+                 tccc(i,k,j) = CCC(i,j,k)
+                 tmoover(j,a) = slater_ip(a,j)
+                 tccc1(i,k,a) = tccc(i,k,j)*tmoover(j,a)
+                 CCC1(i,k,a) += tccc1(i,k,a)
+                 ENDDO a
+                ENDDO k
+               endif
+               ENDDO j
+              ENDDO i
+#-----------Direct term itselfs--------------------------
+              DO a
+               DO i
+                DO p
+
+                 tccc3(i,p,a) = 0.0                  
+                      DO m
+#-----------------------------
+       xi1(m)   = wOccA_frag(m)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                      tmoover(m,p) = inv_r12_ip(p,m)
+                      tttt3(i,p,a) = CCC1(i,m,a)*tmoover(m,p)
+                      tccc3(i,p,a) += tttt3(i,p,a)
+                      endif
+                      ENDDO m
+
+                 DO k
+#-----------------check---------------------------------------
+                 tT2INT3(a,i,p,k) = tccc3(i,p,a)^MOVAL(k)
+                 tT2INT3(a,i,p,k) *= -1.0
+                 PREPARE T2INT3(a,i,p,k) += tT2INT3(a,i,p,k)
+                 ENDDO k
+                ENDDO p
+               ENDDO i
+              ENDDO a
+#-------------------------------------------------------------------------
+#-----------------Inversed term-------------------------------------------
+#-------------------------------------------------------------------------
+
+              DO a
+               DO p
+                DO j
+                 tccc4(p,j,a) = 0.0
+
+                     DO m
+#-----------------------------
+       xi1(m)   = wOccA_frag(m)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                     tmoover(m,p) = inv_r12_ip(p,m)
+                     tttt4(p,j,a) = CCC1(m,j,a)*tmoover(m,p) 
+                     tccc4(p,j,a) += tttt4(p,j,a)
+                     endif
+                     ENDDO m
+                  DO k
+#-----------------------check----------------------------
+                  tT2INT31(a,p,j,k) = tccc4(p,j,a)^MOVAL(k) 
+                  tT2INT31(a,p,j,k) *= -1.0
+                  PREPARE T2INT31(a,p,j,k) += tT2INT31(a,p,j,k)
+                  ENDDO k
+                 ENDDO j
+                ENDDO p
+               ENDDO a
+
+#--------------------------------------------------------------------------
+            deallocate CCC(*,*,*)
+            deallocate CCC1(*,*,*)
+
+
+#-------------------------------------------------------------------------|
+#        -----   Intermediates for  diagram d4-9                -----     |
+#-------------------------------------------------------------------------|
+
+             allocate ZV1(*,*)
+             allocate GV2(*,*)
+
+
+#-----------First contribution--------------------------------------------
+             DO i
+               DO j
+                DO k
+                 DO l
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(l)   = wOccA_frag(l)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                 REQUEST CC2(i,j,k,l) i
+                 tmoover(i,j) = CC2(i,j,k,l)*MOOVER(k,l)
+                 GV2(i,j) += tmoover(i,j)
+                 endif
+                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+
+             DO i
+              DO a
+               DO j
+#-----------------------------
+       xi1(j)   = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                  tmoover(i,a) = GV2(i,j)*slater_ip(a,j)
+                  ZV1(i,a) += tmoover(i,a)
+               endif
+               ENDDO j
+              ENDDO a
+             ENDDO i
+
+#-----------Second contribution--------------------------------------------
+
+             allocate CCC1(*,*,*)
+             allocate CCC(*,*,*)
+#--------------------------------------------
+
+              DO i
+               DO j
+                DO k
+                 DO l
+#-----------------------------
+       xi1(l)   = wOccA_frag(l)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                 REQUEST C_coef(i,j,k,l) i
+                 tccc(i,j,k) = C_coef(i,j,k,l)*MOVAL(l)
+                 tccc(i,j,k) *= PTW
+                 CCC(i,j,k) += tccc(i,j,k)
+                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+#---------------------------------------------------------|
+              DO i
+               DO j
+#-----------------------------
+       xi1(j)   = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+
+                DO k
+                 DO a
+                 tccc(i,k,j) = CCC(i,j,k)
+                 tmoover(j,a) = slater_ip(a,j)
+                 tccc1(i,k,a) = tccc(i,k,j)*tmoover(j,a)
+                 CCC1(i,k,a) += tccc1(i,k,a)
+                 ENDDO a
+                ENDDO k
+               endif
+               ENDDO j
+              ENDDO i
+
+
+#--------------------------------------------------------------------------
+#          DO i
+#           DO a
+#            DO d
+#              tccc2(i,d,a) = 0.0
+
+#                 DO k
+#                 tmoover(k,d) = inv_r12_ip(d,k)
+#                 tttt2(i,d,a) = CCC1(i,k,a)*tmoover(k,d) 
+#                 tccc2(i,d,a) += tttt2(i,d,a)
+#                 ENDDO k
+
+#              DO b
+
+#-------First contribution------------------------------------|               
+#              tT2INT10(i,a,d,b) = tccc2(i,d,a)^MOVAL(b)
+#              tT2INT10(i,a,d,b) *= -1.0
+#              ttT2INT10(i,a,d,b) = tT2INT10(i,a,d,b)
+#-------Second contribution-----------------------------------|
+#              tT2INT10(i,a,d,b) = ZV1(i,a)^inv_r12_ip(d,b)
+#              ttT2INT10(i,a,d,b) += tT2INT10(i,a,d,b)
+#              PREPARE T2INT10(i,a,d,b) += ttT2INT10(i,a,d,b)
+#-------------------------------------------------------------|
+#             ENDDO b
+#            ENDDO d
+#           ENDDO a
+#          ENDDO i
+
+
+
+         deallocate ZV1(*,*)
+         deallocate GV2(*,*)
+
+
+#-----------Third contribution-----------------------------------------------
+#          DO d
+#           DO a
+#            DO j               
+#               tccc4(d,j,a) = 0.0  
+
+#                  DO k
+#                  tmoover(k,d) = inv_r12_ip(d,k)                 
+#                  tttt4(d,j,a) = CCC1(k,j,a)*tmoover(k,d)
+#                  tccc4(d,j,a) += tttt4(d,j,a)  
+#                  ENDDO k
+
+#              DO b 
+#              tT2INT11(d,a,j,b) = tccc4(d,j,a)^MOVAL(b)                   
+#              tT2INT11(d,a,j,b) *= -1.0
+#              PREPARE T2INT11(d,a,j,b) += tT2INT11(d,a,j,b)
+#             ENDDO b
+#            ENDDO j
+#           ENDDO a
+#          ENDDO d
+
+
+
+
+
+             deallocate CCC1(*,*,*)
+             deallocate CCC(*,*,*)
+
+#===========================================================================
+#          Lambda - term of CCSD(F12) energy functional
+#============================================================================
+
+          
+#---------------------------------------------------------------------------------------
+#                   Diagram d6.24 of Lambda-term                                       | 
+#---------------------------------------------------------------------------------------
+
+           allocate ZV(*,*)
+           allocate ZV1(*,*)
+
+              DO i
+               DO j
+                DO k
+                 DO l
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(l)   = wOccA_frag(l)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                 REQUEST CC3(i,j,k,l) i
+                 tmoover(i,j) = CC3(i,j,k,l)*MOOVER(k,l)
+                 ZV(i,j) += tmoover(i,j)
+                 endif
+                 endif
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              ENDDO i
+
+              DO i
+               DO m
+                 DO j
+#-----------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------
+                 tzv(i,m) = ZV(i,j)*inv_r12_ip(j,m)
+                 ZV1(i,m) += tzv(i,m) 
+                 endif
+                 ENDDO j
+               ENDDO m
+              ENDDO i
+
+
+              DO m
+               DO a
+                DO i
+#-----------------------------
+       xi(i)   = wOccA_frag(i)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------             
+                tLAM1(m,a) = ZV1(i,m)*slater_ip(a,i)
+                tLAM1(m,a) *= 1.0
+                PREPARE LAM1(m,a) += tLAM1(m,a)
+                endif 
+                ENDDO i
+               ENDDO a
+              ENDDO m
+
+           deallocate ZV1(*,*)
+           deallocate ZV(*,*)
+
+#---------------------------------------------------------------------------------------
+#                             Diagram d6.23 of Lambda term                             |
+#---------------------------------------------------------------------------------------
+
+
+
+#-------------------------------------- part 1 -----------------------------------------
+
+              allocate CCC(*,*,*)
+              allocate CCC11(*,*,*)
+
+              DO i
+#-----------------------------
+       xi(i)   = wOccA_frag(i)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------
+               DO j
+                DO k
+                 DO l
+                 REQUEST CC3(i,j,k,l) i
+                 tccc(j,k,l) = CC3(i,j,k,l)*MOVAL(i)
+                 tccc(j,k,l) *= PTW
+                 CCC(j,k,l) += tccc(j,k,l)
+                 ENDDO l
+                ENDDO k
+               ENDDO j
+              endif
+              ENDDO i
+
+              DO j
+               DO k
+                DO m
+                 DO l
+#-----------------------------
+       xi(l)   = wOccA_frag(l)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------             
+                 tccc(j,k,m) = CCC(j,k,l)*inv_r12_ip(l,m)
+                 CCC11(j,k,m) += tccc(j,k,m) 
+                 endif
+                 ENDDO l
+                ENDDO m
+               ENDDO k
+              ENDDO j
+#--------------------------------------|
+
+              DO a
+               DO m
+                DO b
+                 DO j
+                      tccc5(j,a,m) = 0.0
+                      DO k
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------             
+                      tmoover(k,a) = slater_ip(a,k)  
+                      tttt5(j,a,m) = CCC11(j,k,m)*tmoover(k,a)
+                      tccc5(j,a,m) += tttt5(j,a,m)
+                      endif 
+                      ENDDO k
+#-------------check---------------------------------------
+                 tLAM21(a,m,b,j) = tccc5(j,a,m)^MOVAL(b)
+#-----Here we have plus sign since minus sign is incorporated into C-coefficients-----------
+                 tLAM21(a,m,b,j) *= 1.0
+#-------------------------------------------------------------------------------------------
+                 PREPARE LAM21(a,m,b,j) += tLAM21(a,m,b,j)
+                 ENDDO j
+                ENDDO b
+               ENDDO m
+              ENDDO a
+
+
+
+#              execute print_scalar cnt
+#              execute print_scalar cnt
+#              execute print_scalar cnt
+
+
+
+             deallocate CCC11(*,*,*)
+
+#--------------------------------------|
+             allocate CCC11(*,*,*)
+#-------------------------------------- part 2 -----------------------------------------
+
+              DO j
+#-----------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------             
+               DO k
+                DO m
+                 DO l
+                 tccc(m,k,l) = CCC(j,k,l)*inv_r12_ip(j,m)
+                 CCC11(m,k,l) += tccc(m,k,l)
+                 ENDDO l
+                ENDDO m
+               ENDDO k
+              endif
+              ENDDO j
+#--------------------------------------|
+
+             DO a
+               DO m
+                DO b
+                 DO l
+
+                      tccc5(m,a,l) = 0.0
+                      DO k
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------             
+                      tmoover(k,a) = slater_ip(a,k)
+                      tccc(m,k,l) = CCC11(m,k,l)
+                      tttt5(m,a,l) = tccc(m,k,l)*tmoover(k,a)
+                      tccc5(m,a,l) += tttt5(m,a,l)
+                      endif
+                      ENDDO k
+
+
+#--------------------check1----------------------------
+                 tLAM22(b,m,a,l) = tccc5(m,a,l)^MOVAL(b)
+#-----Here we have plus sign since minus sign is incorporated into C-coefficients-----------
+                 tLAM22(b,m,a,l) *= 1.0
+#-------------------------------------------------------------------------------------------
+                 PREPARE LAM22(b,m,a,l) += tLAM22(b,m,a,l)
+                 ENDDO l
+                ENDDO b
+               ENDDO m
+              ENDDO a
+
+
+             deallocate CCC11(*,*,*) 
+             deallocate CCC(*,*,*)
+
+#-------------------------------------- part 3 -----------------------------------------
+
+
+           allocate ZV(*,*)
+           allocate ZV1(*,*)
+
+              DO i
+               DO j
+#------------------------------
+       xi(i)   = wOccA_frag(i)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(j)   = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                DO k
+                 DO l
+                 REQUEST CC4(i,j,k,l) i
+                 tmoover(k,l) = CC4(i,j,k,l)*MOOVER(i,j)
+#-----Here we have plus sign since minus sign is incorporated into C-coefficients-------
+                 tmoover(k,l) *= 1.0
+#---------------------------------------------------------------------------------------
+                 ZV(k,l) += tmoover(k,l)
+                 ENDDO l
+                ENDDO k
+               endif
+               endif 
+               ENDDO j
+              ENDDO i
+
+              DO a
+               DO k
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------
+                DO l
+                tzv(l,a) = slater_ip(a,k)*ZV(k,l)
+                ZV1(l,a) += tzv(l,a)  
+                ENDDO l
+               endif
+               ENDDO k
+              ENDDO a
+#-----------------------------------------------|
+              DO a
+               DO l
+                DO b
+                 DO m
+                 tLAM23(a,l,b,m) = ZV1(l,a)^inv_r12_ip(b,m)
+                 PREPARE LAM23(a,l,b,m) += tLAM23(a,l,b,m)
+                 ENDDO m
+                ENDDO b
+               ENDDO l
+              ENDDO a
+
+
+
+              deallocate ZV1(*,*)
+              deallocate ZV(*,*)
+#-------------------------------------- part 4 -----------------------------------------
+           allocate ZV(*,*)
+           allocate ZV1(*,*)
+
+             DO i
+               DO j
+#-----------------------------
+       xi(i)   = wOccA_frag(i)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(j)   = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+#-----------------------------
+                DO k
+                 DO l
+                 REQUEST CC3(i,j,k,l) i
+                 tmoover(k,l) = CC3(i,j,k,l)*MOOVER(i,j)
+#-----Here we have plus sign since minus sign is incorporated into C-coefficients-------
+                 tmoover(k,l) *= 1.0
+#---------------------------------------------------------------------------------------
+                 ZV(k,l) += tmoover(k,l)
+                 ENDDO l
+                ENDDO k
+               endif
+               endif
+               ENDDO j
+              ENDDO i
+
+              DO a
+               DO k
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------
+                DO l
+                tzv(l,a) = ZV(k,l)*slater_ip(a,k)
+                ZV1(l,a) += tzv(l,a)
+                ENDDO l
+               endif
+               ENDDO k
+              ENDDO a
+#-----------------------------------------------|
+
+              DO a
+               DO l
+                DO b
+                 DO m
+                 tLAM24(a,l,b,m) = ZV1(l,a)^inv_r12_ip(b,m)
+                 PREPARE LAM24(a,l,b,m) += tLAM24(a,l,b,m)
+                 ENDDO m
+                ENDDO b
+               ENDDO l
+              ENDDO a
+
+
+           deallocate ZV1(*,*)
+           deallocate ZV(*,*)
+#-------------------------------------------------------------------------------|
+# Three - electron integrals: kinetic energy contribution to B - intermediate:  |
+#         sum_{M} ( <ijM|[T12,f12]f13|kMl> + <ijM|[T12,f12]f23|Mlk> )           |
+#-------------------------------------------------------------------------------|
+                              allocate overint1(*,*)
+                              allocate overint2(*,*)
+                              allocate overint3(*,*)
+                              allocate overint4(*,*)
+
+#--------------------------------------------------------------------------------
+                              DO i
+                               DO j
+                                tmoover(i,j) = 0.0
+                                overint1(i,j) = 0.0 
+                                DO m
+                                tmpint1(m,i) = 0.0
+                                tmpint2(m,i) = 0.0
+                                tmpint1(m,i) = grad_slater_grad_ip(m,i)
+                                tmpint2(m,j) = slater_ip(m,j)
+
+                                tmoover(i,j) =  tmpint1(m,i)*tmpint2(m,j)
+                                overint1(i,j) += tmoover(i,j)
+
+                                ENDDO m
+                               ENDDO j
+                              ENDDO i
+#--------------------------------------------------------------------------------
+                              DO i
+                               DO j
+                                tmoover(i,j) = 0.0
+                                overint2(i,j) = 0.0
+                                DO m
+                                tmpint1(i,m) = 0.0
+                                tmpint2(m,i) = 0.0
+                                tmpint1(i,m) = slater_xder_ip(i,m)
+                                tmpint2(m,j) = slater_ip(m,j)
+                                tmoover(i,j) = tmpint1(i,m)*tmpint2(m,j)
+                                overint2(i,j) += tmoover(i,j)
+                                ENDDO m
+                               ENDDO j
+                              ENDDO i
+#--------------------------------------------------------------------------------
+                             DO i
+                               DO j
+                                tmoover(i,j) = 0.0
+                                overint3(i,j) = 0.0
+                                DO m
+                                tmpint1(i,m) = 0.0
+                                tmpint2(m,i) = 0.0
+                                tmpint1(i,m) = slater_yder_ip(i,m)
+                                tmpint2(m,j) = slater_ip(m,j)
+                                tmoover(i,j) = tmpint1(i,m)*tmpint2(m,j)
+                                overint3(i,j) += tmoover(i,j)
+                                ENDDO m
+                               ENDDO j
+                              ENDDO i
+
+#--------------------------------------------------------------------------------
+                             DO i
+                               DO j
+                                tmoover(i,j) = 0.0
+                                overint4(i,j) = 0.0
+                                DO m
+                                tmpint1(i,m) = 0.0
+                                tmpint2(m,i) = 0.0
+                                tmpint1(i,m) = slater_zder_ip(i,m)
+                                tmpint2(m,j) = slater_ip(m,j)
+                                tmoover(i,j) = tmpint1(i,m)*tmpint2(m,j)
+                                overint4(i,j) += tmoover(i,j)
+                                ENDDO m
+                               ENDDO j
+                              ENDDO i
+
+#--------------------------------------------------------------------------------
+                             DO i
+                               DO k
+                                DO j
+                                 DO l
+                                   t1KIN3e(i,k,j,l) = 0.0 
+
+                                tKIN3e(i,k,j,l) = overint1(j,l)^MOOVER(i,k)
+                                tKIN3e(i,k,j,l) *= -1.0
+                                t1KIN3e(i,k,j,l) += tKIN3e(i,k,j,l)
+
+                                tKIN3e(i,k,j,l) = overint1(i,k)^MOOVER(j,l)
+                                tKIN3e(i,k,j,l) *= -1.0
+                                t1KIN3e(i,k,j,l) += tKIN3e(i,k,j,l)
+
+                                tKIN3e(i,k,j,l) = overint2(j,l)^MOOVERX(k,i)
+                                t1KIN3e(i,k,j,l) += tKIN3e(i,k,j,l)
+                                tKIN3e(i,k,j,l) = overint3(j,l)^MOOVERY(k,i)
+                                t1KIN3e(i,k,j,l) += tKIN3e(i,k,j,l)
+                                tKIN3e(i,k,j,l) = overint4(j,l)^MOOVERZ(k,i)
+                                t1KIN3e(i,k,j,l) += tKIN3e(i,k,j,l)
+
+                                tKIN3e(i,k,j,l) = overint2(i,k)^MOOVERX(l,j)
+                                t1KIN3e(i,k,j,l) += tKIN3e(i,k,j,l)
+                                tKIN3e(i,k,j,l) = overint3(i,k)^MOOVERY(l,j)
+                                t1KIN3e(i,k,j,l) += tKIN3e(i,k,j,l)
+                                tKIN3e(i,k,j,l) = overint4(i,k)^MOOVERZ(l,j)
+                                t1KIN3e(i,k,j,l) += tKIN3e(i,k,j,l)   
+
+                                PREPARE KIN3e(i,k,j,l) += t1KIN3e(i,k,j,l) 
+
+                                 ENDDO l
+                                ENDDO j
+                               ENDDO k
+                              ENDDO i
+
+#-------------------------------------------------------------------------------                             
+
+                              deallocate overint1(*,*)
+                              deallocate overint2(*,*)
+                              deallocate overint3(*,*)
+                              deallocate overint4(*,*)
+
+
+ 
+#=====================================================================================
+#=====================================================================================
+
+
+#-------------------------------------------------------------------------------------
+#---Test of superinstruction F12_2center_moobj - integration of molecular orbitals---- 
+#                                DO p 
+#                                 DO p1
+#                                 tmoval(p) = MOVAL(p)
+#                                 tmoval1(p1) =  MOVAL(p1) 
+#                                 tmoover(p,p1) = tmoval(p)^tmoval1(p1)
+#                                 tmoover(p,p1) *= PTW
+#                                 PREPARE MOOVER(p,p1) += tmoover(p,p1)
+#                                 ENDDO p1
+#                                ENDDO p
+#-------------------------------------------------------------------------------------
+                               deallocate MOVALX(*)
+                               deallocate MOVALY(*)
+                               deallocate MOVALZ(*)
+                               deallocate MOVAL(*)
+                               deallocate MOOVER(*,*)
+                               deallocate MOOVERX(*,*)
+                               deallocate MOOVERY(*,*)
+                               deallocate MOOVERZ(*,*)
+#---------------Deallocate arrays of 3-center objects------------------------------------
+                               deallocate inv_r12_ip(*,*)
+                               deallocate slater_ip(*,*)
+                               deallocate slater_sq_ip(*,*)
+                               deallocate slater_xder_ip(*,*)
+                               deallocate slater_yder_ip(*,*)
+                               deallocate slater_zder_ip(*,*)
+                               deallocate grad_slater_grad_ip(*,*)
+                               deallocate Exch_p(*)
+#----------------------------------------------------------------------------------------
+
+
+
+
+
+                              deallocate MOVAL(*)
+#----------------------------------------------------------------------------------------
+                              ENDIF
+            ENDDO g
+            execute server_barrier
+#-------------Preparation of arrays for writing on disk----------------------------------
+
+#----------------Two-electron integrals--------------------------------------------------
+
+      execute blocks_to_list                V0iiii
+      execute blocks_to_list                V0aiai
+      execute blocks_to_list                V0aaii
+      execute blocks_to_list                V0aiii
+      execute blocks_to_list                V0piii
+      execute blocks_to_list                V0aaai
+
+      execute blocks_to_list                V1iiii
+      execute blocks_to_list                V1aiii
+      execute blocks_to_list                V1aiai
+
+      execute blocks_to_list                V2iiii
+      execute blocks_to_list                V2aiai
+      execute blocks_to_list                V2aaii
+      execute blocks_to_list                V2aiii
+      execute blocks_to_list                V2aaai
+      execute blocks_to_list                V2pipi
+      execute blocks_to_list                V2piii
+      execute blocks_to_list                V2piai
+
+      execute blocks_to_list                V3iiii
+
+
+      execute blocks_to_list                V4iiii
+      execute blocks_to_list                V4aiai
+#------------------------------------------------------------
+
+#------------Three-electron integrals------------------------
+      execute blocks_to_list          X12
+      execute blocks_to_list          KF12
+      execute blocks_to_list          K1F12
+      execute blocks_to_list          KFF12
+      execute blocks_to_list          F12F23
+      execute blocks_to_list          V_ijkl
+      execute blocks_to_list          V_ijka
+      execute blocks_to_list          V_ijab
+      execute blocks_to_list          T1INT1
+      execute blocks_to_list          T1INT2
+      execute blocks_to_list          T2INT2
+      execute blocks_to_list          T2INT21
+      execute blocks_to_list          T2INT3
+      execute blocks_to_list          T2INT31
+##      execute blocks_to_list          T2INT10
+##      execute blocks_to_list          T2INT11
+      execute blocks_to_list          LAM1
+      execute blocks_to_list          LAM21
+      execute blocks_to_list          LAM22
+      execute blocks_to_list          LAM23
+      execute blocks_to_list          LAM24
+      execute blocks_to_list          KIN3e
+
+#---Here we write arrays of integrals to the disk---
+      execute write_blocks_to_list
+#---------------------------------------------------
+
+            execute server_barrier
+
+
+
+
+#            execute server_barrier
+#                 PARDO p,k,j,l
+#                 REQUEST F12F23(p,k,j,l) p
+#                 execute dump_amp F12F23         
+#                 ENDPARDO p,k,j,l
+
+
+                           deallocate wOccA_frag(*)
+                           ENDSIAL F12_MULTIINT_CCSD_fc

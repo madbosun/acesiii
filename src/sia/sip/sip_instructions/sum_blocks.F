@@ -258,6 +258,23 @@ c----------------------------------------------------------------------------
      *             dim1(3,3),dim2(3,3),dim1(4,3),dim2(4,3),
      *             dim1(5,3),dim2(5,3),dim1(6,3),dim2(6,3),
      *             opcode)
+         else if (ny .eq. 5) then
+            call sum_static_blocks5(y(indy),range1(1),range2(1),
+     *             range1(2),range2(2),range1(3),range2(3),
+     *             range1(4),range2(4),range1(5),range2(5),
+     *             dim1(1,1),dim2(1,1),
+     *             dim1(2,1),dim2(2,1),dim1(3,1),dim2(3,1),
+     *             dim1(4,1),dim2(4,1),
+     *             dim1(5,1),dim2(5,1),
+     *             x1(indx1),
+     *             dim1(1,2),dim2(1,2),dim1(2,2),dim2(2,2),
+     *             dim1(3,2),dim2(3,2),dim1(4,2),dim2(4,2),
+     *             dim1(5,2),dim2(5,2),
+     *             x2(indx2),
+     *             dim1(1,3),dim2(1,3),dim1(2,3),dim2(2,3),
+     *             dim1(3,3),dim2(3,3),dim1(4,3),dim2(4,3),
+     *             dim1(5,3),dim2(5,3),
+     *             opcode)
          else if (ny .eq. 3) then 
             call sum_static_blocks3(y(indy),range1(1),range2(1),
      *             range1(2),range2(2),range1(3),range2(3),
@@ -269,6 +286,12 @@ c----------------------------------------------------------------------------
      *             x2(indx2),
      *             dim1(1,3),dim2(1,3),dim1(2,3),dim2(2,3),
      *             dim1(3,3),dim2(3,3),
+     *             opcode)
+         else if (ny .eq. 1) then
+            call sum_static_blocks1(y(indy),range1(1),range2(1),
+     *             dim1(1,1),dim2(1,1),
+     *             x1(indx1),
+     *             x2(indx2),
      *             opcode)
          else
             print *,'Error: Cannot handle static arrays of dimension',
@@ -392,6 +415,73 @@ c      endif
       return
       end
 
+c---------------------------------------------------------------------------|
+
+      subroutine sum_static_blocks5(y, a1,a2,b1,b2,c1,c2,d1,d2,
+     *                              e1,e2,
+     *                              na1,na2,nb1,nb2,nc1,nc2,nd1,nd2,
+     *                              ny51,ny52,
+     *                              x1,ne1,ne2,nf1,nf2,ng1,ng2,nh1,nh2,
+     *                              nx1_51,nx1_52,
+     *                              x2,ni1,ni2,nj1,nj2,nk1,nk2,nl1,nl2,
+     *                              nx2_51,nx2_52,
+     *                              opcode)
+      implicit none
+      include 'interpreter.h'
+
+      integer a1,a2,b1,b2,c1,c2,d1,d2,e1,e2,f1,f2
+      integer na1,na2,nb1,nb2,nc1,nc2,nd1,nd2,ny51,ny52,ny61,ny62
+      integer ne1,ne2,nf1,nf2,ng1,ng2,nh1,nh2,nx1_51,nx1_52,nx1_61,
+     *        nx1_62
+      integer ni1,ni2,nj1,nj2,nk1,nk2,nl1,nl2,nx2_51,nx2_52,nx2_61,
+     *        nx2_62
+      double precision
+     *    y(na1:na2,nb1:nb2,nc1:nc2,nd1:nd2,ny51:ny52)
+      double precision
+     *  x1(ne1:ne2,nf1:nf2,ng1:ng2,nh1:nh2,nx1_51:nx1_52)
+      double precision
+     *  x2(ni1:ni2,nj1:nj2,nk1:nk2,nl1:nl2,nx2_51:nx2_52)
+      integer opcode, a,b,c,d,e,f
+
+      if (opcode .eq. subtract_op) then
+
+         do e = e1,e2
+         do d = d1,d2
+         do c = c1,c2
+         do b = b1,b2
+         do a = a1,a2
+            y(a,b,c,d,e) = x1(a,b,c,d,e) - x2(a,b,c,d,e)
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+      else if (opcode .eq. sum_op) then
+
+         do e = e1,e2
+         do d = d1,d2
+         do c = c1,c2
+         do b = b1,b2
+         do a = a1,a2
+            y(a,b,c,d,e) = x1(a,b,c,d,e) + x2(a,b,c,d,e)
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+
+      else
+         print *,'Error: Invalid opcode in sum_static_blocks6: ',
+     *      opcode
+         call abort_job()
+      endif
+      return
+      end
+
+c
+c
+
       subroutine sum_static_blocks3(y, a1,a2,b1,b2,c1,c2,
      *                              na1,na2,nb1,nb2,nc1,nc2,
      *                              x1,ne1,ne2,nf1,nf2,ng1,ng2,
@@ -462,6 +552,34 @@ c      endif
          do a = a1,a2
             y(a,b) = x1(a,b) + x2(a,b)
          enddo
+         enddo
+      else
+         print *,'Error: Invalid opcode in sum_static_blocks2: ',
+     *      opcode
+         call abort_job()
+      endif
+
+      return
+      end
+
+      subroutine sum_static_blocks1(y, a1,a2, na1, na2, x1, x2,  opcode)
+      implicit none
+      include 'interpreter.h'
+
+      integer a1,a2
+      integer na1,na2
+      double precision y(na1:na2)
+      double precision x1(na1:na2)
+      double precision x2(na1:na2)
+      integer opcode, a
+
+      if (opcode .eq. subtract_op) then
+         do a = a1,a2
+            y(a) = x1(a) - x2(a)
+         enddo
+      else if (opcode .eq. sum_op) then
+         do a = a1,a2
+            y(a) = x1(a) + x2(a)
          enddo
       else
          print *,'Error: Invalid opcode in sum_static_blocks2: ',

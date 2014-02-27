@@ -31,6 +31,7 @@ c   is performed.
 c--------------------------------------------------------------------------
       implicit none
       include 'interpreter.h'
+      include 'parallel_info.h'
       include 'trace.h'
 #ifdef ALTIX
       include 'sheap.h'
@@ -218,7 +219,6 @@ c        print *,' x1: ',x1handle, x1_block,x1_ndx
 c        print *,' x2: ',x2handle, x2_block,x2_ndx
 c        call abort_job()
 c     endif
-
       if (ny .eq. 4 .and. n1 .eq. 2 .and. n2 .eq. 2) then
 
       call twork4222(y(iy),nya(1),nyb(1),nya(2),nyb(2),
@@ -237,6 +237,39 @@ c     endif
          return 
 
       endif 
+
+      if (ny .eq. 2 .and. n1 .eq. 1 .and. n2 .eq. 1) then 
+      call twork2111(y(iy),nya(1),nyb(1),nya(2),nyb(2),
+     *                     ya(1),yb(1),ya(2),yb(2), indy,
+     *                     x1(ix1),nx1a(1),nx1b(1), 
+     *                     x1a(1),x1b(1), indx1,
+     *                     x2(ix2),nx2a(1),nx2b(1), 
+     *                     x2a(1),x2b(1),indx2,
+     *                     flopcount)
+         return
+
+        endif
+
+
+      if (ny .eq. 4 .and. n1 .eq. 3 .and. n2 .eq. 1) then
+
+         call twork431(y(iy),nya(1),nyb(1),nya(2),nyb(2),
+     *                     nya(3),nyb(3),nya(4),nyb(4),
+     *                     ya(1),yb(1),ya(2),yb(2),ya(3),yb(3),
+     *                     ya(4),yb(4),indy,
+     *                     x1(ix1),nx1a(1),nx1b(1), nx1a(2),nx1b(2),
+     *                     nx1a(3),nx1b(3),
+     *                     x1a(1),x1b(1),x1a(2),x1b(2),x1a(3),x1b(3),
+     *                     indx1,
+     *
+cVFL     *                     x2(ix2),nx2a(1),x2b(1), 
+     *                         x2(ix2),nx2a(1),nx2b(1),
+     *
+     *                     x2a(1),x2b(1),indx2,
+     *                     flopcount)
+         return
+      endif
+
 
       if (ny .eq. 6 .and. n1 .eq. 4 .and. n2 .eq. 2) then
 

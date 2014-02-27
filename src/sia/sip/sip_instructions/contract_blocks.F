@@ -344,12 +344,31 @@ c----------------------------------------------------------------------------
      *                     x2a(1), x2b(1), x2a(2), x2b(2), 
      *                     indx2(1), indx2(2),   
      *                     scr(iscr1), scr(iscr2), flopcount)
-         else if (n1 .eq. 2 .and. n2 .eq. 4) then
+
+
+c-------------------------2311 contraction---------------------------------
+
+
+         else if (n1 .eq. 3 .and. n2 .eq. 1) then
+
+             call cwork2311(y(iy), nya(1), nyb(1), nya(2), nyb(2),
+     *                     ya(1), yb(1), ya(2), yb(2),
+     *                     indy(1), indy(2), x1(ix1),
+     *                     nx1a(1),nx1b(1),nx1a(2),nx1b(2),
+     *                     nx1a(3), nx1b(3),
+     *                     x1a(1),x1b(1),
+     *                     x1a(2),x1b(2), x1a(3),x1b(3),
+     *                     indx1,
+     *                     x2(ix2),nx2a(1), nx2b(1),
+     *                     x2a(1), x2b(1),
+     *                     indx2(1),
+     *                     scr(iscr1), scr(iscr2), flopcount)
 
 c---------------------------------------------------------------------------
 c   Reverse the args, call cwork_2422.
 c---------------------------------------------------------------------------
 
+         else if (n1 .eq. 2 .and. n2 .eq. 4) then
             call cwork2422(y(iy), nya(1), nyb(1), nya(2), nyb(2),
      *                     ya(1), yb(1), ya(2), yb(2),
      *                     indy(1), indy(2), x2(ix2),
@@ -445,6 +464,20 @@ c           return
      *                     indx2(1), indx2(2),
      *                     scr(iscr1), scr(iscr2), flopcount)
          endif
+         if ((n1 .eq. 2) .and. (n2 .eq. 1) .and. (ncind .eq. 1)) then
+c            write(6,*) ' PERFORMING 1211 VFL ' 
+               call cwork1211(y(iy),nya(1),nyb(1),
+     *              ya(1),yb(1), indy(1),
+c 
+     *              x1(ix1), nx1a(1),nx1b(1),nx1a(2),nx1b(2),
+     *              x1a(1),x1b(1),x1a(2),x1b(2),
+     *              indx1,
+c 
+     *              x2(ix2), nx2a(1),nx2b(1), x2a(1),x2b(1),
+     *              indx2, cind, flopcount, scr(iscr1), scr(iscr2),
+     *              scr(iscr3))
+         endif
+c
       else if (ny .eq. 3) then
          if ((n1 .eq. 3) .and. (n2 .eq. 2) .and. (ncind .eq. 1)) then
             call cwork3321(y(iy),nya(1),nyb(1), nya(2),nyb(2),
@@ -458,6 +491,20 @@ c           return
      *              nx2a(2), nx2b(2), x2a(1),
      *              x2b(1),x2a(2),x2b(2), indx2(1),indx2(2), cind, 
      *              flopcount, scr(iscr1), scr(iscr2))
+         elseif ((n1 .eq. 4) .and.(n2 .eq. 1) .and. (ncind .eq. 1)) then
+            call cwork3411(y(iy),nya(1),nyb(1), nya(2),nyb(2),
+     *              nya(3),nyb(3),
+     *              ya(1),yb(1),ya(2),yb(2),ya(3),yb(3),
+     *              indy(1),indy(2),indy(3),
+     *
+     *              x1(ix1), nx1a(1),nx1b(1),nx1a(2),nx1b(2),
+     *              nx1a(3),nx1b(3),nx1a(4),nx1b(4) ,
+     *              x1a(1),x1b(1),x1a(2),x1b(2),x1a(3),x1b(3),
+     *              x1a(4),x1b(4),
+     *              indx1, x2(ix2), nx2a(1), nx2b(1),
+     *              x2a(1),  x2b(1), indx2(1),, cind,
+     *              flopcount, scr(iscr1), scr(iscr2))
+            return
          endif
 
       else if (ny .eq. 4) then
@@ -798,6 +845,21 @@ c--------------------------------------------------------------------------
      *           x1a(1),x1b(1),indx1, x2(ix2),
      *           nx2a(1),nx2b(1),x2a(1),x2b(1), 
      *           indx2, flopcount)
+         else if (n1.eq.5) then
+            if (trace .and.
+     *          and(tracelevel, contraction_trace) .ne. 0)
+     *          print *,'cwork0555 at instruction ',current_line
+            call cwork0555(scalar_table(iy),
+     *           x1(ix1), nx1a(1),nx1b(1),nx1a(2),nx1b(2),
+     *           nx1a(3),nx1b(3),nx1a(4),nx1b(4),
+     *           nx1a(5),nx1b(5),
+     *           x1a(1),x1b(1),x1a(2),x1b(2),x1a(3),x1b(3),
+     *           x1a(4),x1b(4),x1a(5),x1b(5),indx1,
+     *           x2(ix2),
+     *           nx2a(1),nx2b(1),nx2a(2),nx2b(2),nx2a(3),nx2b(3),
+     *           nx2a(4),nx2b(4),nx2a(5),nx2b(5),
+     *           x2a(1),x2b(1),x2a(2),x2b(2), x2a(3),x2b(3),x2a(4),
+     *           x2b(4),x2a(5),x2b(5), indx2, flopcount)
          else if (n1 .eq. 6) then
             if (trace .and.
      *          and(tracelevel, contraction_trace) .ne. 0)

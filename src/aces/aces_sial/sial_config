@@ -345,5 +345,45 @@ VVVI_STACK=YES
 urccsdpt_bbb.sio
 VVVI_STACK=YES
 
+F12_2el_tran_rhf.sio
+IGNORE_DROPMO=YES
 
+F12_multiint_ccsd.sio
+IGNORE_DROPMO=YES
+
+F12_multiint.sio
+IGNORE_DROPMO=YES
+
+interm_F12_ccsd.sio
+IGNORE_DROPMO=YES
+
+mp2_F12_fc.sio
+IGNORE_DROPMO=YES
+
+ccsd_rhf_ao_sv1_diis5_F12_fc.sio
+IGNORE_DROPMO=YES
+
+interm_F12_ccsd_fc.sio
+IGNORE_DROPMO=YES
+
+F12_multiint_ccsd_fc.sio
+IGNORE_DROPMO=YES
+
+tran_rhf_ao_sv1_fc.sio
+IGNORE_DROPMO=YES
+
+tran_rhf_ao_sv1_F12_fc.sio
+IGNORE_DROPMO=YES
+
+rccsdpt_aaa_F12_fc.sio
+IGNORE_DROPMO=YES
+
+rccsdpt_aab_F12_fc.sio
+IGNORE_DROPMO=YES
+
+rccsdpt_aaa_F12.sio
+IGNORE_DROPMO=YES
+
+rccsdpt_aab_F12.sio
+IGNORE_DROPMO=YES
 

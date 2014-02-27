@@ -32,6 +32,7 @@ c
 c--------------------------------------------------------------------------
       implicit none
       include 'trace.h'
+      include 'parallel_info.h'
 
       integer na1,na2,nb1,nb2,nc1,nc2,nd1,nd2,ne1,ne2,nf1,nf2,
      *        nk1,nk2,nl1,nl2,nm1,nm2,nn1,nn2,ni1,ni2,nj1,nj2
@@ -431,6 +432,28 @@ c---------------------------------------------------------------------------
 
          return
       endif
+
+C
+C totally unoptimized crap here
+C
+         if (me.eq.0) then
+         write(6,*) 'Using unoptimized cwork642 at line number ',
+     *            current_line
+         endif
+         do f = nj1,nj2
+         do e = ni1,ni2
+         do d = d1,d2
+         do c = c1,c2
+         do b = b1,b2
+         do a = a1,a2
+            y(a,b,c,d,e,f) = x1(b,c,d,e)*x2(a,f)
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         enddo
+         return
 
 
 c---------------------------------------------------------------------------
