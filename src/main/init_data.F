@@ -478,7 +478,6 @@ c-------------------------------------------------------------------------
       write(6,*) ' NALPHA_VIRT =' , nalpha_virtual 
       write(6,*) ' NBETA_VIRT =' , nbeta_virtual 
       
-      if (.not. ignore_dropmo) then
 
 C--------------------------------------------------------------------------
 c   Check if any MO's are to be dropped.
@@ -487,6 +486,10 @@ C--------------------------------------------------------------------------
       CALL IGETREC(20,'JOBARC','NUMDROPA',1,NDROPMO_A)
       if (ndropmo_a .gt. 0) 
      *    CALL IGETREC(20,'JOBARC','MODROPA',NDROPMO_A,MODROP_A)
+
+      ndropmo_b = ndropmo_a
+
+      if (.not. ignore_dropmo) then
 
       if (ndropmo_a .gt. 0) then 
 

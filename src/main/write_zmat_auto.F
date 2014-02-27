@@ -301,9 +301,7 @@ c---------------------------------------------------------------------------
       if (line(1:9) .eq. '*FRAGLIST') then
          frag_calc = .true. 
          write (22,9000) line   ! copy the '*SIP'
-c        go to 800
       endif
-c     go to 700
       if (frag_calc) then 
          fdrop_flag = .false. 
          read(23,*) nfrags 
