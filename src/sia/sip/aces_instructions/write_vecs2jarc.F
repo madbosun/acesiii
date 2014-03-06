@@ -12,12 +12,13 @@ C  GNU General Public License for more details.
 
 C  The GNU General Public License is included in this distribution
 C  in the file COPYRIGHT.
-      subroutine dens2jobarc(array_table,
-     *                      narray_table, index_table,
-     *                      nindex_table, segment_table, nsegment_table,
-     *                      block_map_table, nblock_map_table,
-     *                      scalar_table, nscalar_table,
-     *                      address_table, op)
+      subroutine write_vecs2jarc(array_table,
+     *                           narray_table, index_table,
+     *                           nindex_table, segment_table, 
+     *                           nsegment_table, block_map_table, 
+     *                           nblock_map_table,
+     *                           scalar_table, nscalar_table,
+     *                           address_table, op)
 c-------------------------------------------------------------------------- 
       implicit none
       include 'mpif.h'
@@ -42,7 +43,7 @@ c--------------------------------------------------------------------------
       integer*8 get_block_data_index
       integer find_current_block, block 
 
-      integer array_type, nindex, inda(2), indb(2), n1, n2
+      integer array_type, nindex, inda(2), indb(2)    
 
       logical direct_flag
 
@@ -130,15 +131,14 @@ c----------------------------------------------------------------------------
       endif
       type = INT (scalar_table(sind))
 
-      Write(6,*) "Dimension at entry", inda(1),inda(2)
-      CALL  DO_THE_DENS_WRITING (x(dens_array),inda(1),inda(2),type,
+      CALL  DO_THE_VECS_WRITING (x(dens_array),inda(1),inda(2),type,
      +                      ibuf,dbuf)
 
       return
       end
 c---------------------------------------------------------------------------
 
-      SUBROUTINE  DO_THE_DENS_WRITING (DENS,NDIM1,NDIM2,TYPE,ibuf,dbuf)
+      SUBROUTINE  DO_THE_VECS_WRITING (DENS,NDIM1,NDIM2,TYPE,ibuf,dbuf)
 
       IMPLICIT    NONE
 
@@ -159,10 +159,9 @@ c---------------------------------------------------------------------------
       DOUBLE PRECISION  SCR  (1:NDIM1,1:NDIM2)
       DOUBLE PRECISION  dbuf (*)
 
-      call output(DENS, 1, NDIM1, 1, NDIM2, NDIM1, NDIM2, 1)
-
-      FLAG = -1 
       IF (me .EQ. 0) THEN
+
+         FLAG = 0 ! Density
 
          IF      (type .EQ.  0) THEN
             JALABEL='HFDENSTY'
@@ -268,80 +267,75 @@ c---------------------------------------------------------------------------
 
          ENDIF
 
-C The following block of code is no longer necessary. All the
-C reordering and rescaling is transfered to a2proc routines. 
-C From here write evryting as they come out from ACES III.
-C Ajith Perera. 01/2014.
+         IF (intpkg .eq. flocke_package) THEN
+
+             do nu = 1, ndim2
+             do mu = 1, ndim1
+                scr(mu,nu) = dens(mu,nu)
+             enddo
+             enddo
+            
+
+             IF (FLAG .EQ. 0) THEN
+
+                do nu = 1, ndim2
+                do mu = 1, ndim1
+                   ierd1 = ibuf (ierdind+mu-1)
+                   ierd2 = ibuf (ierdind+nu-1)
+                   dscale = dbuf(iscale_fac+ierd1-1) * 
+     +                      dbuf(iscale_fac+ierd2-1)
+                   dens(ierd1,ierd2) = scr(mu,nu) / dscale
+                enddo
+                enddo
+
+             ELSE IF (FLAG .EQ. 1) THEN
+
+                do nu = 1, ndim2
+                do mu = 1, ndim1
+                   ierd1 = ibuf (ierdind+mu-1)
+                   ierd2 = ibuf (ierdind+nu-1)
+                   dscale = dbuf(iscale_fac+ierd1-1) * 
+     +                      dbuf(iscale_fac+ierd2-1)
+                   dens(ierd1,ierd2) = scr(mu,nu) * dscale
+                enddo
+                enddo
+
+             ENDIF
 C
-CSSS         IF (intpkg .eq. flocke_package) THEN
-CSSS
-CSSS             do nu = 1, ndim2
-CSSS             do mu = 1, ndim1
-CSSS                scr(mu,nu) = dens(mu,nu)
-CSSS             enddo
-CSSS             enddo
-CSSS            
-CSSS             IF (FLAG .EQ. 0) THEN
-CSSS
-CSSS                do nu = 1, ndim2
-CSSS                do mu = 1, ndim1
-CSSS                   ierd1 = ibuf (ierdind+mu-1)
-CSSS                   ierd2 = ibuf (ierdind+nu-1)
-CSSS                   dscale = dbuf(iscale_fac+ierd1-1) * 
-CSSS     +                      dbuf(iscale_fac+ierd2-1)
-CSSS                   dens(ierd1,ierd2) = scr(mu,nu) / dscale
-CSSS                enddo
-CSSS                enddo
-CSSS
-CSSS             ELSE IF (FLAG .EQ. 1) THEN
-CSSS
-CSSS                do nu = 1, ndim2
-CSSS                do mu = 1, ndim1
-CSSS                   ierd1 = ibuf (ierdind+mu-1)
-CSSS                   ierd2 = ibuf (ierdind+nu-1)
-CSSS                   dscale = dbuf(iscale_fac+ierd1-1) * 
-CSSS     +                      dbuf(iscale_fac+ierd2-1)
-CSSS                   dens(ierd1,ierd2) = scr(mu,nu) * dscale
-CSSS                enddo
-CSSS                enddo
-CSSS
-CSSS             ENDIF
-CSSS
-CSSS            do nu = 1, ndim2
-CSSS
-CSSS               do mu = 1, ndim1
-CSSS                  scr (mu) = dens (mu,nu)
-CSSS               enddo
-CSSS
-CSSS               do mu = 1, ndim1
-CSSS                  ierd = ibuf (ierdind+mu-1)
-CSSS                  dens (ierd,nu) = scr(mu) / dbuf (iscale_fac+ierd-1)
-CSSS               enddo
-CSSS
-CSSS            enddo
-CSSS
-CSSS            do mu = 1, ndim1
-CSSS
-CSSS               do nu = 1, ndim2
-CSSS                  scr(nu) = dens (mu,nu)
-CSSS               enddo
-CSSS
-CSSS               do nu = 1, ndim2
-CSSS                  ierd = ibuf (ierdind+nu-1)
-CSSS                  dens (mu,ierd) = scr (nu) / dbuf (iscale_fac+ierd-1)
-CSSS               enddo
-CSSS
-CSSS            enddo
-CSSS
-CSSS         ENDIF
-CSSS         IF (FLAG .EQ. 0 .OR. FLAG .EQ. 1) 
-CSSS     +   CALL  DESCRAMBLE_MATRIX
-CSSS     +
-CSSS     +               (DENS,NDIM1,NFPS,IXSHELLS,NSHELLS)
-CSSS     +
-CSSS     +
-CSSS         Write(6,*) "Inside dens2jobarc, ndim1, ndim2", ndim1, ndim2
+C            do nu = 1, ndim2
 C
+C               do mu = 1, ndim1
+C                  scr (mu) = dens (mu,nu)
+C               enddo
+C
+C               do mu = 1, ndim1
+C                  ierd = ibuf (ierdind+mu-1)
+C                  dens (ierd,nu) = scr(mu) / dbuf (iscale_fac+ierd-1)
+C               enddo
+C
+C            enddo
+C
+C            do mu = 1, ndim1
+C
+C               do nu = 1, ndim2
+C                  scr(nu) = dens (mu,nu)
+C               enddo
+C
+C               do nu = 1, ndim2
+C                  ierd = ibuf (ierdind+nu-1)
+C                  dens (mu,ierd) = scr (nu) / dbuf (iscale_fac+ierd-1)
+C               enddo
+C
+C            enddo
+
+         ENDIF
+
+         CALL  DESCRAMBLE_MATRIX
+     +
+     +               (DENS,NDIM1,NFPS,IXSHELLS,NSHELLS)
+     +
+     +
+         call output(dens, 1, ndim1, 1, ndim2, ndim1, ndim2, 1)
          NDIM = NDIM1 * NDIM2
          CALL  DPUTREC (1, 'JOBARC', JALABEL, NDIM,DENS)
 

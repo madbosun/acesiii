@@ -1677,7 +1677,7 @@
                     REQUEST         SS3aab(a,a1,b,k1) a 
 #
                     Taaboij(a,a1,b,k1,i,j)    = S3aab(a,a1,b,k1)  
-                    execute energy_ty_denominator Taaboij  omega
+                    #execute energy_ty_denominator Taaboij  omega
 #
 # Compute contribution to energy
 # ------------------------------ 

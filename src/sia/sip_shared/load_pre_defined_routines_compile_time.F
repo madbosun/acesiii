@@ -364,6 +364,8 @@ C Ajith Perera, miscellaneous developments.
       dummy = load_user_sub('compute_2soi_ybatch'//char(0),0)
       dummy = load_user_sub('compute_2soi_zbatch'//char(0),0)
 
+      dummy = load_user_sub('write_vecs2jarc'//char(0),0)
+
       dummy = load_user_sub('index_match'//char(0), 0)
       dummy = load_user_sub('ecp_dercont'//char(0), 0) 
 c--------------------------------------------------------------------
@@ -377,6 +379,13 @@ c Jason Byrd misc. development additions
 c--------------------------------------------------------------------
       dummy = load_user_sub('sort_fno'//char(0), 0)
       dummy = load_user_sub('dropcore_fno'//char(0), 0)
+c--------------------------------------------------------------------
+c Watson, added for general interfaces (ie. read FCIDUMP file for Molpro)
+c--------------------------------------------------------------------
+c      dummy = load_user_sub('read_interface'//char(0),read_interface)
+c      dummy = load_user_sub('get_interface'//char(0),get_interface)
+c      call set_upgrade_flag(dummy)
+      dummy = load_user_sub('c1_full_print'//char(0),0)
 C
 C Jason Byrd
 c--------Explicitly-correlated part-------------------------------------
@@ -421,5 +430,6 @@ c-----------f12 info----------------------------------------------------
       dummy = load_user_sub('f12info'//char(0), 0)
 c-------------------------------------------------------------------- 
 c
+
       return
       end
