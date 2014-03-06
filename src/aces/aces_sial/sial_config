@@ -1,3 +1,6 @@
+cis-2.sio
+IGNORE_DROPMO=YES
+
 scf_uhf_isymm_diis10.sio
 IGNORE_DROPMO=YES
 
