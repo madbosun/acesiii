@@ -3080,6 +3080,7 @@
 #     Define a few constants 
 #     ---------------------- 
 #
+      execute load_balance_off 
       ecrit  = scf_conv # Energy tolerance  
 #     damp   = 0.0 
       etemp  = 1.0 
@@ -3110,6 +3111,10 @@
       do korder
          diis_order += 1.0
       ENDDO korder
+
+      if diis_order > 9.0  
+         diis_order = 9.0
+      endif
 
       execute print_scalar diis_start
       execute print_scalar diis_order
@@ -3205,6 +3210,16 @@
          txx(mu,nu) = oed_ovl(mu,nu)  
       ENDDO nu
       ENDDO mu
+      DO mu 
+      DO p 
+         ca(mu,p) = 0.0 
+      ENDDO p 
+      ENDDO mu 
+      DO mu 
+      DO q 
+         cb(mu,q) = 0.0 
+      ENDDO q 
+      ENDDO mu 
 
       dens_check = -1.0
       execute scf_atom dens_check 
@@ -3222,12 +3237,13 @@
          ENDDO nu
          ENDDO mu
 
+         endif 
+
          damp = 0.0 
          damp1 = 1.0 
 
-         endif 
-
       endif
+      execute load_balance_on 
       execute sip_barrier
 
 #     Construct the array S**(-1/2) 

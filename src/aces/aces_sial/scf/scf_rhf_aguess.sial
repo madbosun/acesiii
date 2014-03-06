@@ -2615,6 +2615,10 @@
          diis_order += 1.0
       ENDDO korder
 
+      if diis_order > 9.0  
+         diis_order = 9.0
+      endif 
+
       execute print_scalar diis_start
       execute print_scalar diis_order
 
@@ -2698,10 +2702,10 @@
          ENDDO nu 
          ENDDO mu 
 
+         endif 
+
          damp = 0.0 
          damp1 = 1.0 
-
-         endif 
 
       endif 
       execute sip_barrier
