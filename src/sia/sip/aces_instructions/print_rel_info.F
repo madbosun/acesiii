@@ -73,6 +73,7 @@ c
 c            34   CC expectation value of <S2>
 c
 c            35   CIS(D) state energy
+c            36   CISccpt state energy
 c
 c            40   MP2-F12 energy
 C
@@ -454,10 +455,14 @@ c----------------------------------------------------------------------------
 c   CIS(D) excitation energy(RHF) Print Flag = 35
 c---------------------------------------------------------------------------
 
-      if (scalar_table(sind) .eq. 35.0) then 
+      if (scalar_table(sind) .eq. 35.0 .or.
+     *    scalar_table(sind) .eq. 36.0 .or.
+     *    scalar_table(sind) .eq. 37.0 .or. 
+     *    scalar_table(sind) .eq. 38.0) then 
           call print_cisd_rhf_cinfo(x(iarray),scalar_table(sind),
      *             1,n1,1,n2)
       endif 
+
 
 c---------------------------------------------------------------------------|
 c     Print out MP2-F12 energy                                              |
@@ -1741,29 +1746,36 @@ c
       amax = eom_roots 
 
       if (me .eq. 0)then
-
          do i = a2,a1,-1
-             if (i.eq.1.0) then
-             write(66,10) 
-             write(66,100) 
-             write(66,30) 
-             write(66,100) 
+             if (i.eq.1.0.and.(ival.lt.37)) then
+                 if(ival.eq.35) write(66,10) 
+                 if(ival.eq.36) write(66,11) 
+                 write(66,100) 
+                 write(66,30) 
+                 write(66,100) 
              endif
              if (i .le. amax) then  
              if (dabs(array1(i,1)) .gt. 0.0001) then
-                 write(66,20) i, array1(i,1), array1(i,2)  
+                 if(ival.lt.38) then
+                     write(66,20) i, array1(i,1), array1(i,2)  
+                 else
+                     write(66,100)
+                     write(66,21) i, array1(i,2)  
+                     write(66,100)
+                 endif
                  return
              endif
              endif 
          enddo 
-
       endif 
 
 
 100   format(2x,60('-'))
 10    format(2x,"CIS(D) excitation energies")  
-20    format(2x,I4,5x,F20.8,x,F20.8)  
-30    format(2x,'ROOT',15x,'Correlation',15x,'CIS(D) Excitation E')  
+11    format(2x,"CISMP2 excitation energies")  
+20    format(2x,I4,5x,F15.8,x,F20.8)  
+21    format(2x,"Final root(",I2,") CISPT2 excitation energy = ",F20.10)
+30    format(2x,'ROOT',10x,'Correlation',10x,'Excitation Energy')  
 
       return
       end

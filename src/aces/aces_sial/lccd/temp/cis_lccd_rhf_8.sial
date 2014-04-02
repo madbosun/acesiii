@@ -549,6 +549,7 @@
       scalar shift
       scalar rank
       scalar maxstate
+      scalar oldcorrT
 #
 #    ------------------------------------------------------------------------
      PROC read_data
@@ -580,6 +581,7 @@
       create omegacis
       execute server_barrier
 
+      execute list_to_blocks T2old_ab
       execute list_to_blocks VSTART1A1
       execute list_to_blocks VSTART1B1
       execute list_to_blocks VSTART1A2
@@ -610,6 +612,38 @@
       execute server_barrier
 #
     ENDPROC read_data
+     proc write_data
+      execute server_barrier
+      execute blocks_to_list T2old_ab
+      execute blocks_to_list VSTART1A1
+      execute blocks_to_list VSTART1B1
+      execute blocks_to_list VSTART1A2
+      execute blocks_to_list VSTART1B2
+      execute blocks_to_list VSTART1A3
+      execute blocks_to_list VSTART1B3
+      execute blocks_to_list VSTART1A4
+      execute blocks_to_list VSTART1B4
+      execute blocks_to_list VSTART1A5
+      execute blocks_to_list VSTART1B5
+      execute blocks_to_list VSTART1A6
+      execute blocks_to_list VSTART1B6
+      execute blocks_to_list VSTART1A7
+      execute blocks_to_list VSTART1B7
+      execute blocks_to_list VSTART1A8
+      execute blocks_to_list VSTART1B8
+      execute blocks_to_list VSTART1A9
+      execute blocks_to_list VSTART1B9
+      execute blocks_to_list VSTART1A10
+      execute blocks_to_list VSTART1B10
+      execute blocks_to_list VSTART1A11
+      execute blocks_to_list VSTART1B11
+      execute blocks_to_list VSTART1A12
+      execute blocks_to_list VSTART1B12
+      execute blocks_to_list omegacis
+      execute server_barrier
+      execute write_blocks_to_list
+      execute server_barrier
+     ENDPROC write_data
 #
      PROC putvec
      ncount1 = 1.0
@@ -1280,7 +1314,44 @@
 
          etemp = 32
          execute print_rel_info etemp pinf
-      endif
+
+         ncount1 = 1.0
+         do kstate
+         do kptr1
+             etemp = 0.0
+             ctpinf(kstate,kptr1) = etemp
+             cpinf(kstate,kptr1)  = ctpinf(kstate,kptr1)
+         enddo kptr1
+         enddo kstate
+         do kstate
+         if ncount1 == iroot
+             ncount2 = 0.0
+             do kptr1
+                 ncount2 += 1.0
+                 if ncount2 == one
+                     etemp  = ecorrT
+                     etemp -= oldcorrT
+                     ctpinf(kstate,kptr1) = etemp
+                     cpinf(kstate,kptr1)  = ctpinf(kstate,kptr1)
+                 endif
+             enddo kptr1
+             ncount2 = 0.0
+             do kptr1
+                 ncount2 += 1.0
+                 if ncount2 == two
+                     etemp  = ecorrT
+                     etemp += eomegacis
+                     etemp -= oldcorrT
+                     ctpinf(kstate,kptr1) = etemp
+                     cpinf(kstate,kptr1)  = ctpinf(kstate,kptr1)
+                 endif
+             enddo kptr1
+             etemp = 37
+             execute print_rel_info etemp cpinf
+         endif
+         ncount1 += 1.0
+         enddo kstate
+     endif
 # 
 #    ------------------------------------------------------------------------ 
 # 
@@ -1542,43 +1613,6 @@
      execute print_scalar ecisd
      execute server_barrier
 #
-     execute server_barrier
-     if kiter > 1
-         ncount1 = 1.0
-         do kstate
-         do kptr1
-             etemp = 0.0
-             ctpinf(kstate,kptr1) = etemp
-             cpinf(kstate,kptr1)  = ctpinf(kstate,kptr1)
-         enddo kptr1
-         enddo kstate
-         do kstate
-         if ncount1 == iroot
-             ncount2 = 0.0
-             do kptr1
-                 ncount2 += 1.0
-                 if ncount2 == one
-                     etemp = ecisd
-                     ctpinf(kstate,kptr1) = etemp
-                     cpinf(kstate,kptr1)  = ctpinf(kstate,kptr1)
-                 endif
-             enddo kptr1
-             ncount2 = 0.0
-             do kptr1
-                 ncount2 += 1.0
-                 if ncount2 == two
-                     etemp  = eomegacis
-                     etemp += ecisd
-                     ctpinf(kstate,kptr1) = etemp
-                     cpinf(kstate,kptr1)  = ctpinf(kstate,kptr1)
-                 endif
-             enddo kptr1
-             etemp = 37
-             execute print_rel_info etemp cpinf
-         endif
-         ncount1 += 1.0
-         enddo kstate
-     endif
 #     ecisd+= eomegacis
      execute print_scalar ecisd
 #
@@ -2917,6 +2951,8 @@
       ecrit = cc_conv  
       one = 1.0
       two = 2.0
+      oldcorrT  = totenerg
+      oldcorrT -= scfeneg
 #
 # Read transformed integrals from lists 
 # ------------------------------------- 
@@ -2927,17 +2963,10 @@
 # -------------------------------------------- 
 #
       CALL TRAN_UHF 
+      execute server_barrier
+      call iguess_uhf
 #
       EXECUTE SERVER_BARRIER  
-#
-# Get initial second-order guess 
-# ------------------------------ 
-      CALL IGUESS_UHF
-      EXECUTE SERVER_BARRIER  
-#
-# Calculate the second-order energy 
-# --------------------------------- 
-      CALL ENERGY_NEW 
 #
      create LSFai
      execute print_scalar eom_roots
@@ -2945,20 +2974,10 @@
      maxstate = eom_roots
      fev = 0.0367493089
 #
-     iroot = eom_roots
-# get out the cis root k=eom_roots
-#
-     iroot = 1.0
-      EXECUTE SERVER_BARRIER  
+     iroot = 8.0
      call putvec
-      EXECUTE SERVER_BARRIER  
-# construct W[+1]*C_1 going into the wavefunction, and add to the T_2 mp2
-# amplitude guess
+# construct W[+1]*C_1 going into the T2 wavefunction
      call Caibj
-      EXECUTE SERVER_BARRIER  
-#
-     call make_hbar
-     execute server_barrier
 #
 # Start iterations
 # ---------------- 
@@ -3065,16 +3084,17 @@
       ENDDO KITER 
 #
       execute sip_barrier 
-      totenerg  = ecorrT  
-      totenerg += scfeneg  
-      execute print_scalar totenerg  
-      execute print_scalar ecisd
-      etemp = 33
-      execute print_rel_info etemp pinf
-      etemp = 38
-      execute print_rel_info etemp cpinf
-#
+#      totenerg  = ecorrT  
+#      totenerg += scfeneg  
+#      execute print_scalar totenerg  
+#      execute print_scalar ecisd
+#      etemp = 33
+#      execute print_rel_info etemp pinf
+     etemp = 38
+     execute print_rel_info etemp cpinf
      execute server_barrier
+     call write_data
+     execute print_scalar oldcorrT
 # Write amplitudes to file
 # ------------------------
 #

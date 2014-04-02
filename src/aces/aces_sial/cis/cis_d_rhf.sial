@@ -1183,5 +1183,34 @@
       endif
       enddo kstate
 #
+      execute server_barrier
+      execute blocks_to_list VSTART1A1
+      execute blocks_to_list VSTART1B1
+      execute blocks_to_list VSTART1A2
+      execute blocks_to_list VSTART1B2
+      execute blocks_to_list VSTART1A3
+      execute blocks_to_list VSTART1B3
+      execute blocks_to_list VSTART1A4
+      execute blocks_to_list VSTART1B4
+      execute blocks_to_list VSTART1A5
+      execute blocks_to_list VSTART1B5
+      execute blocks_to_list VSTART1A6
+      execute blocks_to_list VSTART1B6
+      execute blocks_to_list VSTART1A7
+      execute blocks_to_list VSTART1B7
+      execute blocks_to_list VSTART1A8
+      execute blocks_to_list VSTART1B8
+      execute blocks_to_list VSTART1A9
+      execute blocks_to_list VSTART1B9
+      execute blocks_to_list VSTART1A10
+      execute blocks_to_list VSTART1B10
+      execute blocks_to_list VSTART1A11
+      execute blocks_to_list VSTART1B11
+      execute blocks_to_list VSTART1A12
+      execute blocks_to_list VSTART1B12
+      execute blocks_to_list omegacis
+      execute server_barrier
+      execute write_blocks_to_list
+      execute server_barrier
                            ENDSIAL CCSD_RHF_SV1    
 #
