@@ -43,7 +43,7 @@ C
       WRITE(6,*)'--------------I'
       WRITE(6,80)(VECR(JAP),JAP=1,3*NATOMS)
       WRITE(6,*)'--------------O'
-      WRITE(6,80)(VEC(JAP),JAP=1,3*NATOMS)
+      WRITE(6,80)(SCR(JAP),JAP=1,3*NATOMS)
 #endif
 
       ICOMP = 0

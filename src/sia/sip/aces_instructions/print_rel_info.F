@@ -22,6 +22,11 @@ C  in the file COPYRIGHT.
 
 c--------------------------------------------------------------------------
 c Scalar value    Code    Printed  
+c          -10    SCF     exit for no convergence 
+c           -2    CCSD    exit for no convergence 
+c
+c            0    SCF     ca printed to file ca.data 
+c           -1    SCF     cb printed to file cb.data 
 c            1    SCF     iteration, energy, error 
 c            2    SCF     final energy, error 
 c            3    SCF     alpha orbital energies  
@@ -61,9 +66,22 @@ c            29   UHF CIS energies
 c
 c            30   RHF CIS Singles amplitude header 
 c            31   UHF CIS Singles amplitude header 
+c
+c            32   RHF LCCD iteration, energy  
+c            33   RHF LCCD iteration, energy  
+c            
+c            34   CC expectation value of <S2>
+c
+c            35   CIS(D) state energy
+c            36   CISccpt state energy
+c
+c            40   MP2-F12 energy
+C
+C            41   IP-EOM-CCSD
 c   
 c--------------------------------------------------------------------------
-
+C Changes to make GNU complier happy, C. Taylor, 08/2013.
+C
       implicit none
       include 'interpreter.h'
       include 'trace.h'
@@ -138,6 +156,57 @@ c---------------------------------------------------------------------------
      *           'between 1 and ',nscalar_table
          call abort_job()
       endif
+
+c----------------------------------------------------------------------------
+c   Exiting for no SCF convergence  
+c---------------------------------------------------------------------------
+
+      if (dabs(scalar_table(sind)+10.0) .le. 0.001) then 
+         if (me .eq. 0) then 
+         write(66,10) 
+         call flush(66) 
+         call abort_job() 
+         endif 
+      endif 
+
+c----------------------------------------------------------------------------
+c   SCF Print Flag = 0 or -1 Print Ca/Cb to file   
+c---------------------------------------------------------------------------
+
+      if ((dabs(scalar_table(sind)) .le. 0.00001) .or.
+     *    (dabs(scalar_table(sind)+1.0)) .le. 0.00001) then 
+
+c----------------------------------------------------------------------------
+c   Locate the data for the input matrix which is to be analyses.
+c---------------------------------------------------------------------------
+
+      array      = op(c_op1_array)
+
+      array_type = array_table(c_array_type, array)
+      nindex     = array_table(c_nindex, array)
+
+      daddr = address_table(array)
+      iarray  = get_index_from_base(daddr, x, 2)
+
+      if (array .eq. 0) then
+         print *,'Error: The first argument in print_rel_info 
+     *            must be an array.'  
+         print *,(op(i),i=1,loptable_entry)
+         call abort_job()
+      endif
+
+      do i = 1, nindex
+         ind(i) = array_table(c_index_array1+i-1,array)
+      enddo
+
+      n1 = index_table(c_index_size, ind(1))  ! pick up length of index
+      n2 = index_table(c_index_size, ind(2))  ! pick up length of index
+
+          call print_rhf_orbitals(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      return 
+      endif 
+
 
 c----------------------------------------------------------------------------
 c   SCF Print Flag = 1, 2, 3, 4     
@@ -331,23 +400,13 @@ c---------------------------------------------------------------------------
       endif 
 
 c----------------------------------------------------------------------------
-c   Exiting for no SCF convergence  
-c---------------------------------------------------------------------------
-
-      if (dabs(scalar_table(sind)+1.0) .le. 0.001) then 
-         if (me .eq. 0) then 
-         write(66,10) 
-         call abort_job() 
-         endif 
-      endif 
-
-c----------------------------------------------------------------------------
 c   Exiting for no CCSD convergence  
 c---------------------------------------------------------------------------
 
       if (dabs(scalar_table(sind)+2.0) .le. 0.001) then 
          if (me .eq. 0) then 
          write(66,20) 
+         call flush(66) 
          call abort_job() 
          endif 
       endif 
@@ -375,6 +434,65 @@ c---------------------------------------------------------------------------
           call print_cis_rhf_sheader(scalar_table(sind))
       endif 
 
+c----------------------------------------------------------------------------
+c   LCCD RHF Energy Flag = 32
+c---------------------------------------------------------------------------
+
+      if (scalar_table(sind) .ge. 32.0 .and. scalar_table(sind) .le.
+     *    33.0) then  
+          call print_lccd_cinfo(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif 
+c--------------------------------------------------------------------------
+c   CC Expectation value of <S2> Print flag 34 
+c--------------------------------------------------------------------------
+      if (scalar_table(sind) .eq. 34.0) then
+          call print_cc_s2expect(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif 
+
+c----------------------------------------------------------------------------
+c   CIS(D) excitation energy(RHF) Print Flag = 35
+c---------------------------------------------------------------------------
+
+      if (scalar_table(sind) .eq. 35.0 .or.
+     *    scalar_table(sind) .eq. 36.0 .or.
+     *    scalar_table(sind) .eq. 37.0 .or. 
+     *    scalar_table(sind) .eq. 38.0) then 
+          call print_cisd_rhf_cinfo(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif 
+
+
+c---------------------------------------------------------------------------|
+c     Print out MP2-F12 energy                                              |
+c---------------------------------------------------------------------------|
+
+      if (scalar_table(sind) .eq. 40.0) then
+          call print_mp2_f12(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif
+
+
+c---------------------------------------------------------------------------|
+c     Print out IP-EOM-CCSD ionization potentials                           |
+c---------------------------------------------------------------------------|
+
+      if (scalar_table(sind) .eq. 41.0) then
+          call print_ipeomcc(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif
+
+c--------------------------------------------------------------------------
+c   Print a banner Print flag -100 for density. The array is fictious.
+c   Use the CA from any SIAL code. 
+c--------------------------------------------------------------------------
+      if (scalar_table(sind) .eq. -100.0) then
+          call print_banner(x(iarray),scalar_table(sind),
+     *             1,n1,1,n2)
+      endif 
+
+      call flush(66) 
 
       return 
       end 
@@ -737,7 +855,6 @@ c
 
       if (me .eq. 0) then 
 
-      write(66,*) ' ' 
       write(66,10) 
       write(66,11) 
       write(66,10) 
@@ -1381,3 +1498,372 @@ c
       return
       end
 
+
+      subroutine print_rhf_orbitals(array1,sval,a1,a2,b1,b2) 
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2   
+      double precision array1(a1:a2,b1:b2), sval, stemp   
+      double precision efinal, conv   
+      logical breturn 
+
+      common /orbread/breturn 
+
+       ival = sval 
+       conv = 27.21138505 
+c      if (me .eq. my_company_rank)then
+
+       if (me .eq. 0)then
+
+       if (ival .eq. 0) then  
+          write(66,100) 
+          open(111,file='ca.data') 
+          write(111,*) a2-a1+1  
+          do a = a1, a2   
+          do b = b1, b2   
+             write(111,*) array1(a,b) 
+          enddo 
+          enddo 
+          close (111) 
+       endif 
+
+       if (ival .eq. -1) then  
+          write(66,200) 
+          open(222,file='cb.data') 
+          write(222,*) a2-a1+1  
+          do a = a1, a2   
+          do b = b1, b2   
+             write(222,*) array1(a,b) 
+          enddo 
+          enddo 
+          close (222) 
+       endif 
+
+       endif 
+
+       breturn = .false.
+
+100    FORMAT(5x,'PRINTING RHF COEFFICIENTS TO FILE') 
+200    FORMAT(5x,'PRINTING UHF COEFFICIENTS TO FILE') 
+
+      return
+      end
+
+
+      subroutine print_lccd_cinfo(array1,sval,a1,a2,b1,b2) 
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2   
+      double precision array1(a1:a2,b1:b2), sval, stemp   
+      double precision efinal, conv   
+
+      open(66,file='summary.out') 
+
+       ival = sval 
+       conv = 27.21138505 
+c      if (me .eq. my_company_rank)then
+
+       if (me .eq. 0)then
+
+       if (ival .eq. 32) then  
+          do a = a2, a1, -1  
+            if (a .eq. 1.0) then 
+               write(66,*) 
+               write(66,*) 
+               write(66,98) 
+               write(66,101) 
+               write(66,100) 
+               write(66,101) 
+            endif  
+            if (dabs(array1(a,b1)) .gt. 0.0001) then 
+               write(66,99) a, (array1(a,i), i=b1, b2) 
+               return 
+            endif 
+          enddo 
+       endif 
+
+       if (ival .eq. 33) then  
+          do a = a1, a2 
+            if (a .eq. 1.0) then 
+               write(66,*) 
+               write(66,*) 
+               write(66,97) 
+               write(66,101) 
+               write(66,100) 
+               write(66,101) 
+            endif  
+            if (dabs(array1(a,b1)) .lt. 0.0001) then 
+c              write(66,99) a-1, (array1(a-1,i), i=b1, b2) 
+               amax = a - 1  
+               efinal = array1(a-1,2) 
+            go to 10 
+            endif 
+            write(66,99) a, (array1(a,i), i=b1, b2) 
+          enddo 
+10        continue 
+          write(66,101) 
+          write(66,102) efinal, amax 
+          write(66,101) 
+          write(66,*) 
+          write(66,*) 
+
+       endif 
+
+      endif
+
+97    format(2x,"SUMMARY OF LCCD CALCULATION") 
+98    format(2x,"START OF LCCD CALCULATION") 
+99    format(2x,I8,5x,F20.10,2x,F20.10) 
+100   format(2x,"Iteration#",9x,"LCCD corr energy",7x,"Total energy")
+101   format(2x,60('-'))
+102   format(2x,"Final LCCD energy = ",F20.10,2x,"After",2x,I8,2x,
+     *       "iterations")
+
+      return
+      end
+c
+      subroutine print_cc_s2expect(array1,sval,a1,a2,b1,b2)
+
+c---------------------------------------------------------------------------
+c Print the refrence and correlated expectation values of S^2.
+c Ajith Perera, 12/2013.
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2
+      double precision array1(a1:a2,b1:b2), sval, stemp
+      double precision nref, s2ref, s2cc, nocc_tot, nopn_tot
+
+      open(66,file='summary.out')
+
+      nocc_tot = dfloat(nalpha_occupied + nbeta_occupied)
+      nopn_tot = dfloat(nalpha_occupied - nbeta_occupied)
+      
+      nref = (nocc_tot + (nopn_tot*nopn_tot/2.0D0))/2.0D0
+
+      if (me .eq. 0)then
+         s2ref = array1(1,1)
+         s2cc  = array1(2,1)
+         Write(66, *)
+         Write(66, 101)
+         Write(66, "(2x,a)") 
+     &        "The <0|S**2|0> and <CC|S**2|CC> is computed."
+         Write(66, 101)
+         Write(66,*) 
+         Write(66, 100) s2ref + Nref
+         Write(66, 200) s2ref + s2cc + Nref
+
+      endif
+
+ 100  FORMAT(T15,'Reference state <S**2>   : ',F15.10,'.')
+ 200  FORMAT(T15,'Final CC  state <S**2>   : ',F15.10,'.')
+ 101  format(2x,60('-'))
+
+      return
+      end
+
+      subroutine print_banner(array1,sval,a1,a2,b1,b2)
+
+c---------------------------------------------------------------------------
+c Print a message; Use -100, -99, ... for sval to control the message.
+c Ajith Perera, 12/2013.
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+
+      integer ival, a, a1, a2, b, b1, b2   
+      double precision array1(a1:a2,b1:b2), sval
+c
+      open(66,file='summary.out')
+
+      ival = sval
+
+      If (me .eq. 0) then
+
+      Write(66,*)
+      Write(66, 101)
+
+         If (ival .eq. -100)
+     &      Write(66,"(2x,a)")
+     &      "The CC one- and two-particle densities are computed."
+
+      Write(66, 101)
+      Write(66,*)
+
+      Endif
+
+101   format(2x,60('-'))
+
+      Return 
+      End
+      
+      subroutine print_cisd_rhf_cinfo(array1,sval,a1,a2,b1,b2) 
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2   
+      integer ieom_roots 
+      double precision array1(a1:a2,b1:b2), sval, stemp   
+      double precision efinal, conv   
+
+      open(66,file='summary.out') 
+
+      ival = sval 
+      conv = 27.21138505 
+      amax = eom_roots 
+
+      if (me .eq. 0)then
+         do i = a2,a1,-1
+             if (i.eq.1.0.and.(ival.lt.37)) then
+                 if(ival.eq.35) write(66,10) 
+                 if(ival.eq.36) write(66,11) 
+                 write(66,100) 
+                 write(66,30) 
+                 write(66,100) 
+             endif
+             if (i .le. amax) then  
+             if (dabs(array1(i,1)) .gt. 0.0001) then
+                 if(ival.lt.38) then
+                     write(66,20) i, array1(i,1), array1(i,2)  
+                 else
+                     write(66,100)
+                     write(66,21) i, array1(i,2)  
+                     write(66,100)
+                 endif
+                 return
+             endif
+             endif 
+         enddo 
+      endif 
+
+
+100   format(2x,60('-'))
+10    format(2x,"CIS(D) excitation energies")  
+11    format(2x,"CISMP2 excitation energies")  
+20    format(2x,I4,5x,F15.8,x,F20.8)  
+21    format(2x,"Final root(",I2,") CISPT2 excitation energy = ",F20.10)
+30    format(2x,'ROOT',10x,'Correlation',10x,'Excitation Energy')  
+
+      return
+      end
+
+c-----------------------------------------------------------------------------
+
+      subroutine print_mp2_f12(array1,sval,a1,a2,b1,b2)
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+c
+      integer i, ival, amax, a, a1, a2, b, b1, b2
+      integer ieom_roots
+      double precision array1(a1:a2,b1:b2), sval, stemp
+      double precision efinal, conv
+
+      open(66,file='summary.out')
+
+      ival = sval
+      conv = 27.21138505
+      ieom_roots = eom_roots
+      amax = max(ieom_roots,6)
+
+      if (me .eq. 0)then
+
+      write(66,*) '===================================================='
+      write(66,*) '|           MP2-F12 calculation                    |'
+      write(66,*) '===================================================='
+      write(66,*) '|    Geminal type:  f12 = exp(-gamma*r12)          |'
+      write(66,*) '|    B-approximation is used                       |'
+      write(66,*) '|    SP-Ansatz is used                             |'
+      write(66,*) '|--------------------------------------------------|'
+      write(66,*) 'MP2 correlation energy is', array1(1,1)
+      write(66,*) 'V-intermediate contribution is', array1(2,1)
+      write(66,*) 'B-intermediate contribution is', array1(3,1)
+      write(66,*) '---------------------------------------------------'
+      write(66,*) 'Total F12 contribution is',array1(4,1)
+      write(66,*) 'MP2-F12 corelation energy is',array1(5,1)
+      write(66,*) '---------------------------------------------------'
+      write(66,*) 'Total energy is', array1(6,1)
+      endif
+
+      return
+      end
+
+      subroutine print_ipeomcc(array1,sval,a1,a2,b1,b2)
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      include 'interpreter.h'
+      include 'int_gen_parms.h'
+      include 'parallel_info.h'
+      include 'eominit.h'
+c
+      integer i, j, ival, amax, a, a1, a2, b, b1, b2
+      integer ieom_roots
+      double precision array1(a1:a2,b1:b2), sval, stemp
+      double precision efinal, conv
+
+      conv = 27.21138505
+      open(66,file='summary.out')
+
+      if (me .eq. 0)then
+
+      write(66,*) '===================================================='
+      write(66,*) '|           IP-EOM-CCSD calculation                |'
+      write(66,*) '===================================================='
+      write(66,*) '---------------------------------------------------'
+      write(66,*) '    Number of requested IP-EOM-CCSD roots',n_ip_roots
+      write(66,*) '---------------------------------------------------'
+      do i=1,1
+      do j=1,n_ip_roots
+      write(66,*) array1(i,j),'            ',array1(i,j)*conv,'e.V.'
+      enddo
+      enddo
+      write(66,*) '---------------------------------------------------'
+      endif
+
+      return
+      end

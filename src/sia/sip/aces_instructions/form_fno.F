@@ -109,53 +109,81 @@ c---------------------------------------------------------------------------
 
       subroutine do_formfno(SPab, Uab, n, n1, n2)
       include 'int_gen_parms.h'
-      integer i, j, n, n1, n2, ndrop   
+      parameter (max_basis = 2000)
+      integer i, j, n, n1, n2, k
       double precision SPab(n,n)
       double precision Uab(n,n)  
       double precision utemp(n,n)  
-      double precision thresh, max, temp, temp1     
+      double precision thresh, maxp, minp, temp, temp1, dtmp
+      integer ndrop
+      integer ndropmo_a
+      integer modrop_a(max_basis)
+      logical harddrop
 
       open(66,file='summary.out') 
-
-c     thresh = 5.0d-5 
-
-      if (me .eq. 0) write(66,*)  ' '  
-
       if (me .eq. 0) write(66,5)  
-5     format(5x,'Determining FNOs')  
 
-      max = 0.0 
+C non-conservative production threshold
+      thresh = 1.d-4
+C conservative production threshold
+c      thresh = 5.d-5
+      harddrop = .false.
       ndrop = 0 
-      do j = 1, n
-         if (dabs(SPab(j,j)) .gt. max) then 
-            max = dabs(SPab(j,j)) 
-         endif 
-      enddo
+      minp = SPab(1,1)
+      maxp = SPab(n,n)
 
-      if (me .eq. 0) write(66,40) max 
-40    format(5x,'MAX virtual occupancy=',F12.8)  
+      if (me .eq. 0) write(66,40) minp,maxp
 
-      thresh = 0.01*max 
+      call igetrec(1, 'JOBARC', 'OCCUPYA0', 1, nalpha_occupied)
+      CALL IGETREC(20,'JOBARC','NUMDROPA',1,NDROPMO_A)
+      if (ndropmo_a .gt. 0) then
+          CALL IGETREC(20,'JOBARC','MODROPA',NDROPMO_A,MODROP_A)
+          do i = 1,ndropmo_a
+              if(modrop_a(i) .gt. nalpha_occupied) then
+                  harddrop = .true.
+                  ndrop = ndrop + 1
+              end if
+          end do
+      else
+          harddrop = .false.
+          ndrop = 0
+          if (me .eq. 0) write(66,21) thresh 
+      end if
+C      if(me.eq.0) write(66,*) fno_keep
 
-      if (me .eq. 0) write(66,20) thresh 
-20    format(5x,'DETERMINING FNOs with MAX allowable occupancy=',F12.8)  
-
-      do j = 1, n
-         if (me .eq. 0) write(66,*) j+nalpha_occupied, SPab(j,j) 
-         if (dabs(SPab(j,j)) .lt. thresh) then 
-            ndrop = ndrop + 1 
-            if (me .eq. 0) 
-     *      write(66,10) j+nalpha_occupied, SPab(j,j)   
+      do j = 1,n
+         if (harddrop .and. j.le.ndrop) then
+C            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
+      if (me .eq. 0) write(66,11) n+nalpha_occupied-j+1, SPab(j,j),'D'
             do i = 1, n
                Uab(i,j) = 0.0 
             enddo
+         else if (.not.harddrop .and. dabs(SPab(j,j)) .lt. thresh) then 
+            ndrop = ndrop + 1 
+C            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),'D'
+      if (me .eq. 0) write(66,11) n+nalpha_occupied-j+1, SPab(j,j),'D'
+            do i = 1, n
+               Uab(i,j) = 0.0 
+            enddo
+         else
+C            if (me .eq. 0) write(66,11) j+nalpha_occupied, SPab(j,j),''
+      if (me .eq. 0) write(66,11) n+nalpha_occupied-j+1, SPab(j,j),' '
          endif 
       enddo
 
       if (me .eq. 0) write(66,30) ndrop, n  
+      if (me .eq. 0) 
+     *   write(66,31) n+nalpha_occupied-ndrop,n+nalpha_occupied
 
-10    format(5x,'Drop orbital:',I8,5x,'with occupation=',F12.8)
-30    format(5x,I8,' Virtuals dropped out of',I8)
+5     format(5x,'DETERMINING MBPT(2) FROZEN NATURAL ORBITALS',/)  
+40    format(/5x,'MIN/MAX virtual occupancy=',F12.8,'/',F12.8)  
+20    format(5x,'DETERMINING FNO SUBSPACE BASED ON % DROP: ',I3,'%')  
+21    format(5x,'DETERMINING FNO SUBSPACE BASED ON THRESHOLD: ',F12.8)  
+999   format(I4,100F10.7)
+11    format(5x,I5,1F14.8,2x,A)
+30    format(5x,'Dropping ',I8,' natural orbitals out of ',I8,
+     *       ' total virtuals')
+31    format(5x,'If this is the first run, use DROPMO=',I8,'-',I8)
 
       return
       end

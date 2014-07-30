@@ -51,7 +51,7 @@ c-------------------------------------------------------------------------
       integer*8 c_loc64, ixx
       integer count_block
       integer size, ierr
-      integer nblocks_stack, wsum
+      integer wsum
       integer*8 indblk
       integer stk_weights(10)
       integer*8 addr
@@ -76,6 +76,7 @@ c---------------------------------------------------------------------------
       count_word  = 0
       do i = 1, nstacks
          stack_size(i) = stack_blocks(i)
+         nblocks_stack(i) = stack_blocks(i)
          count_block = count_block + stack_size(i)
          count_word = count_word + stack_size(i) * 
      *                  (blksize(i) + lblock_id_data)
@@ -168,6 +169,7 @@ c--------------------------------------------------------------------------
       persistent_list_tail = 0
 
       blkmgr_init_flag = .true.
+C      dbg = .true. 
       if (dbg) then
          print *,'Task ',blkmgr_comm_rank,
      *        ' BLKMGR has been initialized with ',
@@ -176,6 +178,7 @@ c--------------------------------------------------------------------------
          print *,'Task ',blkmgr_comm_rank,
      *     ' stack base_addr: ',(stack_base_addr(i),i=1,nblkmgr_stacks)
       endif
+C      dbg = .false. 
       return
       end
 
@@ -2722,27 +2725,28 @@ c--------------------------------------------------------------------------
                 call put_blk_header(MPI_REQUEST_NULL, 
      *                      i,c_block_request)
              else 
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_act_timer)
-                   call timer_start(pardo_tserver_timer)
-                endif
 
-c               call timer_start(timer_ovrhead)
                call update_timer(current_instr_timer)  
                call pause_timer(current_instr_unit_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *           call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *           call timer_start(pardo_tserver_timer)
                call timer_start(current_instr_mpi_timer)
                call timer_start (current_instr_mpino_timer)
+#endif               
                call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS               
                call update_timer (current_instr_mpino_timer)
                call update_timer(current_instr_mpi_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_tserver_timer)
+#endif                
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_act_timer)
                call resume_timer(current_instr_unit_timer)
                call timer_start(current_instr_timer)
-c               call update_timer(timer_ovrhead)
-c                call exec_thread_server(0)
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_tserver_timer)
-                   call timer_start(pardo_act_timer)
-                endif
                 go to 200
              endif
 
@@ -2981,6 +2985,44 @@ c---------------------------------------------------------------------------
       return
       end
 
+      subroutine find_free_stack(stack, blkndx)
+c---------------------------------------------------------------------------
+c   Pops a block from the "stack" free stack.
+c   The block index number (blkndx) is returned.
+c   If there is a stack underflow, a -1 is returned.
+c---------------------------------------------------------------------------
+      implicit none
+      include 'maxdim.h'
+      include 'blkmgr.h'
+      include 'parallel_info.h'
+      integer stack
+      integer blkndx
+
+      if (free_stack_ptr(stack) .lt. stack_start(stack)) then
+         blkndx = -1
+      else
+
+c---------------------------------------------------------------------------
+c   Capture the value of the stack.
+c---------------------------------------------------------------------------
+
+         call get_free_stack(blkndx, free_stack_ptr(stack))
+         if (blkndx .lt. stack_start(stack) .or. 
+     *       blkndx .gt. stack_start(stack)+stack_size(stack)-1) then
+            print *,'Error: Invalid data on free stack: ',
+     *           ' stack = ',stack,' blkndx ',blkndx,
+     *           ' stack data should be between ',
+     *          stack_start(stack),' and ',
+     *          stack_start(stack)+stack_size(stack)-1
+            print *,'stack pointer ',free_stack_ptr(stack)
+            call abort_job()
+         endif
+      endif
+
+      return
+      end
+
+
       subroutine push_free_stack(stack, blkndx)
 c---------------------------------------------------------------------------
 c   Pushes a block onto the free stack.
@@ -3047,8 +3089,11 @@ c-------------------------------------------------------------------------
       integer blkndx
       integer stack, istack
 
+#ifdef DETAILED_TIMERS
       call timer_start(current_instr_allocate_timer)
+#endif      
       call update_timer(current_instr_timer)
+      call pause_timer(current_instr_unit_timer)
 
       allocate_block = -1
       max_iterations = 600000   
@@ -3096,27 +3141,24 @@ c   Try to scrub a block from the current stack.
 c---------------------------------------------------------------------------
 
             do kscrub = 1, scrub_iterations
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_act_timer)
-                   call timer_start(pardo_tserver_timer)
-                endif
 
-c               call timer_start(timer_ovrhead)
-c               call update_timer(current_instr_timer)  
-               call pause_timer(current_instr_unit_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_tserver_timer)
                call timer_start(current_instr_mpi_timer)
                call timer_start (current_instr_mpino_timer)
+#endif               
                call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS
                call update_timer (current_instr_mpino_timer)
                call update_timer(current_instr_mpi_timer)
-               call resume_timer(current_instr_unit_timer)
-c               call timer_start(current_instr_timer)
-c               call update_timer(timer_ovrhead)  
-c               call exec_thread_server(0)  
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_tserver_timer)
-                   call timer_start(pardo_act_timer)
-                endif
+               if (pardo_block_wait_timer .ne. 0)
+     *             call update_timer(pardo_tserver_timer)
+#endif                
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_act_timer)
 
                call scrub_from_stack(stack, array_table,
      *                     narray_table, index_table, nindex_table,
@@ -3160,31 +3202,32 @@ c--------------------------------------------------------------------------
 
             call set_block_id(array, array_block, stack, i)
             call put_blk_in_use(i)
+#ifdef DETAILED_TIMERS            
             call update_timer(current_instr_allocate_timer)
+#endif            
             call timer_start(current_instr_timer)
+            call resume_timer(current_instr_unit_timer)
             return 
          else
             if (comm_list_head .ne. 0) then
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_act_timer)
-                   call timer_start(pardo_tserver_timer)
-                endif
                
-c               call timer_start(timer_ovrhead)
-c               call update_timer(current_instr_timer)  
-               call pause_timer(current_instr_unit_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_tserver_timer)
                call timer_start(current_instr_mpi_timer)
                call timer_start (current_instr_mpino_timer)
+#endif               
                call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS
                call update_timer (current_instr_mpino_timer)
                call update_timer(current_instr_mpi_timer)
-               call resume_timer(current_instr_unit_timer)
-c               call timer_start(current_instr_timer)
-c               call update_timer(timer_ovrhead)  
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_tserver_timer)
-                   call timer_start(pardo_act_timer)
-                endif
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_tserver_timer)
+#endif                
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_act_timer)
 
                call scrub_blocks(size, .false., array_table,
      *                   narray_table, index_table, nindex_table,
@@ -3204,27 +3247,24 @@ c     *             array,array_block,' k, ierr ',k, ierr
             endif
 
             if (ierr .ne. 0) then
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_act_timer)
-                   call timer_start(pardo_tserver_timer)
-                endif
 
-c               call timer_start(timer_ovrhead)
-c               call update_timer(current_instr_timer)  
-               call pause_timer(current_instr_unit_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_tserver_timer)
                call timer_start(current_instr_mpi_timer)
                call timer_start (current_instr_mpino_timer)
+#endif               
                call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS               
                call update_timer (current_instr_mpino_timer)
                call update_timer(current_instr_mpi_timer)
-               call resume_timer(current_instr_unit_timer)
-c               call timer_start(current_instr_timer)
-c               call update_timer(timer_ovrhead)  
-c               call exec_thread_server(0)   ! do one pass of thread server.
-                if (pardo_act_timer .ne. 0) then
-                   call update_timer(pardo_tserver_timer)
-                   call timer_start(pardo_act_timer)
-                endif
+               if (pardo_block_wait_timer .ne. 0)
+     *            call update_timer(pardo_tserver_timer)
+#endif
+               if (pardo_block_wait_timer .ne. 0)
+     *            call timer_start(pardo_act_timer)
 
             endif
          endif
@@ -3236,9 +3276,11 @@ c               call exec_thread_server(0)   ! do one pass of thread server.
       call array_block_summary(array_table, narray_table)
       call dump_block_ids()
       call abort_job()
-
+#ifdef DETAILED_TIMERS
       call update_timer(current_instr_allocate_timer)
+#endif      
       call timer_start(current_instr_timer)
+      call resume_timer(current_instr_unit_timer)
       return
       end
 
@@ -3274,9 +3316,11 @@ c-------------------------------------------------------------------------
       integer k, max_iterations, kscrub, scrub_iterations
       integer blkndx
       integer stack, istack
-
+#ifdef DETAILED_TIMERS
       call timer_start(current_instr_allocate_timer)
+#endif      
       call update_timer(current_instr_timer)
+       call pause_timer(current_instr_unit_timer)
       
       allocate_block_light = -1
 
@@ -3319,25 +3363,24 @@ c---------------------------------------------------------------------------
 c   Try to scrub a block from the current stack.
 c---------------------------------------------------------------------------
 
-          if (pardo_act_timer .ne. 0) then
-             call update_timer(pardo_act_timer)
-             call timer_start(pardo_tserver_timer)
-          endif
 
-c               call timer_start(timer_ovrhead)
-c               call update_timer(current_instr_timer)  
-               call pause_timer(current_instr_unit_timer)
-               call timer_start(current_instr_mpi_timer)
-               call timer_start (current_instr_mpino_timer)
-               call exec_thread_server(0)
-               call update_timer (current_instr_mpino_timer)
-               call update_timer(current_instr_mpi_timer)
-               call resume_timer(current_instr_unit_timer)
-c               call timer_start(current_instr_timer)
-          if (pardo_act_timer .ne. 0) then
-             call update_timer(pardo_tserver_timer)
-             call timer_start(pardo_act_timer)
-          endif
+               if (pardo_block_wait_timer .ne. 0)
+     *           call update_timer(pardo_act_timer)
+#ifdef VERY_DETAILED_TIMERS               
+               if (pardo_block_wait_timer .ne. 0)
+     *           call timer_start(pardo_tserver_timer)
+             call timer_start(current_instr_mpi_timer)
+             call timer_start (current_instr_mpino_timer)
+#endif               
+             call exec_thread_server(0)
+#ifdef VERY_DETAILED_TIMERS               
+             call update_timer (current_instr_mpino_timer)
+             call update_timer(current_instr_mpi_timer)
+               if (pardo_block_wait_timer .ne. 0)
+     *           call update_timer(pardo_tserver_timer)
+#endif          
+               if (pardo_block_wait_timer .ne. 0)
+     *           call timer_start(pardo_act_timer)
 
           call scrub_from_stack(stack, array_table,
      *                     narray_table, index_table, nindex_table,
@@ -3359,8 +3402,11 @@ c---------------------------------------------------------------------------
 
       allocate_block_light = -1
 c      print *,'TASK ',me,' ALLOC_LIGHT RETURN -1'
-      call timer_start(current_instr_timer)
+#ifdef DETAILED_TIMERS
       call update_timer(current_instr_allocate_timer)
+#endif      
+      call timer_start(current_instr_timer)
+      call resume_timer(current_instr_unit_timer)
       return
             
   200 continue 
@@ -3386,8 +3432,11 @@ c--------------------------------------------------------------------------
       call set_block_id(array, array_block, stack, i)
       call put_blk_in_use(i)
 c      print *,'TASK ',me,' ALLOC LIGHT SUCCEEDED: RETURN ',i  
-      call timer_start(current_instr_timer)
+#ifdef DETAILED_TIMERS
       call update_timer(current_instr_allocate_timer)
+#endif
+      call timer_start(current_instr_timer)
+      call resume_timer(current_instr_unit_timer)
       return 
       end
 
@@ -3725,3 +3774,232 @@ c--------------------------------------------------------------------------
       call abort_job() 
       return
       end 
+
+      subroutine count_scrubbable(scrub_stack, array_table,
+     *                        narray_table, index_table, nindex_table, 
+     *                        block_map_table)
+c----------------------------------------------------------------------------
+c   Attempts to scrub ALL blocks from a given stack.
+c   Searches all blocks marked as "scrubbable".
+c   If a block has been marked to be scrubbed, and if the block is on the 
+c   specified stack, the communication request
+c   is checked.  If the request has been completed, the block_busy_flag
+c   is cleared, indicating that the block may be reclaimed for later use.
+c----------------------------------------------------------------------------
+      implicit none
+      include 'interpreter.h'
+      include 'blkmgr.h'
+      include 'mpif.h'
+      include 'trace.h'
+      include 'parallel_info.h'
+      include 'server_monitor.h'
+
+      integer scrub_stack
+      integer narray_table
+      integer array_table(larray_table_entry, narray_table)
+      integer nindex_table
+      integer index_table(lindex_table_entry, nindex_table)
+      integer block_map_table(lblock_map_entry,*)
+      integer ierr, mpi_ierr
+
+      integer array, block, stack
+      integer flag, comp_flag
+      integer flagval
+      integer request
+      integer next, ptr
+      integer status(MPI_STATUS_SIZE)
+      logical complete
+      integer i, n_tot, n_scrubbable 
+
+      n_scrubbable = 0 
+      n_tot = 0 
+
+      ierr = 1
+      ptr = stack_start(scrub_stack-1)  
+      if (ptr .eq. 0) return
+
+  100 continue
+         n_tot = n_tot + 1 
+
+         call get_blk_header(flagval, ptr,c_block_flags)
+         flag = and(flagval,  block_scrub_flag)
+         call get_blk_header(next, ptr,c_comm_list_ptr)
+
+         if (flag .ne. 0) then
+
+c---------------------------------------------------------------------------
+c   Check the size requirement.
+c---------------------------------------------------------------------------
+
+            call get_blk_header(stack, ptr,c_block_stack)
+            if (stack .eq. scrub_stack) then
+               call put_blk_header(MPI_REQUEST_NULL,ptr,c_block_request)
+               call get_blk_header(array, ptr, c_array_handle)
+               call get_blk_header(block, ptr, c_array_block)
+               call blkmgr_remove_block_from_list(comm_list_head,
+     *             comm_list_tail, ptr, c_comm_list_ptr)
+
+               if (server_monitor_on) 
+     *            call server_monitor_write_log(ptr, 'r', 
+     *                            status(mpi_source))
+
+               call free_block(array, block, ptr, array_table,
+     *                narray_table, index_table, nindex_table,
+     *                block_map_table)
+               n_scrubbable = n_scrubbable + 1 
+           endif
+         endif
+
+      if (n_tot .lt. stack_size(scrub_stack)) then
+         ptr = ptr - 1  
+         go to 100
+      endif 
+
+      if (n_scrubbable .gt. 0) 
+     *write(6,*) ' STACK NSCRUBBABLE :', scrub_stack, n_scrubbable 
+
+c      print *,'Task ',me,'   SCRUB: Returning ierr ',ierr
+      return
+      end
+
+
+      subroutine reclaim_persistent_blocks_from_stack(mystack, 
+     *           array_table,narray_table, index_table, nindex_table,
+     *           block_map_table)
+c---------------------------------------------------------------------------
+c   Finds all blocks marked as "persistent" on a given stack, and 
+c   frees all block.  This makes all blocks available for further use.
+c---------------------------------------------------------------------------
+      implicit none
+      include 'interpreter.h'
+      include 'blkmgr.h'
+      include 'mpif.h'
+      include 'trace.h'
+      include 'parallel_info.h'
+      include 'server_monitor.h'
+
+      integer narray_table, ierr, mpi_ierr
+      integer array_table(larray_table_entry, narray_table)
+      integer nindex_table
+      integer index_table(lindex_table_entry, nindex_table)
+      integer block_map_table(lblock_map_entry,*)
+      integer mystack, flagval, request
+      integer i, old_array, block, stack, ptr, next
+      integer n_persistent, n_removed, n_tot  
+      integer status(MPI_STATUS_SIZE)
+      logical persistent, flag
+      
+c-------------------------------------------------------------------------
+c   Find a persistent block that is not busy.
+c-------------------------------------------------------------------------
+      n_persistent = 0 
+      n_removed    = 0 
+      n_tot = 0 
+
+      ierr = -1
+      if (persistent_list_head .eq. 0) return
+      
+      next = stack_start(mystack-1)  
+  100 continue
+      n_tot = n_tot + 1 
+      ptr = next
+      i   = next 
+      call get_blk_header(next, ptr, c_persistent_ptr)
+      call get_blk_header(stack, i,c_block_stack)
+
+      call get_blk_header(flag, i,c_block_flags)
+      persistent = and(flag, block_persistence_flag)
+      if (persistent .eq. 0) then 
+         if (n_tot .lt. stack_size(mystack)) then
+            ptr = ptr - 1  
+            go to 100
+         else 
+            go to 200 
+         endif 
+      endif 
+
+      n_persistent = n_persistent + 1 
+
+      if (stack .ne. mystack) then
+         return 
+         return   ! end of list
+      endif
+
+c--------------------------------------------------------------------------
+c   We must check the block_busy_flag and block_computed_flag.  If either 
+c   one is non-zero, we cannot reclaim the block.
+c--------------------------------------------------------------------------
+
+      call get_blk_header(flagval, i,c_block_flags) 
+      if (and(flagval, block_busy_flag) 
+     *                                     .eq. 0 .and.
+     *    and(flagval, block_computed_flag) 
+     *                                     .eq. 0) then 
+
+c--------------------------------------------------------------------------
+c   This is the oldest such block in the list, since the list is a FIFO.
+c   Make sure the block is not still engaged in communication.
+c--------------------------------------------------------------------------
+
+         call get_blk_header(request, i,c_block_request)
+         if (request .ne. mpi_request_null) then
+
+c--------------------------------------------------------------------------
+c   Test the block to see if it has finished its communication.
+c   If it has finished, remove it from the comm_list.
+c--------------------------------------------------------------------------
+
+            call mpi_test(request,
+     *                         flag, status, mpi_ierr)
+            if (flag) then
+               call put_blk_header(MPI_REQUEST_NULL, i,c_block_request)
+               call blkmgr_remove_block_from_list(comm_list_head,
+     *                 comm_list_tail, i, c_comm_list_ptr)
+               if (server_monitor_on)
+     *            call server_monitor_write_log(ptr, 'r',
+     *                                status(mpi_source))
+            endif
+         else
+
+c--------------------------------------------------------------------------
+c   The block is not found to be engaged in communication.
+c   Thus it may be safely reclaimed.
+c--------------------------------------------------------------------------
+
+            flag = .true.
+         endif
+
+c-------------------------------------------------------------------------
+c   Free the block. The free_block subroutine will also remove the 
+c   block from the persistent_block list.
+c-------------------------------------------------------------------------
+
+         if (flag) then
+            call get_blk_header(old_array, i,c_array_handle)
+            call get_blk_header(block, i,c_array_block)  
+            call free_block(old_array, block,
+     *                i, array_table, narray_table,
+     *                index_table, nindex_table, block_map_table)
+            n_removed = n_removed + 1  
+         endif
+      endif
+
+c---------------------------------------------------------------------------
+c   Point to the next block in the list and check for a block to reclaim.
+c---------------------------------------------------------------------------
+
+      if (n_tot .lt. stack_size(mystack)) then
+         ptr = ptr - 1  
+         go to 100
+      endif 
+
+200   continue 
+      if (n_persistent .gt. 0) 
+     *write(6,*) ' There were ', n_persistent, ' persistent blocks and'
+     *            , n_removed,
+     *           'have been removed from
+     *             stack ', mystack   
+
+      return
+      end
+

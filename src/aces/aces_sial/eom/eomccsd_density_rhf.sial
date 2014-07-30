@@ -66,10 +66,6 @@
       LOCAL  GRDOCTM (octmom,indone)
       LOCAL  EXCOCTM (octmom,indone)
 
-      SERVED  R2AA_VECS (a,i,a1,i1,kroot)
-      SERVED  R2BB_VECS (b,j,b1,j1,kroot)
-      SERVED  R2AB_VECS (a,i,b ,j ,kroot)
-
       SERVED  R2AA (a,i,a1,i1)
       SERVED  R2BB (b,j,b1,j1)
       SERVED  R2AB (a,i,b,j)
@@ -82,8 +78,17 @@
       SERVED  A2BB (j,b,j1,b1)
       SERVED  A2AB (i,a,j,b)
 
-      DISTRIBUTED  R1A_VECS (a,i,kroot)
-      DISTRIBUTED  R1B_VECS (b,j,kroot)
+      DISTRIBUTED  R1A_VECS (a1,i1,kroot)
+     #DISTRIBUTED  R1B_VECS (b1,j1,kroot)
+      DISTRIBUTED  L1A_VECS (i1,a1,kroot)
+     #DISTRIBUTED  L1B_VECS (j1,b1,kroot)
+
+      SERVED  R2AA_VECS (a1,i1,a2,i2,kroot)
+      SERVED  R2AB_VECS (a1,i1,b1,j1,kroot)
+     #SERVED  R2BB_VECS (b1,j1,b2,j2,kroot)
+      SERVED  L2AA_VECS (i1,a1,i2,a2,kroot)
+      SERVED  L2AB_VECS (i1,a1,j1,b1,kroot)
+     #SERVED  L2BB_VECS (j1,b1,j2,b2,kroot)
 
       DISTRIBUTED  R1A (a,i)
       DISTRIBUTED  R1B (b,j)
@@ -100,8 +105,11 @@
       LOCAL        LT1A (a,i)
       DISTRIBUTED  T1B (b,j)
 
-      DISTRIBUTED  EE  (kindex12,indone)
-      TEMP         TEE (kindex12,indone)
+      TEMP         TEE (kroot,indone)
+      TEMP         T1EE (kroot,indone)
+      DISTRIBUTED  REE (kroot,indone)
+      DISTRIBUTED  LEE (kroot,indone)
+
 
       TEMP  TMOM_DATA (kindex26,kindex26)
 
@@ -224,6 +232,8 @@
       LOCAL  lbjbj4 (b,j2,b1,j) 
       LOCAL  lbjbj5 (b,j2,b1,j) 
 
+      SCALAR  root_thresh
+      SCALAR  ncount
       SCALAR  ZERO
       SCALAR  ONE
       SCALAR  TWO
@@ -236,6 +246,7 @@
       SCALAR  dipnucz
       SCALAR  AMPLTHRESH
       SCALAR  OMEGA
+      SCALAR  L_OMEGA
       SCALAR  OMEGA2
       SCALAR  OLD_R0
       SCALAR  R0
@@ -302,6 +313,8 @@
       SCALAR  POLTOTYZ
       SCALAR  SECONDMOM
       SCALAR  LRNORM  
+      SCALAR  LNORM  
+      SCALAR  RNORM  
       SCALAR  esum  
 #
 #
@@ -316,14 +329,16 @@
 #
 #          ...Create necessary arrays...
 #
-      CREATE  EE
+      CREATE  REE
+      CREATE  LEE
+
       CREATE  HBAR_ia
       CREATE  HBAR_jb
 
       CREATE  T1A
       CREATE  T1B
       CREATE  R1A_VECS
-      CREATE  R1B_VECS
+      CREATE  L1A_VECS
       CREATE  A1A
       CREATE  A1B
       ALLOCATE LT1A(*,*) 
@@ -331,7 +346,8 @@
 
       EXECUTE SIP_BARRIER
 
-      EXECUTE  LIST_TO_BLOCKS  EE
+      EXECUTE  LIST_TO_BLOCKS  REE
+
       EXECUTE  LIST_TO_BLOCKS  R1A_VECS
       EXECUTE  LIST_TO_BLOCKS  R2AA_VECS
       EXECUTE  LIST_TO_BLOCKS  R2AB_VECS
@@ -349,20 +365,20 @@
       EXECUTE  LIST_TO_BLOCKS  A2AA
       EXECUTE  LIST_TO_BLOCKS  A2AB
 
-      EXECUTE  LIST_TO_BLOCKS  VSaiai (p,i,p1,i1)
-      EXECUTE  LIST_TO_BLOCKS  Vaibj  (p,i,q,j)
+      EXECUTE  LIST_TO_BLOCKS  VSaiai(p,i1,p1,i2)
+      EXECUTE  LIST_TO_BLOCKS  Vaibj(p,i1,q,j2)
 
       EXECUTE  LIST_TO_BLOCKS  Vaaii
       EXECUTE  LIST_TO_BLOCKS  Viaai
       EXECUTE  LIST_TO_BLOCKS  Vaaai
 
-     #EXECUTE  LIST_TO_BLOCKS  EE
-     #EXECUTE  LIST_TO_BLOCKS  R1B_VECS
-     #EXECUTE  LIST_TO_BLOCKS  R2AA_VECS
-     #EXECUTE  LIST_TO_BLOCKS  R2AB_VECS
+      EXECUTE  LIST_TO_BLOCKS  LEE
+      EXECUTE  LIST_TO_BLOCKS  L1A_VECS
+      EXECUTE  LIST_TO_BLOCKS  L2AA_VECS
+      EXECUTE  LIST_TO_BLOCKS  L2AB_VECS
 
+      EXECUTE  SERVER_BARRIER
       EXECUTE READ_LIST_TO_BLOCKS
-
       EXECUTE  SERVER_BARRIER
 
       PARDO  p, i, p1, i1
@@ -549,111 +565,299 @@
 #-------------------------------------------------------------------------
 
 
-
 #-------------------------------------------------------------------------
 #
-#    --------------------
-      PROC  GET_Rk_ARRAY
-#    --------------------
-#
-#
-#          ...Grab an R  array...
-#                      k
-#
-#
-      PARDO  a, i
-         rootcount = 0
-         DO kroot
-            GET  R1A_VECS (a,i,kroot)
-            rootcount += 1
-            IF  rootcount == iroot
-                tai (a,i) = R1A_VECS (a,i,kroot)
-                PUT  R1A (a,i) = tai (a,i)
-            ENDIF
-         ENDDO kroot
-      ENDPARDO  a, i 
-
-      PARDO  b, j
-         rootcount = 0
-         DO kroot
-            GET  R1A_VECS (b,j,kroot)
-            rootcount += 1
-            IF  rootcount == iroot
-                tbj (b,j) = R1A_VECS (b,j,kroot)
-                PUT  R1B (b,j) = tbj (b,j)
-            ENDIF
-         ENDDO kroot
-      ENDPARDO  b, j
-
-      PARDO  a, i, a1, i1
-         rootcount = 0
-         DO kroot
-            REQUEST  R2AA_VECS (a,i,a1,i1,kroot) kroot
-            rootcount += 1
-            IF  rootcount == iroot
-                taiai (a,i,a1,i1) = R2AA_VECS (a,i,a1,i1,kroot)
-                PREPARE  R2AA (a,i,a1,i1) = taiai (a,i,a1,i1)
-            ENDIF
-         ENDDO kroot
-      ENDPARDO  a, i, a1, i1
-
-      PARDO  b, j, b1, j1
-         rootcount = 0
-         DO kroot
-            REQUEST  R2AA_VECS (b,j,b1,j1,kroot) kroot
-            rootcount += 1
-            IF  rootcount == iroot
-                tbjbj (b,j,b1,j1) = R2AA_VECS (b,j,b1,j1,kroot)
-                PREPARE  R2BB (b,j,b1,j1) = tbjbj (b,j,b1,j1)
-            ENDIF
-         ENDDO kroot
-      ENDPARDO  b, j, b1, j1
-
-      PARDO  a, i, b, j
-         rootcount = 0
-         DO kroot
-            REQUEST  R2AB_VECS (a,i,b,j,kroot) kroot
-            rootcount += 1
-            IF  rootcount == iroot
-                taibj (a,i,b,j) = R2AB_VECS (a,i,b,j,kroot)
-                PREPARE  R2AB (a,i,b,j) = taibj (a,i,b,j)
-            ENDIF
-         ENDDO kroot
-      ENDPARDO  a, i, b, j
-
-      EXECUTE  SIP_BARRIER
-      EXECUTE  SERVER_BARRIER
-#
-#
-#          ...Grab an excitation energy (omega)...
+#    -------------------
+      PROC  GET_RL_AMPS
+#    -------------------
 #
 #
       rootcount = 0
 
       DO indone
-      DO kindex12
+      DO kroot
 
-         GET  EE (kindex12,indone)
-         tee (kindex12,indone) = EE (kindex12,indone)
+         GET  REE (kroot,indone)
+         tee (kroot,indone) = REE (kroot,indone)
 
          rootcount += 1
          IF rootcount == iroot
             EXECUTE  RETURN_SVAL  tee  OMEGA
          ENDIF
 
-      ENDDO kindex12
+      ENDDO kroot
       ENDDO indone
 
       EXECUTE  SIP_BARRIER
+#
+#
+#          ...Grab an R  array...
+#                      k
+#
+#
+      PARDO  a1, i1
+         rootcount = 0
+         DO kroot
+            GET  R1A_VECS (a1,i1,kroot)
+            rootcount += 1
+            IF  rootcount == iroot
+                tai (a1,i1) = R1A_VECS (a1,i1,kroot)
+                PUT  R1A (a1,i1) = tai (a1,i1)
+                PUT  R1B (a1,i1) = tai (a1,i1)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  a1, i1
 
-      EXECUTE  PRINT_SCALAR  OMEGA
+      PARDO  a1, i1, a2, i2
+         rootcount = 0
+         DO kroot
+            REQUEST  R2AA_VECS (a1,i1,a2,i2,kroot) kroot
+            rootcount += 1
+            IF  rootcount == iroot
+                taiai (a1,i1,a2,i2) = R2AA_VECS (a1,i1,a2,i2,kroot)
+                PREPARE  R2AA (a1,i1,a2,i2) = taiai (a1,i1,a2,i2)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  a1, i1, a2, i2
+
+      PARDO  a1, i1, b1, j1
+         rootcount = 0
+         DO kroot
+            REQUEST  R2AB_VECS (a1,i1,b1,j1,kroot) kroot
+            rootcount += 1
+            IF  rootcount == iroot
+                taibj (a1,i1,b1,j1) = R2AB_VECS (a1,i1,b1,j1,kroot)
+                PREPARE  R2AB (a1,i1,b1,j1) = taibj (a1,i1,b1,j1)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  a1, i1, b1, j1
+
+      EXECUTE  SERVER_BARRIER
+#
+      ENDPROC  GET_RL_AMPS
+#-------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------
+#
+#    --------------------
+      PROC  COMP_R_NORM
+#    --------------------
+#
+#
+      RNORM  = R0
+      RNORM *= R0
+      esum   = 0.0
+
+      PARDO  i, a
+
+         GET         R1A (a,i)
+         tai (a,i) = R1A (a,i)
+         etemp  = tai (a,i) * tai (a,i)
+         etemp *= 2.0
+         esum  += etemp
+
+      ENDPARDO  i, a
+
+      PARDO  a, i, a1, i1
+
+         REQUEST             R2AA (a,i,a1,i1) i1
+         taiai (a,i,a1,i1) = R2AA (a,i,a1,i1)
+         etemp  = taiai (a,i,a1,i1) * taiai (a,i,a1,i1)
+         etemp  = etemp/2.0
+         esum  += etemp
+
+      ENDPARDO  a, i, a1, i1
+
+      PARDO  a, i, b, j
+
+         REQUEST           R2AB (a,i,b,j) j
+         taibj (a,i,b,j) = R2AB (a,i,b,j)
+         etemp  = taibj (a,i,b,j) * taibj (a,i,b,j)
+         esum  += etemp
+
+      ENDPARDO  a, i, b, j
+
+      EXECUTE  SIP_BARRIER
+      EXECUTE  SERVER_BARRIER
+
+      COLLECTIVE  RNORM += esum
+
+      EXECUTE SIP_BARRIER
+      EXECUTE  SQUARE_ROOT  RNORM  ONEHALF
+
+      RNORM  = 1.0 / RNORM
+      EXECUTE SERVER_BARRIER
+#
+#
+#   Normalize
+#
+#
+      R0 *= RNORM
+
+      PARDO  a1, i1
+         rootcount = 0
+         DO kroot
+            GET  R1A_VECS (a1,i1,kroot)
+            rootcount += 1
+            IF  rootcount == iroot
+                tai (a1,i1)  = R1A_VECS (a1,i1,kroot)
+                tai (a1,i1) *= RNORM
+                PUT  R1A (a1,i1) = tai (a1,i1)
+                PUT  R1B (a1,i1) = tai (a1,i1)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  a1, i1
+
+      PARDO  a1, i1, a2, i2
+         rootcount = 0
+         DO kroot
+            REQUEST  R2AA_VECS (a1,i1,a2,i2,kroot) kroot
+            rootcount += 1
+            IF  rootcount == iroot
+                taiai (a1,i1,a2,i2)  = R2AA_VECS (a1,i1,a2,i2,kroot)
+                taiai (a1,i1,a2,i2) *= RNORM
+                PREPARE  R2AA (a1,i1,a2,i2) = taiai (a1,i1,a2,i2)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  a1, i1, a2, i2
+
+      PARDO  a1, i1, b1, j1
+         rootcount = 0
+         DO kroot
+            REQUEST  R2AB_VECS (a1,i1,b1,j1,kroot) kroot
+            rootcount += 1
+            IF  rootcount == iroot
+                taibj (a1,i1,b1,j1)  = R2AB_VECS (a1,i1,b1,j1,kroot)
+                taibj (a1,i1,b1,j1) *= RNORM
+                PREPARE  R2AB (a1,i1,b1,j1) = taibj (a1,i1,b1,j1)
+            ENDIF
+         ENDDO kroot
+      ENDPARDO  a1, i1, b1, j1
+
+      EXECUTE  SERVER_BARRIER
 #
 #
 #          ...ready!
 #
 #
-      ENDPROC  GET_Rk_ARRAY
+      ENDPROC  COMP_R_NORM
 #-------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------
+#
+#    --------------------
+      PROC  COMP_L_NORM
+#    --------------------
+#
+#
+      IF ncount > ZERO # Else, we already have normalized Rdagger vectors in
+
+         LNORM  = 0.0
+         esum   = 0.0
+   
+         PARDO  i, a
+
+            GET         R1A (a,i)
+            GET         L1A (i,a)
+            tai (a,i) = R1A (a,i)
+            tia (i,a) = L1A (i,a)
+            etemp  = tai (a,i) * tia (i,a)
+            etemp *= 2.0
+            esum  += etemp
+   
+         ENDPARDO  i, a
+
+         PARDO  i, a, i1, a1
+   
+            REQUEST             R2AA (a,i,a1,i1) i1
+            REQUEST             L2AA (i1,a1,i,a) a1
+            taiai (a,i,a1,i1) = R2AA (a,i,a1,i1)
+            tiaia (i1,a1,i,a) = L2AA (i1,a1,i,a)
+            etemp  = taiai (a,i,a1,i1) * tiaia (i1,a1,i,a)
+            etemp  = etemp/2.0
+            esum  += etemp
+   
+         ENDPARDO  i, a, i1, a1
+
+         PARDO  i, a, j, b
+   
+            REQUEST           R2AB (a,i,b,j) j
+            REQUEST           L2AB (i,a,j,b) b
+            taibj (a,i,b,j) = R2AB (a,i,b,j)
+            tiaia (j,b,i,a) = L2AB (i,a,j,b)
+            etemp  = taibj (a,i,b,j) * tiaia (j,b,i,a)
+            esum  += etemp
+   
+         ENDPARDO  i, a, j, b
+
+         EXECUTE  SIP_BARRIER
+         EXECUTE  SERVER_BARRIER
+
+         COLLECTIVE  LNORM += esum
+   
+         EXECUTE SIP_BARRIER
+         LNORM  = 1.0 / LNORM
+
+         EXECUTE  SERVER_BARRIER
+
+            PARDO  a1, i1
+               rootcount = 0
+               DO kroot
+                  GET  L1A_VECS (i1,a1,kroot)
+                  rootcount += 1
+                  IF  rootcount == ncount
+                      tia (i1,a1)  = L1A_VECS (i1,a1,kroot)
+                      tia (i1,a1) *= LNORM
+                      PUT  L1A (i1,a1) = tia (i1,a1)
+                      PUT  L1B (i1,a1) = tia (i1,a1)
+                      EXIT
+                  ENDIF
+               ENDDO kroot
+            ENDPARDO  a1, i1
+
+            PARDO  a1, i1, a2, i2
+               rootcount = 0
+               DO kroot
+                  REQUEST  L2AA_VECS (i1,a1,i2,a2,kroot) kroot
+                  rootcount += 1
+                  IF  rootcount == ncount
+                      tiaia (i1,a1,i2,a2)  = L2AA_VECS (i1,a1,i2,a2,kroot)
+                      tiaia (i1,a1,i2,a2) *= LNORM
+                      PREPARE  L2AA (i1,a1,i2,a2) = tiaia (i1,a1,i2,a2)
+                      PREPARE  L2BB (i1,a1,i2,a2) = tiaia (i1,a1,i2,a2)
+                  ENDIF
+               ENDDO kroot
+            ENDPARDO  a1, i1, a2, i2
+
+            PARDO  a1, i1, b1, j1
+               rootcount = 0
+               DO kroot
+                  REQUEST  L2AB_VECS (i1,a1,j1,b1,kroot) kroot
+                  rootcount += 1
+                  IF  rootcount == ncount
+                     tiajb (i1,a1,j1,b1)  = L2AB_VECS (i1,a1,j1,b1,kroot)
+                     tiajb (i1,a1,j1,b1) *= LNORM
+                     PREPARE  L2AB (i1,a1,j1,b1) = tiajb (i1,a1,j1,b1)
+                  ENDIF
+               ENDDO kroot
+            ENDPARDO  a1, i1, b1, j1
+   
+            EXECUTE  SERVER_BARRIER
+
+      ENDIF # ncount > 0
+#
+#
+#          ...ready!
+#
+#
+      ENDPROC  COMP_L_NORM
+#-------------------------------------------------------------------------
+
+
+
 
 #-------------------------------------------------------------------------
 #
@@ -892,40 +1096,128 @@
 #
       IF  LOGRIGHT == ZERO
  
-         PARDO a, i
-            GET              R1A (a,i)
-                 tia (i,a) = R1A (a,i)
-            PUT  L1A (i,a) = tia (i,a)
-         ENDPARDO a, i
- 
-         PARDO b, j
-            GET              R1B (b,j)
-                 tjb (j,b) = R1B (b,j)
-            PUT  L1B (j,b) = tjb (j,b)
-         ENDPARDO b, j
- 
-         PARDO a, i, a1, i1
-            REQUEST                      R2AA  (a,i,a1,i1) i1
-                     tiaia (i,a,i1,a1) = R2AA  (a,i,a1,i1)
-            PREPARE  L2AA  (i,a,i1,a1) = tiaia (i,a,i1,a1)
-         ENDPARDO a, i, a1, i1
- 
-         PARDO b, j, b1, j1
-            REQUEST                      R2AA  (b,j,b1,j1) j1
-                     tjbjb (j,b,j1,b1) = R2AA  (b,j,b1,j1)
-            PREPARE  L2BB  (j,b,j1,b1) = tjbjb (j,b,j1,b1)
-         ENDPARDO b, j, b1, j1
- 
-         PARDO a, i, b, j
-            REQUEST                    R2AB  (a,i,b,j) j
-                     tiajb (i,a,j,b) = R2AB  (a,i,b,j)
-            PREPARE  L2AB  (i,a,j,b) = tiajb (i,a,j,b)
-         ENDPARDO a, i, b, j
+         ncount    = 0
+         rootcount = 0
+         DO indone
+         DO kroot
+
+            GET                  LEE (kroot,indone)
+            tee (kroot,indone) = LEE (kroot,indone)
+            EXECUTE  RETURN_SVAL  tee  L_OMEGA
+            etemp = L_OMEGA - OMEGA
+            IF etemp < 0.0
+               etemp *= -1.0
+            ENDIF
+
+            rootcount += 1
+            IF etemp < root_thresh
+               ncount = rootcount
+               EXIT
+            ENDIF
+
+         ENDDO kroot
+         ENDDO indone
 
          EXECUTE  SIP_BARRIER
-         EXECUTE  SERVER_BARRIER
+
+         IF ncount > ZERO
+
+            PARDO  a1, i1
+               rootcount = 0
+               DO kroot
+                  GET  L1A_VECS (i1,a1,kroot)
+                  rootcount += 1
+                  IF  rootcount == ncount
+                      tia (i1,a1) = L1A_VECS (i1,a1,kroot)
+                      PUT  L1A (i1,a1) = tia (i1,a1)
+                      PUT  L1B (i1,a1) = tia (i1,a1)
+                      EXIT
+                  ENDIF
+               ENDDO kroot
+            ENDPARDO  a1, i1
+
+            PARDO  a1, i1, a2, i2
+               rootcount = 0
+               DO kroot
+                  REQUEST  L2AA_VECS (i1,a1,i2,a2,kroot) kroot
+                  rootcount += 1
+                  IF  rootcount == ncount
+                      tiaia (i1,a1,i2,a2) = L2AA_VECS (i1,a1,i2,a2,kroot)
+                      PREPARE  L2AA (i1,a1,i2,a2) = tiaia (i1,a1,i2,a2)
+                      PREPARE  L2BB (i1,a1,i2,a2) = tiaia (i1,a1,i2,a2)
+                  ENDIF
+               ENDDO kroot
+            ENDPARDO  a1, i1, a2, i2
+
+            PARDO  a1, i1, b1, j1
+               rootcount = 0
+               DO kroot
+                  REQUEST  L2AB_VECS (i1,a1,j1,b1,kroot) kroot
+                  rootcount += 1
+                  IF  rootcount == ncount
+                     tiajb (i1,a1,j1,b1) = L2AB_VECS (i1,a1,j1,b1,kroot)
+                     PREPARE  L2AB (i1,a1,j1,b1) = tiajb (i1,a1,j1,b1)
+                  ENDIF
+               ENDDO kroot
+            ENDPARDO  a1, i1, b1, j1
+   
+         ENDIF # ncount > 0
+#
+#
+#          In the event that none of the L excitation energies
+#          match the the current R excitation energy, we need
+#          to put in R^t as L.
+#
+#
+         IF ncount == ZERO
+
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+            EXECUTE  PRINT_SCALAR  ZERO
+
+            PARDO a, i
+               GET              R1A (a,i)
+                    tia (i,a) = R1A (a,i)
+               PUT  L1A (i,a) = tia (i,a)
+            ENDPARDO a, i
+ 
+            PARDO b, j
+               GET              R1B (b,j)
+                    tjb (j,b) = R1B (b,j)
+               PUT  L1B (j,b) = tjb (j,b)
+            ENDPARDO b, j
+ 
+            PARDO a, i, a1, i1
+               REQUEST                      R2AA  (a,i,a1,i1) i1
+                        tiaia (i,a,i1,a1) = R2AA  (a,i,a1,i1)
+               PREPARE  L2AA  (i,a,i1,a1) = tiaia (i,a,i1,a1)
+            ENDPARDO a, i, a1, i1
+ 
+            PARDO b, j, b1, j1
+               REQUEST                      R2AA  (b,j,b1,j1) j1
+                        tjbjb (j,b,j1,b1) = R2AA  (b,j,b1,j1)
+               PREPARE  L2BB  (j,b,j1,b1) = tjbjb (j,b,j1,b1)
+            ENDPARDO b, j, b1, j1
+ 
+            PARDO a, i, b, j
+               REQUEST                    R2AB  (a,i,b,j) j
+                        tiajb (i,a,j,b) = R2AB  (a,i,b,j)
+               PREPARE  L2AB  (i,a,j,b) = tiajb (i,a,j,b)
+            ENDPARDO a, i, b, j
+
+         ENDIF
 
       ENDIF  # LOGRIGHT == ZERO #
+
+      EXECUTE  SIP_BARRIER
+      EXECUTE  SERVER_BARRIER
 #
 #
 #          ...ready!
@@ -3201,6 +3493,8 @@
       THREE     = 3.0
       ONEHALF   = 0.5
       R0_THRESH = 0.0000001
+      root_thresh = eom_tol
+
 
       ALLOCATE  GRDSECM (*,*)
       ALLOCATE  EXCSECM (*,*)
@@ -3299,16 +3593,18 @@
          EXECUTE  PRINT_SCALAR  iroot
          if iroot <= eom_roots  
 
-         CALL  GET_Rk_ARRAY
+         CALL  GET_RL_AMPS
  
          IF  OMEGA == 100000.0
             exit                                       # indstate
          ENDIF
  
-          CALL  AMPL_PRINT
+         #CALL  AMPL_PRINT
  
          CALL  R0_COMPUTE
+         EXECUTE  SIP_BARRIER
          OLD_R0 = R0
+         CALL  COMP_R_NORM
 #
 #
 #
@@ -3358,8 +3654,8 @@
          R0       = 1.0
 
          CALL  PUT_IN_Lk
-         CALL  COMP_LR_NORM
-         EXECUTE  PRINT_SCALAR  LRNORM
+         CALL  COMP_L_NORM
+         EXECUTE  SIP_BARRIER
          CALL  COMPUTE_DENSITY
          CALL  BACK_TRANS_COMP_DIP
 
@@ -3414,10 +3710,6 @@
          DIP_MOM_X = DIP_MOM_X_R * DIP_MOM_X_L
          DIP_MOM_Y = DIP_MOM_Y_R * DIP_MOM_Y_L
          DIP_MOM_Z = DIP_MOM_Z_R * DIP_MOM_Z_L
-
-         DIP_MOM_X *= LRNORM
-         DIP_MOM_Y *= LRNORM
-         DIP_MOM_Z *= LRNORM
 
          OSC_STREN_X = OMEGA2 * DIP_MOM_X
          OSC_STREN_Y = OMEGA2 * DIP_MOM_Y

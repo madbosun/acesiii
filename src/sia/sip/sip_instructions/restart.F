@@ -75,8 +75,8 @@ c----------------------------------------------------------------------------
 
       integer pst_get_company
       integer niocompany
-      integer request(10000)
-      integer statuses(MPI_STATUS_SIZE,10000)
+      integer request(max_procsx)
+      integer statuses(MPI_STATUS_SIZE,max_procsx)
       integer context(3)
       integer*8 addr, iopaddr, get_index_from_base
       integer instruction_timer, comm_timer, flopcount
@@ -412,7 +412,7 @@ c---------------------------------------------------------------------------
       integer nblk, nindex,iblock_map, iblock, nreq
       integer ind(mx_array_index), seg(mx_array_index)
       integer mx_mpi_req
-      parameter (mx_mpi_req = 10000)
+      parameter (mx_mpi_req = 150000)
       integer request(mx_mpi_req)
       integer statuses(MPI_STATUS_SIZE, mx_mpi_req)
       integer*8 offset, indblk

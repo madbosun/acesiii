@@ -236,6 +236,7 @@
 # Declare static arrays
 # ---------------------
 #
+      static Spq(mu,nu) 
       distributed t1a_old(a,i)
       distributed t1b_old(b,j)
       distributed l1a_old(i,a)
@@ -783,8 +784,6 @@
        scalar c9
        scalar c10
 #
-
-#
 # Define scalar quantities 
 # ------------------------ 
 #
@@ -796,6 +795,7 @@
       scalar enew 
       scalar ecrit 
       scalar ediff 
+      scalar rank 
 #    ------------------------------------------------------------------------
 #
 #    ------------------------------------------------------------------------
@@ -10398,14 +10398,22 @@
 #
 # Finally contract with the derivative integrals
 # ----------------------------------------------
-#
-      PARDO mu, nu
-            GET Dpq(mu,nu)
-            GET DHF(mu,nu)
+
+      execute get_my_rank rank
+      if rank == 0.0
+         DO mu
+         DO nu
+            GET           Dpq(mu,nu)
+            GET           DHF(mu,nu)
             Tpq(mu,nu)  = Dpq(mu,nu)
             Tpq(mu,nu) += DHF(mu,nu)
+            Spq(mu,nu)  = Tpq(mu,nu) 
             EXECUTE HCONT1 Tpq(mu,nu)
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu
+
+         execute ecp_dercont Spq 
+      endif
 #
 # -----------------------------------------------------------------------------
 #

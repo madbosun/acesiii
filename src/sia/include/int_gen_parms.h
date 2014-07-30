@@ -4,6 +4,8 @@ c--------------------------------------------------------------------------
 
       logical if_scf
       logical init_scf
+C JNB
+      logical if_fno
 
 c--------------------------------------------------------------------------
 c   Symmetry restrictions.
@@ -184,7 +186,7 @@ c nContAOs : total number of contracted functions
      &                     nworkthread, jobarc_exists, geom_opt, 
      &                     vib_freq_calc, fast_erd_memcalc, vib_exact,
      &                     if_scf, calc_2der_integrals,
-     &                     init_scf,
+     &                     init_scf, if_fno,
      &                     last
 
       logical managers_are_workers, master_is_worker
@@ -195,7 +197,7 @@ c nContAOs : total number of contracted functions
      *                     compute_1e_integrals
                        
       integer max_procsx
-      parameter (max_procsx = 10000)
+      parameter (max_procsx = 150000)
       integer scfa_req, scfb_req, epsa_req, epsb_req 
       integer focka_req, fockb_req
       common /scf_requests/scfa_req(max_procsx), 

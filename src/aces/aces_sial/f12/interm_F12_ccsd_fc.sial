@@ -1,0 +1,2286 @@
+#----------------------------------------------------------------------------------------|
+# The purpose of this part is to  generate necessary set of F12-related intermediates    |
+#                       and calculate part of CCSD(F12) lambda energy.                   |
+#     Added to ACES3 by Denis Bokhan, Moscow Lomonosov State University,                 |
+#                            Moscow, Russian  Federation                                 |
+#----------------------------------------------------------------------------------------|
+
+                           SIAL INTERM_F12_CCSD_fc
+
+#--------------Definition of indices------------------------------------------------------
+      aoindex mu     = 1, norb
+      aoindex nu     = 1, norb
+      aoindex lambda = 1, norb
+      aoindex sigma  = 1, norb
+
+      moaindex    p  = baocc, eavirt
+      moaindex    q  = baocc, eavirt
+      moaindex   p1  = baocc, eavirt
+      moaindex   p2  = baocc, eavirt
+      moaindex    a  = bavirt, eavirt
+      moaindex    b  = bavirt, eavirt
+      moaindex    d  = bavirt, eavirt
+      moaindex   a1  = bavirt, eavirt
+      moaindex   a2  = bavirt, eavirt
+      moaindex   a3  = bavirt, eavirt
+      moaindex    i  = baocc, eaocc
+      moaindex    j  = baocc, eaocc
+      moaindex    k  = baocc, eaocc
+      moaindex    l  = baocc, eaocc
+      moaindex    m  = baocc, eaocc
+      moaindex    n  = baocc, eaocc
+      moaindex   i1  = baocc, eaocc
+      moaindex   i2  = baocc, eaocc
+      moaindex   i3  = baocc, eaocc
+      moaindex   i4  = baocc, eaocc
+
+      index kkk = 1,2
+      index iii = 1,2
+      index   jfrag  = 1, 2 # Nfragments
+#-------------Definition of arrays---------------------------------------------------------
+
+#---------Coulomb integrals----------------------------------------------------------------
+      served V0iiii(i,i1,i2,i3)
+      served V0aiai(a2,i1,a1,i)
+      served V0aaii(a1,a2,i1,i)
+      served V0aiii(a1,i1,i2,i)
+      served V0piii(p1,i1,i2,i)
+      served V0aaai(a1,a2,a3,i)
+
+#---------Yukawa integrals-----------------------------------------------------------------
+      served V1aiai(a,i,a1,i1)
+      served V1iiii(i,i1,i2,i3)
+      served V1aiii(a1,i1,i2,i)
+
+#---------Slater integrals-----------------------------------------------------------------
+      served V2pipi(p2,i,p1,i1)
+      served V2piai(p2,i,a1,i1)
+      served V2piii(p1,i,i1,i2)
+      served V2iiii(i,i1,i2,i3)
+      served V2aiai(a2,i1,a1,i)
+      served V2aaii(a1,a2,i1,i)
+      served V2aiii(a1,i1,i2,i)
+      served V2aaai(a1,a2,a3,i)
+
+#---------Slater squared integrals---------------------------------------------------------
+      served V3iiii(i,i1,i2,i3)
+
+#-----------[T12,f12] integrals------------------------------------------------------------
+      served V4aiai(a1,i,a2,i1)
+      served V4iiii(i,i1,i2,i3)
+#--------Three - electron integrals -------------------------------------------------------
+       served V_ijkl(i,i1,i2,i3)
+       served V_ijka(i1,i2,i,a1)
+       served V_ijab(i,a,i1,a1)
+       served X12(p,i,p1,i1)
+       served KF12(p,i,p1,i1)
+       served K1F12(i,i2,p,i1)
+       served KFF12(i1,i2,i3,i)
+       served F12F23(p,i1,i2,i3)
+       served KIN3e(i,i1,i2,i3)
+       served LAM1(i,a)
+       served LAM21(a,i1,a1,i2)
+       served LAM22(a,i1,a1,i2)
+       served LAM23(a,i1,a1,i2)
+       served LAM24(a,i1,a1,i2)
+       served T1INT1(a,p)
+       served T1INT2(a,i,a1,i1)
+       served T2INT2(a,i,p,i1)
+       served T2INT21(p,i,a,i1)
+       served T2INT3(a,i,p,i1)
+       served T2INT31(a,p,i,i1)
+       served T2INT10(i,a,d,b)
+       served T2INT11(d,a,j,b)
+
+#------------------------------------------------------------------------------------------
+
+#------------T1 f12- intermediates---------------------------------------------------------
+       served T1_1(i,a)
+       served T1_2(i,j)
+       served T1_3(a,p)
+       served T1_4(a,i,a1,i1)
+#------------T2 f12- intermediates---------------------------------------------------------
+       served T2_1(a,i,b,j)
+       served T2_2(i,k,j,a)
+       served T2_3(i,k,j,l)
+       served T2_4(i,j)
+       served T2_5(a,i,b,j)
+       served T2_6(a,i,q,j)
+       served T2_7(q,i,a,j)
+       served T2_8(a,i,p,j)
+       served T2_9(a,p,i,j)
+       served T2_10(i,a,d,b)
+       served T2_11(d,a,j,b) 
+#------------LAMBDA - f12 intermediates----------------------------------------------------
+       served LAM_1(i,a)
+       served LAM_2(i,a,k,b)
+       served LAM_3(i,a,k,b)
+       served LAM_4(i,a,k,b)
+       served LAM_5(i,a,k,b)
+       served ELAM(iii,kkk) 
+#------------------------------------------------------------------------------------------
+      served C_coef(i,i1,i2,i3)
+      served CC1(i,j,k,l)
+      served CC2(i,j,k,l) 
+      served phi(a1,i,a2,i1)
+      served phi2(a1,i,a2,i1)
+      served Viiii(i,i1,i2,i3)
+      served Viiia(i,i1,i2,a)
+      served Vaiai(a,i,b,j)
+      served Biiii(i,i1,i2,i3)
+      served Btemp(i,i1,i2,i3)
+      served Btmp1(i,i1,i2,i3)
+      served zv1(i,p)
+      served zv2(p,m,n,i)
+      served intaux3(i,q,j,p)
+      served intaux4(i,a,j,q) 
+      served V0pipi(p,i,q,j)
+      served V0ppii(p,q,i,j)
+      served V0aapi(a,b,p,i)
+      served V0apai(a,p,b,i)
+      served V2ppii(p,q,i,j)
+      served ijab_aux(a,i,b,j)
+      served QQ(mu,i,nu,j)
+      served QQ0(mu,i,b,j)
+      served QQ00(mu,i,b,j)
+      served ZZ(mu,i,nu,j)
+      served auxint(a,i,p,j)
+      served auxint1(a,i,p,j) 
+
+#-------------------------------------------
+
+      temp tphi(a1,i,a2,i1)
+      temp tphi1(a1,i,a2,i1)
+      temp tviiii(i,i1,i2,i3)
+      temp tv1iiii(i,i1,i2,i3)
+      temp tviiia(i,i1,i2,a)
+      temp tv1iiia(i,i1,i2,a)
+      temp tvaiai(a,i,b,i2)     
+      temp tv1aiai(a,i,b,i2)
+      temp tv_ijkl(i,i1,i2,i3)
+      temp tv_ijka(i,i1,i2,a)
+      temp tv_ijab(a,i,b,j)
+      temp tbiiii(i,i1,i2,i3)
+      temp tccusp(i,j,k,l)
+      temp t1ccusp(i,j,k,l)
+      temp tintaux3(i,q,j,p)
+      temp tintaux4(i,a,j,q)
+      temp tijab_aux(a,i,b,j)
+      temp t1ijab_aux(a,i,b,j)
+      temp tQQ(mu,i,nu,j)
+      temp tQQ2(mu,i,nu,j)
+      temp tQQ0(mu,i,b,j)
+      temp tQQ1(mu,i,b,j)
+      temp tZZ(mu,i,nu,j)
+      temp aoint(mu,nu,lambda,sigma)
+      temp tauxint(a,i,p,j)
+      temp tauxint1(a,i,p,j)
+      temp tauxint2(a,p,k,j)     
+      temp tV0aapi(a,b,p,i)
+      temp tV0apai(a,p,b,i)
+
+#------------------------------------------
+      
+      temp tzv1(p,m,n,i)    
+      temp tzv2(p,i,i1,i2)
+      temp tzv3(p,i,i1,i2)
+      temp tzv4(p,i,p1,i1)
+      temp tzv(i,p)
+      temp tv0aiai(a,i,a1,i1)
+      temp tv10aiai(a,i,a1,i1)
+      temp tV0pipi(p,i,q,j)
+      temp tV0ppii(p,q,i,j)
+      temp tLAM1(i,a)
+      temp tLAM21(a,i1,a1,i2)
+      temp tLAM22(a,i1,a1,i2)
+      temp tLAM23(a,i1,a1,i2)
+      temp tLAM24(a,i1,a1,i2)
+      temp tT1INT1(a,p)
+      temp tT1INT2(a,i,a1,i1)
+      temp tT2INT2(a,i,p,i1)
+      temp tT2INT21(p,i,a,i1)
+      temp tT2INT3(a,i,p,i1)
+      temp tT2INT31(a,p,i,i1)
+
+      temp twww1(i,j,k,l)
+      temp twww2(i,j,a,k)
+      temp twww3(i,a,a1,a2) 
+      temp twww4(a,a1,i,i1)
+      temp twww5(q,k,p,j)
+      temp twww6(i,p,a,j)
+      temp twww7(q,k,i,p)
+      temp twww8(a,j,q,k)
+      temp twww9(l,p,a,k) 
+      temp twww10(b,i,l,p) 
+      temp twww11(l,p,k,b)
+      temp twww20(p,j,d,b)
+      temp twww21(p,l,a,j) 
+      temp twww22(d,b,p,l)
+      temp twww25(d,b,a,j)
+#-----------------------------------------------
+ 
+      temp tT1_1(i,a)
+      temp tT1_2(i,j)
+      temp tT1_3(a,p)
+      temp tT1_4(a,i,a1,i1)
+      temp tT2_1(a,i,b,j)
+      temp tT2_2(i,j,k,a)
+      temp tT2_3(i,j,k,l)
+      temp tT2_4(i,j)
+      temp tT2_5(a,i,b,j)
+      temp tT2_6(a,i,q,j)
+      temp tT2_7(q,j,a,k) 
+      temp tT2_8(a,i,p,j)
+      temp tT2_9(a,p,i,j)
+      temp tELAM(iii,kkk)
+      temp tT2_10(i,a,d,b)
+      temp tT2_10aux(i,a,d,b)
+      temp tT2_11(d,a,j,b)
+      temp tT2_11aux(d,a,j,b)
+
+      scalar F12GAMMA
+      scalar SQF12GAMMA
+      scalar E_v
+      scalar E_b
+      scalar E_v_tot
+      scalar E_b_tot
+      scalar etmp
+      scalar etmp1
+      scalar E_dir
+      scalar E_qcorr
+      scalar E_LAM
+      scalar E2
+      scalar printnumber
+      scalar Etot
+
+      scalar test1
+      scalar test2
+
+      scalar l1
+      scalar l2
+      scalar l3
+      scalar l4
+      scalar nfrags
+      scalar icount
+      scalar icount1
+      scalar i_vstart
+      scalar i_vend
+
+      local wOccA_frag(i)
+
+      temp xi(i)
+      temp xi1(i)
+      temp xi2(i)
+      temp xi3(i)
+      scalar two
+ 
+#--- Procedure which calculate atomic integrals-----
+
+      PROC SET_FRAG
+#     -------------
+      two = 2.0  
+
+      nfrags = 2.0
+      allocate wOccA_frag(*)
+
+      icount = 0.0
+
+      DO jfrag
+
+         icount   += 1.0
+
+         i_vstart  = icount
+         i_vend    = 6.0
+
+         execute print_scalar i_vstart
+         execute print_scalar i_vend
+      
+         execute frag_index_range i_vstart i_vend
+
+         execute print_scalar i_vstart
+         execute print_scalar i_vend
+
+         DO i
+            icount1 = 0.0
+            do i1
+               icount1 += 1.0
+               if i == i1
+                  exit
+               endif
+            enddo i1
+            if icount1 >= i_vstart
+            if icount1 <= i_vend
+               wOccA_frag(i) = icount
+            endif
+            endif
+         ENDDO i
+
+      ENDDO jfrag
+
+
+      ENDPROC SET_FRAG
+#     ----------------
+
+
+       PROC READ_MOINTS
+#      --------------- 
+
+#-----------Coulomb integrals--------------------------------------------------------------
+      execute list_to_blocks                V0iiii
+      execute list_to_blocks                V0aiai
+      execute list_to_blocks                V0aaii
+      execute list_to_blocks                V0aiii
+      execute list_to_blocks                V0piii
+      execute list_to_blocks                V0aaai
+#-----------Yukawa integrals--------------------------------------------------------------
+      execute list_to_blocks                V1iiii
+      execute list_to_blocks                V1aiii
+      execute list_to_blocks                V1aiai
+#----------Slater integrals---------------------------------------------------------------
+      execute list_to_blocks                V2iiii
+      execute list_to_blocks                V2aiai
+      execute list_to_blocks                V2aaii
+      execute list_to_blocks                V2aiii
+      execute list_to_blocks                V2aaai
+      execute list_to_blocks                V2pipi
+      execute list_to_blocks                V2piii
+      execute list_to_blocks                V2piai
+#----------Slater squared integrals-------------------------------------------------------
+      execute list_to_blocks                V3iiii
+#---------- [T12,f12] integrals-----------------------------------------------------------
+      execute list_to_blocks                V4iiii
+      execute list_to_blocks                V4aiai
+#---------- Three-electron integrals------------------------------------------------------
+      execute list_to_blocks          X12
+      execute list_to_blocks          KF12
+      execute list_to_blocks          K1F12
+      execute list_to_blocks          KFF12
+      execute list_to_blocks          F12F23
+      execute list_to_blocks          V_ijkl
+      execute list_to_blocks          V_ijka
+      execute list_to_blocks          V_ijab
+      execute list_to_blocks          T1INT1
+      execute list_to_blocks          T1INT2
+      execute list_to_blocks          T2INT2
+      execute list_to_blocks          T2INT21
+      execute list_to_blocks          T2INT3
+      execute list_to_blocks          T2INT31
+#      execute list_to_blocks          T2INT10
+#      execute list_to_blocks          T2INT11
+      execute list_to_blocks          LAM1
+      execute list_to_blocks          LAM21
+      execute list_to_blocks          LAM22
+      execute list_to_blocks          LAM23
+      execute list_to_blocks          LAM24
+      execute list_to_blocks          KIN3e
+
+#---Here we read arrays of integrals from the disk---
+      execute read_list_to_blocks      
+#-----------------------------------------------------------------------------------------
+       ENDPROC READ_MOINTS
+
+
+#---Procedure which calculate sum_{c,d} <ij|f12|cd><cd|ab> for V_ijab intermediate--------
+
+        PROC IJABX
+#       ------------
+        PARDO mu,i,b,j
+            tQQ1(mu,i,b,j) = 0.0
+
+          DO a
+            REQUEST V2aiai(a,i,b,j) a
+          tQQ0(mu,i,b,j) = V2aiai(a,i,b,j)*ca(mu,a)
+          tQQ1(mu,i,b,j) += tQQ0(mu,i,b,j)
+          ENDDO a
+
+          PREPARE QQ0(mu,i,b,j) += tQQ1(mu,i,b,j)
+        ENDPARDO mu,i,b,j
+         
+        execute server_barrier
+#-------------------------------------------
+        PARDO mu,i,nu,j
+            tQQ2(mu,i,nu,j) = 0.0 
+ 
+          DO b
+            REQUEST QQ0(mu,i,b,j) mu
+            tQQ(mu,i,nu,j) = QQ0(mu,i,b,j)*ca(nu,b)
+            tQQ2(mu,i,nu,j) += tQQ(mu,i,nu,j)
+          ENDDO b
+
+          PREPARE QQ(mu,i,nu,j) += tQQ2(mu,i,nu,j)
+        ENDPARDO mu,i,nu,j 
+
+        execute server_barrier
+
+#---------------------------------------------
+
+        PARDO mu,lambda,nu,sigma
+
+            aoint(mu,lambda,nu,sigma) = 0.0 
+            compute_integrals aoint(mu,lambda,nu,sigma)
+
+            DO i
+            DO j
+              REQUEST QQ(mu,i,nu,j) mu
+              tZZ(lambda,i,sigma,j) = QQ(mu,i,nu,j)*aoint(mu,lambda,nu,sigma) 
+              PREPARE ZZ(lambda,i,sigma,j) += tZZ(lambda,i,sigma,j)
+            ENDDO j
+            ENDDO i  
+        ENDPARDO mu,lambda,nu,sigma
+
+        execute server_barrier
+#---------------------------------------------
+        PARDO mu,i,b,j
+              tQQ1(mu,i,b,j) = 0.0
+
+          DO nu
+          REQUEST ZZ(mu,i,nu,j) mu
+          tQQ0(mu,i,b,j) = ZZ(mu,i,nu,j)*ca(nu,b)
+          tQQ1(mu,i,b,j) += tQQ0(mu,i,b,j)
+          ENDDO nu
+
+          PREPARE QQ00(mu,i,b,j) += tQQ1(mu,i,b,j)
+        ENDPARDO mu,i,b,j
+
+        execute server_barrier
+ 
+#---------------------------------------------
+        PARDO a,i,b,j
+           tijab_aux(a,i,b,j) = 0.0
+
+           DO mu
+           REQUEST QQ00(mu,i,b,j) mu
+           t1ijab_aux(a,i,b,j) = QQ00(mu,i,b,j)*ca(mu,a)
+           tijab_aux(a,i,b,j) += t1ijab_aux(a,i,b,j) 
+           ENDDO mu
+           
+           PREPARE ijab_aux(a,i,b,j) += tijab_aux(a,i,b,j)
+        ENDPARDO a,i,b,j
+
+        execute server_barrier
+
+        ENDPROC IJABX
+#-----------------------------------------------------------------------------------------
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#                     Main part of CCSD(F12) intermediates sial code                    |
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+
+#-------Set up up fragments and segments for frozen-orbital calculations-----------------        
+
+       CALL SET_FRAG
+
+#----------------Step 1 - read the molecular integrals from the disk---------------------
+
+       CALL READ_MOINTS 
+
+      execute server_barrier
+
+#----------------Step 2 - preparation of phi(a,b,i,j) for CCSD(F12) method---------------
+       PARDO a,i,a1,i1 
+            REQUEST V4aiai(a,i,a1,i1) a
+            REQUEST X12(a,i,a1,i1) a
+            tphi(a,i,a1,i1) = V4aiai(a,i,a1,i1)
+            tphi1(a,i,a1,i1) = X12(a,i,a1,i1)
+            tphi(a,i,a1,i1) += tphi1(a,i,a1,i1)
+            REQUEST V2aiai(a,i,a1,i1) a
+            tphi1(a,i,a1,i1) = V2aiai(a,i,a1,i1)
+            execute energy_numerator tphi1
+            tphi(a,i,a1,i1) += tphi1(a,i,a1,i1)
+            PREPARE phi(a,i,a1,i1) = tphi(a,i,a1,i1)
+       ENDPARDO a,i,a1,i1
+
+       execute server_barrier
+
+#-----------------regular phi(a,b,i,j) for Q-term correction------------------------- 
+
+       PARDO a,i,a1,i1
+            REQUEST V4aiai(a,i,a1,i1) a
+            REQUEST X12(a,i,a1,i1) a
+            tphi(a,i,a1,i1) = V4aiai(a,i,a1,i1)
+            tphi1(a,i,a1,i1) = X12(a,i,a1,i1)
+            tphi(a,i,a1,i1) += tphi1(a,i,a1,i1)
+            execute energy_denominator tphi
+            tphi(a,i,a1,i1) *= -1.0
+            PREPARE phi2(a,i,a1,i1) = tphi(a,i,a1,i1)
+       ENDPARDO a,i,a1,i1
+
+       execute server_barrier
+
+         
+
+##########################################################################################
+#          Construction of F12 intermediates, which contribute to T1                     #
+##########################################################################################
+
+
+#============= Step 3 - construction of V_ijkl ===========================================
+
+       PARDO i,j,k,l
+            REQUEST V1iiii(i,j,k,l) i
+            tviiii(i,j,k,l) = V1iiii(i,j,k,l)
+            tv1iiii(i,j,k,l) = tviiii(i,j,k,l)
+            REQUEST V_ijkl(i,j,k,l) i
+            tv_ijkl(i,j,k,l) = V_ijkl(i,j,k,l)
+            tv1iiii(i,j,k,l) += tv_ijkl(i,j,k,l)
+#------------------M,N - contribution----------------------------------------------------
+
+            DO m
+            DO n 
+            REQUEST V2iiii(m,i,n,k) m
+            REQUEST V0iiii(m,j,n,l) m
+            tviiii(i,j,k,l) =  V2iiii(m,i,n,k)*V0iiii(m,j,n,l) 
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)  
+            ENDDO n
+            ENDDO m       
+#-----------------A,B - contribution-----------------------------------------------------
+
+            DO a
+            DO b
+            REQUEST V2aiai(a,i,b,k) a
+            REQUEST V0aiai(a,j,b,l) a
+            tviiii(i,j,k,l)  = V0aiai(a,j,b,l)*V2aiai(a,i,b,k)
+            tviiii(i,j,k,l)  *= -1.0
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+            ENDDO b
+            ENDDO a
+
+            PREPARE Viiii(i,j,k,l) += tv1iiii(i,j,k,l)
+#--------------Make C-coefficients according to cusp conditions-------------------------
+ 
+            tccusp(i,j,k,l) = 0.0
+            execute f12_c_coef tccusp F12GAMMA
+            PREPARE C_coef(i,j,k,l) = tccusp(i,j,k,l)
+
+       ENDPARDO i,j,k,l
+#=========================================================================================
+      execute server_barrier
+
+
+
+
+
+#============= Step 4 - construction of V_ijka ===========================================
+
+       PARDO i,j,k,a
+            REQUEST V1aiii(a,k,i,j) a
+            tviiia(i,j,k,a) = V1aiii(a,k,i,j)
+            tv1iiia(i,j,k,a) = tviiia(i,j,k,a)
+            REQUEST V_ijka(i,j,k,a) i
+            tv_ijka(i,j,k,a) = V_ijka(i,j,k,a)
+            tv1iiia(i,j,k,a) += tv_ijka(i,j,k,a)
+
+#------------------M,N - contribution----------------------------------------------------
+
+            DO m
+            DO n
+            REQUEST V2iiii(m,i,n,k) m
+            REQUEST V0aiii(a,n,m,j) a
+            twww1(i,k,m,n) = V2iiii(m,i,n,k)
+            twww2(m,n,a,j) = V0aiii(a,n,m,j) 
+            tviiia(i,j,k,a) =  twww1(i,k,m,n)*twww2(m,n,a,j)
+            tv1iiia(i,j,k,a) += tviiia(i,j,k,a)
+            ENDDO n
+            ENDDO m
+
+#-----------------A,B - contribution-----------------------------------------------------
+
+
+
+            DO d
+            DO b
+            REQUEST V2aiai(d,i,b,k) d
+            REQUEST V0aaai(a,b,d,j) a
+            twww3(j,a,b,d) = V0aaai(a,b,d,j)
+            twww4(b,d,i,k) = V2aiai(d,i,b,k)
+            tviiia(i,j,k,a)  = twww3(j,a,b,d)*twww4(b,d,i,k)
+            tviiia(i,j,k,a)  *= -1.0
+            tv1iiia(i,j,k,a) += tviiia(i,j,k,a)
+            ENDDO b
+            ENDDO d 
+
+
+            PREPARE Viiia(i,j,k,a) += tv1iiia(i,j,k,a)
+
+
+
+
+       ENDPARDO i,j,k,a
+#=========================================================================================
+      execute server_barrier
+                           
+
+#============= Step 5 - construction of V_ijab ===========================================
+
+#---Procedure which calculate sum_{c,d} <ij|f12|cd><cd|ab> for V_ijab intermediate--------
+      CALL IJABX
+#-----------------------------------------------------------------------------------------
+       PARDO a,i,b,j
+            REQUEST V1aiai(a,i,b,j) a
+            tvaiai(a,i,b,j) = V1aiai(a,i,b,j)
+            tv1aiai(a,i,b,j) = tvaiai(a,i,b,j)
+            REQUEST V_ijab(i,a,j,b) i
+            tv_ijab(a,i,b,j) = V_ijab(i,a,j,b)
+            tv1aiai(a,i,b,j) += tv_ijab(a,i,b,j)
+
+#------------------M,N - contribution---------------------------------------------------- 
+            DO m
+            DO n
+            REQUEST V2iiii(m,i,n,j) m
+            REQUEST V0aiai(a,m,b,n) a
+            tvaiai(a,i,b,j) = V2iiii(m,i,n,j)*V0aiai(a,m,b,n)
+            tv1aiai(a,i,b,j) += tvaiai(a,i,b,j) 
+            ENDDO n
+            ENDDO m
+
+#-----------------A,B - contribution-----------------------------------------------------
+            REQUEST ijab_aux(a,i,b,j) a
+            tv1aiai(a,i,b,j) -= ijab_aux(a,i,b,j)
+
+            PREPARE Vaiai(a,i,b,j) += tv1aiai(a,i,b,j) 
+       ENDPARDO a,i,b,j
+
+       execute server_barrier     
+#=========================================================================================
+
+
+#-----------Auxiliary intermediates for T1 amplitudes contributions ----------------------
+
+               PARDO i,j,k,l
+                REQUEST C_coef(i,j,k,l) i
+                REQUEST C_coef(i,l,k,j) i
+                tccusp(i,j,k,l) = C_coef(i,j,k,l)
+                tccusp(i,j,k,l) *= -2.0
+                t1ccusp(i,j,k,l) = C_coef(i,l,k,j)
+                tccusp(i,j,k,l)  += t1ccusp(i,j,k,l)
+                PREPARE CC1(i,j,k,l) += tccusp(i,j,k,l)
+               ENDPARDO i,j,k,l
+
+               execute server_barrier
+
+               PARDO i,j,k,l
+                REQUEST C_coef(i,j,k,l) i
+                REQUEST C_coef(i,l,k,j) i
+                tccusp(i,j,k,l) = C_coef(i,j,k,l)
+                tccusp(i,j,k,l) *= 2.0
+                t1ccusp(i,j,k,l) = C_coef(i,l,k,j)
+                t1ccusp(i,j,k,l) *= -1.0
+                tccusp(i,j,k,l) += t1ccusp(i,j,k,l)
+                PREPARE CC2(i,j,k,l) += tccusp(i,j,k,l)
+               ENDPARDO i,j,k,l
+
+               execute server_barrier
+
+
+
+#-----------------------------------------------------------------------
+#      First intermediate (direct contribution to t1 from V_ijka)      | 
+#-----------------------------------------------------------------------
+               PARDO i,j,k,l
+#------------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+                  REQUEST CC2(i,j,k,l) i 
+                    DO a 
+                     REQUEST Viiia(l,k,j,a) l
+                     tT1_1(i,a) = CC2(i,j,k,l)*Viiia(l,k,j,a)
+                     PREPARE T1_1(i,a) += tT1_1(i,a)
+                    ENDDO a
+                 endif
+                 endif
+                 endif 
+               ENDPARDO i,j,k,l
+
+           execute server_barrier
+
+#-----------------------------------------------------------------------
+#      Second intermediate (direct contribution to t1 from V_ijkl)     |
+#-----------------------------------------------------------------------
+               PARDO i,j,k,l
+#-----------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+                  REQUEST CC2(i,j,k,l) i
+                    DO m
+                     REQUEST Viiii(l,k,j,m) l
+                     tT1_2(i,m) = CC2(i,j,k,l)*Viiii(l,k,j,m)
+                     PREPARE T1_2(i,m) += tT1_2(i,m)
+                    ENDDO m
+                 endif
+                 endif
+                 endif 
+               ENDPARDO i,j,k,l
+
+           execute server_barrier
+#-----------------------------------------------------------------------
+#      Third intermediate (for diagrams d3.18 and d3.19)               |
+#-----------------------------------------------------------------------
+
+#================ Auxiliary integrals ===================================
+
+#--------------Construction of V0pipi integrals-------------------------
+
+#------------- M,N part ------------------------------------------------
+           PARDO i,j,k,l
+             REQUEST V0iiii(i,j,k,l) i
+             tV0pipi(i,j,k,l) = V0iiii(i,j,k,l)
+             PREPARE V0pipi(i,j,k,l) += tV0pipi(i,j,k,l)
+           ENDPARDO i,j,k,l
+
+           execute server_barrier
+#------------- M,A part ------------------------------------------------
+           PARDO a,j,k,l
+             REQUEST V0aiii(a,j,k,l) a
+             tV0pipi(a,j,k,l) = V0aiii(a,j,k,l)
+             PREPARE V0pipi(a,j,k,l) += tV0pipi(a,j,k,l)
+           ENDPARDO a,j,k,l
+
+           execute server_barrier
+#--------------A,M part ------------------------------------------------
+           PARDO i,j,a,l
+             REQUEST V0aiii(a,l,i,j) a
+             tV0pipi(i,j,a,l) = V0aiii(a,l,i,j)
+             PREPARE V0pipi(i,j,a,l) += tV0pipi(i,j,a,l)
+           ENDPARDO i,j,a,l
+
+           execute server_barrier
+#--------------A,B part------------------------------------------------
+           PARDO a,j,b,l
+             REQUEST V0aiai(a,j,b,l) a
+             tV0pipi(a,j,b,l) = V0aiai(a,j,b,l)
+             PREPARE V0pipi(a,j,b,l) += tV0pipi(a,j,b,l)
+           ENDPARDO a,j,b,l
+
+           execute server_barrier
+
+#--------------Construction of V0ppii and V2ppii integrals---------------
+
+#------------- M,N part ------------------------------------------------
+           PARDO i,j,k,l
+             REQUEST V0iiii(i,j,k,l) i
+             REQUEST V2iiii(i,j,k,l) i  
+             tV0ppii(i,j,k,l) = V0iiii(i,j,k,l)
+             PREPARE V0ppii(i,j,k,l) += tV0ppii(i,j,k,l)
+             tV0ppii(i,j,k,l) = V2iiii(i,j,k,l)
+             PREPARE V2ppii(i,j,k,l) += tV0ppii(i,j,k,l)
+           ENDPARDO i,j,k,l
+
+           execute server_barrier
+#------------- M,A part ------------------------------------------------
+           PARDO a,j,k,l
+             REQUEST V0aiii(a,j,k,l) a
+             REQUEST V2aiii(a,j,k,l) a
+             tV0ppii(a,j,k,l) = V0aiii(a,j,k,l)
+             PREPARE V0ppii(a,j,k,l) += tV0ppii(a,j,k,l)
+             tV0ppii(a,j,k,l) = V2aiii(a,j,k,l)
+             PREPARE V2ppii(a,j,k,l) += tV0ppii(a,j,k,l)
+           ENDPARDO a,j,k,l
+
+           execute server_barrier
+#--------------A,M part ------------------------------------------------
+           PARDO i,a,k,l
+             REQUEST V0aiii(a,i,k,l) a
+             REQUEST V2aiii(a,i,k,l) a
+             tV0ppii(i,a,k,l) = V0aiii(a,i,k,l)
+             PREPARE V0ppii(i,a,k,l) += tV0ppii(i,a,k,l)
+             tV0ppii(i,a,k,l) = V2aiii(a,i,k,l)
+             PREPARE V2ppii(i,a,k,l) += tV0ppii(i,a,k,l) 
+           ENDPARDO i,a,k,l
+
+           execute server_barrier
+#--------------A,B part------------------------------------------------
+           PARDO a,b,k,l
+             REQUEST V0aaii(a,b,k,l) a
+             REQUEST V2aaii(a,b,k,l) a
+             tV0ppii(a,b,k,l) = V0aaii(a,b,k,l)
+             PREPARE V0ppii(a,b,k,l) += tV0ppii(a,b,k,l)
+             tV0ppii(a,b,k,l) = V2aaii(a,b,k,l)
+             PREPARE V2ppii(a,b,k,l) += tV0ppii(a,b,k,l)
+           ENDPARDO a,b,k,l
+
+           execute server_barrier
+#-------------Construction of V0aapi integrals ------------------------
+
+#------------------A,I part--------------------------------------------
+           PARDO a,b,i,j
+              REQUEST V0aaii(a,b,i,j) a
+              tV0aapi(a,b,i,j) = V0aaii(a,b,i,j)
+              PREPARE V0aapi(a,b,i,j) += tV0aapi(a,b,i,j)
+           ENDPARDO a,b,i,j
+
+           execute server_barrier
+#------------------A,D part--------------------------------------------
+           PARDO a,b,d,j
+              REQUEST V0aaai(a,b,d,j) a
+              tV0aapi(a,b,d,j) = V0aaai(a,b,d,j)
+              PREPARE V0aapi(a,b,d,j) += tV0aapi(a,b,d,j)
+           ENDPARDO a,b,d,j
+
+           execute server_barrier
+#-------------Construction of V0apai integrals ------------------------
+
+#------------------A,I part--------------------------------------------
+           PARDO a,i,b,j
+              REQUEST V0aiai(a,i,b,j) a
+              tV0apai(a,i,b,j) = V0aiai(a,i,b,j) 
+              PREPARE V0apai(a,i,b,j) += tV0apai(a,i,b,j)
+           ENDPARDO a,i,b,j
+
+           execute server_barrier  
+#------------------A,D part--------------------------------------------
+           PARDO a,d,b,j
+              REQUEST V0aaai(a,d,b,j) a
+              tV0apai(a,d,b,j) = V0aaai(a,d,b,j) 
+              PREPARE V0apai(a,d,b,j) += tV0apai(a,d,b,j)
+           ENDPARDO a,d,b,j
+
+#===========================================================================
+
+#------------Auxiliary intermediate------------------------------------- 
+
+               PARDO i,j,k,l
+#-----------------------------
+       xi3(i)   = wOccA_frag(i)
+       execute return_sval xi3 l4
+       if l4 == two
+
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(k)   = wOccA_frag(k)
+       execute return_sval xi1 l2
+       if l2 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+
+                  REQUEST CC1(i,j,k,l) i
+                    DO q
+                    DO p   
+                      REQUEST V0pipi(q,j,p,l) q 
+                      tintaux3(i,q,k,p) = CC1(i,j,k,l)*V0pipi(q,j,p,l)
+                      PREPARE intaux3(i,q,k,p) += tintaux3(i,q,k,p)
+                    ENDDO p
+                    ENDDO q
+
+                 endif
+                 endif
+                 endif
+                 endif 
+               ENDPARDO i,j,k,l
+
+             execute server_barrier
+
+#-------------- T1 - contribution itselfs-------------------------------
+
+      PARDO a,p  
+          REQUEST T1INT1(a,p) a
+            tT1_3(a,p) = T1INT1(a,p)         
+          DO i
+          DO j
+#-----------------------------
+       xi3(i)   = wOccA_frag(i)
+       execute return_sval xi3 l4
+       if l4 == two
+
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------
+          DO q
+            REQUEST intaux3(i,q,j,p) i
+            REQUEST V2piai(q,i,a,j) i          
+             tT1INT1(a,p) = intaux3(i,q,j,p)*V2piai(q,i,a,j)
+             tT1INT1(a,p) *= -1.0
+             tT1_3(a,p) += tT1INT1(a,p) 
+          ENDDO q
+          
+          endif
+          endif
+          ENDDO j
+          ENDDO i
+            PREPARE T1_3(a,p) += tT1_3(a,p)             
+      ENDPARDO a,p 
+
+             execute server_barrier    
+#-----------------------------------------------------------------------
+#      Forth intermediate (for diagram d3.20 )                         |
+#-----------------------------------------------------------------------
+
+
+#------------Auxiliary intermediate-------------------------------------
+
+               PARDO i,j,k,l
+#-----------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+                  REQUEST CC2(i,j,k,l) i
+                    DO q
+                    DO a
+                      REQUEST V2pipi(a,j,q,l) a
+                      tintaux4(i,a,k,q) = CC2(i,j,k,l)*V2pipi(a,j,q,l)
+                      tintaux4(i,a,k,q) *= -1.0
+                      PREPARE intaux4(i,a,k,q) += tintaux4(i,a,k,q)
+                    ENDDO a
+                    ENDDO q
+                 endif
+                 endif
+               ENDPARDO i,j,k,l
+
+             execute server_barrier
+
+
+
+
+#-------------- T1 - contribution itselfs-------------------------------
+
+      PARDO a,i,b,m
+            REQUEST T1INT2(a,i,b,m) a
+            tT1_4(a,i,b,m) = T1INT2(a,i,b,m)
+         DO j
+#-----------------------------
+       xi(j)   = wOccA_frag(j)
+       execute return_sval xi l1
+       if l1 == two
+#-----------------------------
+         DO q
+            REQUEST V0pipi(b,m,q,j) b
+            REQUEST intaux4(i,a,j,q) i
+            tT1INT2(a,i,b,m) = V0pipi(b,m,q,j)*intaux4(i,a,j,q)
+            tT1INT2(a,i,b,m) *= 2.0
+            tT1_4(a,i,b,m) += tT1INT2(a,i,b,m)
+            REQUEST V0pipi(b,j,q,m) b
+            tT1INT2(a,i,b,m) = V0pipi(b,j,q,m)*intaux4(i,a,j,q)
+            tT1INT2(a,i,b,m) *= -1.0
+            tT1_4(a,i,b,m) += tT1INT2(a,i,b,m) 
+         ENDDO q
+         endif
+         ENDDO j
+
+
+           PREPARE T1_4(a,i,b,m) += tT1_4(a,i,b,m)
+      ENDPARDO a,i,b,m
+
+      execute server_barrier
+      
+
+      execute server_barrier
+#---------------------------------------------------------------------------------------
+
+         
+
+      execute server_barrier 
+
+
+##########################################################################################
+#          Construction of F12 intermediates, which contribute to T2                     #
+##########################################################################################
+
+
+#-----------------------------------------------------------------------
+#      First intermediate (direct contribution to t2 from V_ijab)      |
+#-----------------------------------------------------------------------
+
+
+       PARDO i,a,j,b
+           tT2_1(a,i,b,j) = 0.0
+         DO m
+         DO n
+#-----------------------------
+       xi(m)   = wOccA_frag(m)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi2(n)   = wOccA_frag(n)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+           REQUEST Vaiai(a,m,b,n) a
+           REQUEST C_coef(m,i,n,j) m   
+           tvaiai(a,i,b,j) = Vaiai(a,m,b,n)*C_coef(m,i,n,j)
+           tT2_1(a,i,b,j) += tvaiai(a,i,b,j)
+          endif
+          endif 
+         ENDDO n
+         ENDDO m
+
+         PREPARE T2_1(a,i,b,j) += tT2_1(a,i,b,j) 
+       ENDPARDO i,a,j,b
+
+       execute server_barrier 
+
+#-----------------------------------------------------------------------
+#      Second intermediate (direct contribution to t2 from V_ijka)     | 
+#-----------------------------------------------------------------------
+
+       PARDO i,j,k,a
+         tT2_2(i,j,k,a) = 0.0 
+
+       DO m
+       DO n
+#-----------------------------
+       xi(m)   = wOccA_frag(m)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi2(n)   = wOccA_frag(n)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+         REQUEST Viiia(m,j,n,a) m
+         REQUEST C_coef(m,i,n,k) m
+         tviiia(i,j,k,a) = Viiia(m,j,n,a)*C_coef(m,i,n,k)
+         tT2_2(i,j,k,a) += tviiia(i,j,k,a) 
+        endif
+        endif
+       ENDDO n
+       ENDDO m
+
+         PREPARE T2_2(i,j,k,a) += tT2_2(i,j,k,a)
+       ENDPARDO i,j,k,a
+
+       execute server_barrier
+
+
+#-----------------------------------------------------------------------
+#      Third intermediate (first contribution to t2 from V_ijkl)       |
+#-----------------------------------------------------------------------
+
+
+       PARDO i,j,k,l
+         tT2_3(i,j,k,l) = 0.0
+
+       DO m
+       DO n
+#-----------------------------
+       xi(m)   = wOccA_frag(m)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi2(n)   = wOccA_frag(n)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+         REQUEST Viiii(m,j,n,l) m 
+         REQUEST C_coef(m,i,n,k) m
+         tviiii(i,j,k,l) = Viiii(m,j,n,l)*C_coef(m,i,n,k)
+         tT2_3(i,j,k,l) += tviiii(i,j,k,l)
+       endif
+       endif
+       ENDDO n
+       ENDDO m
+
+         PREPARE T2_3(i,j,k,l) += tT2_3(i,j,k,l)
+       ENDPARDO i,j,k,l
+
+       execute server_barrier
+
+#-----------------------------------------------------------------------
+#      Fourth intermediate (second contribution to t2 from V_ijkl)     |
+#-----------------------------------------------------------------------
+
+       PARDO i,j,k,m,n 
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(m)   = wOccA_frag(m)
+       execute return_sval xi1 l2
+       if l2 == two
+
+       xi2(n)   = wOccA_frag(n)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+         REQUEST CC2(i,m,k,n) i
+         REQUEST Viiii(n,k,m,j) n
+         tT2_4(i,j) = CC2(i,m,k,n)*Viiii(n,k,m,j) 
+         PREPARE T2_4(i,j) += tT2_4(i,j)
+        endif
+        endif
+        endif
+       ENDPARDO i,j,k,m,n
+      
+       execute server_barrier
+
+
+
+#=========================================================================
+#------------------------------------------------------------------------|
+# Intermediates for diagrams with one double-arrow line (i.e.beyond RI)  |
+#------------------------------------------------------------------------|
+#=========================================================================
+
+#--------Intermediate for diagram d4.6 of Noga's JCP 1994------------------
+
+       PARDO i,a,j,b
+           tT2_5(a,i,b,j) = 0.0
+         DO m
+         DO n
+#-----------------------------
+       xi(m)   = wOccA_frag(m)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi2(n)   = wOccA_frag(n)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+           REQUEST phi(a,m,b,n) a
+           REQUEST C_coef(m,i,n,j) m
+           tvaiai(a,i,b,j) = phi(a,m,b,n)*C_coef(m,i,n,j)
+           tT2_5(a,i,b,j) += tvaiai(a,i,b,j)
+         endif
+         endif
+         ENDDO n
+         ENDDO m
+
+         PREPARE T2_5(a,i,b,j) += tT2_5(a,i,b,j)
+       ENDPARDO i,a,j,b
+
+       execute server_barrier
+
+
+#--------Intermediates for diagrams 4.8 and 4.10 of Noga's JCP 1994----------------------
+
+
+#------------------Auxiliary arrays------------------------------------------------------
+
+        PARDO a,i,p,j
+         tauxint(a,i,p,j) = 0.0
+
+        DO k
+        DO l
+#----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+           REQUEST CC2(i,l,j,k) i
+           REQUEST V2piai(p,k,a,l) p
+           tauxint1(a,i,p,j) = CC2(i,l,j,k)*V2piai(p,k,a,l)
+           tauxint(a,i,p,j) +=tauxint1(a,i,p,j)
+        endif
+        endif
+        ENDDO l
+        ENDDO k
+
+         PREPARE auxint(a,i,p,j) += tauxint(a,i,p,j)
+        ENDPARDO a,i,p,j
+
+        execute server_barrier
+
+#----------------------------------------------------------------------------------------
+
+        PARDO a,i,p,j
+         tauxint(a,i,p,j) = 0.0
+
+        DO k
+        DO l
+#-----------------------------
+       xi(k)   = wOccA_frag(k)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+           REQUEST C_coef(i,l,j,k) i
+           REQUEST V2piai(p,k,a,l) p
+           tauxint1(a,i,p,j) = C_coef(i,l,j,k)*V2piai(p,k,a,l)
+           tauxint(a,i,p,j) +=tauxint1(a,i,p,j)
+         endif
+         endif
+        ENDDO l
+        ENDDO k
+
+         PREPARE auxint1(a,i,p,j) += tauxint(a,i,p,j)
+        ENDPARDO a,i,p,j
+
+        execute server_barrier
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+
+#------------------ contributions to T2_6-------------------------------------------------
+        PARDO a,i,q,k 
+            REQUEST T2INT2(a,i,q,k) a 
+            tauxint(a,i,q,k) = T2INT2(a,i,q,k)
+
+         DO j
+#-----------------------------
+       xi2(j)   = wOccA_frag(j)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+         DO p
+
+#----------------Direct term ------------------------------------|
+           REQUEST auxint(a,i,p,j) a
+           REQUEST V0pipi(q,k,p,j) q 
+           tauxint1(a,i,q,k) = auxint(a,i,p,j)*V0pipi(q,k,p,j)
+           tauxint(a,i,q,k) -= tauxint1(a,i,q,k)
+#----------------Permuted term ----------------------------------| 
+           REQUEST auxint1(a,i,p,j) a          
+           REQUEST V0ppii(q,p,k,j) q
+           twww5(q,k,p,j) = V0ppii(q,p,k,j) 
+           tauxint1(a,i,q,k) = auxint1(a,i,p,j)*twww5(q,k,p,j)
+           tauxint(a,i,q,k) += tauxint1(a,i,q,k)
+#----------------------------------------------------------------|
+         ENDDO p
+         endif
+         ENDDO j
+
+           PREPARE T2_6(a,i,q,k) += tauxint(a,i,q,k)
+        ENDPARDO a,i,q,k
+
+        execute server_barrier
+#---------------------------------------------------------------------------------------
+
+#------------------ contributions to T2_7-------------------------------------------------
+
+       PARDO q,j,a,k
+         REQUEST T2INT21(q,j,a,k) q
+         tT2INT21(q,j,a,k) = T2INT21(q,j,a,k)
+           
+      
+           DO i
+#-----------------------------
+       xi2(i)   = wOccA_frag(i)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+           DO p
+             REQUEST auxint1(a,i,p,j) a
+             REQUEST V0ppii(q,p,k,i) q
+             twww6(i,p,a,j) = auxint1(a,i,p,j)
+             twww7(q,k,i,p) = V0ppii(q,p,k,i)
+             twww8(a,j,q,k) = twww6(i,p,a,j)*twww7(q,k,i,p)
+             tT2_7(q,j,a,k) = twww8(a,j,q,k)
+             tT2INT21(q,j,a,k) += tT2_7(q,j,a,k) 
+           ENDDO p
+           endif
+           ENDDO i
+
+         PREPARE T2_7(q,j,a,k) += tT2INT21(q,j,a,k)
+       ENDPARDO q,j,a,k
+
+       execute server_barrier
+
+
+#--------Intermediates for diagram 4.9 of Noga's JCP 1994--------------------------------
+
+#-----------------First and second term---------------------------------------|
+       PARDO i,a,d,b
+#           REQUEST T2INT10(i,a,d,b) i
+#          tT2_10(i,a,d,b) = T2INT10(i,a,d,b)
+ 
+           tT2_10(i,a,d,b) = 0.0
+
+          DO p
+          DO j
+#-----------------------------
+       xi2(j)   = wOccA_frag(j)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+            REQUEST auxint(a,i,p,j) a
+            REQUEST V0aapi(d,b,p,j) d
+            REQUEST auxint1(a,i,p,j) a
+            REQUEST V0apai(b,p,d,j) b
+            tT2_10aux(i,a,d,b) = auxint(a,i,p,j)*V0aapi(d,b,p,j)
+            tT2_10(i,a,d,b) -= tT2_10aux(i,a,d,b)
+            twww20(p,j,d,b) = V0apai(b,p,d,j)
+            tT2_10aux(i,a,d,b) = auxint1(a,i,p,j)*twww20(p,j,d,b)
+            tT2_10(i,a,d,b) += tT2_10aux(i,a,d,b)
+          endif 
+          ENDDO j
+          ENDDO p
+
+          PREPARE T2_10(i,a,d,b) += tT2_10(i,a,d,b)
+       ENDPARDO i,a,d,b
+
+       execute server_barrier
+
+
+#-----------------Third term------------------------------------------|
+
+       PARDO d,a,j,b
+#          REQUEST T2INT11(d,a,j,b) d
+#          tT2_11(d,a,j,b) = T2INT11(d,a,j,b) 
+
+           tT2_11(d,a,j,b) = 0.0
+
+          DO p
+          DO l
+#----------------------------
+       xi2(l)   = wOccA_frag(l)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+            REQUEST auxint1(a,l,p,j) a
+            REQUEST V0apai(b,p,d,l) b
+            twww21(p,l,a,j) = auxint1(a,l,p,j)
+            twww22(d,b,p,l) = V0apai(b,p,d,l)
+            twww25(d,b,a,j) = twww22(d,b,p,l)*twww21(p,l,a,j)
+            tT2_11aux(d,a,j,b) = twww25(d,b,a,j)
+            tT2_11(d,a,j,b) += tT2_11aux(d,a,j,b)
+          endif
+          ENDDO l
+          ENDDO p
+
+          PREPARE T2_11(d,a,j,b) += tT2_11(d,a,j,b)
+       ENDPARDO d,a,j,b
+
+       execute server_barrier
+
+
+
+#--------Intermediates for diagrams 4.12 and 4.16 of Noga's JCP 1994---(T2_8 & T2_9)------
+
+       PARDO a,i,p,k
+         REQUEST T2INT3(a,i,p,k) a 
+         tT2_8(a,i,p,k) = T2INT3(a,i,p,k)
+         
+          DO q
+          DO j
+#----------------------------- 
+      xi2(j)   = wOccA_frag(j)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+#
+#----------------Direct term--------------------------------------|
+            REQUEST auxint(a,i,q,j) a 
+            REQUEST V0pipi(p,k,q,j) p
+            tauxint1(a,i,p,k) = auxint(a,i,q,j)*V0pipi(p,k,q,j)
+            tT2_8(a,i,p,k) -= tauxint1(a,i,p,k)
+#----------------Permuted term------------------------------------|
+            REQUEST auxint1(a,i,q,j) a
+            REQUEST V0pipi(q,k,p,j) q
+            tauxint1(a,i,p,k) = auxint1(a,i,q,j)*V0pipi(q,k,p,j)
+            tT2_8(a,i,p,k) += tauxint1(a,i,p,k)
+          endif
+          ENDDO j
+          ENDDO q
+
+         PREPARE T2_8(a,i,p,k) += tT2_8(a,i,p,k)
+       ENDPARDO a,i,p,k
+
+       execute server_barrier
+
+#-----------------T2_9-------------------------------------------------------------------
+
+       PARDO a,p,k,j
+         REQUEST T2INT31(a,p,j,k) a 
+         tT2_9(a,p,k,j) = T2INT31(a,p,j,k)
+
+         DO i
+#-----------------------------
+       xi2(i)   = wOccA_frag(i)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+         DO q 
+           REQUEST auxint1(a,i,q,j) a
+           REQUEST V0pipi(q,k,p,i) q
+           tauxint2(a,p,k,j) = auxint1(a,i,q,j)*V0pipi(q,k,p,i)
+           tT2_9(a,p,k,j) += tauxint2(a,p,k,j)
+         ENDDO q
+         endif
+         ENDDO i
+
+         PREPARE T2_9(a,p,k,j) += tT2_9(a,p,k,j)
+       ENDPARDO a,p,k,j
+
+       execute server_barrier
+
+#########################################################################################
+#                 Lambda - part of CCSD(F12) energy functional                          #
+#########################################################################################
+
+
+#---------------Step 4 - construction of B_ijkl------------------------------------------
+       PARDO i,j,k,l
+#---------------------------------------------------
+            tccusp(i,j,k,l) = 0.0
+            execute f12_c_coef tccusp F12GAMMA
+            SQF12GAMMA = F12GAMMA
+            SQF12GAMMA *= F12GAMMA
+#---------------------------------------------------
+
+             tviiii(i,j,k,l)  = 0.0
+             tv1iiii(i,j,k,l) = 0.0
+            REQUEST V3iiii(i,j,k,l) i
+
+            tviiii(i,j,k,l)  =  V3iiii(i,j,k,l)
+            tviiii(i,j,k,l)  *= SQF12GAMMA
+            tv1iiii(i,j,k,l) = tviiii(i,j,k,l)
+
+#--------------Kinetic eenergy---------------------------------------------------------
+            tv_ijkl(i,j,k,l) = 0.0
+            REQUEST KIN3e(i,j,k,l) i
+            tv_ijkl(i,j,k,l) = KIN3e(i,j,k,l)
+            tv1iiii(i,j,k,l) += tv_ijkl(i,j,k,l)
+#--------------Exchange part---------------------------------------------------------
+            tv_ijkl(i,j,k,l) = 0.0
+            REQUEST KFF12(i,j,k,l) i
+            tv_ijkl(i,j,k,l) = KFF12(i,j,k,l)
+            tv1iiii(i,j,k,l) += tv_ijkl(i,j,k,l)
+#------------------M,N - contribution-----------------------------------------------------
+
+            DO m
+            DO n
+            tviiii(i,j,k,l) = 0.0 
+            REQUEST V2iiii(m,i,n,k) m
+            REQUEST V4iiii(m,j,n,l) m
+            tviiii(i,j,k,l) =  V2iiii(m,i,n,k)*V4iiii(m,j,n,l)
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+#-------------KF12 -contribution----------------------------------------------------------
+            tviiii(i,j,k,l) = 0.0
+            REQUEST V2iiii(m,j,n,l) m
+            REQUEST KF12(m,i,n,k) m
+            tviiii(i,j,k,l) = V2iiii(m,j,n,l)*KF12(m,i,n,k)
+            tviiii(i,j,k,l) *= 1.0
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+            ENDDO n
+            ENDDO m
+#-----------------A,B - contribution------------------------------------------------------
+
+
+            DO a
+            DO b
+            tviiii(i,j,k,l) = 0.0
+            REQUEST V2aiai(a,j,b,l) a
+            REQUEST V4aiai(a,i,b,k) a
+            tviiii(i,j,k,l)  = V4aiai(a,i,b,k)*V2aiai(a,j,b,l)
+            tviiii(i,j,k,l)  *= -1.0
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+#------------KF12-contribution------------------------------------------------------------
+             tviiii(i,j,k,l) = 0.0 
+            REQUEST V2aiai(a,j,b,l) a
+            REQUEST KF12(a,i,b,k) a 
+            tviiii(i,j,k,l)  = KF12(a,i,b,k)*V2aiai(a,j,b,l)
+            tviiii(i,j,k,l) *= -1.0  
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l) 
+            ENDDO b
+            ENDDO a
+
+#----------------------------------------------------------------------------------|
+#         sum_{M,P} <ij|K1*F12|Mp><Mp|f12|kl>                                      |
+#----------------------------------------------------------------------------------|
+
+             DO p
+              DO m
+
+              tzv3(p,m,j,l) = 0.0
+              tzv4(i,k,p,m) = 0.0
+              tviiii(i,j,k,l) = 0.0
+
+              REQUEST V2piii(p,l,j,m) p
+              REQUEST K1F12(m,i,p,k) m
+              tzv3(p,m,j,l) = V2piii(p,l,j,m)
+              tzv4(i,k,p,m) = K1F12(m,i,p,k)
+              tviiii(i,j,k,l)  =  tzv3(p,m,j,l)*tzv4(i,k,p,m)
+              tviiii(i,j,k,l) *= 1.0
+              tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+ 
+              tzv3(p,m,j,l) = 0.0
+              tzv4(i,k,p,m) = 0.0
+              tviiii(i,j,k,l) = 0.0
+
+              REQUEST V2piii(p,j,l,m) p
+              REQUEST K1F12(m,k,p,i) m
+              tzv3(p,m,j,l) = V2piii(p,j,l,m)
+              tzv4(i,k,p,m) = K1F12(m,k,p,i)
+              tviiii(i,j,k,l)  = tzv3(p,m,j,l)*tzv4(i,k,p,m)
+              tviiii(i,j,k,l) *= 1.0
+              tv1iiii(i,j,k,l) += tviiii(i,j,k,l)                       
+
+              ENDDO m
+             ENDDO p
+
+
+
+
+            PREPARE Biiii(i,j,k,l) += tv1iiii(i,j,k,l)
+
+
+      ENDPARDO i,j,k,l
+
+#-----------------------------------------------------------------------------------------
+
+      execute server_barrier
+#-------------------- sum_{P,N,Q}<i|K1|P><Pj|f12|NQ><NQ|f12|kl>---------------------------
+
+#----------------------Substep 1 - preparation of intermediate zv1(i,P) = <i|K1|P>-------------------
+      PARDO p,m,n,i
+         tzv1(p,m,n,i) = 0.0
+         WHERE n == m 
+        REQUEST V0piii(p,m,n,i) p
+        tzv1(p,m,n,i) = V0piii(p,m,n,i)
+        tzv(i,p) = 0.0
+        execute mkexch tzv1 tzv
+        PREPARE zv1(i,p) += tzv(i,p)   
+      ENDPARDO p,m,n,i  
+
+      execute server_barrier
+#-----------------------Substep 2 - zv2(q,j,k,l) = sum_{P,M} <Qk|f12|MP><MP|f12|jl> ----------------
+
+      PARDO p,q,k,l,j
+         DO m
+            tzv3(p,m,j,l) = 0.0
+            tzv4(q,k,p,m) = 0.0
+            REQUEST V2piii(p,l,m,j) p
+            REQUEST V2pipi(p,k,q,m) p
+            tzv3(p,m,j,l) = V2piii(p,l,m,j)
+            tzv4(q,k,p,m) = V2pipi(p,k,q,m)
+            tzv2(q,j,k,l) = tzv3(p,m,j,l)*tzv4(q,k,p,m)
+            PREPARE zv2(q,j,k,l) += tzv2(q,j,k,l) 
+         ENDDO m
+      ENDPARDO p,q,k,l,j
+
+      execute server_barrier
+
+#-----------------------Substep 3 - Btmp1(i,j,k,l) =  sum_{Q} zv1(i,Q)*zv2(q,j,k,l)----------------
+
+      PARDO i,j,k,l
+             tviiii(i,j,k,l) = 0.0
+          DO q
+             REQUEST zv2(q,j,k,l) q
+             REQUEST zv1 (i,q) i
+             tviiii(i,j,k,l) = zv1(i,q)*zv2(q,j,k,l)
+#----------------------------------------------------------------------------------|
+#               sum_{P,N} <i|K1|P><PjN|f12*f23|NLK>                                |
+#----------------------------------------------------------------------------------|
+             tv1iiii(i,j,k,l) = 0.0 
+             REQUEST F12F23(q,j,k,l) q
+             tv1iiii(i,j,k,l) = zv1(i,q)*F12F23(q,j,k,l)
+             tv1iiii(i,j,k,l) *= -1.0 
+             tviiii(i,j,k,l) += tv1iiii(i,j,k,l) 
+
+
+             PREPARE Btmp1(i,j,k,l) += tviiii(i,j,k,l)
+          ENDDO q
+      ENDPARDO i,j,k,l
+
+      execute server_barrier
+#-----------------------Substep 4 - contribution to the B - intermediate------------------------ 
+
+     PARDO i,j,k,l
+       REQUEST Btmp1(i,j,k,l) i
+       REQUEST Btmp1(k,l,i,j) k
+        tviiii(i,j,k,l) = Btmp1(i,j,k,l) 
+        tv1iiii(i,j,k,l) = Btmp1(k,l,i,j)
+        tviiii(i,j,k,l) += tv1iiii(i,j,k,l)
+        PREPARE Biiii(i,j,k,l) += tviiii(i,j,k,l)
+     ENDPARDO i,j,k,l
+
+     execute server_barrier
+#--------------F12 contribution of B - intermediate---------------------------------------
+
+      PARDO i,j,k,l
+         DO m
+         DO n
+#-----------------------------
+       xi(m)   = wOccA_frag(m)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi2(n)   = wOccA_frag(n)
+       execute return_sval xi2 l3
+       if l3 == two
+#-----------------------------
+            REQUEST Biiii(m,i,n,k) m
+            REQUEST C_coef(m,j,n,l) m
+            tviiii(i,j,k,l) = Biiii(m,i,n,k)*C_coef(m,j,n,l)
+            PREPARE Btemp(i,j,k,l) += tviiii(i,j,k,l)
+         endif
+         endif
+         ENDDO n
+         ENDDO m 
+
+
+      ENDPARDO i,j,k,l
+
+      execute server_barrier        
+
+      PARDO i,j,k,l
+#-----------------------------
+       xi(i)   = wOccA_frag(i)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(j) = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+
+       xi2(k) = wOccA_frag(k)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+            REQUEST Btemp(i,j,k,l) i
+            REQUEST C_coef(i,j,k,l) i
+            REQUEST C_coef(k,j,i,l) k
+
+            etmp = C_coef(i,j,k,l) * Btemp(i,j,k,l)
+            etmp1= C_coef(k,j,i,l) * Btemp(i,j,k,l)
+            etmp  *=  2.0
+            etmp1 *= -1.0
+            etmp += etmp1
+            E_b += etmp
+
+        endif
+        endif
+        endif
+        endif
+      ENDPARDO i,j,k,l
+
+            execute server_barrier
+
+            collective E_b_tot += E_b
+     
+#----------------------------------------------------------------------------------------- 
+            execute server_barrier
+
+            E_LAM += E_b_tot
+
+#---------------diagram 6.3 from Noga's JCP 1994------------------------------------------
+         E_b = 0.0
+
+      PARDO i,j,k,l
+#-----------------------------
+       xi(i)   = wOccA_frag(i)
+       execute return_sval xi l1
+       if l1 == two
+
+       xi1(j) = wOccA_frag(j)
+       execute return_sval xi1 l2
+       if l2 == two
+
+       xi2(k) = wOccA_frag(k)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+
+            REQUEST Viiii(i,j,k,l) i
+            REQUEST C_coef(i,j,k,l) i
+            REQUEST C_coef(k,j,i,l) k
+
+            etmp = C_coef(i,j,k,l) * Viiii(i,j,k,l)
+            etmp1= C_coef(k,j,i,l) * Viiii(i,j,k,l)
+            etmp  *=  2.0
+            etmp1 *= -1.0
+            etmp += etmp1
+            E_b += etmp
+
+        endif
+        endif
+        endif
+        endif
+      ENDPARDO i,j,k,l
+
+            execute server_barrier
+
+            collective E_b_tot += E_b
+
+            execute server_barrier
+ 
+            E_LAM += E_b_tot
+            E_dir += E_b_tot 
+
+#---------------Correction to the Q-term-------------------------------------------------
+
+             PARDO i,q,j,p
+             tintaux3(i,q,j,p) = 0.0        
+             PREPARE intaux3(i,q,j,p) = tintaux3(i,q,j,p)
+             ENDPARDO i,q,j,p
+             execute server_barrier
+
+             PARDO i,a,j,q
+             tintaux4(i,a,j,q) = 0.0
+             PREPARE intaux4(i,a,j,q) = tintaux4(i,a,j,q)
+             ENDPARDO i,a,j,q
+             execute server_barrier
+#---------------------------------     
+ 
+
+
+      PARDO i,a,k,b
+           tintaux4(i,a,k,b) = 0.0
+           
+        DO j
+        DO l
+#-------------------------------
+       xi2(j) = wOccA_frag(j)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+
+         REQUEST CC2(i,j,k,l) i
+         REQUEST phi(a,j,b,l) a
+         tintaux3(i,a,k,b) = CC2(i,j,k,l)*phi(a,j,b,l)
+         tintaux4(i,a,k,b) += tintaux3(i,a,k,b)
+        endif
+        endif 
+        ENDDO l
+        ENDDO j
+
+
+        PREPARE intaux3(i,a,k,b) += tintaux4(i,a,k,b)
+      ENDPARDO i,a,k,b
+
+      execute server_barrier 
+#------------------------------------------------------------
+
+      PARDO i,a,k,b
+           tintaux4(i,a,k,b) = 0.0
+          
+        DO j
+        DO l
+#-----------------------------
+       xi2(j) = wOccA_frag(j)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+
+         REQUEST C_coef(i,j,k,l) i
+         REQUEST V2aiai(a,j,b,l) a
+         tintaux3(i,a,k,b) = C_coef(i,j,k,l)*V2aiai(a,j,b,l)
+         tintaux4(i,a,k,b) += tintaux3(i,a,k,b)
+        endif
+        endif
+        ENDDO l
+        ENDDO j        
+
+        PREPARE intaux4(i,a,k,b) += tintaux4(i,a,k,b)
+      ENDPARDO i,a,k,b
+
+      execute server_barrier
+
+      E_b = 0.0
+
+      PARDO i,a,k,b
+#-----------------------------
+       xi2(k) = wOccA_frag(k)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(i) = wOccA_frag(i)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+        REQUEST intaux3(i,a,k,b) i
+        REQUEST intaux4(i,a,k,b) i
+        etmp1 = intaux3(i,a,k,b) * intaux4(i,a,k,b)
+        E_b -= etmp1
+        endif
+        endif
+      ENDPARDO i,a,k,b
+ 
+       execute server_barrier
+
+       collective E_qcorr += E_b
+
+       execute server_barrier
+
+#-------------------------- diagram d6.24 -----------------------------------------------
+
+             PARDO i,q,j,p
+             tintaux3(i,q,j,p) = 0.0
+             PREPARE intaux3(i,q,j,p) = tintaux3(i,q,j,p)
+             ENDPARDO i,q,j,p
+             execute server_barrier
+
+             PARDO i,a,j,q
+             tintaux4(i,a,j,q) = 0.0
+             PREPARE intaux4(i,a,j,q) = tintaux4(i,a,j,q)
+             ENDPARDO i,a,j,q
+             execute server_barrier
+#---------------------------------     
+#
+
+      
+#------------Auxiliary intermediate------------------------------------------------------
+       PARDO j,a,l,p
+         tintaux4(j,a,l,p) = 0.0
+
+         DO i
+         DO k
+#-----------------------------
+       xi2(i) = wOccA_frag(i)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(k) = wOccA_frag(k)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+           REQUEST CC1(i,j,k,l) i
+           REQUEST V2pipi(a,i,p,k) a
+           tintaux3(j,a,l,p) = CC1(i,j,k,l)*V2pipi(a,i,p,k)
+           tintaux3(j,a,l,p) *= 2.0
+           tintaux4(j,a,l,p) += tintaux3(j,a,l,p)
+         endif
+         endif
+         ENDDO k
+         ENDDO i
+
+           PREPARE intaux3(j,a,l,p) += tintaux4(j,a,l,p)
+       ENDPARDO j,a,l,p
+
+       execute server_barrier
+       
+#--------------------------------------------------------------|
+
+       PARDO j,a,l,p
+          REQUEST intaux3(j,a,l,p) j
+
+#-----------------------------   
+       xi2(j) = wOccA_frag(j)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+
+        DO k
+          REQUEST V0pipi(k,j,p,l) k
+          tLAM1(k,a) = intaux3(j,a,l,p)*V0pipi(k,j,p,l)
+          tLAM1(k,a) *= -1.0
+          PREPARE LAM_1(k,a) += tLAM1(k,a)
+        ENDDO k
+
+        endif
+        endif  
+       ENDPARDO j,a,l,p
+
+       execute server_barrier
+
+       PARDO i,a
+       REQUEST LAM1(i,a) i
+       tLAM1(i,a) = LAM1(i,a)
+       PREPARE LAM_1(i,a) += tLAM1(i,a)
+       ENDPARDO i,a
+
+       execute server_barrier
+
+
+#-------------------------- diagram d6.23 -----------------------------------------------
+#-------------------------- parts 1 and 2 -----------------------------------------------
+
+             PARDO i,q,j,p
+             tintaux3(i,q,j,p) = 0.0
+             PREPARE intaux3(i,q,j,p) = tintaux3(i,q,j,p)
+             ENDPARDO i,q,j,p
+             execute server_barrier
+
+             PARDO i,a,j,q
+             tintaux4(i,a,j,q) = 0.0
+             PREPARE intaux4(i,a,j,q) = tintaux4(i,a,j,q)
+             ENDPARDO i,a,j,q
+             execute server_barrier
+#---------------------------------     
+#
+
+#------------Auxiliary intermediate------------------------------------------------------
+       PARDO l,a,k,p
+         tintaux4(l,a,k,p) = 0.0
+
+         DO i
+         DO j
+#-----------------------------
+       xi2(i) = wOccA_frag(i)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(j) = wOccA_frag(j)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+           REQUEST CC1(i,k,j,l) i
+           REQUEST V2pipi(a,j,p,i) p
+           tintaux3(l,a,k,p) = CC1(i,k,j,l)*V2pipi(a,j,p,i)
+           tintaux3(l,a,k,p) *= 2.0
+           tintaux4(l,a,k,p) += tintaux3(l,a,k,p)
+         endif
+         endif
+         ENDDO j
+         ENDDO i
+
+           PREPARE intaux3(l,a,k,p) += tintaux4(l,a,k,p)
+       ENDPARDO l,a,k,p
+
+       execute server_barrier
+
+
+#-------------------------------------------------------------------------
+#-----------------First term----------------------------------------------
+#-------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------|
+       PARDO i,a,k,b
+         REQUEST LAM21(a,i,b,k) i
+         tintaux4(i,a,k,b) = LAM21(a,i,b,k)
+
+         DO l
+#-----------------------------
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+         DO p
+           REQUEST intaux3(l,a,k,p) l
+           REQUEST V0ppii(b,p,i,l) b
+           twww9(l,p,a,k) = intaux3(l,a,k,p)
+           twww10(b,i,l,p) = V0ppii(b,p,i,l)
+           tintaux3(i,a,k,b) = twww9(l,p,a,k)*twww10(b,i,l,p)
+           tintaux4(i,a,k,b) -= tintaux3(i,a,k,b)
+         ENDDO p
+         endif
+         ENDDO l
+
+           PREPARE LAM_2(i,a,k,b) += tintaux4(i,a,k,b)  
+       ENDPARDO i,a,k,b
+
+       execute server_barrier
+
+#--------------------------------------------------------|
+
+
+#-------------------------------------------------------------------------
+#-----------------Second term---------------------------------------------
+#-------------------------------------------------------------------------
+
+       PARDO i,a,k,b
+         REQUEST LAM22(b,k,a,i) b
+         tintaux4(i,a,k,b) = LAM22(b,k,a,i)
+
+         DO l
+#-----------------------------
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+         DO p
+           REQUEST intaux3(i,a,l,p) i
+           REQUEST V0ppii(b,p,k,l) b
+           twww11(l,p,k,b) = V0ppii(b,p,k,l)
+           tintaux3(i,a,k,b) = intaux3(i,a,l,p)*twww11(l,p,k,b)
+           tintaux4(i,a,k,b) -= tintaux3(i,a,k,b)
+         ENDDO p
+         endif
+         ENDDO l
+
+           PREPARE LAM_3(i,a,k,b) += tintaux4(i,a,k,b)
+       ENDPARDO i,a,k,b
+
+       execute server_barrier
+
+
+#-------------------------------------------------------------------------
+#----------------- Third term --------------------------------------------
+#-------------------------------------------------------------------------
+
+             PARDO i,q,j,p
+             tintaux3(i,q,j,p) = 0.0
+             PREPARE intaux3(i,q,j,p) = tintaux3(i,q,j,p)
+             ENDPARDO i,q,j,p
+             execute server_barrier
+
+             PARDO i,a,j,q
+             tintaux4(i,a,j,q) = 0.0
+             PREPARE intaux4(i,a,j,q) = tintaux4(i,a,j,q)
+             ENDPARDO i,a,j,q
+             execute server_barrier
+#---------------------------------     
+
+#------------Auxiliary intermediate------------------------------------------------------
+
+       PARDO j,a,l,p
+         tintaux4(j,a,l,p) = 0.0
+
+         DO i
+         DO k
+#-----------------------------
+       xi2(i) = wOccA_frag(i)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(k) = wOccA_frag(k)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+           REQUEST CC2(i,j,k,l) i
+           REQUEST V2pipi(a,i,p,k) a
+           tintaux3(j,a,l,p) = CC2(i,j,k,l)*V2pipi(a,i,p,k)
+           tintaux3(j,a,l,p) *= 4.0
+           tintaux4(j,a,l,p) += tintaux3(j,a,l,p)
+         endif
+         endif
+         ENDDO k
+         ENDDO i
+
+           PREPARE intaux3(j,a,l,p) += tintaux4(j,a,l,p)
+       ENDPARDO j,a,l,p
+
+       execute server_barrier
+
+#--------------------------------------------------------------|
+
+       PARDO i,a,k,b
+         REQUEST LAM23(a,i,b,k) a
+         tintaux4(i,a,k,b) = LAM23(a,i,b,k)
+
+         DO l
+#-----------------------------
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+         DO p
+           REQUEST intaux3(i,a,l,p) i
+           REQUEST V0pipi(b,k,p,l) b
+           twww11(l,p,k,b) =  V0pipi(b,k,p,l)
+           tintaux3(i,a,k,b) = intaux3(i,a,l,p)*twww11(l,p,k,b)
+           tintaux4(i,a,k,b) -= tintaux3(i,a,k,b)
+         ENDDO p
+         endif
+         ENDDO l
+
+           PREPARE LAM_4(i,a,k,b) += tintaux4(i,a,k,b)
+       ENDPARDO i,a,k,b
+
+       execute server_barrier
+
+#--------------------------------------------------------|
+
+#-------------------------------------------------------------------------
+#----------------- Fourth term -------------------------------------------
+#-------------------------------------------------------------------------
+
+             PARDO i,q,j,p
+             tintaux3(i,q,j,p) = 0.0
+             PREPARE intaux3(i,q,j,p) = tintaux3(i,q,j,p)
+             ENDPARDO i,q,j,p
+             execute server_barrier
+
+             PARDO i,a,j,q
+             tintaux4(i,a,j,q) = 0.0
+             PREPARE intaux4(i,a,j,q) = tintaux4(i,a,j,q)
+             ENDPARDO i,a,j,q
+             execute server_barrier
+#---------------------------------     
+
+
+#------------------Auxiliary intermediate---------------------------------
+       PARDO l,a,k,p
+         tintaux4(l,a,k,p) = 0.0
+
+         DO i
+         DO j
+#-----------------------------
+       xi2(i) = wOccA_frag(i)
+       execute return_sval xi2 l3
+       if l3 == two
+
+       xi3(j) = wOccA_frag(j)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+           REQUEST CC1(i,k,j,l) i
+           REQUEST V2pipi(a,j,p,i) p
+           tintaux3(l,a,k,p) = CC1(i,k,j,l)*V2pipi(a,j,p,i)
+           tintaux3(l,a,k,p) *= 2.0
+           tintaux4(l,a,k,p) += tintaux3(l,a,k,p)
+         endif
+         endif
+         ENDDO j
+         ENDDO i
+
+           PREPARE intaux3(l,a,k,p) += tintaux4(l,a,k,p)
+       ENDPARDO l,a,k,p
+
+       execute server_barrier
+
+#----------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------|
+       PARDO i,a,k,b
+         REQUEST LAM24(a,i,b,k) a
+         tintaux4(i,a,k,b) = LAM24(a,i,b,k)
+
+         DO l
+#-----------------------------
+       xi3(l) = wOccA_frag(l)
+       execute return_sval xi3 l4
+       if l4 == two
+#-----------------------------
+         DO p
+           REQUEST intaux3(i,a,l,p) i
+           REQUEST V0pipi(b,k,p,l) b
+           twww11(l,p,k,b) = V0pipi(b,k,p,l)
+           tintaux3(i,a,k,b) = intaux3(i,a,l,p)*twww11(l,p,k,b)
+           tintaux4(i,a,k,b) -= tintaux3(i,a,k,b)
+         ENDDO p
+         endif
+         ENDDO l
+
+           PREPARE LAM_5(i,a,k,b) += tintaux4(i,a,k,b)
+       ENDPARDO i,a,k,b
+
+       execute server_barrier
+
+
+
+#--------------------------------------------------------------|
+
+#----------------------------------------------------------------------------------------
+            execute print_scalar E_dir
+
+            execute print_scalar E_LAM
+            
+            execute print_scalar E_qcorr
+#-----------Write intermediates to the disk----------------------------------------------
+
+                DO iii
+                 DO kkk
+
+                   IF iii == 1
+                    IF kkk == 1
+                    tELAM(iii,kkk) = E_dir
+                    PREPARE ELAM(iii,kkk) = tELAM(iii,kkk)
+                    ENDIF
+                   ENDIF
+
+                   IF iii == 1
+                    IF kkk == 2
+                    tELAM(iii,kkk) = E_LAM
+                    PREPARE ELAM(iii,kkk) = tELAM(iii,kkk)
+                    ENDIF
+                   ENDIF
+
+                   IF iii == 2
+                    IF kkk == 1
+                    tELAM(iii,kkk) = E_qcorr
+                    PREPARE ELAM(iii,kkk) = tELAM(iii,kkk)
+                    ENDIF
+                   ENDIF
+
+                   IF iii == 2
+                    IF kkk == 2
+                    tELAM(iii,kkk) = 1.0
+                    PREPARE ELAM(iii,kkk) = tELAM(iii,kkk)
+                    ENDIF
+                   ENDIF
+                  
+
+
+                 ENDDO kkk
+                ENDDO iii
+
+
+      execute server_barrier
+
+      PARDO p,i,q,j
+       REQUEST V0pipi(p,i,q,j) p
+      ENDPARDO p,i,q,j
+      execute server_barrier
+
+#------------- T1-intermediates----------------------------------------------------------
+      execute blocks_to_list          T1_1
+      execute blocks_to_list          T1_2
+      execute blocks_to_list          T1_3
+      execute blocks_to_list          T1_4
+#------------ T2-intermediates----------------------------------------------------------
+      execute blocks_to_list          T2_1
+      execute blocks_to_list          T2_2
+      execute blocks_to_list          T2_3
+      execute blocks_to_list          T2_4
+      execute blocks_to_list          T2_5
+      execute blocks_to_list          T2_6
+      execute blocks_to_list          T2_7
+      execute blocks_to_list          T2_8
+      execute blocks_to_list          T2_9
+      execute blocks_to_list          T2_10
+      execute blocks_to_list          T2_11
+#------------Lambda - intermediates----------------------------------------------------
+      execute blocks_to_list          LAM_1
+      execute blocks_to_list          LAM_2
+      execute blocks_to_list          LAM_3
+      execute blocks_to_list          LAM_4
+      execute blocks_to_list          LAM_5
+      execute blocks_to_list          ELAM
+#---------Additional integrals for T2-amplitudes---------------------------------------
+      execute blocks_to_list          auxint1
+      execute blocks_to_list          V2piai
+      execute blocks_to_list          V0pipi
+      execute blocks_to_list          V0apai
+      execute blocks_to_list          V0aapi
+#---Here we write arrays of integrals to the disk---
+      execute write_blocks_to_list
+#---------------------------------------------------
+
+          deallocate wOccA_frag(*)
+#-----------------------------------------------------------------------------------------
+
+                        ENDSIAL INTERM_F12_CCSD_fc
+
+

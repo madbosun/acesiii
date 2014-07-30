@@ -1,0 +1,12 @@
+
+C ROUTINE TO PERFORM A GATHER OPERATION ON INTEGER VARIABLES
+
+      SUBROUTINE IGATHER(N,A,B,INDEX)
+      IMPLICIT INTEGER (A-Z)
+      DIMENSION A(N),INDEX(N),B(1)
+      if (n.lt.1) return
+      DO I = 1, N
+         A(I) = B(INDEX(I))
+      END DO
+      RETURN
+      END

@@ -101,6 +101,7 @@
       served Vxipi(mu,i,p,i1)
       served Vixai(i,mu,a,i1)
       served Vxaii(mu,a,i,i1)
+      served Vxxxi(mu,nu,lambda,i) 
 #
 #     Permanent 
 #     --------- 
@@ -186,6 +187,7 @@
       scalar ss
       scalar efact
       scalar eleven 
+      scalar rank 
 #
 # End Arrays used in transformation for AO2 algorithm
 # --------------------------------------------------- 
@@ -309,6 +311,7 @@
       temp dz4(mu,nu,lambda,sigma)
       static pinf(kiter,kptr1)
       temp tpinf(kiter,kptr1)
+      static Spq(mu,nu) 
       scalar one
       scalar two
       scalar five
@@ -556,32 +559,35 @@
      execute sip_barrier
 #
      PARDO mu, nu, lambda
-#
-           allocate L0xxxi(mu,nu,lambda,*) 
-#
-           DO sigma
-#
-                 compute_integrals AOINT(mu,nu,lambda,sigma)
-#
-                 DO i
-#
-                    V0xxxi(mu,nu,lambda,i) = AOINT(mu,nu,lambda,sigma)*ca(sigma,i)
-                    L0xxxi(mu,nu,lambda,i) += V0xxxi(mu,nu,lambda,i) 
-#
-                 ENDDO i
-#
-           ENDDO sigma
-#
+        allocate L0xxxi(mu,nu,lambda,*) 
+        DO sigma 
+           compute_integrals AOINT(mu,nu,lambda,sigma)
            DO i
+              V0xxxi(mu,nu,lambda,i)  = AOINT(mu,nu,lambda,sigma)*ca(sigma,i)
+              L0xxxi(mu,nu,lambda,i) += V0xxxi(mu,nu,lambda,i) 
+           ENDDO i
+        ENDDO sigma 
+
+        DO i
+           PREPARE Vxxxi(mu,nu,lambda,i) = L0xxxi(mu,nu,lambda,i) 
+        ENDDO i
+
+        deallocate L0xxxi(mu,nu,lambda,*) 
+     ENDPARDO mu, nu, lambda  
+
+     execute server_barrier 
+
+     PARDO mu, nu, lambda, i 
 #
-              txixx(lambda,i,mu,nu) = L0xxxi(mu,nu,lambda,i) 
-              txxix(nu,mu,i,lambda) = L0xxxi(mu,nu,lambda,i)  
+              REQUEST                 Vxxxi(mu,nu,lambda,i) i 
+              txixx(lambda,i,mu,nu) = Vxxxi(mu,nu,lambda,i) 
+              txxix(nu,mu,i,lambda) = Vxxxi(mu,nu,lambda,i)  
 #
               DO i1
 #
                  Txixi(lambda,i,mu,i1) = txixx(lambda,i,mu,nu)*ca(nu,i1)
                  Txxii(nu,mu,i,i1)     = txxix(nu,mu,i,lambda)*ca(lambda,i1)
-                 Tixxi(i1,nu,lambda,i) = L0xxxi(mu,nu,lambda,i)*ca(mu,i1) 
+                 Tixxi(i1,nu,lambda,i) = Vxxxi(mu,nu,lambda,i)*ca(mu,i1) 
 #
                  prepare Vxixj(lambda,i,mu,i1) += Txixi(lambda,i,mu,i1)
                  prepare Vxxjj(nu,mu,i,i1)     += Txxii(nu,mu,i,i1) 
@@ -589,11 +595,7 @@
 #
               ENDDO i1 
 #
-           ENDDO i
-#
-           deallocate L0xxxi(mu,nu,lambda,*) 
-#
-     ENDPARDO mu, nu, lambda 
+     ENDPARDO mu, nu, lambda, i  
 #
      execute server_barrier
 #
@@ -613,65 +615,34 @@
 #
      execute sip_barrier
 #
-     PARDO mu, j, j1
-#
-           allocate Lxajj(mu,*,j,j1) 
-#
-           DO nu 
+     PARDO nu, mu, j, j1
 #
               REQUEST Vxxjj(mu,nu,j,j1) j 
 #
               DO a
 #
                  Txajj(mu,a,j,j1)  = Vxxjj(mu,nu,j,j1)*ca(nu,a)
-                 Lxajj(mu,a,j,j1) += Txajj(mu,a,j,j1)
+                 PREPARE Vxajj(mu,a,j,j1) += Txajj(mu,a,j,j1)
 #
               ENDDO a
 #
-           ENDDO nu 
+     ENDPARDO nu, mu, j, j1
 #
-           DO a
-#
-              Txajj(mu,a,j,j1)         = Lxajj(mu,a,j,j1) 
-              PREPARE Vxajj(mu,a,j,j1) = Txajj(mu,a,j,j1)
-#
-           ENDDO a
-#
-           deallocate Lxajj(mu,*,j,j1) 
-#
-     ENDPARDO mu, j, j1
-#
-     execute sip_barrier
      execute server_barrier
 #    DISCARD Vxxjj
 #
-     PARDO a, j, j1
-#
-           allocate Laajj(*,a,j,j1) 
-#
-           DO mu 
+     PARDO mu, a, j, j1
 #
               REQUEST Vxajj(mu,a,j,j1) j
 #
               DO a1
 #
                  Taajj(a1,a,j,j1)  = Vxajj(mu,a,j,j1)*ca(mu,a1)
-                 Laajj(a1,a,j,j1) += Taajj(a1,a,j,j1)
+                 PREPARE Vaajj(a1,a,j,j1) += Taajj(a1,a,j,j1)
 #
               ENDDO a1
 #
-           ENDDO mu 
-#
-           DO a1
-#
-              Taajj(a1,a,j,j1)         = Laajj(a1,a,j,j1) 
-              PREPARE Vaajj(a1,a,j,j1) = Taajj(a1,a,j,j1)
-#
-           ENDDO a1
-#
-           deallocate Laajj(*,a,j,j1) 
-#
-     ENDPARDO  a, j, j1
+     ENDPARDO mu, a, j, j1
 #
      execute sip_barrier
      execute server_barrier
@@ -691,65 +662,34 @@
 #
      execute sip_barrier
 #
-     PARDO mu, i, j
-#
-           allocate Lixbj(i,mu,*,j) 
-#
-           DO nu 
+     PARDO nu, mu, i, j
 #
               REQUEST Vixxj(i,mu,nu,j) i
 #
               DO b
 #
                  Tixbj(i,mu,b,j)  = Vixxj(i,mu,nu,j)*ca(nu,b)
-                 Lixbj(i,mu,b,j) += Tixbj(i,mu,b,j)
+                 PREPARE Vixbj(i,mu,b,j) += Tixbj(i,mu,b,j)
 #
               ENDDO b
 #
-           ENDDO nu 
+     ENDPARDO nu, mu, i, j
 #
-           DO b
-#
-              Tixbj(i,mu,b,j)         = Lixbj(i,mu,b,j) 
-              PREPARE Vixbj(i,mu,b,j) = Tixbj(i,mu,b,j)
-#
-           ENDDO b
-#
-           deallocate Lixbj(i,mu,*,j) 
-#
-     ENDPARDO mu, i, j
-#
-     execute sip_barrier
      execute server_barrier
 #    DISCARD Vixxj
 #
-     PARDO b, i, j
-#
-           allocate Liabj(i,*,b,j) 
-#
-           DO mu 
+     PARDO mu, b, i, j
 #
               REQUEST Vixbj(i,mu,b,j) i
 #
               DO a
 #
                  Tiabj(i,a,b,j)  = Vixbj(i,mu,b,j)*ca(mu,a)
-                 Liabj(i,a,b,j) += Tiabj(i,a,b,j)
+                 PREPARE Viabj(i,a,b,j) += Tiabj(i,a,b,j)
 #
               ENDDO a
 #
-           ENDDO mu 
-#
-           DO a
-#
-              Tiabj(i,a,b,j)         = Liabj(i,a,b,j) 
-              PREPARE Viabj(i,a,b,j) = Tiabj(i,a,b,j)
-#
-           ENDDO a
-#
-           deallocate Liabj(i,*,b,j) 
-#
-     ENDPARDO b, i, j
+     ENDPARDO mu, b, i, j
 #
      execute sip_barrier
      execute server_barrier
@@ -769,67 +709,36 @@
 #
      execute sip_barrier
 #
-     PARDO mu, i, i1
-#
-           allocate Liixb(i,i1,mu,*) 
-#
-           DO nu 
+     PARDO nu, mu, i, i1
 #
               REQUEST Viixx(i,i1,mu,nu) i 
 #
               DO b
 #
                  Tiixb(i,i1,mu,b)  = Viixx(i,i1,mu,nu)*ca(nu,b)
+                 PREPARE Viixb(i,i1,mu,b) += Tiixb(i,i1,mu,b)
                  Liixb(i,i1,mu,b) += Tiixb(i,i1,mu,b)
 #
               ENDDO b
 #
-           ENDDO nu 
+     ENDPARDO nu, mu, i, i1
 #
-           DO b
-#
-              Tiixb(i,i1,mu,b)         = Liixb(i,i1,mu,b) 
-              PREPARE Viixb(i,i1,mu,b) = Tiixb(i,i1,mu,b)
-#
-           ENDDO b
-#
-           deallocate Liixb(i,i1,mu,*) 
-#
-     ENDPARDO mu, i, i1
-#
-     execute sip_barrier
      execute server_barrier
 #    DISCARD Viixx
 #
-     PARDO b, i, i1
-#
-           allocate Liibb(i,i1,*,b) 
-#
-           DO mu 
+     PARDO mu, b, i, i1
 #
               REQUEST Viixb(i,i1,mu,b) i
 #
               DO b1
 #
                  Tiibb(i,i1,b1,b)  = Viixb(i,i1,mu,b)*ca(mu,b1)
-                 Liibb(i,i1,b1,b) += Tiibb(i,i1,b1,b)
+                 PREPARE Viibb(i,i1,b1,b) += Tiibb(i,i1,b1,b)
 #
               ENDDO b1
 #
-           ENDDO mu 
+     ENDPARDO mu, b, i, i1
 #
-           DO b1
-#
-              Tiibb(i,i1,b1,b)         = Liibb(i,i1,b1,b) 
-              PREPARE Viibb(i,i1,b1,b) = Tiibb(i,i1,b1,b)
-#
-           ENDDO b1
-#
-           deallocate Liibb(i,i1,*,b) 
-#
-     ENDPARDO b, i, i1
-#
-     execute sip_barrier
      execute server_barrier
 #    DISCARD Viixb
 #
@@ -847,67 +756,36 @@
 #
      execute sip_barrier
 #
-     PARDO mu, i, j
-#
-           allocate Lxiqj(mu,i,*,j) 
-#
-           DO nu 
+     PARDO nu, mu, i, j
 #
               REQUEST Vxixj(mu,i,nu,j) i
 #
               DO q
 #
                  Txiqj(mu,i,q,j)  = Vxixj(mu,i,nu,j)*ca(nu,q)
-                 Lxiqj(mu,i,q,j) += Txiqj(mu,i,q,j)
+                 PREPARE Vxiqj(mu,i,q,j) += Txiqj(mu,i,q,j)
 #
               ENDDO q
 #
-           ENDDO nu 
+     ENDPARDO nu, mu, i, j
 #
-           DO q
-#
-              Txiqj(mu,i,q,j)         = Lxiqj(mu,i,q,j) 
-              PREPARE Vxiqj(mu,i,q,j) = Txiqj(mu,i,q,j)
-#
-           ENDDO q
-#
-           deallocate Lxiqj(mu,i,*,j) 
-#
-     ENDPARDO mu, i, j
-#
-     execute sip_barrier
      execute server_barrier
 #    DISCARD Vxixj
 #
-     PARDO q, i, j
-#
-           allocate Lpiqj(*,i,q,j) 
-#
-           DO mu 
+     PARDO mu, q, i, j
 #
               REQUEST Vxiqj(mu,i,q,j) i 
 #
               DO p
 #
                  Tpiqj(p,i,q,j)  = Vxiqj(mu,i,q,j)*ca(mu,p)
+                 PREPARE Vpiqj(p,i,q,j) += Tpiqj(p,i,q,j)
                  Lpiqj(p,i,q,j) += Tpiqj(p,i,q,j)
 #
               ENDDO p
 #
-           ENDDO mu 
+     ENDPARDO mu, q, i, j
 #
-           DO p
-#
-              Tpiqj(p,i,q,j)         = Lpiqj(p,i,q,j) 
-              PREPARE Vpiqj(p,i,q,j) = Tpiqj(p,i,q,j)
-#
-           ENDDO p
-#
-           deallocate Lpiqj(*,i,q,j) 
-#
-     ENDPARDO q, i, j
-#
-     execute sip_barrier
      execute server_barrier
 #
      PARDO p, i, q, j 
@@ -1003,7 +881,10 @@
 # Contract with the derivative integrals
 # --------------------------------------
 #
-      PARDO mu, nu
+      execute get_my_rank rank 
+      if rank == 0.0 
+         DO mu 
+         DO nu
 #
             GET            P2A_ao(mu,nu)
             GET            DHFA(mu,nu)
@@ -1011,10 +892,15 @@
             Tpq(mu,nu)   = DHFA(mu,nu)
             Tpq(mu,nu)  += P2A_ao(mu,nu)
             Tpq(mu,nu)  *= 2.0  
+            Spq(mu,nu)   = Tpq(mu,nu) 
 #
             EXECUTE HCONT1 Tpq(mu,nu)
 #
-      ENDPARDO mu, nu
+         ENDDO nu
+         ENDDO mu 
+
+         execute ecp_dercont Spq 
+      endif 
 #
 # -----------------------------------------------------------------------------
 #

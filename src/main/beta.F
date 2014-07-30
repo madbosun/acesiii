@@ -32,6 +32,8 @@ c      subroutine beta()
       include 'timerz.h'
       include 'sial_config_params.h'
       include 'checkpoint_data.h'
+      include 'F12.h'
+      include 'eominit.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -57,6 +59,8 @@ c      subroutine beta()
       integer status(MPI_STATUS_SIZE)
       integer company_id
       integer saveocc, savevirt, saveao
+      integer ndim 
+      integer Iostat, Ierror 
 
       character*20 logfile
       character*80 sial_program
@@ -86,6 +90,7 @@ c      subroutine beta()
       logical do_restart, file_exist
       logical flag
       logical do_write 
+      logical do_ecp  
 
       double precision t1, t2
       double precision vnn, diff, avg
@@ -93,6 +98,12 @@ c      subroutine beta()
 
       integer i1, i2
       integer*8 mpierr8, nprocs8
+
+      common /flags/ iflags
+      integer iflags(100) 
+      integer iflags2(500)
+
+      integer istg,n_ipeomcc_roots(1)
 
 #ifdef ALTIX
       pointer (dptr, dbuf)
@@ -137,10 +148,13 @@ c---------------------------------------------------------------------------
       call mpi_bcast(maxmem, 1, mpi_integer, 0,
      *               mpi_comm_world, mpierr)
       if (maxmem .eq. 0) maxmem = check_malloc() * 0.8
+999   continue 
       call mem_alloc_init(maxmem, sheap_flag, ierr)
       if (ierr .lt. 0) then
-         print *,'MEMORY ALLOCATION ERROR: maxmem = ',maxmem
          call abort_job()
+      else 
+         print *,'MEMORY ALLOCATION Sucessfull: maxmem = ',maxmem, 
+     *           'PROC', me 
       endif
 #ifdef ALTIX
       dptr = dshptr    ! set dbuf pointer to shared mem.
@@ -157,7 +171,7 @@ c   Do we have an existing JOBARC file?  If not, we are doing an SCF
 c   from scratch.
 c-------------------------------------------------------------------------
 
-         call scf_init()
+         call scf_init(vnn)
 
 c-------------------------------------------------------------------------
 c   Verify that we have valid combinations of parameters from the *ACES2
@@ -516,7 +530,7 @@ c--------------------------------------------------------------------------
             print *,'====>> SIAL_PROGRAM parameter is required.'
             ierr = ierr + 1
          else
-            print *,'Next SIAL program: ',sial_program
+            print *,'Next SIAL program: ',trim(sial_program)
          endif
 
 c--------------------------------------------------------------------------
@@ -693,6 +707,21 @@ c-------------------------------------------------------------------
            stack_algorithm_type = 1
          endif
 
+C JNB
+         if (sial_program(1:3) .eq. 'fno' .or.
+     *       sial_program(1:3) .eq. 'FNO') then
+            if_fno = .true.
+         else
+             if_fno = .false.
+         endif
+
+c-------------------------------------------------------------------
+c Always set the stack_algorithm_typr to 2 -> extra blocks allocated 
+c based on usage.  
+c-------------------------------------------------------------------
+
+c        stack_algorithm_type = 2
+
          first = .false.
          call init_data()
          call joda_prep()
@@ -802,7 +831,6 @@ c          go to 333
            endif
            endif
 
-
            print *,'----------- Parameter Summary ----------------'
            print *,'DRYRUN...........................',dryrun
            print *,'INTEGRAL_PACKAGE.................',package
@@ -849,6 +877,25 @@ c          go to 333
       else
          call aces_init_rte()     ! initialize some aces common blocks
       endif
+
+      if (me .eq. 0) then
+         WRITE(6,*) 'VFL NAME :', sial_program 
+         WRITE(6,*) 'VFL NAME :', dryrun  
+      if (sial_program(1:10) .eq. 'scf_aguess') then
+      if (dryrun) then
+         write(6,*) ' Skipping Calling ECP main ' 
+
+      else 
+
+         if (iflags(71) .eq. 1) then 
+            write(6,*) ' Calling ECP main ' 
+            call ecpmain() 
+            write(6,*) ' Out Of Calling ECP main ' 
+         endif 
+
+      endif 
+      endif 
+      endif 
 
 c----------------------------------------------------------------------
 c   Wait for rank 0 before proceeding.
@@ -975,6 +1022,36 @@ c--------------------------------------------------------------------------
         if (write_hess)
      *   call handle_hessian(dbuf(ix_hess), dbuf(ix_nnhess),
      *                       ncenters, write_hess)
+
+C
+C Explicitly correlated contribution
+c
+            istg=0
+            call getrec(1,'JOBARC', 'STGF12', 1, istg)
+            if(istg.eq.1) then 
+            write(6,*) 
+     & 'Explicitly-correlated calculation
+     &  with slater-type  geminals will be performed'
+            call getrec(1,'JOBARC','F12GAMMA',1,F12GAMMA)
+            write(6,*) 'Exponential parameter is',F12GAMMA
+              if(.not.dryrun) then
+            write(6,*) 'Construction of the grid for calculation 
+     &of 3 and 4-electron integrals'
+              call F12_grid()
+              endif
+            endif
+            if(istg.eq.0) write(6,*) 
+     & 'Lame calculation - slater-type geminals are not included'
+c---------------------------------------------------------------------------
+c---------------------------------------------------------------------------
+           call igetrec(1,'JOBARC','IFLAGS2',500,iflags2)    
+           n_ip_roots = 0
+           if(iflags2(114).eq.5) then
+           call igetrec(20,'JOBARC','IPSYM_A',1,n_ipeomcc_roots) 
+           n_ip_roots = n_ipeomcc_roots(1)
+           write(6,*) 'IP-EOMCC calculation:'
+     & ,n_ip_roots,' roots requested'
+            endif
 
 c---------------------------------------------------------------------------
 c   Write SCFENEG, TOTENERG, GRADIENT, and HESSIAN data to JOBARC.

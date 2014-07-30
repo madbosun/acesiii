@@ -392,6 +392,7 @@
       temp        t1ee (kroot,indone)
       temp        t2ee (kroot,indone)
       static  STATIC_REE (kroot,indone)
+      static  STATIC_REE_resid (kroot,indone)
       static  S_ORDER    (kindex12,indone)
       DISTRIBUTED  REE (kroot,indone)
       DISTRIBUTED  REE_ORD (kindex12,indone)
@@ -4545,7 +4546,7 @@
       PARDO a, i
             GET        VSTART1A1(a,i)
             tai(a,i) = VSTART1A1(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A1(a,i) = tai(a,i)
             PUT VSTART1B1(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -4553,7 +4554,7 @@
       PARDO a, i
             GET        VSTART1A2(a,i)
             tai(a,i) = VSTART1A2(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A2(a,i) = tai(a,i)
             PUT VSTART1B2(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -4561,7 +4562,7 @@
       PARDO a, i
             GET        VSTART1A3(a,i)
             tai(a,i) = VSTART1A3(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A3(a,i) = tai(a,i)
             PUT VSTART1B3(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -4569,7 +4570,7 @@
       PARDO a, i
             GET        VSTART1A4(a,i)
             tai(a,i) = VSTART1A4(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A4(a,i) = tai(a,i)
             PUT VSTART1B4(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -4577,7 +4578,7 @@
       PARDO a, i
             GET        VSTART1A5(a,i)
             tai(a,i) = VSTART1A5(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A5(a,i) = tai(a,i)
             PUT VSTART1B5(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -4585,7 +4586,7 @@
       PARDO a, i
             GET        VSTART1A6(a,i)
             tai(a,i) = VSTART1A6(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A6(a,i) = tai(a,i)
             PUT VSTART1B6(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -4593,7 +4594,7 @@
       PARDO a, i
             GET        VSTART1A7(a,i)
             tai(a,i) = VSTART1A7(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A7(a,i) = tai(a,i)
             PUT VSTART1B7(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -4601,7 +4602,7 @@
       PARDO a, i
             GET        VSTART1A8(a,i)
             tai(a,i) = VSTART1A8(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A8(a,i) = tai(a,i)
             PUT VSTART1B8(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -4609,14 +4610,14 @@
       PARDO a, i
             GET        VSTART1A9(a,i)
             tai(a,i) = VSTART1A9(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A9(a,i) = tai(a,i)
             PUT VSTART1B9(a,i) = tai(a,i)
       ENDPARDO a, i
       PARDO a, i
             GET        VSTART1A10(a,i)
             tai(a,i) = VSTART1A10(a,i)
-            tai(a,i) *= 0.707106781
+            tai(a,i) *= 0.70710678118654746172 
             PUT VSTART1A10(a,i) = tai(a,i)
             PUT VSTART1B10(a,i) = tai(a,i)
       ENDPARDO a, i
@@ -10985,7 +10986,7 @@
             t3ai(a,i)      *= -1.0
             t2ai(a,i)       = omega
             t3ai(a,i)      += t2ai(a,i)
-            execute apply_den2 t1ai t3ai
+            execute apply_den2_nor t1ai t3ai
 #
             DO j21 
                if j21 > spdim  
@@ -31453,6 +31454,32 @@
       deallocate lbj(*,*)
 #
       execute server_barrier
+      etemp1 = 0.0
+      etemp2 = 0.0
+      sum1 = 0.0
+      sum2 = 0.0
+      execute server_barrier
+      pardo a,i
+         get VCE1A(a,i)
+         GET VSTART1A9(a,i)
+         etemp = VCE1A(a,i)*VSTART1A9(a,i)
+         sum1 += etemp
+      endpardo a,i
+      pardo a,i
+         get VCE1A(a,i)
+         tai(a,i) = VCE1A(a,i)
+         etemp = VCE1A(a,i)*tai(a,i)
+         sum2 += etemp
+      endpardo a,i
+      execute server_barrier
+      collective etemp1+= sum1
+      collective etemp2+= sum2
+      execute server_barrier
+      execute print_scalar zero
+      execute print_scalar etemp1
+      execute print_scalar etemp2
+      execute print_scalar zero
+      execute server_barrier
 #
 # Calculate properties for this root 
       CALL XPROP 
@@ -31950,33 +31977,36 @@
        DO indone
        DO kindex12
           GET                            REE (kindex12,indone)
+          GET                            REE_resid (kindex12,indone)
           tee        (kindex12,indone) = REE (kindex12,indone)
           STATIC_REE (kindex12,indone) = tee (kindex12,indone)
+          tee        (kindex12,indone) = REE_resid (kindex12,indone)
+          STATIC_REE_resid (kindex12,indone) = tee (kindex12,indone)
        ENDDO kindex12
        ENDDO indone
        EXECUTE  SIP_BARRIER
 
-       EXECUTE  REORDER_ENERGY  STATIC_REE  S_ORDER
+      #EXECUTE  REORDER_ENERGY  STATIC_REE  S_ORDER
 
-       CALL  REORDER_LOW2HIGH
+      #CALL  REORDER_LOW2HIGH
 #
 #
 #          Print out the excitation energies and the respective residuum
 #
 #
-       DO indone
-       DO kindex12
-          GET                      REE_ORD   (kindex12,indone)
-          GET                      REE_rsord (kindex12,indone)
-          tee  (kindex12,indone) = REE_ORD   (kindex12,indone)
-          t1ee (kindex12,indone) = REE_rsord (kindex12,indone)
+      #DO indone
+      #DO kindex12
+      #   GET                      REE_ORD   (kindex12,indone)
+      #   GET                      REE_rsord (kindex12,indone)
+      #   tee  (kindex12,indone) = REE_ORD   (kindex12,indone)
+      #   t1ee (kindex12,indone) = REE_rsord (kindex12,indone)
 
-          STATIC_REE (kindex12,indone) = tee  (kindex12,indone)
-          S_ORDER    (kindex12,indone) = t1ee (kindex12,indone)
-       ENDDO kindex12
-       ENDDO indone
+      #   STATIC_REE (kindex12,indone) = tee  (kindex12,indone)
+      #   S_ORDER    (kindex12,indone) = t1ee (kindex12,indone)
+      #ENDDO kindex12
+      #ENDDO indone
 
-       EXECUTE  EOMROOT_PRINT_NEW  STATIC_REE  S_ORDER
+       EXECUTE  EOMROOT_PRINT_NEW  STATIC_REE STATIC_REE_resid  
 
        EXECUTE  SIP_BARRIER
        EXECUTE  SERVER_BARRIER

@@ -22,6 +22,8 @@ c   parameters are generated.
 c-------------------------------------------------------------------------
       implicit none
       include 'parallel_info.h'
+      include 'frag_def.h'
+      include 'dropmo.h'
 
 #ifdef ACES64
       integer*8 ishell, ierr
@@ -36,7 +38,7 @@ c-------------------------------------------------------------------------
 #endif
 
       integer calc, vib, geom_opt, ref, dropmo, excite, instab, props
-      integer grad_calc
+      integer grad_calc, dip_calc, dea_calc, density
       integer nerr
       integer ios
       integer str_trimlen
@@ -130,6 +132,28 @@ c---------------------------------------------------------------------------
          endif
       endif
 
+c---------------------------------------------------------------------------
+c   Get the flag for relaxed or respnse denstiy
+c---------------------------------------------------------------------------
+
+      density = iflags(19)
+c
+c---------------------------------------------------------------------------
+c Get the flags for DIP/DEA calculations.
+C Note that currently singlet states only DIP/DEA calculations
+C require UHF refrence and it is not necessary and need to be
+C changed (require new SIAL codes). Ajith Perera, 07/2013.
+
+      dip_calc = iflags2(128)
+      dea_calc = iflags2(230)
+
+      If (dip_calc .gt. 0 .OR. dea_calc .gt. 0) then
+          if (ref .eq. 0) then
+              Write(6,"(a,a)") "DIP/DEA calcuation with RHF reference",
+     &                         " is not currently supported."
+              nerr = nerr + 1
+          Endif
+      Endif
 c---------------------------------------------------------------------------
 c   Get the HFSTABILITY flag.
 c---------------------------------------------------------------------------
@@ -268,21 +292,61 @@ c-------------------------------------------------------------------------
          write (22,9000) sip_line
       endif
 
+c   Check if this is a fragmented calculation.  
+c---------------------------------------------------------------------------
+
+  700 continue
+      line = ' '
+      read (23,9000, end = 800) line
+      if (line(1:9) .eq. '*FRAGLIST') then
+         frag_calc = .true. 
+         write (22,9000) line   ! copy the '*SIP'
+      endif
+      if (frag_calc) then 
+         fdrop_flag = .false. 
+         read(23,*) nfrags 
+c
+c Check for dropmo calc NOT frag calc 
+         if (nfrags .le. 1) then 
+            nfrags = 2 
+            fdrop_flag = .true. 
+         endif 
+
+         read(23,*) (natoms_frag(i), i=1, nfrags) 
+         do i = 1, nfrags 
+            read(23,*) (watom_frag(i,j), j=1, natoms_frag(i)) 
+         enddo 
+c     endif 
+c 800 continue
+
+c     if (frag_calc) then 
+         write(6,*) ' You are performing a fragment calculation' 
+         write(6,*) ' Number of fragments :', nfrags 
+         do i = 1, nfrags 
+            write(6,*) ' Atoms in fragment ', i, 
+     *         (watom_frag(i,j), j=1, natoms_frag(i)) 
+         enddo 
+      endif
+  800 continue
+ 
+c---------------------------------------------------------------------------
+
       if (.not. set_keyword(4)) then
          call write_default_sial_programs(calc,dropmo,ref,geom_opt,
      *                                    vib, excite, instab, props,
-     *                                    grad_calc,jobflow)
+     *                                    grad_calc,density,dip_calc,
+     *                                    dea_calc,jobflow)
       else 
          call find_jobflow(calc,dropmo,ref,geom_opt,
      *                                    vib, excite, instab, props,
-     *                                    grad_calc,jobflow)
+     *                                    grad_calc,density,dip_calc,
+     *                                    dea_calc,jobflow)
       endif
 
 c---------------------------------------------------------------------------
 c   Copy all additional lines to ZMAT.AUTO.
 c---------------------------------------------------------------------------
 
-  700 continue
       line = ' '
       read (23,9000,end=9900) line
       write (22,9000) line

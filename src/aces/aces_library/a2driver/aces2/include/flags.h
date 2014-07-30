@@ -346,6 +346,12 @@
 #define h_IOPPAR_extrap		109
 #define h_IFLAGS2_extrap	9
 
+#define h_IOPPAR_stgf12         150
+#define h_IFLAGS2_stgf12        160
+
+#define h_IOPPAR_f12gamma       151
+#define h_IFLAGS2_f12gamma      161
+
 #define h_IOPPAR_ea_calc	201
 #define h_IFLAGS2_ea_calc	101
 
@@ -512,6 +518,18 @@
 
 #define h_IOPPAR_single_store	255
 #define h_IFLAGS2_single_store	155
+
+#define h_IOPPAR_oomp_cyc       256
+#define h_IFLAGS2_oomp_cyc	156
+
+#define h_IOPPAR_dkh_order      257
+#define h_IFLAGS2_dkh_order     157
+
+#define h_IOPPAR_uncontract     258
+#define h_IFLAGS2_uncontract    158
+
+#define h_IOPPAR_opt_control    259
+#define h_IFLAGS2_opt_control   159
 
 #endif /* _FLAGS_H_ */
 

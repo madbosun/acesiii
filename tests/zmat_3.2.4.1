@@ -1,0 +1,30 @@
+CH2; DEA (Singlet):
+C
+H 1 RCH
+H 1 RCH 2 ACHH
+
+RCH  =     1.1089054029
+ACHH =   101.6763177342
+
+*ACES2
+symmetry=off
+SPHERICAL=ON
+BASIS=6-311++G**
+SCF_CONV=6
+CALC=CCSD
+CC_CONV=6
+REF=RHF
+CHARGE=2
+
+*SIP
+MAXMEM=1500
+TIMERS=NO
+SIAL_PROGRAM = scf_uhf_coreh.sio
+SIAL_PROGRAM = cis_uhf.sio
+SIAL_PROGRAM = tran_uhf_dea.sio
+SIAL_PROGRAM = ccsd_uhf_dea.sio
+SIAL_PROGRAM = hbar_uhf_dea.sio
+SIAL_PROGRAM = eom_dea_singlets.sio
+
+
+

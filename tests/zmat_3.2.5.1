@@ -1,0 +1,30 @@
+H2O DIP; Singlets 
+O
+H 1 R
+H 1 R 2 A
+
+R=0.9666
+A=107.6837
+
+*ACES2
+symmetry=off
+SPHERICAL=ON
+BASIS=6-311++G**
+SCF_CONV=6
+CALC=CCSD
+CC_CONV=6
+REF=UHF
+
+*SIP
+MAXMEM=1500
+TIMERS=NO
+SIAL_PROGRAM = scf_uhf_aguess.sio
+SIAL_PROGRAM = scf_uhf_ainit_aguess.sio
+SIAL_PRORRAM = scf_uhf_finish_aguess.sio
+SIAL_PROGRAM = cis_uhf.sio
+SIAL_PROGRAM = tran_uhf_dip.sio
+SIAL_PROGRAM = ccsd_uhf_dip.sio
+SIAL_PROGRAM = eom_dip_singlets.sio
+
+
+

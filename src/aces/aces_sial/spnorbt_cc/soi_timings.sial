@@ -1,0 +1,42 @@
+# This is a simple code to time the direct computation of spin-orbit 
+# (one and two particle) integrals.
+#
+      SIAL SOI_TIMING_SIAL
+#     ---------------------
+#
+      aoindex mu     = 1, norb
+      aoindex nu     = 1, norb
+      aoindex lambda = 1, norb
+      aoindex sigma  = 1, norb
+
+      TEMP Tmp_1SOIX(mu,nu)
+      TEMP Tmp_1SOIY(mu,nu)
+      TEMP Tmp_1SOIZ(mu,nu)
+
+      TEMP Tmp_2SOIX(mu,nu,lambda,sigma)
+      TEMP Tmp_2SOIY(mu,nu,lambda,sigma)
+      TEMP Tmp_2SOIZ(mu,nu,lambda,sigma)
+
+      PARDO mu, nu
+
+           EXECUTE COMPUTE_1SOI_XBATCH Tmp_1SOIX(mu, nu)
+           EXECUTE COMPUTE_1SOI_YBATCH Tmp_1SOIY(mu, nu)
+           EXECUTE COMPUTE_1SOI_ZBATCH Tmp_1SOIZ(mu, nu)
+
+#           execute dump_amp Tmp_1SOIX(mu, nu)
+     
+      ENDPARDO mu, nu
+
+     
+
+      PARDO mu, nu, lambda, sigma
+
+           EXECUTE COMPUTE_2SOI_XBATCH Tmp_2SOIX(mu, nu, lambda, sigma)
+           EXECUTE COMPUTE_2SOI_YBATCH Tmp_2SOIY(mu, nu, lambda, sigma) 
+           EXECUTE COMPUTE_2SOI_ZBATCH Tmp_2SOIZ(mu, nu, lambda, sigma)
+     
+      ENDPARDO mu, nu, lambda, sigma
+
+      ENDSIAL SOI_TIMING_SIAL
+#     -------------------------
+

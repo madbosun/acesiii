@@ -22,8 +22,12 @@ c summary of the basis set.
 
       integer i, j, n, iCenter, iShell, iOffset, iTmp
       integer previous_end
+      integer ECP 
+      common /flags/ iflags
+      integer iflags(100)
 
       include 'int_gen_parms.h'
+      include 'frag_def.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -68,11 +72,14 @@ c   o /int_gen_com/ nFpS(*), ivShlOff(*), nContAOs
 
 c---------------------------------------------------------------------------
 c   Perform better fit of shells to segment size for better performance.
+c   Note that this is NOT done if ECP's are used!!! 
 c---------------------------------------------------------------------------
 
+         ECP = iflags(71) 
          if (intpkg .eq. gamess_package .or.
      *       intpkg .eq. gamess_derivative_package) go to 1000
-         if (aat_database(1:1) .eq. ' ') then
+         if ((aat_database(1:1) .eq. ' ') 
+     *        .and.(.not. frag_calc) .and. (ECP .eq. 0)) then
             call binpack(nshells, nfps, sip_mx_ao_segsize, ixshells)
          else
 
@@ -83,8 +90,8 @@ c---------------------------------------------------------------------------
             do i = 1, nshells
                ixshells(i) = i
             enddo
+            go to 1000 
          endif
-
 c---------------------------------------------------------------------------
 c   Reorder data according to the index array returned by binpack.
 c---------------------------------------------------------------------------

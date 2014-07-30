@@ -223,6 +223,7 @@ c---------------------------------------------------------------------------
       integer a,i
       double precision val
       double precision xmax, xmin, sumsq
+      integer mxcol, imin,imax
 
       xmax = x(a1,i1)
       xmin = x(a1,i1)
@@ -236,9 +237,25 @@ c---------------------------------------------------------------------------
          xmax = max(x(a,i), xmax)
          xmin = min(x(a,i), xmin)
          sumsq = sumsq + x(a,i)*x(a,i)
-         write(6,*) a, i, x(a,i) 
+C         write(6,*) a, i, x(a,i) 
       enddo
       enddo
+
+      mxcol = 7
+      imin = i1
+      imax = i1 + mxcol - 1
+      do while (imin .lt. i2) 
+          if(imax .gt. i2) imax = i2
+          write(6,9028) (i, i=imin,imax)
+          do a = a1,a2
+              write(6,9048) a,(x(a,i),i=imin,imax)
+          enddo
+          imin = imax + 1
+          imax = imax + mxcol
+      enddo
+ 9028 FORMAT(/,6X,10(4X,I4,4X),/)
+ 9048 FORMAT(I5,1X,10F12.7)
+
 
       write(1,*) ' ONE PARTICLE AMPLITUDES '
 

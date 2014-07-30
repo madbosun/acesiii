@@ -1,0 +1,28 @@
+#-D_NONO_SKIP will do the original transformation
+#-D_READ_ONLY do the new transformation but built on old structure
+#-D_2HOT is new transformation on the new structure.
+#
+DEFINES_EXTRA +=  -D_ASSERT -D_DEBUG_LVL0 #-D_ORTHO #-D_2ND_ORD_PROPS -D_COT -D_DORNG -D_DEBUG_LVL0 
+OPTIMIZE=1
+DEBUG=0
+64BIT=1
+INCDIRS= ./include ../include/mpi ../include ../intgrt/include/ ../sbtools/include
+MKL_GRP:= -Bstatic -lmkl_intel_ilp64 -lmkl_lapack95_ilp64 -lmkl_sequential -lmkl_core -Bdynamic 
+LDFLAGS_NUMLIBS:= -L/opt/intel/mkl/11.1.064/lib/em64t -Wl,--start-group $(MKL_GRP) -Wl,--end-group -pthread #-L/home/perera/ACESIII/lib  -llinpack
+DIR_INSTBIN := /home/perera/Develop/acesiii/bin
+DIR_INSTLIB := /home/perera/Develop/acesiii/lib
+DIR_SRCLIB  := ${DIR_INSTLIB}
+
+###################################
+## AME and ASL specific settings ##
+###################################
+
+ifeq (${CURR},asv)
+   LIST_DEF_LIBS :=
+   ACES_LINK_LISTS :=
+   LD := $(filter-out -c,${CC})
+   LDFLAGS := ${CFLAGS}
+   LDFLAGS_EXTRA := ../joda/asv_ctl.o
+   LDFLAGS_NUMLIBS :=
+endif
+

@@ -407,11 +407,20 @@ C
       N30 =   NX + N29
       N31 =   NX + N30
 C
-C The memory for this block (++20*3*MXATMS)
+C Allocate memory for a scratch array in line search, Ajith, 03/10.
+
+      N32 = 6*NX + N31
 C
-      MEMTOP = N31
+C Allocate memory for the projector required in redundent internal
+C optimizations, Ajith, 02/2012 (++20*MXATMS)
+
+      N33 = NX*NX + N32
 C
-C The total memory required  (9*15*MXATMS^2 +  3*34*MXATMS ) assuming 
+C The memory for this block (++9*MXATMS^2)
+C
+      MEMTOP = N33
+C
+C The total memory required  (9*16*MXATMS^2 +  3*34*MXATMS ) assuming 
 C (3*MXATMS-6)=3*MXATMS for user defined internals and 15*MAXREDUNCO^2
 C 34*MAXREDUNCO) for redundent internals
 C
@@ -504,8 +513,10 @@ C
 #ifdef _DEBUG_LVL0
             Print*, "Before the call to GMETRY, XYZIN", XYZIN
 #endif
-        IF (.NOT. XYZIN) CALL GMETRY()
-        call geomout
+C 
+        IF (.NOT. XYZIN) CALL GMETRY(We_havegeom, .TRUE.)
+        IF (XYZIN .AND. Iflags(h_IFLAGS_vib) .GT. 1 .AND.
+     &      IPASS1 .EQ. 0) CALL GETXYZ
 C
 C Internal coordinate geo. optimizations, Cartesian Coordinate 
 C frequency calcualtions requires following call to SYMMETRY.  
@@ -1384,7 +1395,8 @@ C
       CALL DCOPY(NXM6*NXM6, Z(N2), 1, Z(N25), 1)
       CALL TKSTEP(Z(N7), Z(N2), Z(1), Z(N14), Z(N15), Z(N1), Z(N16),
      &            Z(N17), Z(N18), Z(N19), Z(N20), Z(N3), Z(N25),
-     &            Z(N4), IAUGHS)
+     &            Z(N4), Z(N31), Z(N32), IAUGHS)
+CSSS     &            Z(N4), IAUGHS)
 
 c   TKSTEP calls SUMMARY, which may or may not signal the completion of the 
 c   calculation.  So we must check for completion (JODADONE=1), and unwind

@@ -256,6 +256,12 @@ C the JOBACR records that are created by FLUSH.F (call by SYMDRV.F)
 C recorded. The content of these records can be trivialy generated
 C for SYM=NONE (same as SYM=C1). 
 C 
+C Note that increasing the length of records COMPPERM, FULLPERM,
+C FULLSYOP, COMPSYOP has no effect on ACESIII execution. This
+C increase was needed to post ACES II run where full symmetry
+C can be used to assign symmetry to eigenvectors, excited states etc. 
+C 07/2013. Ajith Perera. 
+
          CALL IPUTREC(20,'JOBARC','LINEAR  ',IONE,ILINEAR)
          CALL IPUTREC(20,'JOBARC','FULLNORB',IONE,NATOMS)
          CALL IPUTREC(20,'JOBARC','COMPNORB',IONE,NATOMS)
@@ -274,29 +280,45 @@ C
          CALL PUTCREC(20, 'JOBARC', 'COMPPTGP', 8, STSYM(1))
          CALL IPUTREC(20,'JOBARC','COMPMEMB',ISIZE,MEMBER)
          CALL IPUTREC(20,'JOBARC','FULLMEMB',ISIZE,MEMBER)
-         CALL IPUTREC(20,'JOBARC','COMPPERM',ISIZE,MEMBER)
-         CALL IPUTREC(20,'JOBARC','FULLPERM',ISIZE,MEMBER)
+         CALL IPUTREC(20,'JOBARC','COMPPERM',ISIZE*8,MEMBER)
+         CALL IPUTREC(20,'JOBARC','FULLPERM',ISIZE*8,MEMBER)
+
          DO i = 1, iSize
             MEMBER(i) = 1
          ENDDO
+
          CALL IPUTREC(20,'JOBARC','COMPPOPV',ISIZE,MEMBER) 
          CALL IPUTREC(20,'JOBARC','FULLPOPV',ISIZE,MEMBER) 
          CALL IPUTREC(20,'JOBARC','COMPNIRR',IONE,IONE)
          CALL IPUTREC(20,'JOBARC','FULLNIRR',IONE,IONE)
          CALL IPUTREC(20,'JOBARC','FULLORDR',IONE,IONE)
          CALL IPUTREC(20,'JOBARC','COMPORDR',IONE,IONE)
+C
          CALL IDNMAT(RM,3,IJUNK)
-         CALL DPUTREC(20,'JOBARC','FULLSYOP',ININE,RM) 
-         CALL DPUTREC(20,'JOBARC','COMPSYOP',ININE,RM) 
+         CALL DPUTREC(20,'JOBARC','FULLSYOP',ININE*8,RM) 
+         CALL DPUTREC(20,'JOBARC','COMPSYOP',ININE*8,RM) 
 C
          CALL IGETREC(-1, 'JOBARC', '12SWITCH', ione, ibad)
+
+         II = 0
          DO I = 1, NATOMS
-            MEMBER(I) = I
+C
+C Minor fix to get Symmetry=none to work with dummy atoms; 02/2012
+C Ajith Perera
+C
+            IF (IATNUM(I) .EQ. 0) Then
+               MEMBER(I) = 999
+            ELSE
+               II = II + 1
+               MEMBER(I) = II
+            ENDIF
          ENDDO
-         IF (IBAD .EQ. 1) THEN 
+
+         IF (IBAD .EQ. 1) THEN
             MEMBER(2) = 1
-            MEMBER(1) = 2 
+            MEMBER(1) = 2
          ENDIF
+
          CALL IPUTREC(20,'JOBARC','ZMAT2MOL',ISIZE,MEMBER)
 C
 C Copy the principal axis orientation (NEWQ to Q) and print it.

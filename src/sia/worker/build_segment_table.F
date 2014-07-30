@@ -34,6 +34,7 @@ c--------------------------------------------------------------------------
       include 'machine_types.h'
       include 'symbolic_constants.h'
 c      include 'int_gen_parms.h'
+      include 'frag_def.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -50,6 +51,9 @@ c      include 'int_gen_parms.h'
       integer narray_table
       integer array_table(larray_table_entry,narray_table)
       integer atoms(nshells)
+      integer nfocc, nfvirt  
+      integer nafocc, nafvirt  
+      integer nbfocc, nbfvirt
 
       integer segtable(2)
 #ifdef ALTIX
@@ -82,6 +86,13 @@ c      include 'int_gen_parms.h'
 #endif
 
 c---------------------------------------------------------------------------
+c     If this is a fragment calculation set up the orbital ranges. 
+c---------------------------------------------------------------------------
+
+      if (frag_calc) then
+         call fragment_orbitals(end_nfps, nshells, atoms)
+      endif
+c---------------------------------------------------------------------------
 c   Map the ao shells defined by basis function data into segments.
 c--------------------------------------------------------------------------- 
 
@@ -90,9 +101,15 @@ c     norbitals = end_nfps(nshells)
       call shells_to_segments(end_nfps, nshells, mx_ao_seg_size,
      *                        aosegs, naosegs, atom_based, atoms)
 
+      if (frag_calc)
+     *call fshells_to_segments(end_nfps, nshells, mx_ao_seg_size,
+     *                         aosegs, naosegs, atoms)
+
 c----------------------------------------------------------------------------
 c   Translate the symbolic constants needed for index segment checking.
 c----------------------------------------------------------------------------
+
+      if (.not. frag_calc) then
 
       boccval = translate_symbolic_constant(bocc, naosegs,
      *                       norbitals, nocc_orbitals, naocc_orbitals,
@@ -142,6 +159,63 @@ c----------------------------------------------------------------------------
      *                       norbitals, nocc_orbitals, naocc_orbitals,
      *                       nbocc_orbitals, mx_ao_seg_size,
      *                       mx_occ_seg_size, mx_virt_seg_size)
+      endif
+
+c----------------------------------------------------------------------------
+c   If this is a fragment calculation we need to make sure that the 
+c   segments and number of segments are set correctly. 
+c----------------------------------------------------------------------------
+
+      if (frag_calc) then
+      nafocc = 0
+      nbfocc = 0
+      nafvirt = 0
+      nbfvirt = 0
+c     do i = 1, nfrags 
+c        write(6,*) 'VFL NOCC:', n_aocc(i), n_bocc(i)  
+c        write(6,*) 'VFL NOCC:', n_avirt(i), n_bvirt(i)  
+c     enddo 
+      call set_naocc_segs(nafocc, naocc_orbitals, mx_occ_seg_size)
+      call set_nbocc_segs(nbfocc, nbocc_orbitals, mx_occ_seg_size)
+      call set_navirt_segs(nafvirt, naocc_orbitals, navirt_orbitals,
+     *                     mx_virt_seg_size)
+      call set_nbvirt_segs(nbfvirt, nbocc_orbitals, nbvirt_orbitals,
+     *                     mx_virt_seg_size)
+
+      baoccval  = 1
+      eaoccval  = nafocc
+      bboccval  = 1
+      eboccval  = nbfocc
+
+      bavirtval = nafocc + 1
+      eavirtval = bavirtval + nafvirt - 1
+      bbvirtval = nbfocc + 1
+      ebvirtval = bbvirtval + nbfvirt - 1
+
+      boccval   = baoccval
+      eoccval   = eaoccval
+      bvirtval  = bavirtval
+      evirtval  = eavirtval
+
+      write(6,*) 'VFL boccval = ', boccval
+      write(6,*) 'eoccval = ', eoccval
+      write(6,*) 'baoccval = ', baoccval
+      write(6,*) 'eaoccval = ', eaoccval
+      write(6,*) 'bboccval = ', bboccval
+      write(6,*) 'eboccval = ', eboccval
+
+      write(6,*) 'bvirtval = ', bvirtval
+      write(6,*) 'evirtval = ', evirtval
+      write(6,*) 'bavirtaval = ', bavirtval
+      write(6,*) 'eavirtaval = ', eavirtval
+      write(6,*) 'bbvirtbval = ', bbvirtval
+      write(6,*) 'ebvirtbval = ', ebvirtval
+
+c Set the lists defining which segments belong to which fragments 
+
+      call set_frag_segs()
+
+      endif
 
 c----------------------------------------------------------------------------
 c   Store some values in the "symbolic_constants" table.
@@ -244,11 +318,16 @@ c----------------------------------------------------------------------------
          if (eseg_table .eq. norb) then
             if (index_table(c_index_type,i) .eq. moindex) then
                eseg_table = evirt
+               if (frag_calc) eseg_table = eavirtval
             else if (index_table(c_index_type,i) .eq. moaindex) then
                eseg_table = eavirt
+               if (frag_calc) eseg_table = eavirtval
             else if (index_table(c_index_type,i) .eq. mobindex) then
                eseg_table = ebvirt
+               if (frag_calc) eseg_table = ebvirtval
             endif
+            index_table(c_bseg,i) = bseg_table
+            index_table(c_eseg,i) = eseg_table
          endif
 
 c----------------------------------------------------------------------------
@@ -280,6 +359,7 @@ c----------------------------------------------------------------------------
      *               baoccval, eaoccval, bavirtval, eavirtval,
      *               bboccval, eboccval, bbvirtval, ebvirtval)
          endif
+33       continue
 
          if (index_table(c_index_type,i) .eq. subindex) then
 
@@ -520,12 +600,15 @@ c------------------------------------------------------------------------------
       implicit none
       include 'interpreter.h'
       include 'int_gen_parms.h'
+      include 'frag_def.h'
+      integer i,j
       integer iseg, naosegs, norbitals, nocc_orbitals
       integer mx_ao_seg_size, mx_occ_seg_size, mx_virt_seg_size
       integer naocc_orbitals, nbocc_orbitals
       integer seg, bo, eo, bv, ev
       integer bao, eao, bav, eav
       integer bbo, ebo, bbv, ebv
+      integer n_frag
       
       bo = 1
       eo = (nocc_orbitals - 1) / mx_occ_seg_size + 1
@@ -541,6 +624,38 @@ c------------------------------------------------------------------------------
       ebo = (nbocc_orbitals - 1) / mx_occ_seg_size + 1
       bbv = ebo + 1
       ebv = (norbitals - nbocc_orbitals - 1) / mx_virt_seg_size + bbv
+
+      if (frag_calc) then
+
+         n_frag = nfrags
+         if (fdrop_flag) n_frag = 1
+
+         eao = 0
+         do i = 1, nfrags
+             eao = eao + n_aocc(i)
+         enddo
+         eo = eao
+
+         bav = eao + 1
+         bv  = bav
+         eav = eao
+
+         do i = 1, n_frag
+             eav = eav + n_avirt(i)
+         enddo
+
+         ev = eav
+         ebo = 0
+         do i = 1, nfrags
+             ebo = ebo + n_bocc(i)
+         enddo
+
+         ebv = ebo
+         bbv = ebo + 1
+         do i = 1, n_frag
+             ebv = ebv + n_bvirt(i)
+         enddo
+      endif
 
       if (iseg .eq. norb) then
          seg = naosegs
@@ -652,7 +767,9 @@ c------------------------------------------------------------------------------
      *                       brange, erange)
       implicit none
       include 'interpreter.h'
+      include 'frag_def.h'
       integer type, seg, naosegs, norbitals, nocc_orbitals
+      integer i,j
       integer naocc_orbitals, nbocc_orbitals
       integer no_per_seg, no_left, nv_per_seg, nv_left, nvorbitals
       integer nosegs, nvsegs
@@ -660,6 +777,103 @@ c------------------------------------------------------------------------------
      *        brange, erange
       integer aosegs(naosegs)
 
+      if (frag_calc) then
+
+      if (type .eq. aoindex) then
+         if (seg .eq. 1) then
+            brange = 1
+         else
+            brange = aosegs(seg-1) + 1
+         endif
+         erange = aosegs(seg)
+
+      else if (type .eq. moaindex .or. type .eq. moindex) then
+         nosegs = 0
+         nvsegs = 0
+         do i = 1, nfrags
+            nosegs = nosegs + n_aocc(i)
+            nvsegs = nvsegs + n_avirt(i)
+         enddo
+
+         if (seg .le. nosegs) then
+            nosegs = 0
+            do i = 1, nfrags
+            do j = 1, n_aocc(i)
+               nosegs = nosegs + 1
+               if (nosegs .eq. seg) then
+                  brange = baocc_frag(i,j)
+                  erange = eaocc_frag(i,j)
+               endif
+            enddo
+            enddo
+         else
+            nosegs = 0
+            do i = 1, nfrags
+               nosegs = nosegs + n_aocc(i)
+            enddo
+            do i = 1, nfrags
+            do j = 1, n_avirt(i)
+               nosegs = nosegs + 1
+               if (nosegs .eq. seg) then
+                  brange = bavirt_frag(i,j)
+                  erange = eavirt_frag(i,j)
+               endif
+            enddo
+            enddo
+         endif
+
+      else if (type .eq. mobindex) then
+         nosegs = 0
+         nvsegs = 0
+         do i = 1, nfrags
+            nosegs = nosegs + n_bocc(i)
+            nvsegs = nvsegs + n_bvirt(i)
+         enddo
+
+         if (seg .le. nosegs) then
+            nosegs = 0
+            do i = 1, nfrags
+            do j = 1, n_bocc(i)
+               nosegs = nosegs + 1
+               if (nosegs .eq. seg) then
+                  brange = bbocc_frag(i,j)
+                  erange = ebocc_frag(i,j)
+               endif
+            enddo
+            enddo
+         else
+         nosegs = 0
+         do i = 1, nfrags
+            nosegs = nosegs + n_bocc(i)
+         enddo
+            do i = 1, nfrags
+            do j = 1, n_bvirt(i)
+               nosegs = nosegs + 1
+               if (nosegs .eq. seg) then
+                  brange = bbvirt_frag(i,j)
+                  erange = ebvirt_frag(i,j)
+               endif
+            enddo
+            enddo
+         endif
+      else if (type .eq. simple_index) then
+         brange = seg
+         erange = seg
+      else if (type .eq. laindex) then
+         brange = 1
+         erange = 1
+      else if (type .eq. subindex) then
+         brange = seg
+         erange = seg
+      else
+         print *,'Error in segment_get_range: Unknown type ',type
+         call abort_job()
+      endif
+         return
+      endif !  frag_calc        
+
+90    continue
+      if( .not. frag_calc) then
       if (type .eq. aoindex) then
          if (seg .eq. 1) then
             brange = 1
@@ -770,6 +984,7 @@ c------------------------------------------------------------------------------
          print *,'Error in segment_get_range: Unknown type ',type
          call abort_job()
       endif
+      endif ! .not. frag_calc
      
       return
       end
@@ -785,6 +1000,7 @@ c   and the job aborts.
 c--------------------------------------------------------------------------
       implicit none
       include 'interpreter.h'
+      include 'frag_def.h'
 
       integer seg, type, naosegs, ibocc, ieocc, ibvirt, ievirt
       integer ibavirt, ieavirt, ibaocc, ieaocc
@@ -949,4 +1165,466 @@ c----------------------------------------------------------------------------
       return
       end
 
+      subroutine set_naocc_segs(nocc, nocc_orbitals, mx_occ_seg_size) 
+      implicit none 
+      include 'frag_def.h'
+      integer nocc, nocc_orbitals, mx_occ_seg_size
+      integer i, j, start   
+      integer n_frag, occ_frag(100), nocc_frag(100)
 
+c     logical frag_calc 
+c     integer nfrags, natoms_frag, watom_frag 
+c     common /FRAGDEF/frag_calc, nfrags, natoms_frag(100), 
+c    *                watom_frag(100,100) 
+
+c     integer fragAO, n_occ, n_aocc, n_bocc, n_virt, n_avirt, n_bvirt
+c     common /FORBS/fragAO(100), n_occ(100), n_aocc(100), n_bocc(100), 
+c    *              n_virt(100),
+c    *              n_avirt(100),
+c    *              n_bvirt(100) 
+
+c     integer bocc_frag, eocc_frag, baocc_frag, eaocc_frag,  
+c    *        bbocc_frag, ebocc_frag,  
+c 
+c    *        bvirt_frag, evirt_frag, bavirt_frag, eavirt_frag,  
+c    *        bbvirt_frag, ebvirt_frag  
+
+c     common /SEGRANGE/bocc_frag(100,100), eocc_frag(100,100),  
+c    *                 baocc_frag(100,100), eaocc_frag(100,100),  
+c    *                 bbocc_frag(100,100), ebocc_frag(100,100),  
+c 
+c    *                 bvirt_frag(100,100), evirt_frag(100,100),  
+c    *                 bavirt_frag(100,100), eavirt_frag(100,100),  
+c    *                 bbvirt_frag(100,100), ebvirt_frag(100,100)  
+
+
+c As a test just set occ fragmants 
+
+      n_frag = nfrags 
+      do i = 1, n_frag 
+         occ_frag(i) = n_aocc(i)  
+      enddo 
+
+      nocc = 0 
+      do i = 1, n_frag 
+         if (mx_occ_seg_size .ge. occ_frag(i)) then 
+            nocc         = nocc + 1 
+            nocc_frag(i) = 1 
+            bocc_frag(i,nocc_frag(i)) = 1 
+            eocc_frag(i,nocc_frag(i)) = bocc_frag(i,nocc_frag(i)) 
+     *                                + occ_frag(i) - 1  
+         else  
+            nocc_frag(i) = occ_frag(i)/mx_occ_seg_size 
+            if (nocc_frag(i)*mx_occ_seg_size .lt. occ_frag(i)) 
+     *          nocc_frag(i) = nocc_frag(i) + 1 
+            nocc = nocc + nocc_frag(i) 
+
+            do j = 1, nocc_frag(i) 
+               if (j .eq. 1) then 
+                  bocc_frag(i,j) = 1 
+                  eocc_frag(i,j) = bocc_frag(i,j) + mx_occ_seg_size - 1  
+               endif 
+
+               if (j .gt. 1) then 
+                  bocc_frag(i,j) = eocc_frag(i,j-1) + 1 
+                  eocc_frag(i,j) = bocc_frag(i,j) + mx_occ_seg_size - 1  
+               endif 
+            enddo 
+
+            if (eocc_frag(i,nocc_frag(i)) .gt. occ_frag(i)) 
+     *         eocc_frag(i,nocc_frag(i)) = occ_frag(i) 
+
+         endif 
+
+      enddo 
+
+      write(6,*) ' NaOCC = ', nocc 
+      start = 0 
+      do i = 1, n_frag 
+         n_aocc(i) = nocc_frag(i) 
+         write(6,*) '    ', i, n_aocc(i)
+         do j = 1, nocc_frag(i)
+            baocc_frag(i,j) = bocc_frag(i,j) + start  
+            eaocc_frag(i,j) = eocc_frag(i,j) + start  
+            write(6,*) '          ', baocc_frag(i,j), eaocc_frag(i,j) 
+         enddo 
+         start = start + (eaocc_frag(i,nocc_frag(i)) -
+     *                    baocc_frag(i,1) + 1)   
+      enddo 
+
+
+      end
+
+      subroutine set_navirt_segs(nvirt,nocc_orbitals,nvirt_orbitals,
+     *                           mx_virt_seg_size) 
+      implicit none 
+      include 'frag_def.h'
+      integer nvirt, nocc_orbitals, nvirt_orbitals, mx_virt_seg_size
+      integer i, j, start   
+      integer n_frag, virt_frag(100), nvirt_frag(100) 
+
+c     logical frag_calc 
+c     integer nfrags, natoms_frag, watom_frag 
+c     common /FRAGDEF/frag_calc, nfrags, natoms_frag(100), 
+c    *                watom_frag(100,100) 
+
+c     integer fragAO, n_occ, n_aocc, n_bocc, n_virt, n_avirt, n_bvirt
+c     common /FORBS/fragAO(100), n_occ(100), n_aocc(100), n_bocc(100), 
+c    *              n_virt(100),
+c    *              n_avirt(100),
+c    *              n_bvirt(100) 
+
+c     integer bocc_frag, eocc_frag, baocc_frag, eaocc_frag,  
+c    *        bbocc_frag, ebocc_frag,  
+c 
+c    *        bvirt_frag, evirt_frag, bavirt_frag, eavirt_frag,  
+c    *        bbvirt_frag, ebvirt_frag  
+
+c     common /SEGRANGE/bocc_frag(100,100), eocc_frag(100,100),  
+c    *                 baocc_frag(100,100), eaocc_frag(100,100),  
+c    *                 bbocc_frag(100,100), ebocc_frag(100,100),  
+c 
+c    *                 bvirt_frag(100,100), evirt_frag(100,100),  
+c    *                 bavirt_frag(100,100), eavirt_frag(100,100),  
+c    *                 bbvirt_frag(100,100), ebvirt_frag(100,100)  
+
+
+c As a test just set virt fragmants 
+
+      n_frag = nfrags 
+      if (fdrop_flag) n_frag = 1 
+
+      do i = 1, n_frag 
+         virt_frag(i) = n_avirt(i)  
+      enddo 
+
+      nvirt = 0 
+      do i = 1, n_frag 
+         if (mx_virt_seg_size .ge. virt_frag(i)) then 
+            nvirt         = nvirt + 1 
+            nvirt_frag(i) = 1 
+            bvirt_frag(i,nvirt_frag(i)) = 1 
+            evirt_frag(i,nvirt_frag(i)) = bvirt_frag(i,nvirt_frag(i)) 
+     *                                + virt_frag(i) - 1  
+         else  
+            nvirt_frag(i) = virt_frag(i)/mx_virt_seg_size 
+            if (nvirt_frag(i)*mx_virt_seg_size .lt. virt_frag(i)) 
+     *          nvirt_frag(i) = nvirt_frag(i) + 1 
+            nvirt = nvirt + nvirt_frag(i) 
+
+            do j = 1, nvirt_frag(i) 
+               if (j .eq. 1) then 
+                  bvirt_frag(i,j) = 1 
+                  evirt_frag(i,j) = bvirt_frag(i,j) + mx_virt_seg_size-1  
+               endif 
+
+               if (j .gt. 1) then 
+                  bvirt_frag(i,j) = evirt_frag(i,j-1) + 1 
+                  evirt_frag(i,j) = bvirt_frag(i,j) + mx_virt_seg_size-1  
+               endif 
+            enddo 
+
+            if (evirt_frag(i,nvirt_frag(i)) .gt. virt_frag(i)) 
+     *         evirt_frag(i,nvirt_frag(i)) = virt_frag(i) 
+
+         endif 
+
+      enddo 
+
+      write(6,*) ' NaVIRT = ', nvirt 
+      start = nocc_orbitals 
+      do i = 1, n_frag 
+         n_avirt(i) = nvirt_frag(i) 
+         write(6,*) '    ', i, n_avirt(i)
+         do j = 1, nvirt_frag(i)
+            bavirt_frag(i,j) = bvirt_frag(i,j) + start  
+            eavirt_frag(i,j) = evirt_frag(i,j) + start  
+            write(6,*) '          ', bavirt_frag(i,j), eavirt_frag(i,j) 
+         enddo 
+         start = eavirt_frag(i,nvirt_frag(i)) 
+      enddo 
+
+
+      end
+
+      subroutine set_nbocc_segs(nocc, nocc_orbitals, mx_occ_seg_size) 
+      implicit none 
+      include 'frag_def.h'
+      integer nocc, nocc_orbitals, mx_occ_seg_size
+      integer i, j, start   
+      integer n_frag, occ_frag(100), nocc_frag(100) 
+
+c     logical frag_calc 
+c     integer nfrags, natoms_frag, watom_frag 
+c     common /FRAGDEF/frag_calc, nfrags, natoms_frag(100), 
+c    *                watom_frag(100,100) 
+
+c     integer fragAO, n_occ, n_aocc, n_bocc, n_virt, n_avirt, n_bvirt
+c     common /FORBS/fragAO(100), n_occ(100), n_aocc(100), n_bocc(100), 
+c    *              n_virt(100),
+c    *              n_avirt(100),
+c    *              n_bvirt(100) 
+
+c     integer bocc_frag, eocc_frag, baocc_frag, eaocc_frag,  
+c    *        bbocc_frag, ebocc_frag,  
+c 
+c    *        bvirt_frag, evirt_frag, bavirt_frag, eavirt_frag,  
+c    *        bbvirt_frag, ebvirt_frag  
+
+c     common /SEGRANGE/bocc_frag(100,100), eocc_frag(100,100),  
+c    *                 baocc_frag(100,100), eaocc_frag(100,100),  
+c    *                 bbocc_frag(100,100), ebocc_frag(100,100),  
+c 
+c    *                 bvirt_frag(100,100), evirt_frag(100,100),  
+c    *                 bavirt_frag(100,100), eavirt_frag(100,100),  
+c    *                 bbvirt_frag(100,100), ebvirt_frag(100,100)  
+
+
+c As a test just set occ fragmants 
+
+      n_frag = nfrags 
+      do i = 1, n_frag 
+         occ_frag(i) = n_bocc(i)  
+      enddo 
+
+      nocc = 0 
+      do i = 1, n_frag 
+         if (mx_occ_seg_size .ge. occ_frag(i)) then 
+            nocc         = nocc + 1 
+            nocc_frag(i) = 1 
+            bocc_frag(i,nocc_frag(i)) = 1 
+            eocc_frag(i,nocc_frag(i)) = bocc_frag(i,nocc_frag(i)) 
+     *                                + occ_frag(i) - 1  
+         else  
+            nocc_frag(i) = occ_frag(i)/mx_occ_seg_size 
+            if (nocc_frag(i)*mx_occ_seg_size .lt. occ_frag(i)) 
+     *          nocc_frag(i) = nocc_frag(i) + 1 
+            nocc = nocc + nocc_frag(i) 
+
+            do j = 1, nocc_frag(i) 
+               if (j .eq. 1) then 
+                  bocc_frag(i,j) = 1 
+                  eocc_frag(i,j) = bocc_frag(i,j) + mx_occ_seg_size - 1  
+               endif 
+
+               if (j .gt. 1) then 
+                  bocc_frag(i,j) = eocc_frag(i,j-1) + 1 
+                  eocc_frag(i,j) = bocc_frag(i,j) + mx_occ_seg_size - 1  
+               endif 
+            enddo 
+
+            if (eocc_frag(i,nocc_frag(i)) .gt. occ_frag(i)) 
+     *         eocc_frag(i,nocc_frag(i)) = occ_frag(i) 
+
+         endif 
+
+      enddo 
+
+      write(6,*) ' NbOCC = ', nocc 
+      start = 0 
+      do i = 1, n_frag 
+         n_bocc(i) = nocc_frag(i) 
+         write(6,*) '    ', i, n_bocc(i)
+         do j = 1, nocc_frag(i)
+            bbocc_frag(i,j) = bocc_frag(i,j) + start  
+            ebocc_frag(i,j) = eocc_frag(i,j) + start  
+            write(6,*) '          ', bbocc_frag(i,j), ebocc_frag(i,j) 
+         enddo 
+         start = start + (ebocc_frag(i,nocc_frag(i)) -
+     *                    bbocc_frag(i,1) + 1)   
+      enddo 
+
+      end
+
+      subroutine set_nbvirt_segs(nvirt,nocc_orbitals,nvirt_orbitals,
+     *                           mx_virt_seg_size) 
+      implicit none 
+      include 'frag_def.h'
+      integer nvirt, nocc_orbitals, nvirt_orbitals, mx_virt_seg_size
+      integer i, j, start   
+      integer n_frag, virt_frag(100), nvirt_frag(100) 
+
+c     logical frag_calc 
+c     integer nfrags, natoms_frag, watom_frag 
+c     common /FRAGDEF/frag_calc, nfrags, natoms_frag(100), 
+c    *                watom_frag(100,100) 
+
+c     integer fragAO, n_occ, n_aocc, n_bocc, n_virt, n_avirt, n_bvirt
+c     common /FORBS/fragAO(100), n_occ(100), n_aocc(100), n_bocc(100), 
+c    *              n_virt(100),
+c    *              n_avirt(100),
+c    *              n_bvirt(100) 
+
+c     integer bocc_frag, eocc_frag, baocc_frag, eaocc_frag,  
+c    *        bbocc_frag, ebocc_frag,  
+c 
+c    *        bvirt_frag, evirt_frag, bavirt_frag, eavirt_frag,  
+c    *        bbvirt_frag, ebvirt_frag  
+
+c     common /SEGRANGE/bocc_frag(100,100), eocc_frag(100,100),  
+c    *                 baocc_frag(100,100), eaocc_frag(100,100),  
+c    *                 bbocc_frag(100,100), ebocc_frag(100,100),  
+c 
+c    *                 bvirt_frag(100,100), evirt_frag(100,100),  
+c    *                 bavirt_frag(100,100), eavirt_frag(100,100),  
+c    *                 bbvirt_frag(100,100), ebvirt_frag(100,100)  
+
+c As a test just set virt fragmants 
+
+      n_frag = nfrags 
+      if (fdrop_flag) n_frag = 1 
+
+      do i = 1, n_frag 
+         virt_frag(i) = n_bvirt(i)  
+      enddo 
+
+      nvirt = 0 
+      do i = 1, n_frag 
+         if (mx_virt_seg_size .ge. virt_frag(i)) then 
+            nvirt         = nvirt + 1 
+            nvirt_frag(i) = 1 
+            bvirt_frag(i,nvirt_frag(i)) = 1 
+            evirt_frag(i,nvirt_frag(i)) = bvirt_frag(i,nvirt_frag(i)) 
+     *                                + virt_frag(i) - 1  
+         else  
+            nvirt_frag(i) = virt_frag(i)/mx_virt_seg_size 
+            if (nvirt_frag(i)*mx_virt_seg_size .lt. virt_frag(i)) 
+     *          nvirt_frag(i) = nvirt_frag(i) + 1 
+            nvirt = nvirt + nvirt_frag(i) 
+
+            do j = 1, nvirt_frag(i) 
+               if (j .eq. 1) then 
+                  bvirt_frag(i,j) = 1 
+                  evirt_frag(i,j) = bvirt_frag(i,j) + mx_virt_seg_size-1  
+               endif 
+
+               if (j .gt. 1) then 
+                  bvirt_frag(i,j) = evirt_frag(i,j-1) + 1 
+                  evirt_frag(i,j) = bvirt_frag(i,j) + mx_virt_seg_size-1  
+               endif 
+            enddo 
+
+            if (evirt_frag(i,nvirt_frag(i)) .gt. virt_frag(i)) 
+     *         evirt_frag(i,nvirt_frag(i)) = virt_frag(i) 
+
+         endif 
+
+      enddo 
+
+      write(6,*) ' NbVIRT = ', nvirt 
+      start = nocc_orbitals 
+      do i = 1, n_frag 
+         n_bvirt(i) = nvirt_frag(i) 
+         write(6,*) '    ', i, n_bvirt(i)
+         do j = 1, nvirt_frag(i)
+            bbvirt_frag(i,j) = bvirt_frag(i,j) + start  
+            ebvirt_frag(i,j) = evirt_frag(i,j) + start  
+            write(6,*) '          ', bbvirt_frag(i,j), ebvirt_frag(i,j) 
+         enddo 
+         start = ebvirt_frag(i,nvirt_frag(i)) 
+      enddo 
+
+      end
+
+      subroutine set_frag_segs() 
+      implicit none 
+      include 'frag_def.h'
+      integer i, j, n, n_frag  
+
+c     write(6,*) ' Defining FRAGMENT lists' 
+
+c Determine the AO frag segment list 
+
+c     write(6,*) ' AO list ' 
+c     n = 0 
+c     do i = 1, nfrags 
+c     do j = 1, fragAO(i) 
+c        n = n + 1 
+c        w_frag_AO(n) = i 
+c        write(6,*) n, w_frag_AO(n) 
+c     enddo 
+c     enddo 
+
+c Determine the occupied frag segment list 
+
+c Determine the AO frag segment list 
+
+      write(6,*) ' OCC list ' 
+
+      n = 0 
+      do i = 1, nfrags 
+      do j = 1, n_aocc(i) 
+         n = n + 1 
+         w_frag_occ(n) = i 
+         write(6,*) n, w_frag_occ(n) 
+      enddo 
+      enddo 
+
+      write(6,*) ' OCCA list ' 
+
+      n = 0 
+      do i = 1, nfrags 
+      do j = 1, n_aocc(i) 
+         n = n + 1 
+         w_frag_aocc(n) = i 
+         write(6,*) n, w_frag_aocc(n) 
+      enddo 
+      enddo 
+
+      write(6,*) ' OCCB list ' 
+
+      n = 0 
+      do i = 1, nfrags 
+      do j = 1, n_bocc(i) 
+         n = n + 1 
+         w_frag_bocc(n) = i 
+         write(6,*) n, w_frag_bocc(n) 
+      enddo 
+      enddo 
+
+c Determine the virtual frag segment list 
+
+      write(6,*) ' VIRT list ' 
+
+      n_frag = nfrags 
+      if (fdrop_flag) n_frag = 1 
+
+      n = 0 
+      do i = 1, n_frag 
+      do j = 1, n_avirt(i) 
+         n = n + 1 
+         w_frag_virt(n) = i 
+         write(6,*) n, w_frag_virt(n) 
+      enddo 
+      enddo 
+
+      write(6,*) ' VIRTA list ' 
+
+      n_frag = nfrags 
+      if (fdrop_flag) n_frag = 1 
+
+      n = 0 
+      do i = 1, n_frag 
+      do j = 1, n_avirt(i) 
+         n = n + 1 
+         w_frag_avirt(n) = i 
+         write(6,*) n, w_frag_avirt(n) 
+      enddo 
+      enddo 
+
+      write(6,*) ' VIRTB list ' 
+
+      n_frag = nfrags 
+      if (fdrop_flag) n_frag = 1 
+
+      n = 0 
+      do i = 1, n_frag 
+      do j = 1, n_bvirt(i) 
+         n = n + 1 
+         w_frag_bvirt(n) = i 
+         write(6,*) n, w_frag_bvirt(n) 
+      enddo 
+      enddo 
+
+
+      end 

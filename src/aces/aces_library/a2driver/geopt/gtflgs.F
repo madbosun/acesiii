@@ -182,6 +182,8 @@ c PARAMETERS
 #include "io_units.par"
 #include "fnamelen.par"
 #include "linelen.par"
+#include "scflindep.h"
+#include "F12.h"
       integer    dim_iflags,     dim_iflags2
       parameter (dim_iflags=100, dim_iflags2=500)
       INTEGER    nParam
@@ -325,6 +327,14 @@ c   o only print the logs and summaries on the first run
       else
          bVerbose = .true.
       end if
+
+C DB 02/2014
+c----------Explicitly - correlated part----------------------
+      call putrec(1,'JOBARC','STGF12',1,0)
+      STGF12=.false.
+      F12GAMMA=1.5 
+c-----------------------------------------------------------
+      lindep_tol = 9 
 
 c   o nIrrps tracks the number of irreps in all of the user's value
 c     tokens. Originally, we would load COMPNIRR from JOBARC, but this
@@ -762,6 +772,36 @@ c         o BASIS
                goto 101
             end if
 
+c---------Basis linear dependency threshold-----------------------------
+            if (iASV.eq.h_IOPPAR_lindep_tol) then
+            lindep_tol = ioppar(h_IOPPAR_lindep_tol)
+            goto 101
+            endif
+
+C DB 02/2014
+c---------Explicitly-correlated part----------------------------------
+            if (iASV.eq.h_IOPPAR_stgf12) then
+              if (ioppar(h_IOPPAR_stgf12).eq.1) then
+              call putrec(1,'JOBARC','STGF12',1,1)
+              STGF12=.true.
+              else
+              call putrec(1,'JOBARC','STGF12',1,0)
+              STGF12=.false. 
+              endif
+              goto 101
+            endif
+
+            if (iASV.eq.h_IOPPAR_f12gamma) then
+            call str2d(szData(1:ValueSize)//char(0),F12GAMMA)
+            call putrec(1,'JOBARC','F12GAMMA',1,F12GAMMA)
+            goto 101
+            endif
+c---------Integral threshold--------------------------------------------
+            if (iASV.eq.h_IOPPAR_intgrl_tol) then
+            intgrl_tol = ioppar(h_IOPPAR_intgrl_tol)
+            goto 101
+            endif
+
 c YAU - add a conditional for SUBGROUP that sets nIrrps
 
 c         o OCCUPATION
@@ -1177,6 +1217,17 @@ c         o geom_opt=partial
       endif
 
 c
+c    o LST or QST is set but not a transition state search, 12/2012.
+c      Ajith Perera.
+
+      if (ioppar(h_IOPPAR_opt_control) .EQ. 1 .OR.
+     &    ioppar(h_IOPPAR_opt_control) .EQ. 2) Then
+         if (ioppar(h_IOPPAR_opt_method) .lt. 4) Then
+             szTmp = 'opt_method=4'//achar(0)
+             call asv_update_kv(szTmp,iASV,szData,0)
+          endif
+      endif
+c
 c    o Geometry optimizations with exact Hessians need to be told how
 c      the Hessian is calcualted. If not specified set it to 1 
 c      (at each update Hessian is recalculated!).
@@ -1270,10 +1321,22 @@ cVFL start
       szTmp = 'SYMMETRY=NONE'//achar(0)
       call asv_update_kv(szTmp,iASV,szData,0)
 
+
 c     if (ioppar(h_IOPPAR_subgroup).eq.1) then
 c        call asv_update_kv('!sym'//achar(0),iASV,szData,0)
 c     end if
-      if (ioppar(h_IOPPAR_geom_opt) .ge. 2) Then
+
+C comments indicated by "CSSS" is by Ajith Perera, 07/2012.
+C Summary of what should happen. ACES III calculations that starts
+C from Cartesian coordiante inputs, the symmetry is set to
+c NONE by default (see VFL comment). In addition, unless it
+C is vibrational frequency calculation the reorientation 
+c is also turned off. This is not done for vibrational frq.
+c calculations, since only in the center of mass and 
+C rotating principal axis orientation, the rotational and translations 
+C get decoupled.
+C
+CSSS      if (ioppar(h_IOPPAR_geom_opt) .ge. 2) Then
 c        szTmp = 'SYMMETRY=NONE'//achar(0)
 c        if (ioppar(h_IOPPAR_sym).ne.0) then
 c            call asv_update_kv(szTmp,iASV,szData,0)
@@ -1300,16 +1363,22 @@ C
                szTmp = "OPT_METHOD=RFA"//achar(0)
                call asv_update_kv(szTmp,iASV,szData,0)
           endif
-      endif
+CSSS      endif
 C
 C For internal Coordinates do not allow symmetry=none (symmetry=none do no harm
 C except when dummy atoms are present but there is no need of this). 
-C Ajith Perera 02/2012.
+C Ajith Perera 02/2012. It is not possible to have reorientation off
+C when symmetry is off or on. Currently reorientation is only possible
+C when symmetry is set to none.
 C
       if ((ioppar(h_IOPPAR_coordinates).eq.0) .and.
      &   (ioppar(h_IOPPAR_sym).eq.0)) then
           szTmp = 'SYMMETRY=OFF'//achar(0)
           call asv_update_kv(szTmp,iASV,szData,0)
+          If (ioppar(h_IOPPAR_noreori) .eq. 1) then
+              szTmp = 'NOREORI=OFF'//achar(0)
+             call asv_update_kv(szTmp,iASV,szData,0)
+          endif
       endif
 C
 c Ajith 11/98.
@@ -1340,6 +1409,15 @@ c    (DETERMINES ACES2 OR MN_A3 CALCULATION)
 
 c In case xmrcc is not part of the ACES suite, then one cannot run MN_A3
 c calculations. At this point we need to set ACES2=.true.
+c------------------------------------------------------------
+C-----------------------------------------------------------
+C This entire block of code that deals with Marcel's mrcc code
+C is not required for ACES III calculations. Instead of deleting
+C the soure I use the directive OBSOLETED to eliminate this
+C entire block during the preprocessing. Ajith Perera,07/2013
+
+#ifdef _OBSOLETED
+
       ACES2 = .true.
       ACES2 = .false.
 
@@ -1454,6 +1532,9 @@ c     else if ([program != 0]) then
          end if
 c     end if ([program == 0])
       end if
+#endif
+C the endif is for OBSOLETED
+C---------------------------------------------------------------------
 c
 c There are significant changes which are relevent to opt/freq 
 c option and also to accomodate the change deriv_level options 
@@ -1677,6 +1758,16 @@ c   o TRAP METHODS WHICH DON'T WORK YET
             call errex
          end if
       end if
+
+c   Set the scf_expstar = 2 and scf_exporde = 8 VFL 1/2/2013  
+         if (ioppar(h_IOPPAR_scf_exporde).eq.0) then
+            szTmp = 'scf_exporde=8'//achar(0)
+            call asv_update_kv(szTmp,iASV,szData,0)
+         end if
+         if (ioppar(h_IOPPAR_scf_expstar).eq.0) then
+            szTmp = 'scf_expstar=2'//achar(0)
+            call asv_update_kv(szTmp,iASV,szData,0)
+         end if
 
 c   o If CC calc, then set MAXCYC and turn on RLE with order equal to 5
       if (ioppar(h_IOPPAR_calc).ge.5) then
@@ -2124,9 +2215,14 @@ c      o numerical gradients
             end if
          end if
 c
+C The best Hessian update that works for all is not known. I
+C find Bofill mixture of Powell and Murtagh-Sargent seems to
+C work better, 07/2013. Ajith Perera
+C
          if (ioppar(h_IOPPAR_hess_update).eq.0) then
             if (ioppar(h_IOPPAR_opt_method).le.3) then
-               ioppar(h_IOPPAR_hess_update) = 2
+CSSS; on 07/2013               ioppar(h_IOPPAR_hess_update) = 2
+               ioppar(h_IOPPAR_hess_update) = 4
             else
                ioppar(h_IOPPAR_hess_update) = 4
             end if

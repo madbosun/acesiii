@@ -1,17 +1,4 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
 
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
 C Read the Z-matrix and associated variables
 
 #include "iachar.h"
@@ -49,7 +36,7 @@ C     PARNAM  Symbols of all variables *and* (fixed) parameters
      &        VERY_FIRST_TIME, UNCONSTRAINED
       logical bStruct, Write_as_read
 C
-      double precision rtmp(3*mxatms)
+      double precision rtmp(3*mxatms), ptmp(3*mxatms)
 
 C The arrays in FETCHZ that need to be managed dynamically are:
 C
@@ -103,7 +90,7 @@ C     Symbol to indicate optimized coordinate
       PRINTF = .TRUE.
       IONE = 1
 
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
          Print*, "@-Entry to fetchz logic", 
      &           iFlags2(h_IFLAGS2_geom_opt)
 #endif
@@ -124,18 +111,17 @@ C started in 2000.
 C  
          XYZIN = .TRUE.
          IF (iFlags2(h_IFLAGS2_geom_opt).eq.0) THEN
-            Write(6,*) "Entering getxyz"
             CALL GETXYZ
             GO TO 3431
          END IF 
 C          
          IF (iFlags2(h_IFLAGS2_geom_opt).eq.2) THEN
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
          Print*, "Entering Cartesian Optimization block"
 #endif
             CALL GETXYZ                     
 C
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
             Write(6, "(a,I5)") "The # of atoms", Natoms
             ioff = 0
             Do I = 1, Natoms
@@ -143,25 +129,20 @@ C
                ioff = ioff + 3
             Enddo
 #endif
- 
-            CALL DCOPY(3*NATOMS, Q, 1, R, 1)
             ISCRATCH = 1
             ITMPQ    = ISCRATCH + 9*NATOMS
             INEWQ    = ITMPQ    + 3*NATOMS
             ILAST    = INEWQ    + 3*NATOMS
             CALL SYMMETRY(Z(ISCRATCH), Z(ITMPQ), Z(INEWQ), .TRUE.)
+            CALL DCOPY(3*NATOMS, Q, 1, R, 1)
 C
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
                Write(6, "(3F10.5)") (R(j), J=1,3*NATOMS)
 #endif
             NXM6 = 3*NATOMS 
             NX   = 3*NATOMS
 C
-c            CALL IZERO(NCON, 3*MXATMS)
-            do i = 1, 3*MXATMS
-               NCON(i) = 0
-            enddo
-
+            CALL IZERO(NCON, 3*MXATMS)
             CALL ASSIGN_XYZ_LABELS(3*NATOMS, INTLABEL)
 C
             NUNIQUE = 0
@@ -191,11 +172,11 @@ C optimized.
                ENDIF
             END DO
 C
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
             WRITE(6,"(a,3(1x,I3))") "The number of Degrees of Fre =", 
      &                  NOPT, NUNIQUE, 3*NATOMS
             Write(6,*)
-            Write(6, "(a4)") (Varnam(I), I=1,NOPT)
+            Write(6, "(a7)") (Varnam(I), I=1,NOPT)
 #endif
             DO I = 1, 3*NATOMS
                ISQUASH(I) = I
@@ -207,17 +188,14 @@ C NEQ that comes out from PROCESS_REDINTRNLS corresponds to the
 C natural order (ordered according to the unique degree of freedoms
 C regardless of the atoms involved)
 C
+            CALL IZERO(NEQ, 3*NATOMS)
             DO ICOORD = 1, 3*NATOMS
                NCON(IUNIQUE(ICOORD)) = NEQ(ICOORD)
             ENDDO
 C
-c            CALL IZERO(NEQ, 3*NATOMS)
-            do i = 1, 3*natoms
-               NEQ(i) = 0
-            enddo 
             CALL ICOPY(3*NATOMS, NCON, 1, NEQ, 1)
 C
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
          WRITE(6,*) "@FETCHZ the NEQ"
          WRITE(6,"(5I2)") (NCON(IIIK), IIIK = 1, 3*NATOMS)
      &        
@@ -227,37 +205,28 @@ C
          END IF      
 C
          IF (iFlags2(h_IFLAGS2_geom_opt).ge.3) THEN
-C
-C Redundent Internal Optimizations Starts Here
-C
-c      o allocate the RIC heap and create the pointers
-
-c----------------------------------------------------------------------------
-c   INIT_RIC_HEAP has been modified to read the JOBARC for REDNCORD to 
-c   determine the actual memory allocation.  If VERY_FIRST_TIME is .TRUE.,
-c   this info is not available.  So we must initialize it with the maxredunco
-c   value in this case.
-c
-c   Successive calls to INIT_RIC_HEAP will read the actual number of 
-c   redundant coordinates from JOBARC.
-c----------------------------------------------------------------------------
 
          IF (VERY_FIRST_TIME) THEN
             TOTREDNCO = maxredunco
             CALL IPUTREC(20, 'JOBARC', 'REDNCORD', 1, TOTREDNCO)
          ENDIF
+C
+C Redundent Internal Optimizations Starts Here
+C
+c      o allocate the RIC heap and create the pointers
+         call init_ric_heap
 
          IF (VERY_FIRST_TIME) THEN
+C
             CALL GETXYZ
-            call init_ric_heap
             ISCRATCH = 1
             ITMPQ    = ISCRATCH + 9*NATOMS
             INEWQ    = ITMPQ    + 3*NATOMS
             ILAST    = INEWQ    + 3*NATOMS
             CALL SYMMETRY(Z(ISCRATCH), Z(ITMPQ), Z(INEWQ), .TRUE.)
-#ifdef _DEBUG_LVL0
+C#ifdef _DEBUG_LVLM1
             Print*, "Entering the Redundent Internal block"
-#endif
+C#endif
             CALL GEN_REDNINTRNLS(Q, REDUNCO, INTLABEL, IBNDTO,
      &                           dRICHeap(z_BMat), dRICHeap(z_GMat),
      &                           TOTREDNCO, IATNUM, NATOMS, IREDUNCO,
@@ -273,6 +242,11 @@ C
             CALL IPUTREC(20, 'JOBARC', 'IBONDTO ', NATOMS*NATOMS, 
      &                  IBNDTO)
 C
+C To fix the printing problem in summary.F if the input geometry
+C is already optimum, Ajith Perera, 11,2012
+C
+            CALL DPUTREC(20,'JOBARC','COORD_OP',3*NATOMS,Q)
+C
             IF (IFLAGS(h_IFLAGS_symmetry).EQ. 2 .AND. 
      &          FPGRP .NE. 'C1') THEN
                CALL PROCESS_REDINTRNLS(Q, REDUNCO, IREDUNCO, IBNDTO,
@@ -282,18 +256,16 @@ C
      &                                 EPSILON)
                CALL IPUTREC(20,'JOBARC','PLSMINSP',TOTREDNCO,NCON)
             ELSE
-c               CALL IZERO(NCON,TOTREDNCO)
-c               CALL IZERO(NEQ, TOTREDNCO)
-              
+               CALL IZERO(NCON,TOTREDNCO)
+               CALL IZERO(NEQ, TOTREDNCO)
                DO IREDNCO = 1, TOTREDNCO
                   I_UNIQUE(IREDNCO) = .TRUE.
-                  NCON(IREDNCO)     = 0
-                  NEQ(IREDNCO)      = 0 
                ENDDO
             ENDIF
             CALL IPUTREC(20,'JOBARC','PLSMINSP',TOTREDNCO,NCON) 
             CALL IPUTREC(20, 'JOBARC', 'UNIQUEDF', TOTREDNCO, 
      &                  I_UNIQUE)
+C
          ELSE
 C
             CALL IGETREC(20, 'JOBARC', 'REDNCORD', 1, TOTREDNCO)
@@ -330,16 +302,13 @@ C
             END DO
          END IF
 C
-         CALL DCOPY(TOTREDNCO, REDUNCO, 1, R, 1)
+         CALL XDCOPY(TOTREDNCO, REDUNCO, 1, R, 1)
          NXM6 = TOTREDNCO
          NX   = MAX(TOTREDNCO, 3*NATOMS)
 C
          IF (.NOT. VERY_FIRST_TIME) RETURN
 C
-c         CALL IZERO(NCON, 3*MXATMS)
-         do i = 1, 3*mxatms
-            ncon(i) = 0
-         enddo
+         CALL IZERO(NCON, 3*MXATMS)
 C
          NUNIQUE = 0
          NOPT    = 0
@@ -353,8 +322,13 @@ C
 C
 C This is the place where info about constrained optimizations
 C are added. At the moment all the unique coordinates are 
-C optimized.
-C 
+C optimized. Constrained optimizations are added (11/2012). The
+C constrined RIC optimizations are handlled by projectors to maintain
+C that there are no displacements along the constrained coordinates.
+C As a result even for constrained optimizations, there is no 
+C difference between total number of coordinates and the ones that
+C are optimized, Ajith Perera, 12/2012.
+C
             UNCONSTRAINED  = .TRUE.  
             IF (UNCONSTRAINED) THEN
                IF (I_UNIQUE(IVAR)) THEN
@@ -369,7 +343,7 @@ C
 C
          END DO 
 C
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
          WRITE(6,"(a,3(1x,I3))") "The number of Degrees of Fre =", 
      &         NOPT, NUNIQUE, TOTREDNCO
 #endif
@@ -388,13 +362,10 @@ C
             NCON(IUNIQUE(ICOORD)) = NEQ(ICOORD)
          ENDDO
 C
-c         CALL IZERO(NEQ, TOTREDNCO)
-         do i = 1, totrednco
-            neq(i) = 0
-         enddo  
+         CALL IZERO(NEQ, TOTREDNCO)
          CALL ICOPY(TOTREDNCO, NCON, 1, NEQ, 1)
 C
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
          WRITE(6,*) "@FETCHZ the NEQ"
          WRITE(6,"(5I3,I)") (NCON(IIIK), IIIK = 1, TOTREDNCO),
      &         TOTREDNCO
@@ -410,12 +381,8 @@ C
 C Endif for COORD=CARTESIAN
       END IF
 C
-c      CALL IZERO(JLIST,3*MXATMS)
-      do i = 1, 3*mxatms
-         jlist(i) = 0
-         jax(i)   = 0 
-      enddo 
-c      CALL IZERO(JAX,3*MXATMS)
+      CALL IZERO(JLIST,3*MXATMS)
+      CALL IZERO(JAX,3*MXATMS)
 C
       XYZIN   = .FALSE.
       BAD123  = .FALSE.
@@ -635,11 +602,7 @@ c REDUNDANCY CHECKING AND GENERATE VECTORS CONTAINING POSITIONS
 c OF COORDINATES TO BE OPTIMIZED AND CORRESPONDING REDUNDANT
 c COORDINATES. LISTS USE INTERNAL COORDINATE NUMBERING WHICH
 c CORRESPONDS TO THE "SQUASHED" SCHEME (1,2,3,4,... vs 4,7,8 etc)
-c      CALL IZERO(NEQ,3*MXATMS)
-      do i = 1, 3*mxatms
-         neq(i) = 0
-      enddo
-
+      CALL IZERO(NEQ,3*MXATMS)
       DO 210 I = 1, NX
          ISQ_I = ISQ(I)
          IF (.NOT.(I.LT.4.OR.I.EQ.5.OR.I.EQ.6.OR.I.EQ.9)) THEN
@@ -675,9 +638,15 @@ C
 c   o read the blank line after the Z-matrix
       READ(LUZ,'(A)') ZLINE
 
-c   o load the first structure into R
-      call rd_intcoord(R)
+c   o load the first structure into R; only when it loads the
+c   o first structure, it will check whether the same varible 
+c   o name is being used multiple times; Ajith Perera, 12/2012.
 
+      call rd_intcoord(R, .True.)
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") " The Current structure "
+      Write(6,"(6(1x,F12.6))") (r(i),i=1,nx)
+#endif
 c   o read additional structures until we hit a namelist
 c     (iStruct corresponds to the structure we expect to read)
       iStruct = 1
@@ -685,15 +654,23 @@ c     (iStruct corresponds to the structure we expect to read)
       do while (bStruct.and.iStruct.lt.3)
          iStruct = iStruct + 1
          read(luz,'(a)') zline
+         If (.Not. ((zline(1:2) .EQ. "Pr") .or. 
+     &             (zline(1:2) .EQ. "Re"))) backspace(luz)
+C--The additional line is to give a label to the reactants
+         read(luz,'(a)') zline
          backspace(luz)
          ISTP = INDEX(zline(1:),'=')
          I    = INDEX(zline(1:),'*')
          bStruct = ((i.eq.0).and.(istp.ne.0))
          if (bStruct) then
-            call rd_intcoord(rtmp)
+            call rd_intcoord(rtmp, .False.)
             if (iStruct.eq.2) then
 c            o read the next line and see if this structure was the TS or PR
+C--The additional lines (read and backspace) are to give a label to the
+C  product structures. 
                read(luz,'(a)') zline
+               read(luz,'(a)') zline
+               backspace(luz)
                backspace(luz)
                ISTP = INDEX(zline(1:),'=')
                I    = INDEX(zline(1:),'*')
@@ -702,11 +679,34 @@ c            o read the next line and see if this structure was the TS or PR
                btmp = .true.
             end if
             if (btmp) then
-               call dputrec(1,'JOBARC','PRSTRUCT',nx,rtmp)
+
+               If ( iStruct.eq.2) Then
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") "Creating RXSTRUCT jobarc record"
+      Write(6,"(6(1x,F12.6))") (rtmp(i),i=1,nx)
+#endif      
+                  call dputrec(1,'JOBARC','RXSTRUCT',nx,rtmp)
+               Else
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") "Creating PRSTRUCT jobarc record"
+      Write(6,"(6(1x,F12.6))") (rtmp(i),i=1,nx)
+      Write(6,*) Istruct
+#endif
+                  call dputrec(1,'JOBARC','PRSTRUCT',nx,rtmp)
+               Endif 
             else
 c            o move R to RXSTRUCT since we are optimizing the TS structure
-               call dputrec(1,'JOBARC','RXSTRUCT',nx,R)
-               call dcopy(nx,rtmp,1,R,1)
+C
+#ifdef _DEBUG_LVL0
+      Write(6,"(a)") "Creating RXSTRUCT jobarc record"
+      Write(6,"(6(1x,F12.6))") (rtmp(i),i=1,nx)
+#endif
+               call dputrec(1,'JOBARC','RXSTRUCT',nx,Rtmp)
+C
+C R contains the first block of coordinates which is the approx. TS
+C structure (better designation must be current structure).
+c Commented 12/2012, Ajith Perera
+CSSS               call dcopy(nx,rtmp,1,R,1)
             end if
 c        end if (bStruct)
          end if
@@ -714,6 +714,10 @@ c     end do while (bStruct)
       end do
 
  3441 continue
+
+      If (IFLAGS2(h_IFLAGS2_opt_control) .EQ. 1) 
+     &    Call Gen_curr_coords(Rtmp, Ptmp, R, Nx, .FALSE.)
+ 
 
 C WRITE OUT RELEVANT INFORMATION
       IF (PRINTI.AND. ncycle.EQ.0) THEN
@@ -752,7 +756,7 @@ c SB fixed output for atomic and diatomic calculations
   734    FORMAT(T9,A,T19,I2,T30,A,T40,I2,T50,A,T60,I2,T70,A)
          if (nunique.gt.0) then
             WRITE(LUOUT,1000)
- 1000       FORMAT(T18,' *Initial values for internal coordinates* ',/,
+ 1000       FORMAT(T18,' *Initial values for current coordinates* ',/,
      &             T23,'Name',t40,'Value')
  1002       FORMAT(T18,' *Initial values for reactant coordinates* ',/,
      &             T23,'Name',t40,'Value')
@@ -763,9 +767,9 @@ c SB fixed output for atomic and diatomic calculations
      &            VARNAM(ISQUASH(IUNIQUE(I))),R(ISQUASH(IUNIQUE(I)))
             END DO
 c         o reactant
-            call dgetrec(0,'JOBARC','RXSTRUCT',J,rtmp)
+            call igetrec(0,'JOBARC','RXSTRUCT',J,rtmp)
             if (j.gt.0) then
-               call dgetrec(1,'JOBARC','RXSTRUCT',J,rtmp)
+               call igetrec(1,'JOBARC','RXSTRUCT',J,rtmp)
                write(luout,1002)
                DO I = 1, NUNIQUE
                   WRITE(LUOUT,'(T25,A,T38,F11.6)')
@@ -774,9 +778,9 @@ c         o reactant
                END DO
             end if
 c         o product
-            call dgetrec(0,'JOBARC','PRSTRUCT',J,rtmp)
+            call igetrec(0,'JOBARC','PRSTRUCT',J,rtmp)
             if (j.gt.0) then
-               call dgetrec(1,'JOBARC','PRSTRUCT',J,rtmp)
+               call igetrec(1,'JOBARC','PRSTRUCT',J,rtmp)
                write(luout,1003)
                DO I = 1, NUNIQUE
                   WRITE(LUOUT,'(T25,A,T38,F11.6)')
@@ -802,10 +806,11 @@ C
       Call IGETREC(20,  'JOBARC', 'HAVEGEOM', 1, I_havegeom)
       Call IGETREC(0, 'JOBARC', 'PASS1   ', Length, Itmp)
       Write_as_read = (Length .LT. 0)
-#ifdef _DEBUG_LVL0
+#ifdef _DEBUG_LVLM1
+      Write(6,*)
       Print*, "Write_as_read from FETCHZ:", Write_as_read 
       Print*, "Internal coordinates in FETCHZ"
-      Print*,  (R(I), I=1, 3*NATOMS)
+      Write(6, "(3F10.5)"),  (R(I), I=1, 3*NATOMS)
 #endif
       Call Angs2bohr(R, 3*NATOMS)
       If (Write_as_read) CALL DPUTREC(20, 'JOBARC', 'CORD_INT', 
@@ -826,7 +831,6 @@ C
          IFLAGS(68) = 1
          CALL DGETREC(20,'JOBARC','NEXTGEOM',3*NATOMS,Q)
       END IF
-      Write(6, "(3F10.5)")(Q(I), I=1, 3*NATOMS)
 
 C COUNT NUMBER OF REAL ATOMS
 C Also add a record that contains the sum of both real and dummy atoms.

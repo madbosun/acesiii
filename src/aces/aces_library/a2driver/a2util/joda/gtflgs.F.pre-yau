@@ -1,0 +1,3645 @@
+
+      SUBROUTINE GTFLGS(IPRT,IERR,I1,I2,I3,I4,I5,I6,I7,I8,I9,I10,
+     &     I11,I12,I13,I14,I15,I16,I17,BasNam)
+
+#include "iachar.h"
+
+C
+CJDW 3/94.
+C
+C Modifications have been made to extend the number of input parameters.
+C /FLAGS/ has been extended to 600. In GTFLGS we have IOPPAR(100 + 500),
+C with corresponding changes in lengths of IDEFLT, MAXOPS, ICHAR, NMATCH,
+C OPPAR, OPPARS, UNITS, and VALUEX. In other subroutines, /FLAGS/ consists
+C of IFLAGS(100) and IFLAGS2(500). In this way, no code in other modules
+C which uses IFLAGS will need to be altered. IFLAGS2 is written to JOBARC.
+C It is read by CRAPSI and GETSTF (COMMON /FLAGS2/ IFLAGS2(500)).
+C
+C It is intended that JFS and JG will use locations 1-100 of IFLAGS2, while
+C the RJB group (and contributors other than JFS and JG) will, coordinated
+C by JDW, use locations 101-200. Note that
+C location N of IFLAGS2 is location 100 + N of IOPPAR in GTFLGS. Since
+C there will be some "holes" in IOPPAR and NPARAM has been set to 600,
+C there is now an additional array, IOPYNO(NPARAM), which says if a
+C particular entry has been defined (0 if it has not, ne 0 it has). This
+C is used in loops over all NPARAM values.
+C However, for convenience, IDEFLT has been defined for all 600 locations.
+C
+c IOPYNO(i) = 1   if this parameter is defined
+c
+c ICHAR(i)  = 1   if the value is entered by keyword
+c                 CALC=SCF, CALC=MBPT[2]
+c             2   if entered as a special string
+c                 DROPMO=1,2>3
+c             3   if entered as an integer
+c                 PRINT=33
+c
+c NMATCH(i) = the number of characters in the keyword which must match
+c             the one entered in the ZMAT file (i.e. CALC= and CALCULATION=
+c             are identical if NMATCH(i) is 4 or less)
+c
+c MAXOPS(i) = the number of valid keywords if ICHAR(i)=1
+c
+c IDEFLT(i) = the default value if this parameter is not in the ZMAT file
+c
+c OPPAR(i)  = a string which contains the keyword used to define this
+c             parameter
+c
+c OPPARS(i) = a string which (in theory) contains the variable which will
+c             always be used to hod the value read in from the ZMAT file
+c
+c UNITS(i)  = a string containing the units of the parameter
+c
+c VALUEX(i,*) = a list of strings containing valid keywords if ICHAR(i)=1
+
+C Other modifications/additions :
+C
+C 1a. EOM-EA code (MN) :
+C
+C    IOPPAR(201), IOPPAR(202) and corresponding elements of other arrays;
+C    EAROOT(8,2) array; EA_IRREP JOBARC record. See also CMN comment lines
+C    in code.
+C
+C 1b. EOM-IP code (MN) :
+C
+C    IOPPAR(214), IOPPAR(215) IOPPAR(216) and corresponding elements of
+C    other arrays; IPROOT(8,2) array; IP_IRREP JOBARC record. See also CMN
+C    comment lines in code.
+C
+C 1c. EOMREF FLAG (MN) IOPPAR(217) : NONE, CCSD, MBPT[2]
+C     SHOULD BE SET AUTOMATICALLY BY TYPE OF CALCULATION.
+C
+C 2. TDHF code (HS/WJL) :
+C
+C    IOPPAR(203) used for the TDHF flag (TDHF options still currently separate
+C    namelist). See also CWJL comment lines in code.
+C
+C 3. Extensions for number of calculation types :
+C
+C    NCTYPE has been increased to 50 and some of elements 26-50 have been
+C    defined. Availability arrays have been extended.
+C
+C 4. A trap has been put in which will stop the calculation if there are no
+C    *'s in the Z-matrix but METHOD has been set to something other than
+C    SINGLE_POINT.
+C
+C 5. A trap has been put in if TDHF is attempted for other than RHF.
+C
+C 6. Perturbed canonical orbitals are now default for QCISD(T) gradients.
+C
+C 7. Numerical optimiziations and numerical hessian calculations should not
+C    any longer die if analytical gradients are not available (already was
+C    done for UHF/RHF numerical optimizations).
+C
+C 8. HFDFT code (NO) :
+C
+C    IOPPAR(204) used for the HFDFT flag which specifies which functional
+C    value will be placed in JOBARC as TOTENERG
+C
+C 9. ABCDFULL flag added. This flag is set if value is 0 on input ('unknown)
+C    It determines if abcd integrals are compressed (=2) or not (=1)
+C
+CJDW  7/21/94. EOM_MAXCYC flag added (element 205; element 105 of flags2)
+CJDW 11/ 3/94. EOMPROP, ABCDFULL, INTGRL_TOL flags added (206-208)
+CJDW  1/13/95. DAMP_TYP, DAMP_TOL, LSHF_A1, LSHF_B1 flags added (209-212)
+CJDW  1/23/95. POLYRATE flag added (213).
+CJDW  6/ 6/95. Add arrays ENAVA3, GRAVA3 for TWODET availability. Also
+C              logical TDCALC.
+CJDW  6/ 6/95. Rename TRIM to TRMBLK.
+CJDW  6/ 6/95. Add options to Ajith's EOMPROP flag; include this option
+C              in logic for determining ABCDFULL.
+CJDW 10/23/95. NOREORI flag added (225). This is tentative and currently
+C              will only be used for POLYRATE=ON and SYMMETRY=OFF. It is
+C              used in subroutine SYMMETRY.
+CJDW 10/23/95. A series of modifications/additions made by MN, SRG, and AP
+C              have been incorporated :
+C
+C              Addition of JSC_ALL option to PROPERTY ( 18)
+C              Addition of P-EOMEE and BWMBPT to EXCITE ( 87)
+C              Addition of options to EA_CALC (201) and IP_CALC
+C              Modification of EOMPROP keyword options (206)
+C              Addition of keyword EE_SEARCH (219)
+C              Addition of keyword EOM_PRJCT (220)
+C              Addition of keyword NEWVRT    (221)
+C              Addition of keyword HBARABCD  (222)
+C              Addition of keyword HBARABCI  (223)
+C              Addition of keyword KS_POT    (227)
+C
+C              Addition of logic to set HBARABCD, HBARABCI
+CJDW 3/26/96.  Methods CC5SD[T], CCSD-T, CC3 defined by IOPPAR(2)=31,32,33.
+C              NT3EOMEE flag introduced, IOPPAR(224).
+CJDW 7/ 9/96.  Method CCSDT-T1T2 defined by IOPPAR(2)=34.
+CJDW 3/26/97.  New option GRAD_CALC (238). Takes over role of METHOD=6, so
+C              we can do transition state searches with numerical gradients.
+C
+CMN 7/10/97. A number of changes to incorporate ACES3 options.
+C
+C              EE_SYM (226)   : NUMBER OF ROOTS PER SYMMETRY -> 2-2-2-2/2-2-2-2
+C                                                               SINGLET TRIPLET
+C THIS KEYWORD CAN REPLACE 'ACES2' ESTATE_SYM -> 2/2/2/2, BOTH CAN BE USED NOW.
+C
+C              DIP_CALC (228) : DOUBLE IONIZATION POTENTIALS
+C              DIP_SYM (229)  : NUMBER OF ROOTS PER SYMMETRY -> 2-2-2-2/2-2-2-2
+C              DEA_CALC (230) : DOUBLE ATTAHMENT ENERGIES
+C              DEA_SYM (231)  : NUMBER OF ROOTS PER SYMMETRY -> 2-2-2-2/2-2-2-2
+C              PROGRAM (232)  : SPECIFIES ACES2 OR ACES3, RECOMMENDED: DEFAULT=0
+C              CCR12 (233)    : CC-R12 COEFFICIENTS ARE READ IN FROM J. NOGA
+C              EOMXFIELD (234): ADD FIELD IN X DIRECTION (SEE ALSO 237)
+C              EOMYFIELD (235): ADD FIELD IN Y DIRECTION (SEE ALSO 237)
+C              EOMZFIELD (236): ADD FIELD IN Z DIRECTION (SEE ALSO 237)
+C              INSERTF (237)  : SPECIFIES POINT AT WHICH TO INSERT FIELD
+C              IMEM_SIZE (239): MEMORY USED AS PSEUDO-DISK (NOT USED)
+C              MAKERHF (240)  : FORCES REFERENCE TO BE RHF AS REQUIRED IN ACES3
+C              ACC_SYM (247)  : DEFINES ACTIVE SPACE IN CCSD/MBPT[2] CALCULATION
+C                                  OCCUPIED/VIRTUAL, E.G. 2-1-1-0/3-2-2-2
+C
+C   Addition of Makerhf flag: 240
+C   Forces the final reference (in CCSD) to
+c   be RHF. Even if it is constructed in QRHF fashion. The user should be
+c   sure that at al stages in the calculation we are dealing with a
+c   closed shell. Dangerous keyword!!
+C
+CJDW 9/16/97. Changing the way PERT_ORB keyword (option 64) works.
+C             Handling case of open-shell OCC and apparent REF=RHF.
+CJDW 10/30/97. Adding GLOBAL_MEM keyword for use in parallel processing
+C              (but don't bet the house on it). This is option 241 (141 of
+C              IFLAGS2).
+CKJW 01/17/98. Added FNO_KEEP 	keyword option 243 (143 of IFLAGS2)
+C                    FNO_POST   keyword option 244 (144 of IFLAGS2)
+c
+cKJW 06/03/98. Added FNO_ACTIVE keyword option 245 (145 of IFLAGS2)
+cKJW 06/09/98. Added NATURAL keyword option 246 (146 of IFLAGS2)
+C
+C mn 11/07/98: UNO-REF option. Three keywords
+C              UNO_REF   : option 248  (logical)
+C              UNO_CHARGE: option 249  ( charge of redefined state)
+C              UNO_MULT  : option 250  (multiplicity of
+C                          redefined state, high spin)
+C AP 07/06/98: RAMAN Option.
+CKJW 09/17/99: KUCHARSKI : option 252 (run Stan Kucharski's cc code)
+C AP 05/12/99: SCF : Option to specify the SCF type (HF, KS ...etc)
+      IMPLICIT CHARACTER (A-H,O-Z)
+#include "io_units.par"
+      PARAMETER (NPARAM = 100 + 500)
+      PARAMETER (NCTYPE = 50)
+      PARAMETER (JPARAM = 17)
+      PARAMETER (NIRMAX = 8)
+      PARAMETER (IMXSIZ =100)
+      INTEGER FNBLNK,NOCC(8,2)
+      CHARACTER*80 WRK,WRK2,WRK3,NAME,VALUE,TRMBLK,BIP,TMPSTR
+cYAU - Treat the lines from ZMAT just like fetchz()
+      integer izl(2,7)
+      character*1 achar, czPercent, czAsterisk
+      CHARACTER*80 FNAME
+c sb 1/97  Allow arbitrary basis set names
+      character*(*) BasNam
+      INTEGER IPTA(NPARAM),ATOI,IDEFLT(NPARAM),ICHAR(NPARAM),
+     &     NMATCH(NPARAM),MAXOPS(NPARAM),
+     &     ENAVA1(0:NCTYPE),ENAVA2(0:NCTYPE),ENAVA3(0:NCTYPE),
+     &     GRAVA1(0:NCTYPE),GRAVA2(0:NCTYPE),GRAVA3(0:NCTYPE),
+     &     HSAVA1(0:NCTYPE),HSAVA2(0:NCTYPE)
+      INTEGER IOPYNO(NPARAM)
+      CHARACTER*11 OPPAR(NPARAM)
+      CHARACTER*6  OPPARS(NPARAM)
+      CHARACTER*13 VALUEX(NPARAM,0:NCTYPE)
+      CHARACTER*9 UNITS(NPARAM)
+      CHARACTER*8 DUMMY
+      LOGICAL YESNO,ISINTG, CLUSTR,SKIPIT, LSTAR,CCSDT3,COMPRESS,TDCALC
+      LOGICAL DOABCD,DOABCI, ACES2, ACES3, DOQRHF, STEOM,
+     $     EOM, ANAGRAD, GRADOPT, TDA, btmp
+      LOGICAL OCCISOPEN
+CMN/JDW 1
+      INTEGER EAROOT(8,2), IPROOT(8,2), EEROOT(8,3)
+      DIMENSION NDROP(2),IDROP(1000,2),IARR(1000)
+CJDW
+      COMMON /FLAGS/ IOPPAR(IMXSIZ + 500)
+      COMMON /USINT/ NX,NXM6,IARCH,NCYCLE,NUNIQUE,NOPT
+      COMMON /MACHSP/ IINTLN,IFLTLN,IINTFP,IALONE,IBITWD
+C
+C RHF-UHF ENERGY CALCULATION AVAILABILITY
+C
+      DATA ENAVA1 /1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,0,0,
+     &     1,1,1,1,1,
+     &     1,1,0,1,0, 1,1,1,1,1, 1,1,1,1,1, 1,0,0,0,0,
+     &     0,0,0,0,0/
+C
+C ROHF ENERGY CALCULATION AVAILABILITY
+C
+      DATA ENAVA2 /1, 1,1,1,1,0, 0,0,0,0,1, 0,0,1,1,0, 1,1,1,0,0,
+     &     0,1,0,1,1,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 1,0,0,0,0,
+     &     0,0,0,0,0 /
+C
+C TWO-DETERMINANT ENERGY CALCULATION AVAILABILITY
+C
+      DATA ENAVA3 /0, 0,0,0,0,0, 0,0,0,0,1, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 1,0,0,0,0,
+     &     0,0,0,0,0 /
+C
+C RHF-UHF GRADIENT AVAILABILIITY
+C
+      DATA GRAVA1 /1, 1,1,1,1,0, 0,1,1,1,1, 1,0,0,0,0, 0,0,0,0,0,
+     &     1,1,1,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0/
+
+C
+C ROHF GRADIENT AVAILABILIITY
+C
+      DATA GRAVA2 /1, 1,1,1,1,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0,
+     &     0,1,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0/
+C
+C TWO-DETERMINANT GRADIENT CALCULATION AVAILABILITY
+C
+      DATA GRAVA3 /0, 0,0,0,0,0, 0,0,0,0,1, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 1,0,0,0,0,
+     &     0,0,0,0,0 /
+C
+C RHF/UHF HESSIAN AVAILABILIITY
+C
+      DATA HSAVA1 /1, 1,1,1,1,0, 0,0,1,0,1, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,1,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0/
+C
+C ROHF HESSIAN AVAILABILIITY
+C
+      DATA HSAVA2 /1, 1,0,0,0,0, 0,0,0,0,1, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0/
+C
+      DATA (ICHAR(I),I=  1,100)
+     &     /3,1,1,0,0, 0,3,3,1,1, 1,3,3,3,3, 3,2,1,1,3,
+     &     1,1,3,3,3, 1,2,3,3,0, 3,2,2,2,1, 4,4,1,1,3,
+     &     1,3,1,3,1, 3,1,3,3,1, 1,3,3,1,3, 1,3,1,1,1,
+     &     2,1,1,1,3, 3,3,1,1,3, 1,1,1,1,3, 0,2,1,1,1,
+     &     1,2,1,1,1, 1,1,0,2,1, 1,3,1,2,1, 1,3,0,1,1/
+      DATA (ICHAR(I),I=101,200)
+     &     /1,3,1,1,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (ICHAR(I),I=201,300)
+     &     /1,2,1,1,3, 1,1,0,1,3, 3,3,1,1,2, 1,1,3,1,1,
+     &     1,1,1,1,1, 2,1,1,2,1, 2,1,1,3,3, 3,1,1,4,1,
+     &     4,1,3,1,3, 1,2,1,3,3, 1,1,1,1,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (ICHAR(I),I=301,400)
+     &     /0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (ICHAR(I),I=401,500)
+     &     /0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (ICHAR(I),I=501,600)
+     &     /0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (NMATCH(I),I=  1,100)
+     &     /3,3,3,5,5, 5,5,3,9,9, 3,6,3,3,3, 5,3,3,3,9,
+     &     6,5,3,3,3, 3,3,3,3,6, 6,6,6,6,3, 3,3,3,3,9,
+     &     9,9,9,5,3, 3,9,4,3,3, 3,3,3,3,3, 3,3,3,4,3,
+     &     3,3,5,3,9, 9,9,3,5,6, 3,5,3,3,5, 5,6,3,4,4,
+     &     4,6,3,3,6, 6,6,8,8,4, 8,9,4,6,4, 2,8,8,5,5/
+      DATA (NMATCH(I),I=101,200)
+     &     /7,7,7,3,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (NMATCH(I),I=201,300)
+     &     /7,6,4,5,9,7,8,10,8,8, 7,7,8,7,6, 9,6,6,9,9,
+     &      6,8,8,8,7,6,6, 7,6,7, 6,7,5,9,9, 9,7,9,4,7,
+     &     10,7,8,8,7,7,7, 7,9,8, 5,8,8,8,0, 0,0,0,0,0,
+     &      5,0,0,0,0,0,0, 0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &      0,0,0,0,0,0,0, 0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (NMATCH(I),I=301,400)
+     &     /0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (NMATCH(I),I=401,500)
+     &     /0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (NMATCH(I),I=501,600)
+     &     /0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0/
+      DATA (IDEFLT(I),I=  1,100)
+     &     /000,000,999,007,007, 011,000,005,555,001,
+     &     000,000,000,015,020, 150,999,000,000,006,
+     &     001,000,000,000,000, 000,999,000,001,012,
+     &     064,000,000,001,000, 15000000,-1,000,999,008,
+     &     000,000,000,-01,000, 000,000,004,001,000,
+     &     000,000,300,000,000, 001,000,000,001,000,
+     &     999,000,000,002,000, 000,000,000,001,000,
+     &     000,000,000,000,000, 004,000,000,000,000,
+     &     000,000,000,001,000, 000,000,000,000,000,
+     &     000,050,000,000,001, 000,020,999,000,000/
+      DATA (IDEFLT(I),I=101,200)
+     &     /001,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (IDEFLT(I),I=201,300)
+     &     /000,000,000,004,050, 000,000,014,000,010,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,002,2000000,000,
+     &     000,000,000,000,000, 000,000,000,000,001,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (IDEFLT(I),I=301,400)
+     &     /000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (IDEFLT(I),I=401,500)
+     &     /000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (IDEFLT(I),I=501,600)
+     &     /000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (MAXOPS(I),I=  1,100)
+     &     /000,051,003,000,000, 000,000,000,002,002,
+     &     005,000,000,000,000, 000,000,014,002,000,
+     &     004,002,002,002,002, 002,000,000,000,000,
+     &     000,000,000,000,003, 000,000,002,002,000,
+     &     002,000,002,000,006, 000,008,000,000,003,
+     &     003,002,000,004,000, 005,000,003,002,003,
+     &     000,002,002,003,000, 000,000,003,002,000,
+     &     002,002,002,003,000, 000,000,002,002,002,
+     &     003,000,003,003,009, 003,010,000,000,002,
+     &     004,000,003,000,002, 002,000,000,002,002/
+      DATA (MAXOPS(I),I=101,200)
+     &     /002,000,002,002,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (MAXOPS(I),I=201,300)
+     &     /007,000,002,005,000, 004,003,000,003,000,
+     &     000,000,002,007,000, 005,003,000,004,004,
+     &     002,003,003,013,002, 002,007,004,000,004,
+     &     000,004,002,002,002, 002,006,002,000,002,
+     &     000,002,000,051,000, 002,000,002,000,000,
+     &     002,002,002,002,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (MAXOPS(I),I=301,400)
+     &     /000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (MAXOPS(I),I=401,500)
+     &     /000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (MAXOPS(I),I=501,600)
+     &     /000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000,
+     &     000,000,000,000,000, 000,000,000,000,000 /
+      DATA (OPPARS(I),I=  1,100)
+     &     /'IPRNT ','ICLLVL','IDRLVL','ICCCNV','ISCFCV',
+     &     'IXFTOL','ICCCYC','ILINDP','IRDOFM','IRPP  ',
+     &     'IREFNC','ICCEOR','IEVERY','ITOPT2','ISCFDP',
+     &     'ISCFCY','IOCCU ','IPROPS','IRDENS','IRPPOR',
+     &     'ICCEXT','IBRKNR','IXEFLD','IYEFLD','IZEFLD',
+     &     'ISVINT','IDRPMO','ICHRGE','IMULTP','ICPHFT',
+     &     'ICPHFC','IQRHFP','IQRHFM','IQRHFO','INCORE',
+     &     'IMEMSZ','IFLREC','INONHF','IORBTP','IRPPLS',
+     &     'ILOCOC','ISTRIP','IHBAR ','ICHREC','IGUESS',
+     &     'IJPRNT','INR   ','ICONTL','IVEC  ','IDIE  ',
+     &     'ICURVY','ISTCRT','IMXSTP','IVIB  ','IRECAL',
+     &     'INTTYP','IDISFD','IGRDFD','ICNTYP','ISYM  ',
+     &     'IBASIS','IDFGHI','IRESET','IPTORB','IGNBS1',
+     &     'IGNBS2','IGNBS3','ICOORD','ISYMCK','ISCFPR',
+     &     'IECP  ','ICCRES','ITRAIN','ISTABL','ROTVEC',
+     &     'IBRTOL','IQRHFG','IUNITS','IFDGRP','IFDPRJ',
+     &     'IFDCAL','IFDIRR','IVTRAN','IHF2Fl','ISUBGP',
+     &     'ISBXYZ','IEXCIT','IZTACN','IEXSYM','ITREAT',
+     &     'IEXPRP','IOPTCY','IABCDT','IQRHFS','IAOLAD',
+     &     'IFOCK ','IEXMXC','IEXTOL','IDIRCT','IGABCD' /
+      DATA (OPPARS(I),I=101,200)
+     &     /'IZTYPE','IZMAXC','IRESRM','IPSI  ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ' /
+      DATA (OPPARS(I),I=201,300)
+     &    /'IEACLC','IEASYM','ITDHF ','IFNCTL','IEOMCY',
+     &     'IEOMPR','IABCDF','IINTOL','IDMPTY','IDMPTL',
+     &     'ILSHA1','ILSHB1','IPOLYR','IIPCLC','IIPSYM',
+     &     'IPTYPE','IEOM  ','ISOLV ','EETYPE','IEOMPR',
+     &     'INWVRT','IABCD ','IABCI ','INT3EE','INOREO',
+     &     'IEESYM','IKSPOT','IDIPC ','IDIPSY','IDEAC ',
+     &     'IDEASY','IPROG ','ICCR12','IXEOMF','IYEOMF',
+     &     'IZEOMF','IINSF ','IGRDCL','IMEMSZ','IMKRHF',
+     &     'IGLBMM','IPRPNT','IFNOKP','IFNOPT','IFNOAC',
+     &     'INAT  ','ICCSYM','IUNO_R','IUNO_C','IUNO_M',
+     &     'IRAMAN','IKUCH ','ISCF  ','INTTYP','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ' /
+      DATA (OPPARS(I),I=301,400)
+     &     /'      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ' /
+      DATA (OPPARS(I),I=401,500)
+     &     /'      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ' /
+      DATA (OPPARS(I),I=501,600)
+     &     /'      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ',
+     &     '      ','      ','      ','      ','      ' /
+      DATA (OPPAR(I),I=  1,100) /
+C
+     &     'PRINT      ','CALCLEVEL  ','DERIV_LEV  ','CC_CONV    ',
+     &     'SCF_CONV   ','XFORM_TOL  ','CC_MAXCYC  ','LINDEP_TOL ',
+     &     'RDO        ','SCF_EXTRAPO','REFERENCE  ','CC_EXPORDER',
+     &     'TAMP_SUM   ','NTOP_TAMP  ','DAMPSCF    ','SCF_MAXCYC ',
+     &     'OCCUPATION ','PROPS      ','RELAX_DENS ','SCF_EXPORDE',
+C
+     &     'CC_EXTRAPOL','BRUECKNER  ','XFIELD     ','YFIELD     ',
+     &     'ZFIELD     ','SAVE_INTS  ','DROPMO     ','CHARGE     ',
+     &     'MULTIPLICTY','CPHF_CONVER','CPHF_MAXCYC','QRHF_PLUS  ',
+     &     'QRHF_MINUS ','QRHF_ORBITA','INCORE     ','MEMORY_SIZE',
+     &     'FILE_RECSIZ','NON-HF     ','ORBITALS   ','SCF_EXPSTAR',
+C
+     &     'LOCK_ORBOCC','FILE_STRIPE','HBAR       ','CACHE_RECS ',
+     &     'GUESS      ','JODA_PRINT ','OPT_METHOD ','CONVERGENCE',
+     &     'EIGENVECTOR','NEGEVAL    ','CURVILINEAR','SCALE_ON   ',
+     &     'MAX_STEP   ','VIBRATION  ','EVAL_HESS  ','INTEGRALS  ',
+     &     'FD_STEPSIZE','POINTS     ','CONTRACTION','SYMMETRY   ',
+C
+     &     'BASIS      ','SPHERICAL  ','RESET_FLAGS','PERT_ORB   ',
+     &     'GENBAS_1   ','GENBAS_2   ','GENBAS_3   ','COORDINATES',
+     &     'SYM_CHECK  ','SCF_PRINT  ','ECP        ','RESTART_CC ',
+     &     'TRANS_INV  ','HFSTABILITY','ROT_EVEC   ','BRUCK_CONV ',
+     &     'QRHF_GENERA','UNITS      ','FD_USEGROUP','FD_PROJECT ',
+C
+     &     'FD_CALTYPE ','FD_IRREPS  ','VTRAN      ','HF2_FILE   ',
+     &     'SUBGROUP   ','SUBGRPAXIS ','EXCITE     ','ZETA_CONV  ',
+     &     'ESTATE_SYM ','TREAT_PERT ','ESTATE_PROP','OPT_MAXCYC ',
+     &     'ABCDTYPE   ','QRHF_SPIN  ','AO_LADDERS ','FOCK       ',
+     &     'ESTATE_MAXC','ESTATE_TOL ','DIRECT     ','GAMMA_ABCD ' /
+      DATA (OPPAR(I),I=101,200)
+     &     /'ZETA_TYPE  ','ZETA_MAXCYC','RESRAMAN   ','PSI        ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ' /
+      DATA (OPPAR(I),I=201,300)
+     &     /'EA_CALC    ','EA_SYM     ','TDHF       ','FUNCTIONAL ',
+     &     'EOM_MAXCYC ','EOMPROP    ','ABCDFULL   ','INTGRL_TOL ',
+     &     'DAMP_TYP   ','DAMP_TOL   ','LSHF_A1    ','LSHF_B1    ',
+     &     'POLYRATE   ','IP_CALC    ','IP_SYM     ','IP_SEARCH  ',
+     &     'EOMREF     ','SOLVENT    ','EE_SEARCH  ','EOM_PRJCT  ',
+     &     'NEWVRT     ','HBARABCD   ','HBARABCI   ','NT3EOMEE   ',
+     &     'NOREORI    ','EE_SYM     ','KS_POT     ','DIP_CALC   ',
+     &     'DIP_SYM    ','DEA_CALC   ','DEA_SYM    ','PROGRAM    ',
+     &     'CCR12      ','EOMXFIELD  ','EOMYFIELD  ','EOMZFIELD  ',
+     &     'INSERTF    ','GRAD_CALC  ','IMEM_SIZE  ','MAKERHF    ',
+     &     'GLOBAL_MEM ','PRP_INTS   ','FNO_KEEP   ','FNO_POST   ',
+     &     'FNO_ACTIVE ','NATURAL    ','ACC_SYM    ','UNO_REF    ',
+     &     'UNO_CHARGE ','UNO_MULT   ','RAMAN      ','KUCHARSKI  ',
+     &     'SCF_TYPE   ','INT_TYPE   ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ' /
+      DATA (OPPAR(I),I=301,400)
+     &     /'           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ' /
+      DATA (OPPAR(I),I=401,500)
+     &     /'           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ' /
+      DATA (OPPAR(I),I=501,600)
+     &     /'           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ',
+     &     '           ','           ','           ','           ' /
+C
+      DATA (UNITS(I),I=  1,100)
+     &     /'   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','  cycles ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ',' x 0.01  ','  cycles ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ',' x 10-6  ',' x 10-6  ',
+     &     ' x 10-6  ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','  cycles ','  irrep  ',
+     &     '  irrep  ','  offset ','   ***   ','  words  ',
+     &     '  words  ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','  H/bohr ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     'millibohr','   ***   ','# of cyc.','   ***   ',
+     &     '10-4 bohr','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ' /
+      DATA (UNITS(I),I=101,200)
+     &     /'   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ' /
+      DATA (UNITS(I),I=201,300)
+     &     /'   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '  cycles ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ',' x 0.01  ',' x 0.01  ',' x 0.01  ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ',' x 10-6  ',' x 10-6  ',' x 10-6  ',
+     &     '   ***   ','  words  ','   ***   ','   ***   ',
+     &     '  words  ','   ***   ',' percent ','   ***   ',
+     &     ' percent ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ' /
+      DATA (UNITS(I),I=301,400)
+     &     /'   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ' /
+      DATA (UNITS(I),I=401,500)
+     &     /'   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ' /
+      DATA (UNITS(I),I=501,600)
+     &     /'   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ',
+     &     '   ***   ','   ***   ','   ***   ','   ***   ' /
+      DATA (IOPYNO(I),I=  1,600)
+     &     /1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
+     &     1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
+     &     1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
+     &     1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
+     &     0,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
+C
+     &     1,1,1,1,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+C
+     &     1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
+     &     1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
+     &     1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+C
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+C
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+C
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+     &     0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0 /
+
+c ----------------------------------------------------------------------
+
+      czPercent  = achar(_IACHAR_PERCENT)
+      czAsterisk = achar(_IACHAR_ASTERISK)
+
+      VALUEX(2,0) ='  SCF        '
+      VALUEX(2,1) ='  MBPT[2]    '
+      VALUEX(2,2) ='  MBPT[3]    '
+      VALUEX(2,3) ='SDQ-MBPT[4]  '
+      VALUEX(2,4) ='  MBPT[4]    '
+      VALUEX(2,5) ='  LCCD       '
+      VALUEX(2,6) ='  LCCSD      '
+      VALUEX(2,7) =' UCCSD[4]    '
+      VALUEX(2,8) ='   CCD       '
+      VALUEX(2,9) ='  UCC[4]     '
+      VALUEX(2,10)='  CCSD       '
+      VALUEX(2,11)='CCSD+T[CCSD] '
+      VALUEX(2,12)='  CCSD+TQ*   '
+      VALUEX(2,13)='  CCSDT-1    '
+      VALUEX(2,14)='  CCSDT-1b   '
+      VALUEX(2,15)='  CCSDT-2    '
+      VALUEX(2,16)='  CCSDT-3    '
+      VALUEX(2,17)='  CCSDT-4    '
+      VALUEX(2,18)='  CCSDT      '
+      VALUEX(2,19)='  LCCSDT     '
+      VALUEX(2,20)=' CCD+ST[CCD] '
+      VALUEX(2,21)='  QCISD[T]   '
+      VALUEX(2,22)='  CCSD[T]    '
+      VALUEX(2,23)='   QCISD     '
+      VALUEX(2,24)='    CID      '
+      VALUEX(2,25)='   CISD      '
+      VALUEX(2,26)='  QCISD[TQ]  '
+      VALUEX(2,27)='  CCSD[TQ]   '
+      VALUEX(2,28)='   CCSD+TQ   '
+      VALUEX(2,29)='  CCSDT+Q*   '
+      VALUEX(2,30)='  CCSDT+Q    '
+      VALUEX(2,31)='  CC5SD[T]   '
+      VALUEX(2,32)='   CCSD-T    '
+      VALUEX(2,33)='     CC3     '
+      VALUEX(2,34)=' CCSDT-T1T2  '
+      VALUEX(2,35)='  CCSDTQ-1   '
+      VALUEX(2,36)='  CCSDTQF-1  '
+      VALUEX(2,37)='  CCSDTQ-2   '
+      VALUEX(2,38)='  CCSDTQ-3   '
+      VALUEX(2,39)='   CCSDTQ    '
+      VALUEX(2,40)='    ACCSD    '
+      VALUEX(2,41)='   HFDFT     '
+      VALUEX(3,0) ='   ZERO      '
+      VALUEX(3,1) ='   FIRST     '
+      VALUEX(3,2) ='   SECOND    '
+      VALUEX(9,0) ='    OFF      '
+      VALUEX(9,1) ='     ON      '
+      VALUEX(10,0)='    OFF      '
+      VALUEX(10,1)='     ON      '
+      VALUEX(11,0)='    RHF      '
+      VALUEX(11,1)='    UHF      '
+      VALUEX(11,2)='    ROHF     '
+      VALUEX(11,3)='   TWODET    '
+      VALUEX(11,4)='   ROHF-OS   '
+      VALUEX(18,0)='    OFF      '
+      VALUEX(18,1)='FIRST_ORDER  '
+      VALUEX(18,2)='SECOND_ORDER '
+      VALUEX(18,3)='NMR          '
+      VALUEX(18,4)='NMR_SWITCH   '
+      VALUEX(18,5)='CONVENTIONAL '
+      VALUEX(18,6)='GIAO '
+      VALUEX(18,7)='TDHF         '
+      VALUEX(18,8)='J_SO         '
+      VALUEX(18,9)='J_FC         '
+      VALUEX(18,10)='J_SD         '
+      VALUEX(18,11)='EOM_NLO      '
+      VALUEX(18,12)='GEERTSEN     '
+      VALUEX(18,13)='JSC_ALL      '
+      VALUEX(19,0)='    OFF      '
+      VALUEX(19,1)='     ON      '
+      VALUEX(20,0)='    OFF      '
+      VALUEX(20,1)='     ON      '
+      VALUEX(21,0)='  STANDARD   '
+      VALUEX(21,1)='    DIIS     '
+      VALUEX(21,2)='  NOJACOBI   '
+      VALUEX(21,3)='    OFF      '
+      VALUEX(22,0)='    OFF      '
+      VALUEX(22,1)='     ON      '
+      VALUEX(26,0)='    OFF      '
+      VALUEX(26,1)='     ON      '
+      VALUEX(35,0)='    OFF      '
+      VALUEX(35,1)='    ALL      '
+      VALUEX(35,2)='  PARTIAL    '
+      VALUEX(38,0)='    OFF      '
+      VALUEX(38,1)='     ON      '
+      VALUEX(39,0)='  STANDARD   '
+      VALUEX(39,1)='SEMICANONICAL'
+      VALUEX(41,0)='    OFF      '
+      VALUEX(41,1)='     ON      '
+      VALUEX(42,0)='    OFF      '
+      VALUEX(42,1)='     ON      '
+      VALUEX(43,0)='    OFF      '
+      VALUEX(43,1)='     ON      '
+CJDW 8/26/97. 2 and 3 are not available (and probably never will be).
+C             4 needs files GUESS and OLDMOS.
+C             5 needs file OLDAOMOS.
+      VALUEX(45,0)='   MOREAD    '
+      VALUEX(45,1)='    CORE     '
+      VALUEX(45,2)=' MO_NEW_OCC  '
+      VALUEX(45,3)=' WALT_PRJDEN '
+      VALUEX(45,4)=' READ_SO_MOS '
+      VALUEX(45,5)=' READ_AO_MOS '
+C
+      VALUEX(47,0)='SINGLE_POINT '
+      VALUEX(47,1)='    NR       '
+      VALUEX(47,2)='    RFA      '
+      VALUEX(47,3)='    MANR     '
+      VALUEX(47,4)='    EVFTS    '
+      VALUEX(47,5)='    MANRTS   '
+      VALUEX(47,6)='    IGTS     '
+      VALUEX(47,7)='    QSD      '
+C
+C      VALUEX(47,6)='  ENERONLY   '
+C
+      VALUEX(50,0)='  ABORT      '
+      VALUEX(50,1)='  SWITCH     '
+      VALUEX(50,2)='  -> RFA     '
+      VALUEX(51,0)='   OFF       '
+      VALUEX(51,1)='   ON        '
+      VALUEX(51,2)='   NO        '
+      VALUEX(52,0)='  MAG[S]     '
+      VALUEX(52,1)='  MAX[s]     '
+      VALUEX(54,0)='   NO        '
+      VALUEX(54,1)='  EXACT      '
+      VALUEX(54,2)='  FINDIF_OLD '
+      VALUEX(54,3)='  FINDIF     '
+      VALUEX(56,0)='   ARGOS     '
+      VALUEX(56,1)='    VMOL     '
+      VALUEX(56,2)='   HERMIT    '
+      VALUEX(56,3)='   CADPAC    '
+      VALUEX(56,4)='   SEWARD    '
+      VALUEX(58,0)='  DOUBLE     '
+      VALUEX(58,1)='  SINGLE     '
+      VALUEX(58,2)='  DOUBLE     '
+      VALUEX(59,0)='SEGMENTED    '
+      VALUEX(59,1)=' GENERAL     '
+      VALUEX(60,0)='  ON         '
+      VALUEX(60,1)=' OFF         '
+      VALUEX(60,2)=' FULL        '
+      VALUEX(62,0) ='    OFF     '
+      VALUEX(62,1) ='    ON      '
+      VALUEX(63,0) ='    OFF     '
+      VALUEX(63,1) ='    ON      '
+      VALUEX(64,0) ='STANDARD    '
+      VALUEX(64,1) ='CANONICAL   '
+      VALUEX(64,2) ='UNKNOWN     '
+      VALUEX(68,0) ='INTERNAL    '
+      VALUEX(68,1) ='CARTESIAN   '
+      VALUEX(68,2) ='XYZ2INT     '
+      VALUEX(69,0) ='NORMAL      '
+      VALUEX(69,1) ='OVERRIDE    '
+      VALUEX(71,0) ='OFF         '
+      VALUEX(71,1) ='ON          '
+      VALUEX(72,0) ='OFF         '
+      VALUEX(72,1) ='ON          '
+      VALUEX(73,0) ='USE         '
+      VALUEX(73,1) ='IGNORE      '
+      VALUEX(74,0) ='OFF         '
+      VALUEX(74,1) ='ON          '
+      VALUEX(74,2) ='FOLLOW      '
+      VALUEX(78,0) ='ANGSTROM    '
+      VALUEX(78,1) ='BOHR        '
+      VALUEX(79,0) ='FULL        '
+      VALUEX(79,1) ='COMP        '
+      VALUEX(80,0) ='ON          '
+      VALUEX(80,1) ='OFF         '
+C
+C Retire FD_CALCTYPE and transfer its responsibility
+C to GRAD_CALC AP, 06/28/2000
+C
+C      VALUEX(81,0) ='GRADONLY    '
+C      VALUEX(81,1) ='ENERONLY    '
+C      VALUEX(81,2) ='MIXED       '
+C
+      VALUEX(83,0) ='FULL/PARTIAL'
+      VALUEX(83,1) ='FULL        '
+      VALUEX(83,2) ='PARTIAL     '
+      VALUEX(84,0) ='SKIP        '
+      VALUEX(84,1) ='USE         '
+      VALUEX(84,2) ='SAVE        '
+      VALUEX(85,0) ='DEFAULT     '
+      VALUEX(85,1) ='C1          '
+      VALUEX(85,2) ='C2          '
+      VALUEX(85,3) ='CS          '
+      VALUEX(85,4) ='CI          '
+      VALUEX(85,5) ='C2V         '
+      VALUEX(85,6) ='C2H         '
+      VALUEX(85,7) ='D2          '
+      VALUEX(85,8) ='D2H         '
+      VALUEX(86,0) ='X           '
+      VALUEX(86,1) ='Y           '
+      VALUEX(86,2) ='Z           '
+C
+      VALUEX(87,0) ='NONE        '
+      VALUEX(87,1) ='TDA         '
+      VALUEX(87,2) ='RPA         '
+      VALUEX(87,3) ='EOMEE       '
+c ?   VALUEX(87,4) ='EOMIP       '
+      VALUEX(87,5) ='CIS         '
+      VALUEX(87,6) ='CIS[D]      '
+      VALUEX(87,7) ='P-EOMEE     '
+      VALUEX(87,8) ='EOM-BWPT2   '
+      VALUEX(87,9) ='STEOM       '
+C
+      VALUEX(90,0) ='SIMULTANEOUS'
+      VALUEX(90,1) ='SEQUENTIAL  '
+      VALUEX(91,0) ='OFF         '
+      VALUEX(91,1) ='EXPECTATION '
+      VALUEX(91,2) ='UNRELAXED   '
+      VALUEX(91,3) ='DERIVATIVE  '
+      VALUEX(93,0) ='STANDARD    '
+      VALUEX(93,1) ='MULTIPASS   '
+      VALUEX(93,2) ='AOBASIS     '
+      VALUEX(95,0) ='MULTIPASS   '
+      VALUEX(95,1) ='SINGLEPASS  '
+      VALUEX(96,0) ='PK          '
+      VALUEX(96,1) ='AO          '
+      VALUEX(99,0) ='OFF         '
+      VALUEX(99,1) ='ON          '
+      VALUEX(100,0)='DISK        '
+      VALUEX(100,1)='DIRECT      '
+      VALUEX(101,0)='POPLE       '
+      VALUEX(101,1)='DIIS        '
+      VALUEX(103,0)='OFF         '
+      VALUEX(103,1)='ON          '
+      VALUEX(104,0)='OFF         '
+      VALUEX(104,1)='ON          '
+C
+      VALUEX(201,0) ='NONE        '
+      VALUEX(201,1) ='MBPT[2]     '
+      VALUEX(201,2) ='SO_DYSON    '
+      VALUEX(201,3) ='OVGF        '
+      VALUEX(201,4) ='P_EOMEA     '
+      VALUEX(201,5) ='EA_EOMCC    '
+      VALUEX(201,6) ='COMBO       '
+C
+      VALUEX(203,0) ='OFF         '
+      VALUEX(203,1) ='ON          '
+C
+      VALUEX(204,0) ='XALPHA      '
+      VALUEX(204,1) ='BECKE       '
+      VALUEX(204,2) ='LYP         '
+      VALUEX(204,3) ='XLYP        '
+      VALUEX(204,4) ='BLYP        '
+C
+      VALUEX(206,0) = 'CILIKE      '
+      VALUEX(206,1) = 'LINEAR      '
+      VALUEX(206,2) = 'QUADRATIC   '
+      VALUEX(206,3) = 'COMBO       '
+C
+      VALUEX(207,0) = 'UNKNOWN     '
+      VALUEX(207,1) = 'ON          '
+      VALUEX(207,2) = 'OFF         '
+C
+      VALUEX(209,0) = 'NONE        '
+      VALUEX(209,1) = 'DAVIDSON    '
+      VALUEX(209,2) = 'OTHER       '
+C
+      VALUEX(213,0) ='OFF         '
+      VALUEX(213,1) ='ON          '
+C
+      VALUEX(214,0) ='NONE        '
+      VALUEX(214,1) ='MBPT[2]     '
+      VALUEX(214,2) ='SO_DYSON    '
+      VALUEX(214,3) ='OVGF        '
+      VALUEX(214,4) ='P_EOMIP     '
+      VALUEX(214,5) ='IP_EOMCC    '
+      VALUEX(214,6) ='COMBO       '
+C
+      VALUEX(216,0) ='VALENCE     '
+      VALUEX(216,1) ='LOWEST      '
+      VALUEX(216,2) ='COREIP      '
+      VALUEX(216,3) ='SHAKEUP     '
+      VALUEX(216,4) ='KOOPMANS    '
+C
+      VALUEX(217,0) ='NONE        '
+      VALUEX(217,1) ='CCSD        '
+      VALUEX(217,2) ='MBPT[2]     '
+C
+      VALUEX(219,0) ='LOWEST      '
+      VALUEX(219,1) ='CORE        '
+      VALUEX(219,2) ='LUMO        '
+      VALUEX(219,3) ='HOMO        '
+C
+      VALUEX(220,0) ='NO          '
+      VALUEX(220,1) ='SEARCH_ONLY '
+      VALUEX(220,2) ='PRJCT_ALL   '
+      VALUEX(220,3) ='PRJCT_NOISE '
+C
+      VALUEX(221,0) ='OFF         '
+      VALUEX(221,1) ='ON          '
+C
+      VALUEX(222,0) ='UNKNOWN     '
+      VALUEX(222,1) ='OFF         '
+      VALUEX(222,2) ='ON          '
+C
+      VALUEX(223,0) ='UNKNOWN     '
+      VALUEX(223,1) ='OFF         '
+      VALUEX(223,2) ='ON          '
+C
+      VALUEX(224, 0) ='NONE        '
+      VALUEX(224, 1) ='NCCSDT-1    '
+      VALUEX(224, 2) ='F-NCCSDT-1  '
+      VALUEX(224, 3) ='NCCSDT-1b   '
+      VALUEX(224, 4) ='F-NCCSDT-1b '
+      VALUEX(224, 5) ='CCSD[TPR]   '
+      VALUEX(224, 6) ='F-CCSD[TPR] '
+      VALUEX(224, 7) ='CCSDR[T]    '
+      VALUEX(224, 8) ='F-CCSDR[T]  '
+      VALUEX(224, 9) ='CCSDR[3]    '
+      VALUEX(224,10) ='F-CCSDR[3]  '
+      VALUEX(224,11) ='NCCSDT-3    '
+      VALUEX(224,12) ='F-NCCSDT-3  '
+C
+      VALUEX(225,0) ='OFF         '
+      VALUEX(225,1) ='ON          '
+c
+      VALUEX(227,0) ='HF          '
+      VALUEX(227,1) ='XALPHA      '
+      VALUEX(227,2) ='LYP         '
+      VALUEX(227,3) ='XALYP       '
+      VALUEX(227,4) ='BLYP        '
+      VALUEX(227,5) ='LDA         '
+      VALUEX(227,6) ='B3LYP       '
+C
+      VALUEX(228,0) ='NONE        '
+      VALUEX(228,1) ='TDA         '
+      VALUEX(228,2) ='EOMCC       '
+      VALUEX(228,3) ='STEOM       '
+      VALUEX(228,4) ='OSCCSD      '
+C
+      VALUEX(230,0) ='NONE        '
+      VALUEX(230,1) ='TDA         '
+      VALUEX(230,2) ='EOMCC       '
+      VALUEX(230,3) ='STEOM       '
+      VALUEX(230,4) ='OSCCSD      '
+C
+      VALUEX(232,0) = 'DEFAULT    '
+      VALUEX(232,1) = 'NOT_USED   '
+      VALUEX(232,2) = 'ACES2      '
+      VALUEX(232,3) = 'ACES3      '
+C
+      VALUEX(233,0) ='OFF         '
+      VALUEX(233,1) ='ON          '
+C
+CMN  VALUEX (234-236) RESERVED FOR EOMFIELDS (X, Y, Z)
+C
+      VALUEX(237,0) ='OFF         '
+      VALUEX(237,1) ='SCF         '
+      VALUEX(237,2) ='TDA         '
+      VALUEX(237,3) ='CC          '
+      VALUEX(237,4) ='EOM         '
+      VALUEX(237,5) ='STEOM       '
+C
+      VALUEX(238,0) ='ANALYTICAL  '
+      VALUEX(238,1) ='NUMERICAL   '
+      VALUEX(238,2) ='AUTO        '
+C
+CMN MAKERHF
+C
+      VALUEX(240,0) ='OFF         '
+      VALUEX(240,1) ='ON          '
+      VALUEX(242,0) ='PARTIAL     '
+      VALUEX(242,1) ='FULL        '
+C
+CKJW post fno calculation type
+C
+      VALUEX(244,0) ='  SCF        '
+      VALUEX(244,1) ='  MBPT[2]    '
+      VALUEX(244,2) ='  MBPT[3]    '
+      VALUEX(244,3) ='SDQ-MBPT[4]  '
+      VALUEX(244,4) ='  MBPT[4]    '
+      VALUEX(244,5) ='  LCCD       '
+      VALUEX(244,6) ='  LCCSD      '
+      VALUEX(244,7) =' UCCSD[4]    '
+      VALUEX(244,8) ='   CCD       '
+      VALUEX(244,9) ='  UCC[4]     '
+      VALUEX(244,10)='  CCSD       '
+      VALUEX(244,11)='CCSD+T[CCSD] '
+      VALUEX(244,12)='  CCSD+TQ*   '
+      VALUEX(244,13)='  CCSDT-1    '
+      VALUEX(244,14)='  CCSDT-1b   '
+      VALUEX(244,15)='  CCSDT-2    '
+      VALUEX(244,16)='  CCSDT-3    '
+      VALUEX(244,17)='  CCSDT-4    '
+      VALUEX(244,18)='  CCSDT      '
+      VALUEX(244,19)='  LCCSDT     '
+      VALUEX(244,20)=' CCD+ST[CCD] '
+      VALUEX(244,21)='  QCISD[T]   '
+      VALUEX(244,22)='  CCSD[T]    '
+      VALUEX(244,23)='   QCISD     '
+      VALUEX(244,24)='    CID      '
+      VALUEX(244,25)='   CISD      '
+      VALUEX(244,26)='  QCISD[TQ]  '
+      VALUEX(244,27)='  CCSD[TQ]   '
+      VALUEX(244,28)='   CCSD+TQ   '
+      VALUEX(244,29)='  CCSDT+Q*   '
+      VALUEX(244,30)='  CCSDT+Q    '
+      VALUEX(244,31)='  CC5SD[T]   '
+      VALUEX(244,32)='   CCSD-T    '
+      VALUEX(244,33)='     CC3     '
+      VALUEX(244,34)=' CCSDT-T1T2  '
+      VALUEX(244,41)='   HFDFT     '
+      VALUEX(246,0) ='OFF          '
+      VALUEX(246,1) ='ON           '
+      VALUEX(248,0) ='OFF          '
+      VALUEX(248,1) ='ON           '
+      VALUEX(251,0) ='OFF          '
+      VALUEX(251,1) ='ON           '
+      VALUEX(252,0) ='OFF          '
+      VALUEX(252,1) ='ON           '
+      VALUEX(253,0) ='HF           '
+      VALUEX(253,1) ='KS           '
+      VALUEX(254,0) ='CONVENTIONAL '
+      VALUEX(254,1) ='DIRECT       '
+C
+      CALL IZERO(NDROP,2)
+      CALL IZERO(NOCC,16)
+      CALL IZERO(IDROP,2000)
+CMN/JDW 3
+      CALL IZERO(EAROOT,16)
+      CALL IZERO(IPROOT,16)
+C
+      NIRR = 8
+      IONE=1
+      IERR=0
+      DOQRHF = .FALSE.
+      OCCISOPEN = .FALSE.
+C
+      CALL PUTREC(-1,'JOBARC','EA_IRREP',IONE,NIRR)
+      CALL PUTREC(-1,'JOBARC','IP_IRREP',IONE,NIRR)
+
+c ----------------------------------------------------------------------
+
+C LOCATE THE *CRAPS NAMELIST
+
+c   o open and rewind ZMAT
+      INQUIRE(FILE=ZFil,OPENED=YESNO)
+      IF (.NOT.YESNO) THEN
+         OPEN(UNIT=LUZ,FILE=ZFil,FORM='FORMATTED',STATUS='OLD')
+      END IF
+      REWIND(LUZ)
+
+c   o skip the header (wrk=TITLE on end do)
+      btmp = .true.
+      do while (btmp)
+         read(luz,'(a)',err=8000) wrk
+         call parsez(wrk,izl)
+         i = izl(1,1)
+         btmp = (i.eq.0).or.(wrk(i:i).eq.czPercent)
+      end do
+
+c   o scan the lines between the title and the first namelist for an asterisk
+      LSTAR = .FALSE.
+      btmp = .true.
+      do while (btmp)
+         read(luz,'(a)',err=8000,end=5400) wrk
+         call parsez(wrk,izl)
+         i = izl(1,1)
+         if (wrk(i:i).ne.czAsterisk) then
+            LSTAR = LSTAR .OR. ( INDEX(WRK,czAsterisk) .NE. 0 )
+         else
+            btmp = .false.
+         end if
+      end do
+c     WRK now equals line 1 of the first namelist
+
+c   o initialize flags to default values
+      DO I = 1, NPARAM
+         IOPPAR(I) = IDEFLT(I)
+      END DO
+
+cYAU - Why is this here?
+C GET NUMBER OF IRREDUCIBLE REPRESENTATIONS FOR COMPUTATIONAL
+C POINT GROUP FROM JOBARC.
+      CALL GFNAME('JOBARC   ',FNAME,ILENGTH)
+      INQUIRE(FILE=FNAME(1:ILENGTH),EXIST=SKIPIT)
+      IF (SKIPIT) THEN
+         CALL GETREC(-1,'JOBARC','COMPNIRR',IONE,NIRREP)
+         IOK = 1
+         IF (NIRREP.NE.0) IOK = 0
+      ELSE
+         IOK = 1
+      END IF
+C AO-LADDER DEFAULT DEPENDS ON MACHINE ARCHITECTURE!
+
+c   o skip to the ACES2/CRAPS namelist
+      i = izl(1,1)
+      btmp = .true.
+      do while (btmp)
+         if ( (wrk(i:(i+5)).eq.'*ACES2') .or.
+     &        (wrk(i:(i+5)).eq.'*CRAPS')      ) then
+            btmp = .false.
+         else
+            i = 0
+            do while (i.eq.0)
+               read(luz,'(a)',err=8000,end=5400) wrk
+               call parsez(wrk,izl)
+               i = izl(1,1)
+            end do
+         end if
+      end do
+
+c   o count the number of lines with keywords on them
+c     There are three ways to terminate the ACES2/CRAPS namelist:
+c      - there is an unpaired right parenthesis ')'
+c      - an asterisk is the first non-blank character on the line
+c      - the end-of-file is reached
+      ilines = 1
+      btmp = .true.
+      do while (btmp)
+         i = index(wrk,')')
+         if (i.eq.0) then
+c         o test for namelist
+            i = fnblnk(wrk)
+            if ((wrk(i:i).ne.czAsterisk).or.(ilines.eq.1)) then
+               read(luz,'(a)',end=8012) wrk
+               ilines = ilines + 1
+            else
+c            o read too far so jump back and quit counting
+               backspace(luz)
+               ilines = ilines - 1
+               btmp   = .false.
+            end if
+         else
+c         o make sure the parenthesis is unpaired or this is line 1
+            i = index(wrk,'(')
+            if (i.eq.0) then
+               btmp = .false.
+            else
+               j = 1
+               itmp = 0
+               do while (i.ne.0)
+                  itmp = itmp + i
+                  i = index(wrk((itmp+1):),'(')
+                  if (i.ne.0) j = j + 1
+               end do
+               i = 1
+               itmp = 0
+               do while (i.ne.0)
+                  itmp = itmp + i
+                  i = index(wrk((itmp+1):),')')
+                  if (i.ne.0) j = j - 1
+               end do
+               if (j.eq.-1) then
+                  btmp = .false.
+               else
+                  if (j.ne.0) then
+                     write(*,*) '@GTFLAGS: Error reading ZMAT - ',
+     &                          ' open parentheses on line:'
+                     i = linblnk(wrk)
+                     write(*,*) wrk(1:i)
+                     call errex
+                  else
+                     if (ilines.gt.1) then
+                        read(luz,'(a)',end=8012) wrk
+                        ilines = ilines + 1
+                     else
+c                     o izl is left over from reading '*ACES2'/'*CRAPS'
+                        i = izl(1,1)
+                        if ( (wrk(i:(i+6)).eq.'*ACES2(') .or.
+     &                       (wrk(i:(i+6)).eq.'*CRAPS(')      ) then
+c                          THIS IS A LIMITATION. What if '*ACES2  (...)'?
+                           btmp = .false.
+                        else
+                           read(luz,'(a)',end=8012) wrk
+                           ilines = ilines + 1
+                        end if
+                     end if
+                  end if
+c              end if (j.eq.-1) <- 1 unpaired ')' on this line
+               end if
+c           end if (i.eq.0) <- no '(' on this line
+            end if
+c        end if (i.eq.0) <- no ')' on this line
+         end if
+c     end do while (btmp) <- still reading lines of keywords
+      end do
+c   o EOF end jump
+ 8012 continue
+
+c   o return to line 1 of ACES2/CRAPS namelist
+#ifdef _DEBUG_JODA
+      write(*,*) '@GTFLGS: There are ',ilines,
+     &           ' in the ACES2/CRAPS namelist.'
+#endif
+      do i = 1, ilines
+         backspace(luz)
+      end do
+
+c   o loop over the number of lines
+      DO 200 ILINE = 1, ILINES
+         READ(LUZ,'(A)')WRK
+         WRK2=WRK
+         WRK3=TRMBLK(WRK2(1:linblnk(WRK2)))
+         WRK =WRK3
+
+C IF ALL DEFAULTS ARE BEING USED, THERE WILL BE NO PARENTHESIS AFTER
+C *ACES2 OR *CRAPS.
+         IF (ILINE.EQ.1) THEN
+            IXXX = INDEX(WRK,'(')
+            IF (IXXX.EQ.0) GOTO 1000
+         END IF
+
+C FIND NUMBER OF SEPARATE ENTRIES.  THIS WILL EQUAL THE NUMBER OF
+C DELIMITERS WHICH ARE ENCOUNTERED PLUS ONE.
+C (POSSIBILE DELIMITERS: ';',' ','&',',','|'
+         IENTRY=1
+         IDIF=0
+cYAU - old
+c         IBEF=LEN(WRK(1:linblnk(WRK)))
+c         IDIF=IBEF-LEN(WRK(1:linblnk(WRK)))
+cYAU - new
+         IBEF=linblnk(WRK)
+cYAU - end
+    5    CONTINUE
+            INCREM=INDEX(WRK,';')
+            INCREM=MAX(INCREM,INDEX(WRK,'&'))
+            INCREM=MAX(INCREM,INDEX(WRK,'|'))
+            INCREM=MAX(INCREM,INDEX(WRK,','))
+            IF (IENTRY.EQ.1) IPTA(IENTRY) = INCREM
+            IF (IENTRY.GT.1) IPTA(IENTRY) = INCREM+IPTA(IENTRY-1)+IDIF
+            IF (INCREM.GT.0) THEN
+               WRK2 = WRK
+cYAU - old
+c               IBEF=LEN(WRK2(INCREM+1:linblnk(WRK2)))
+c               WRK=TRMBLK(WRK2(INCREM+1:linblnk(WRK2)))
+c               IDIF=IBEF-LEN(WRK(1:linblnk(WRK)))
+cYAU - new
+               IBEF=linblnk(WRK2)-INCREM
+               WRK=TRMBLK(WRK2(INCREM+1:linblnk(WRK2)))
+               IDIF=IBEF-linblnk(WRK)
+cYAU - end
+               IENTRY=IENTRY+1
+               GOTO 5
+            ELSE
+C
+C THERE ARE NO MORE DELIMITERS.  THIS MUST BE THE LAST ENTRY ON
+C  THIS LINE.
+C
+               IF (ILINE.NE.ILINES) THEN
+                  IPTA(IENTRY)=linblnk(WRK3)+1
+               ELSE
+                  IPTA(IENTRY)=INDEX(WRK3,')')
+                  IF (INDEX(WRK3,')').EQ.0)THEN
+                     WRITE(LUOUT,*)
+     &                  '@GTFLGS: Input terminator not found.'
+                     CLOSE(UNIT=LUZ,STATUS='KEEP')
+                     CALL ERREX
+                  END IF
+               END IF
+C               IF(IENTRY.GT.1)IPTA(IENTRY)=IPTA(IENTRY)+IPTA(IENTRY-1)
+            END IF
+C
+C NOW WE KNOW HOW MANY ENTRIES THERE ARE ON THIS LINE.  PICK THEM UP
+C  ONE BY ONE AND STUFF IN WRK2.
+C
+            BACKSPACE(LUZ)
+            READ(LUZ,'(A)',ERR=8000)WRK
+            WRK2=WRK
+            WRK=TRMBLK(WRK2(1:linblnk(WRK2)))
+            IF (ILINE.EQ.1) THEN
+               ISTART = INDEX(WRK,'(')+1
+               IF (ISTART.EQ.1)THEN
+                  WRITE(LUOUT,*)
+     &               '@GTFLGS: Error parsing keyword string.'
+                  CALL ERREX
+               END IF
+            ELSE
+               ISTART=FNBLNK(WRK)
+            END IF
+            IBOT = ISTART
+C
+C LOOP OVER ENTRIES
+C
+        DO 101 I=1,IENTRY
+          WRK2=WRK(IBOT:IPTA(I)-1)
+          IBOT=IPTA(I)+1
+C
+C NOW PICK THIS APART, FINDING EQUAL SIGN AND LEFT AND RIGHT HAND SIDES.
+C
+          IPT=INDEX(WRK2,'=')
+          IF(IPT.EQ.0)THEN
+            WRITE(LUOUT,5001)WRK2
+            CALL ERREX
+          ENDIF
+ 5001    FORMAT(T3,'@GTFLGS-F, Must supply value for keyword string ',A)
+          NAME=TRMBLK(WRK2(1:IPT-1))
+          VALUE=TRMBLK(WRK2(IPT+1:linblnk(WRK2)))
+C
+C NOW WE HAVE THE NAME AND VALUE FOR THE SUPPLIED PARAMETER.  GO THROUGH
+C   LIST AND FIND WHICH OF THE OPTCTL PARAMETERS THIS IS.  LET IT GO
+C   THROUGH SO LONG AS THE FIRST THREE CHARACTERS MATCH, OR IF IT MATCHE
+C   ONE OF THE "INTERNAL" NAMES (SUCH AS IPRNT).
+C
+          J=999
+          DO 19 L=1,NPARAM
+CJDW 3/19/94
+C Skip entries which have not yet been defined.
+C
+            IF(IOPYNO(L).EQ.0) GOTO 19
+C
+            IF(NAME(1:NMATCH(L)).EQ.OPPAR(L)(1:NMATCH(L)).OR.
+     &           NAME(1:linblnk(NAME)).EQ.OPPARS(L))J=L
+   19     CONTINUE
+          ISKIP=0
+          IF(J.EQ.999)THEN
+            WRITE(LUOUT,5002)NAME(1:linblnk(NAME))
+            CALL ERREX
+            ISKIP=1
+          ENDIF
+ 5002    FORMAT(T3,'@GTFLGS-W, Keyword ',A,' not known and is ignored.')
+          IF(ISKIP.EQ.1)GOTO 101
+C
+C NOW, SOME KEYWORDS CAN TAKE CHARACTER OR INTEGER ARGUMENTS.
+C  OTHER MUST HAVE INTEGER INPUT.
+C
+C CHECK TO SEE IF THE INPUT STRING IS A CHARACTER.  DO THIS BY PASSING
+C  THE FIRST ELEMENT OF THE STRING TO ATOI - IF IT RETURNS A VALUE >9,
+C  THEN IT MUST BE A STRING. PROCESS IT.
+C
+          WRK2=TRMBLK(VALUE)
+          IBOT0=1
+          ITOP0=linblnk(VALUE)
+          IF(J.EQ.17.OR.J.EQ.27.OR.J.EQ.32.OR.J.EQ.33.OR.J.EQ.82.OR.
+CMN/JDW 1
+c sb added j.eq.61 (basis)
+     &         J.EQ.34.OR.j.eq.61.or.J.EQ.77.OR.J.EQ.89.OR.J.EQ.94.OR.
+     &       J.EQ.202 .OR. J.EQ.215 .OR. J .EQ. 226
+     &       .OR. J .EQ. 229 .OR. J.EQ. 231 .OR. J.EQ. 247)THEN
+          ITOP0=IBOT0
+          ICHARX=0
+CMN QRHF          IF(J.EQ.77.AND.IOPPAR(11).EQ.0)IOPPAR(11)=1  SEE LATER
+        ELSE
+          IF(WRK2(1:1).EQ.'+'.OR.WRK2(1:1).EQ.'-')IBOT0=2
+          YESNO=ISINTG(VALUE(IBOT0:ITOP0))
+          ICHARX=1
+          IF(YESNO)ICHARX=0
+        ENDIF
+        IF(ICHARX.EQ.1)THEN
+C
+C INPUT VALUE IS IN FORM OF CHARACTER STRING.  PROCESS.
+C
+          ITOP=linblnk(WRK2)
+          IF(ITOP.LT.2.AND.J.NE.86)THEN
+            WRITE(LUOUT,3109)
+ 3109       FORMAT(T3,'@GTFLGS-F, Keyword specifiers must have at least'
+     &           ,' two letters.')
+            CLOSE(UNIT=LUZ,STATUS='KEEP')
+            CALL ERREX
+          ENDIF
+          IOPPAR(J)=999
+          IF(ICHAR(J).EQ.1)THEN
+            DO 400 IX=0,MAXOPS(J)-1
+              BIP=TRMBLK(VALUEX(J,IX))
+              IF(WRK2.EQ.BIP)IOPPAR(J)=IX
+  400       CONTINUE
+            IF(IOPPAR(J).EQ.999)THEN
+              WRITE(LUOUT,8050)WRK2(1:linblnk(WRK2)),OPPAR(J)
+ 8050         FORMAT(T3,'@GTFLGS-W, Option ',A,' for keyword ',A11,
+     &           ' not known.')
+              CALL ERREX
+              IOPPAR(J)=IDEFLT(J)
+            ENDIF
+          ELSE
+            WRITE(LUOUT,8060)OPPAR(J)
+ 8060       FORMAT(T3,'@GTFLGS-F, Character input for keyword ',A11,
+     &           ' not permitted.')
+            CLOSE(UNIT=LUZ,STATUS='KEEP')
+            CALL ERREX
+          ENDIF
+        ELSE
+C
+C OTHER CASES (WHERE INTEGER IS APPROPRIATE) -- NEED TO CONVERT THE
+C  STRING TO AN INTEGER AND THEN STUFF IT INTO THE IOPPAR PARAMETER.
+C
+          IF(J.EQ.32.OR.J.EQ.33.OR.J.EQ.34.OR.J.EQ.77.OR.J.EQ.82.
+     &         OR.J.EQ.89.OR.J.EQ.94)THEN
+C
+C FOR FINDIF AND QRHF KEYWORDS, WE NEED TO DO SOME TRICKY STUFF  -
+C  ENTRIES SEPARATED BY DASHES.
+C
+            IF(J.EQ.77) THEN
+              IOPPAR(38)=1
+              DOQRHF = .TRUE.
+            ENDIF
+C
+            IOPPAR(J)=999
+            ICOUNT=1
+            ILOC=1
+            IPOS=0
+   49       ILOC=ILOC+IPOS
+            TMPSTR=VALUE(ILOC:)
+            IPOS=INDEX(TMPSTR,'/')
+            IF(IPOS.EQ.0)THEN
+              IPOS1=FNBLNK(TMPSTR)
+              IPOS2=linblnk(TMPSTR)
+              IARR(ICOUNT)=ATOI(TMPSTR(IPOS1:IPOS2))
+            ELSE
+              IPOS1=FNBLNK(TMPSTR)
+              IPOS2=linblnk(TMPSTR(:IPOS-1))
+              IARR(ICOUNT)=ATOI(TMPSTR(IPOS1:IPOS2))
+              ICOUNT=ICOUNT+1
+              GOTO 49
+            ENDIF
+            IF(J.NE.82.AND.J.NE.89.AND.J.NE.94)THEN
+              CALL PUTREC(20,'JOBARC','QRHFTOT ',IONE,ICOUNT)
+              IF(J.NE.34)THEN
+                CALL PUTREC(20,'JOBARC','QRHFIRR ',ICOUNT,IARR)
+              ELSE
+                CALL PUTREC(20,'JOBARC','QRHFLOC ',ICOUNT,IARR)
+              ENDIF
+              IQRHF=ICOUNT
+            ELSEIF(J.EQ.94)THEN
+              CALL PUTREC(20,'JOBARC','QRHFSPN ',ICOUNT,IARR)
+            ELSEIF(J.EQ.82)THEN
+              CALL PUTREC(20,'JOBARC','NFDIRREP',IONE,ICOUNT)
+              CALL PUTREC(20,'JOBARC','FDIRREP ',ICOUNT,IARR)
+            ELSEIF(J.EQ.89)THEN
+              CALL PUTREC(20,'JOBARC','ICOUNT  ',IONE,ICOUNT)
+              CALL PUTREC(20,'JOBARC','EESYMINF',ICOUNT,IARR)
+C
+C ALSO PUT THESE ELEMENTS ON EE_SYM FOR USE IN ACES3 CALCULATIONS.
+C
+              CALL IZERO(IARR(ICOUNT+1),8-ICOUNT)
+              CALL PUTREC(20,'JOBARC','EESYM_A ',8,IARR)
+              CALL IZERO(IARR,8)
+              CALL PUTREC(20,'JOBARC','EESYM_B ',8,IARR)
+              CALL PUTREC(20,'JOBARC','EESYM_C ',8,IARR)
+            ENDIF
+C
+          ELSEIF(J.EQ.17.OR.J.EQ.27)THEN
+C
+C IF THIS IS THE OCCUPATION OR DROPMO KEYWORD, NEED TO PLAY SOME GAMES.
+C
+            IF(J.EQ.17)IOPPAR(17)=0
+            IF(J.EQ.27)IOPPAR(27)=0
+            ISWTCH=0
+            CLUSTR=.FALSE.
+            IEND=1
+            ISPIN=1
+            NIRR=0
+   50       TMPSTR=VALUE(IEND:)
+            IF(ISWTCH.EQ.1)THEN
+              ISPIN=2
+              NIRR=0
+              ISWTCH=0
+            ENDIF
+            IPOSF=FNBLNK(TMPSTR)
+            IBRNCH=linblnk(TMPSTR)
+            IF(IBRNCH.EQ.0)GOTO 900
+            NIRR=NIRR+1
+            ISLUHF=INDEX(TMPSTR,'/')
+            IPOSDS=INDEX(TMPSTR,'-')
+            IPOSGT=INDEX(TMPSTR,'>')
+            IF(ISLUHF.NE.0.AND.ISLUHF.LT.IPOSDS.OR.
+     &           ISLUHF.NE.0.AND.IPOSDS.EQ.0.AND.IPOSGT.EQ.0.OR.
+     &           IPOSDS.EQ.0.AND.ISLUHF.NE.0.AND.ISLUHF.LT.IPOSGT)THEN
+              IPOSDS=ISLUHF
+              ISWTCH=1
+              IF(ISWTCH.EQ.1.AND.J.NE.17)THEN
+                WRITE(6,1033)
+ 1033           FORMAT(T3,'@GTFLGS-F, DROPMO format does not allow ',
+     &               'separate A and B entries.')
+                CALL ERREX
+              ENDIF
+            ENDIF
+            ISET=0
+            IF(IPOSGT.NE.0.AND.IPOSGT.LT.IPOSDS.OR.IPOSDS.EQ.0.
+     &           AND.IPOSGT.NE.0)THEN
+              ISET=1
+              IPOSDS=IPOSGT
+            ENDIF
+            IF(IPOSDS.EQ.0.AND.IPOSGT.EQ.0)IPOSDS=linblnk(TMPSTR)
+            NPOP=ATOI(TMPSTR(IPOSF:IPOSDS-1))
+            IF(J.EQ.17)THEN
+              NOCC(NIRR,ISPIN)=NPOP
+            ELSE
+              IF(CLUSTR)THEN
+                INCREM=NPOP-IDROP(NDROP(1),ISPIN)
+              ELSE
+                INCREM=1
+              ENDIF
+              NSTART=NPOP-INCREM
+              DO 337 II=1,INCREM
+                IDROP(NDROP(1)+II,1)=NSTART+II
+  337         CONTINUE
+              NDROP(1)=NDROP(1)+INCREM
+            ENDIF
+            IEND=IPOSDS+IEND
+            IF(ISET.EQ.1)THEN
+              CLUSTR=.TRUE.
+            ELSE
+              CLUSTR=.FALSE.
+            ENDIF
+            GOTO 50
+  900       CONTINUE
+CMN/JDW 41
+          ELSEIF(J.EQ.202) THEN
+C
+C IN THE EA_SYM CASE ESSENTIALLY THE SAME LOGIC AS WITH OCCUPATION (J=17)
+C
+            IOPPAR(202)=999
+            ISWTCH=0
+            IEND=1
+            ISPIN=1
+            NIRR2=0
+   51       TMPSTR=VALUE(IEND:)
+            IF(ISWTCH.EQ.1)THEN
+              ISPIN=2
+              NIRR2A=NIRR2
+              NIRR2=0
+              ISWTCH=0
+            ENDIF
+            IPOSF=FNBLNK(TMPSTR)
+            IBRNCH=linblnk(TMPSTR)
+            IF(IBRNCH.EQ.0)GOTO 901
+            NIRR2=NIRR2+1
+            ISLUHF=INDEX(TMPSTR,'/')
+            IPOSDS=INDEX(TMPSTR,'-')
+            IF(ISLUHF.NE.0.AND.ISLUHF.LT.IPOSDS.OR.
+     &           ISLUHF.NE.0.AND.IPOSDS.EQ.0) THEN
+              IPOSDS=ISLUHF
+              ISWTCH=1
+            ENDIF
+            ISET=0
+            IF(IPOSDS.EQ.0) IPOSDS=linblnk(TMPSTR)
+            NROOT=ATOI(TMPSTR(IPOSF:IPOSDS-1))
+            EAROOT(NIRR2,ISPIN)=NROOT
+            IEND=IPOSDS+IEND
+            GOTO 51
+  901       CONTINUE
+            IF (ISPIN.EQ.2) THEN
+              IF (NIRR2.NE.NIRR2A) THEN
+                WRITE(6,*)
+     &               ' NUMBER OF ALPHA AND BETA EA_SYM IS DIFFERENT'
+                CALL ERREX
+              ENDIF
+            ENDIF
+            CALL PUTREC(-1,'JOBARC','EA_IRREP',IONE,NIRR2)
+C
+CMN END EA
+C
+CMN/JDW Same for IP logic
+          ELSEIF(J.EQ.215) THEN
+C
+C IN THE IP_SYM CASE ESSENTIALLY THE SAME LOGIC AS WITH OCCUPATION (J=17)
+C
+            IOPPAR(215)=999
+            ISWTCH=0
+            IEND=1
+            ISPIN=1
+            NIRR2=0
+  151       TMPSTR=VALUE(IEND:)
+            IF(ISWTCH.EQ.1)THEN
+              ISPIN=2
+              NIRR2A=NIRR2
+              NIRR2=0
+              ISWTCH=0
+            ENDIF
+            IPOSF=FNBLNK(TMPSTR)
+            IBRNCH=linblnk(TMPSTR)
+            IF(IBRNCH.EQ.0)GOTO 1901
+            NIRR2=NIRR2+1
+            ISLUHF=INDEX(TMPSTR,'/')
+            IPOSDS=INDEX(TMPSTR,'-')
+            IF(ISLUHF.NE.0.AND.ISLUHF.LT.IPOSDS.OR.
+     &           ISLUHF.NE.0.AND.IPOSDS.EQ.0) THEN
+              IPOSDS=ISLUHF
+              ISWTCH=1
+            ENDIF
+            ISET=0
+            IF(IPOSDS.EQ.0) IPOSDS=linblnk(TMPSTR)
+            NROOT=ATOI(TMPSTR(IPOSF:IPOSDS-1))
+            IPROOT(NIRR2,ISPIN)=NROOT
+            IEND=IPOSDS+IEND
+            GOTO 151
+ 1901       CONTINUE
+            IF (ISPIN.EQ.2) THEN
+              IF (NIRR2.NE.NIRR2A) THEN
+                WRITE(6,*)
+     &               ' NUMBER OF ALPHA AND BETA IP_SYM IS DIFFERENT'
+                CALL ERREX
+              ENDIF
+            ENDIF
+            CALL PUTREC(-1,'JOBARC','IP_IRREP',IONE,NIRR2)
+C
+CMN END IP
+C
+      ELSEIF(J.EQ.226) THEN
+C
+C IN THE EE_SYM CASE ESSENTIALLY THE SAME LOGIC AS WITH OCCUPATION (J=17)
+C
+         IOPPAR(226)=999
+         ISWTCH=0
+         IEND=1
+         ISPIN=1
+         NIRR2=0
+         CALL IZERO(EEROOT,24)
+ 351      TMPSTR=VALUE(IEND:)
+         IF(ISWTCH.EQ.1)THEN
+          ISPIN=ISPIN + 1
+          NIRR2A=NIRR2
+          NIRR2=0
+          ISWTCH=0
+         ENDIF
+         IPOSF=FNBLNK(TMPSTR)
+         IBRNCH=linblnk(TMPSTR)
+         IF(IBRNCH.EQ.0)GOTO 903
+         NIRR2=NIRR2+1
+         ISLUHF=INDEX(TMPSTR,'/')
+         IPOSDS=INDEX(TMPSTR,'-')
+         IF(ISLUHF.NE.0.AND.ISLUHF.LT.IPOSDS.OR.
+     &     ISLUHF.NE.0.AND.IPOSDS.EQ.0) THEN
+          IPOSDS=ISLUHF
+          ISWTCH=1
+         ENDIF
+         ISET=0
+         IF(IPOSDS.EQ.0) IPOSDS=linblnk(TMPSTR)
+         NROOT=ATOI(TMPSTR(IPOSF:IPOSDS-1))
+          EEROOT(NIRR2,ISPIN)=NROOT
+         IEND=IPOSDS+IEND
+         GOTO 351
+  903    CONTINUE
+c
+         CALL PUTREC(20,'JOBARC','EESYM_A ',8,EEROOT(1,1))
+CMN
+C also do it for ACES2 ESTATE_SYM
+C
+         CALL PUTREC(20,'JOBARC','ICOUNT  ',IONE,NIRR2)
+         CALL PUTREC(20,'JOBARC','EESYMINF',NIRR2,EEROOT(1,1))
+         CALL PUTREC(20,'JOBARC','EESYM_B ',8,EEROOT(1,2))
+         CALL PUTREC(20,'JOBARC','EESYM_C ',8,EEROOT(1,3))
+C
+CMN END EE
+C
+      ELSEIF(J.EQ.229) THEN
+C
+C IN THE DIPSYM CASE ESSENTIALLY THE SAME LOGIC AS WITH OCCUPATION (J=17)
+C
+         IOPPAR(229)=999
+         ISWTCH=0
+         IEND=1
+         ISPIN=1
+         NIRR2=0
+         CALL IZERO(EEROOT,24)
+ 352    TMPSTR=VALUE(IEND:)
+         IF(ISWTCH.EQ.1)THEN
+          ISPIN=ISPIN + 1
+          NIRR2A=NIRR2
+          NIRR2=0
+          ISWTCH=0
+         ENDIF
+         IPOSF=FNBLNK(TMPSTR)
+         IBRNCH=linblnk(TMPSTR)
+         IF(IBRNCH.EQ.0)GOTO 904
+         NIRR2=NIRR2+1
+         ISLUHF=INDEX(TMPSTR,'/')
+         IPOSDS=INDEX(TMPSTR,'-')
+         IF(ISLUHF.NE.0.AND.ISLUHF.LT.IPOSDS.OR.
+     &     ISLUHF.NE.0.AND.IPOSDS.EQ.0) THEN
+          IPOSDS=ISLUHF
+          ISWTCH=1
+         ENDIF
+         ISET=0
+         IF(IPOSDS.EQ.0) IPOSDS=linblnk(TMPSTR)
+         NROOT=ATOI(TMPSTR(IPOSF:IPOSDS-1))
+          EEROOT(NIRR2,ISPIN)=NROOT
+         IEND=IPOSDS+IEND
+         GOTO 352
+  904    CONTINUE
+         CALL PUTREC(20,'JOBARC','DIPSYMA',8,EEROOT(1,1))
+         CALL PUTREC(20,'JOBARC','DIPSYMB ',8,EEROOT(1,2))
+         CALL PUTREC(20,'JOBARC','DIPSYMC ',8,EEROOT(1,3))
+C
+CMN END DIP
+C
+      ELSEIF(J.EQ.231) THEN
+C
+C IN THE DEASYM CASE ESSENTIALLY THE SAME LOGIC AS WITH OCCUPATION (J=17)
+C
+         IOPPAR(231)=999
+         ISWTCH=0
+         IEND=1
+         ISPIN=1
+         NIRR2=0
+         CALL IZERO(EEROOT,24)
+  353    TMPSTR=VALUE(IEND:)
+         IF(ISWTCH.EQ.1)THEN
+          ISPIN=ISPIN + 1
+          NIRR2A=NIRR2
+          NIRR2=0
+          ISWTCH=0
+         ENDIF
+         IPOSF=FNBLNK(TMPSTR)
+         IBRNCH=linblnk(TMPSTR)
+         IF(IBRNCH.EQ.0)GOTO 905
+         NIRR2=NIRR2+1
+         ISLUHF=INDEX(TMPSTR,'/')
+         IPOSDS=INDEX(TMPSTR,'-')
+         IF(ISLUHF.NE.0.AND.ISLUHF.LT.IPOSDS.OR.
+     &     ISLUHF.NE.0.AND.IPOSDS.EQ.0) THEN
+          IPOSDS=ISLUHF
+          ISWTCH=1
+         ENDIF
+         ISET=0
+         IF(IPOSDS.EQ.0) IPOSDS=linblnk(TMPSTR)
+         NROOT=ATOI(TMPSTR(IPOSF:IPOSDS-1))
+          EEROOT(NIRR2,ISPIN)=NROOT
+         IEND=IPOSDS+IEND
+         GOTO 353
+  905    CONTINUE
+         CALL PUTREC(20,'JOBARC','DEASYMA',8,EEROOT(1,1))
+         CALL PUTREC(20,'JOBARC','DEASYMB',8,EEROOT(1,2))
+         CALL PUTREC(20,'JOBARC','DEASYMC',8,EEROOT(1,3))
+C
+CMN END DEA
+C
+
+      ELSEIF(J.EQ.247) THEN
+C
+C IN THE ACC_SYM CASE ESSENTIALLY THE SAME LOGIC AS WITH OCCUPATION (J=17)
+C
+         IOPPAR(247)=999
+         ISWTCH=0
+         IEND=1
+         ISPIN=1
+         NIRR2=0
+         CALL IZERO(EEROOT,24)
+ 552    TMPSTR=VALUE(IEND:)
+         IF(ISWTCH.EQ.1)THEN
+          ISPIN=ISPIN + 1
+          NIRR2A=NIRR2
+          NIRR2=0
+          ISWTCH=0
+         ENDIF
+         IPOSF=FNBLNK(TMPSTR)
+         IBRNCH=linblnk(TMPSTR)
+         IF(IBRNCH.EQ.0)GOTO 906
+         NIRR2=NIRR2+1
+         ISLUHF=INDEX(TMPSTR,'/')
+         IPOSDS=INDEX(TMPSTR,'-')
+         IF(ISLUHF.NE.0.AND.ISLUHF.LT.IPOSDS.OR.
+     &     ISLUHF.NE.0.AND.IPOSDS.EQ.0) THEN
+          IPOSDS=ISLUHF
+          ISWTCH=1
+         ENDIF
+         ISET=0
+         IF(IPOSDS.EQ.0) IPOSDS=linblnk(TMPSTR)
+         NROOT=ATOI(TMPSTR(IPOSF:IPOSDS-1))
+          EEROOT(NIRR2,ISPIN)=NROOT
+         IEND=IPOSDS+IEND
+         GOTO 552
+ 906     CONTINUE
+         CALL PUTREC(20,'JOBARC','CCSYM_O ',8,EEROOT(1,1))
+         CALL PUTREC(20,'JOBARC','CCSYM_V ',8,EEROOT(1,2))
+
+C
+CMN END ACC_SYM
+C
+
+c sb BASIS= reads an arbitrary basis set or 'SPECIAL'
+          elseif(j.eq.61) then
+            if (value(1:linblnk(value)).eq.'SPECIAL') then
+              ioppar(61)=0
+            else
+              ioppar(61)=1
+            endif
+            BasNam=value(1:linblnk(value))
+
+          ELSE
+            IPOS=linblnk(VALUE)
+            IOPPAR(J)=ATOI(VALUE(1:IPOS))
+          ENDIF
+C
+C  END J LOOP
+C
+C  SOME ADDITIONAL STUFF
+C
+          IF(J.EQ.17)NIRRPS=NIRR
+          IF(ISPIN.EQ.1.AND.IOPPAR(11).GE.1.AND.J.EQ.17)THEN
+            WRITE(LUOUT,8870)OPPAR(J)
+ 8870       FORMAT(T3,'GTFLGS-F, Must specify alpha and beta parts for',
+     &           ' keyword ',A,'.')
+            CLOSE(UNIT=LUZ,STATUS='KEEP')
+            CALL ERREX
+CMN/JDW EA 4
+cmn          ELSEIF(ISPIN.EQ.1.AND.IOPPAR(11).GE.1.AND.J.EQ.202)THEN
+cmn            WRITE(LUOUT,8870)OPPAR(J)
+cmn            CLOSE(UNIT=LUZ,STATUS='KEEP')
+cmn            CALL ERREX
+CMN/JDW IP 4
+cmn          ELSEIF(ISPIN.EQ.1.AND.IOPPAR(11).GE.1.AND.J.EQ.215)THEN
+cmn            WRITE(LUOUT,8870)OPPAR(J)
+cmn            CLOSE(UNIT=LUZ,STATUS='KEEP')
+cmn            CALL ERREX
+          ELSEIF(J.NE.17.AND.ISPIN.EQ.1.AND.IOPPAR(11).GE.1)THEN
+            ISPIN=2
+          ELSEIF(J.EQ.17.AND.ISPIN.EQ.2.AND.IOPPAR(11).EQ.0)THEN
+CJDW 9/16/97. Old (the call to errex is newer, but logic has always
+C             somewhat flawed, as we forced UHF if the user had no
+C             reference. Marcel's errex call was a good idea, but caused
+C             problems if OCCUPATION keyword appeared before the REFERENCE
+C             keyword. Hence, we use variable OCCISOPEN to indicate we
+C             have an open-shell occupation (ie alpha and beta strings).
+C             We check compatibility with reference below.
+c            WRITE(LUOUT,8871)
+c 8871       FORMAT(T3,'@GTFLGS-I, REFERENCE NEEDS to be set ROHF/UHF')
+c            call errex
+c            IOPPAR(11)=1
+            OCCISOPEN = .TRUE.
+          ENDIF
+C
+C   PUT STUFF HERE
+C
+        ENDIF
+  101 CONTINUE
+  200 CONTINUE
+      IUHF=0
+      TDCALC = .FALSE.
+C
+CJDW 9/16/97 Before too long, let's try to get a block of code which sets
+C            reference and related keywords all in one place. Then we
+C            can understand it better !
+C
+CMN MAKE RHF REFERENCE !!!
+C
+CMN      IF (IOPPAR(240) .EQ. 1) THEN
+CMN        IOPPAR(11) = 0
+CMN      ENDIF
+C
+      IF(IOPPAR(11).GE.3)THEN
+        CALL PUTREC(20,'JOBARC','OSCALC  ',IONE,IONE)
+        IOPPAR(11)=1
+        TDCALC = .TRUE.
+      ENDIF
+C
+C NOW HAVE FINISHED READING IN THE STUFF.  MAKE SURE THAT MANDATORY
+C  DEPENDENCIES ARE TAKEN CARE OF.  THIS BRANCH IS ALSO MADE IF THE
+C  STRING IS READ IN THE OLD INTEGER LIST FORMAT.
+C******************************************************************
+C
+C Ajith 03/2000, A bug fix to get the QRHF back on track!
+C When the iflags(240) is turned on, Marcel would use RHF
+C type structure (both Alpha and Beta have the same eigen
+C vectors). However, if it is a normal QRHF calcualtion we
+C need to force to be ROHF so that other NON-HF flags will
+C get set properly. The iflags(240) is off by default. The
+C other thing to worry about is the two determinant CC methods
+C wich use QRHF key-word to specify the appropriate configurations.
+C We can not run two determinant CC as ROHF since that would
+C turn on the semi-canonical flag. The following logic will
+C satisfy all the requirments and produce correct results for
+C QRHF and two determinant calculations. Warning! The changes
+C like these should be made with exterme caution and by only
+C people who know what they are doing.
+
+      IF(DOQRHF) THEN
+C
+         IF (IOPPAR(240).EQ.1) THEN
+             CALL ICOPY(NOCC(1,1), NOCC(1,2), NIRMAX)
+         ENDIF
+C
+        IOPPAR(11)=2
+C
+C If two determinant, turn it back to UHF. The orbital invariance
+C of two determinant CC is a complicated issue. Please consult
+C an expert if you have questions about these issues!
+C
+	IF (TDCALC) IOPPAR(11)=1
+        ISPIN=2
+C
+      ENDIF
+C
+      IF(IOPPAR(46).GT.999.OR.IOPPAR(46).LT.0)THEN
+        WRITE(LUOUT,5011)IOPPAR(46)
+ 5011   FORMAT(T3,'@GTFLGS-I, Print level of ',I10,' not ',
+     &     'allowed.')
+        CALL ERREX
+        IOPPAR(46)=IDEFLT(46)
+      ENDIF
+      IF(IOPPAR(48).GT.10)THEN
+        WRITE(LUOUT,5014)IOPPAR(48)
+ 5014   FORMAT(T3,'@GTFLGS-I, Convergence criterion of 10E-',I10,
+     &       ' too strict.  Internally reset to 10E-10.')
+        IOPPAR(48)=10
+      ENDIF
+      IF(IOPPAR(50).GT.2)THEN
+        WRITE(LUOUT,5012)IOPPAR(50)
+ 5012   FORMAT(T3,'@GTFLGS-I, Value of ',I10,' for IDIE not ',
+     &     'understood.')
+        CALL ERREX
+        IOPPAR(50)=IDEFLT(50)
+      ENDIF
+C We will decide the step size when we know how the derivatives 
+C are done (analytical and numerical) Ajith 06/2001
+C      IF(IOPPAR(54).GE.2.AND.IOPPAR(57).EQ.0)IOPPAR(57)=50
+C
+C Originally this was handeled be IOPPAR(81), but since the retirement
+C of FD_CALCTYPE, it responsiblity was transfered to GRAD_CALC (238).
+C At this point GRAD_CALC is set to AUTO. Ajith 06/20000
+C      IF(IOPPAR(238).NE.0.AND.IOPPAR(57).EQ.0) IOPPAR(57)=50 
+C
+      IF(IOPPAR(54).EQ.2.AND.IOPPAR(60).NE.1)THEN
+        IOPPAR(60)=1
+        WRITE(LUOUT,4328)
+ 4328   FORMAT(T3,'@GTFLGS-I, Symmetry turned off for finite ',
+     &       'difference calculation.')
+      ENDIF
+CJDW 9/20/96. Allow for INTEGRALS=SEWARD.
+      IF(IOPPAR(60).EQ.2.AND.(IOPPAR(56).EQ.1.OR.IOPPAR(56).EQ.4))THEN
+        WRITE(LUOUT,5328)
+ 5328   FORMAT(T3,'@GTFLGS-F, VMOL doesn''t understand high symmetry.')
+        CALL ERREX
+      ENDIF
+      IF(IOPPAR(54).GT.3)THEN
+        WRITE(LUOUT,6017)
+ 6017   FORMAT(T3,'@GTFLGS-F, Value of ',I5,' for vibration not ',
+     &       'understood.')
+        CALL ERREX
+      ENDIF
+      IF(IOPPAR(68).EQ.1.AND.IOPPAR(47).NE.0)THEN
+        WRITE(LUOUT,6021)
+ 6021   FORMAT(T3,'@GTFLGS-F, Cartesian input only works for ',
+     &       'single-point runs.')
+        CALL ERREX
+      ENDIF
+      IF(IOPPAR(54).GE.1.AND.IOPPAR(47).NE.0)THEN
+        WRITE(LUOUT,6018)VALUEX(2,IOPPAR(47))
+ 6018   FORMAT(T3,'@GTFLGS-W, Vibrational calculation not compatible ',
+     &     'with METHOD=',A,'.')
+        CALL ERREX
+        IOPPAR(47)=1
+      ENDIF
+CJDW 9/20/96. Allow for INTEGRALS=SEWARD.
+c     IF(IOPPAR(56).GE.3)THEN
+      IF(IOPPAR(56).EQ.3)THEN
+        WRITE(LUOUT,6019)IOPPAR(56)
+ 6019   FORMAT(T3,'@GTFLGS-F, Integral program option ',I5,' unknown.')
+        CALL ERREX
+      ENDIF
+C
+C ENSURE THAT THE SPECIFIED MEMORY IS A MULTIPLE OF IINTFP
+C
+      IF(MOD(IOPPAR(36),IINTFP).NE.0) THEN
+        IOPPAR(36)=IOPPAR(36)-1
+      ENDIF
+C
+C VALUES OF ICURVY > 1 UNCONDITIONALLY TURN OF THE RECTILINEAR --> CURV.
+C  TRANSFORMATION OF THE HESSIAN.
+C
+      IF(IOPPAR(51).GE.2)IOPPAR(51)=2
+C
+C NOW TAKE CARE OF A FEW SENSIBLE DEPENDENCIES.  THESE ARE
+C   DONE INTERNALLY IF THE OPTCTL STRING IS READ IN.  HERE,
+C   TURN CURVILINEAR TRANSFORMATION ON IF TRANSITION SEARCH IS BEING
+C   DONE, OR IF HESSIAN IS AVAILABLE AND VIBRATIONAL CALCULATION
+C   NOT REQUESTED.
+C
+      CALL GFNAME('FCM     ',FNAME,ILENGTH)
+      INQUIRE(FILE=FNAME(1:ILENGTH),EXIST=YESNO)
+      INK=0
+      IF(YESNO.AND.IOPPAR(54).EQ.0.AND.IOPPAR(51).EQ.0)INK=1
+      IF(IOPPAR(47).EQ.4.AND.IOPPAR(51).EQ.0.OR.INK.EQ.1)THEN
+        IOPPAR(51)=1
+        WRITE(LUOUT,5010)
+ 5010   FORMAT(T3,'@GTFLGS-I, Hessian will be transformed to ',
+     &       'curvilinear coordinates.')
+      ENDIF
+C******************************************************************
+C******************************************************************
+C
+C CHECK TO SEE IF THESE MAKE SENSE AND SET A FEW DEPENDENCIES.
+C
+C******************************************************************
+
+cSB 2/7/97
+C
+c  Kohn-Sham implies FOCK=AO, NON-HF=ON, ORBITALS=SEMICANONICAL, REF=ROHF
+c  Do this early on so that any ROHF changes can also be made.
+      if (ioppar(227).ne.0) then
+CMN RHF KOHN-SHAM SHOULD BE ALLOWED!
+CMN        if (ioppar(11).ne.2) then
+CMN          write(luout,*)
+CMN     &         '  @GTFLGS-I, Reference changed to ROHF. '
+CMN        endif
+        ioppar(96)=1
+        ioppar(38)=1
+        ioppar(39)=1
+CMN        ioppar(11)=2
+      endif
+cSB end
+C
+CMN if UNO-REF (248) change to semi-canonical orbitals, non-hF =on
+C
+      if (ioppar(248) .eq. 1) then
+         ioppar(39) = 1
+         ioppar(38) = 1
+      endif
+c
+CJDW 9/16/97. I am assuming IOPPAR(11) will not change after this point !
+C             Trap situation when an open-shell occupation has been
+C             specified and the reference is RHF. Stop the job in this
+C             case --- in the past we used to set REFERENCE=UHF.
+C
+      IF(OCCISOPEN  .AND. IOPPAR(11).EQ.0)THEN
+       WRITE(6,*) '  @GTFLGS-F, Open-shell OCCUPATION is incompatible '
+       WRITE(6,*) '             with RHF reference. Please specify an '
+       WRITE(6,*) '             appropriate reference.                '
+       CALL ERREX
+      ENDIF
+C
+C              Trap case when non-singlet multiplicity has been given and
+C              REF=RHF.
+C
+      IF(IOPPAR(11).EQ.0 .AND. IOPPAR(29).NE.1)THEN
+       WRITE(6,*)
+     & '  @GTFLGS-F, MULTIPLICITY must be 1 for an RHF reference. '
+       WRITE(6,*)
+     & '             MULTIPLICITY refers to the SCF wavefunction. '
+       CALL ERREX
+      ENDIF
+C
+CMN Now PUT THE UHF STUFF IN PLACE.
+C
+      IF(IOPPAR(11).GE.1)IUHF=1
+      CALL PUTREC(20,'JOBARC','UHFRHF  ',IONE,IUHF)
+      IF(IUHF.NE.0.AND.NDROP(1).NE.0)THEN
+        NDROP(2)=NDROP(1)
+        DO 5113 I=1,NDROP(1)
+          IDROP(I,2)=IDROP(I,1)
+ 5113   CONTINUE
+      ENDIF
+C
+C-----------------------------------------------------------------------
+CJDW  11/2/93.
+C If there are no *'s in the ZMAT file but METHOD has been set to
+C something other than 'SINGLE_POINT' (5) stop the job.
+C
+      IF( NOPT.EQ.0 .AND. .NOT.LSTAR .AND. IOPPAR(47).NE.0)THEN
+        WRITE(LUOUT,5020)
+ 5020   FORMAT('  @GTFLGS-F, An optimization or transition state',
+     1       ' search has been requested,',/,
+     1       '             but no asterisks appear in the Z-matrix.',
+     1       ' Resubmit with asterisks',/,
+     1       '             following the variables which are to be',
+     1       ' optimized. ')
+        CALL ERREX
+      ENDIF
+CEnd of modifcation.
+C-----------------------------------------------------------------------
+C
+CJDW  9/12/96.
+C If there are *'s in the ZMAT file and VIB has been set to something
+C other than NO (default), stop the job.
+C
+      IF( (NOPT.NE.0 .OR. LSTAR) .AND. IOPPAR(54).GT.0 )THEN
+        WRITE(LUOUT,5025)
+ 5025   FORMAT('  @GTFLGS-F, Ambiguous input file : asterisks AND',
+     &       ' vibrational frequency',/,
+     &       '             request are present. ')
+        CALL ERREX
+      ENDIF
+C
+C
+C TURN ON OPTIMIZATION IF THERE ARE STARS IN Z-MATRIX
+C
+      IF ( (NOPT.NE.0 .OR. LSTAR) .AND. IOPPAR(47).EQ.0 )
+     $     IOPPAR(47)=1
+C
+C TURN SYMMETRY OFF IF SUBGROUP C1 REQUESTED
+C
+      IF(IOPPAR(85).EQ.1)IOPPAR(60)=1
+C
+C RAMAN INTENSITY CALCULATIONS, Ajith 11/98. SCF or MBPT(2) set
+C the PROPS to second-order, in the case of CCSD, PROPS to EOM_NLO
+C
+      IF (IOPPAR(251) .EQ.1.AND.(IOPPAR(2) .EQ. 0
+     & .OR.IOPPAR(2) .EQ. 1)) THEN
+         IOPPAR(18)=2
+      ELSE IF (IOPPAR(251).EQ.1 .AND. IOPPAR(2) .EQ. 10) THEN
+         IOPPAR(18) = 11
+      ENDIF
+C
+CMN LOGIC FOR DEALING WITH FLAG(232): PROGRAM  (DETERMINES ACES2 OR ACES3
+C                          CALCULATION)
+C
+C ACES2ONLY (please go through all of them)
+C
+C In case the xmrcc program is not part of the aces suite of programs
+C one cannot run 'aces3' calculations. At this point we need to set Aces2=.true.
+C
+C DETERMINE WHEN WE MUST USE ACES2 / ACES3
+C
+      ACES2 = .FALSE.
+C
+C ACES2ONLY: UNCOMMENT FOLLOWING LINE
+C        ACES2 = .TRUE.
+C
+C DETERMINE WHEN WE MUST USE ACES3  (DEA_TDA, DIP_TDA, STEOM AND IP_EOM)
+C
+      TDA = (IOPPAR(228) .EQ. 1 .OR. IOPPAR(230) .EQ. 1)
+      STEOM = (IOPPAR(87).EQ.9 .OR. IOPPAR(228).GE.1
+     &   .OR. IOPPAR(230).GE.1 )
+      IF (STEOM .OR. IOPPAR(214).GE.1 .OR. IOPPAR(2) .EQ. 40) THEN
+        ACES3 = .TRUE.
+      ELSE
+        ACES3 = .FALSE.
+      ENDIF
+C
+C DETERMINE WHEN WE ALSO WILL USE ACES3 (RHF EOMEA CALCULATIONS)
+C
+C ACES2ONLY : COMMENT FOLLOWING LINE
+      IF (IOPPAR(201).GE.1 .AND. IOPPAR(11).EQ.0) ACES3 = .TRUE.
+C
+C ONLY SCF, MBPT[2], LCCSD, LCCD, CCD AND CCSD, ACCSD
+C
+      IF (.NOT. (IOPPAR(2) .EQ. 0 .OR.
+     $     IOPPAR(2).EQ.1 .OR. IOPPAR(2).EQ.5
+     &   .OR. IOPPAR(2).EQ.6 .OR. IOPPAR(2).EQ.8
+     &   .OR. IOPPAR(2).EQ.10 .OR. IOPPAR(2) .EQ. 40)) ACES2 = .TRUE.
+C
+C  WITH CLOSED-SHELL PARENT STATE
+C
+      IF (.NOT. (IOPPAR(11).EQ.0 .OR. IOPPAR(240).EQ.1
+     $     .OR. IOPPAR(248) .EQ. 1)) ACES2 = .TRUE.
+C
+C NO PROPERTIES
+C
+      IF(IOPPAR(18).NE.0) ACES2 = .TRUE.
+C
+C LIMITATIONS ON EXCITE
+C
+      IF(IOPPAR(87).EQ.2 .OR. IOPPAR(87).EQ.6 .OR.
+     &   IOPPAR(87).EQ.8) ACES2 = .TRUE.
+C
+C  NO BRUECKNER ORBITALS
+C
+      IF(.NOT. (IOPPAR(22).EQ.0)) ACES2 = .TRUE.
+C
+C THAT'S IT
+C
+C
+C CHECK IF ACES CAN DO THE CALCULATION AT ALL.
+CMN ANALYTICAL GRADIENTS ARE ALLOWED IN CERTAIN CASES (NOT FOR STEOM YET)
+C
+cmn Later it is decided by default if gradients are calculated analytically
+c
+cmn      IF (STEOM .AND.
+cmn     & (.NOT. (IOPPAR(47) .GE. 5 .OR.
+cmn     &   (IOPPAR(47).EQ.2 .AND. IOPPAR(238).NE.0)) )) ACES2=.TRUE.
+C
+      IF (ACES2 .AND. ACES3) THEN
+        WRITE(6,*) ' FEATURE IS NOT IMPLEMENTED IN ACES3 OR ACES2'
+        WRITE(6,*) ' STEOM -> NO TRIPLES, NO OPEN-SHELL REFERENCE '
+        WRITE(6,*) ' NO ANALYTICAL GRADIENTS, NO BRUECKNER ORBITALS ..'
+        CALL ERREX
+      ENDIF
+C
+      IF (IOPPAR(232).EQ.2 .AND. ACES3) THEN
+        WRITE(6,*) ' ACES2 CALCULATION REQUESTED; ACES3 NEEDED'
+        CALL ERREX
+      ENDIF
+C
+      IF (IOPPAR(232).EQ.3 .AND. ACES2) THEN
+        WRITE(6,*) ' ACES3 CALCULATION REQUESTED; ACES2 NEEDED'
+        WRITE(6,*) ' CAN ONLY HAPPEN WHEN DEVELOPING CODE'
+cmn        CALL ERREX
+      ENDIF
+C
+C NOW SET PROGRAM FLAG 232
+C
+      IF (IOPPAR(232).EQ.0) THEN
+        IF (ACES3 .AND. ACES2) THEN
+cmn          WRITE(6,*) ' FEATURE NOT IMPLEMENTED IN ACES3 OR ACES2'
+cmn          WRITE(6,*) ' STEOM WITH UHF, TRIPLES ??'
+cmn          CALL ERREX
+        ELSEIF (ACES3) THEN
+          IOPPAR(232) = 3
+        ELSEIF(ACES2) THEN
+          IOPPAR(232) = 2
+        ELSE
+C
+C  EITHER AN ACES2 OR ACES3 CALCULATION -> USE ACES2
+C
+CMN          IOPPAR(232) = 3
+           IOPPAR(232) = 2
+        ENDIF
+      ELSEIF (IOPPAR(232).EQ.1) THEN
+        WRITE(6,*) ' THIS IS NOT A VALID ENTRY FOR PROGRAM'
+        CALL ERREX
+      ELSEIF (IOPPAR(232) .EQ. 2) THEN
+        IF (ACES3) THEN
+          WRITE(6,*) ' OVERWRITE PROGRAM=ACES2 BY PROGRAM=ACES3'
+          IOPPAR(232) = 3
+        ENDIF
+      ELSEIF(IOPPAR(232) .EQ. 3) THEN
+        IF(ACES2)
+     &     WRITE(6,*) ' I HOPE YOU ARE CREATING NEW OPTIONS IN ACES3!'
+      ENDIF
+C
+C      WRITE(6,*) ' @JODA: VALUE FOR ACES2 ', ACES2
+C      WRITE(6,*) ' @JODA: VALUE FOR ACES3 ', ACES3
+C
+      ACES2 = IOPPAR(232).EQ.2
+      ACES3 = .NOT. ACES2
+c
+cmn if aces3 set certain flags associated with analytical gradients
+c
+      if (aces3) then
+c
+c set a number of switches that are needed.
+c
+         gradopt = (ioppar(47).ne. 0 ) .or.
+     $        (ioppar(54) .ge. 2)
+         eom = (ioppar(87) .ge. 3 .or. ioppar(201) .ge. 4
+     $        .or. ioppar(214) .ge. 4) .and. .not.steom
+         anagrad = gradopt .and. (.not. tda)
+c
+c set calc_grad (if auto)
+c
+         if (ioppar(238) .eq. 2) then
+            if (anagrad) then
+               ioppar(238) = 0
+            elseif (gradopt) then
+               ioppar(238) = 1
+            else
+               ioppar(238) = 0
+            endif
+         endif
+c
+c if numerical_gradient switch either method, ioppar(47), to 6
+c or switch vibration flag to numerical
+C The ioppar(81) has been retired. 06/2001
+C
+C$$$         if (ioppar(238) .eq. 1) then
+C$$$            if (ioppar(54) .ge. 1) ioppar(81) = 1
+C$$$         endif
+c
+         anagrad = anagrad .and. ioppar(238) .eq. 0
+c
+         if (anagrad) then
+c
+c switch vtran to full (unless mbpt2 ?)
+c
+            if (eom .or. ioppar(1) .gt. 1) then
+               ioppar(83) = 1
+            endif
+c
+c switch estate_prop to on (for eom)
+c
+            if (eom) ioppar(91) = 1
+c
+c switch abcdfull to on
+c
+            ioppar(207) = 1
+c
+         endif
+c
+      else
+c
+c switch the default of calc_grad (238) to 0 for aces2
+c
+         if (ioppar(238) .eq. 2) ioppar(238) = 0
+c
+      endif
+C
+C
+C SET DERIVATIVE LEVEL
+C
+      IF(IOPPAR(3).EQ.999)THEN
+        IF(IOPPAR(47).EQ.0.AND.IOPPAR(54).EQ.0)THEN
+          IOPPAR(3)=0
+        ELSE
+c         IF(IOPPAR(47).NE.6.AND.IOPPAR(81).NE.1)THEN
+CJDW 3/26/97. Using GRAD_CALC=NUMERICAL as well as METHOD=6.
+C METHOD=6  and FD_CALCTYPE was retired ! 3/27/2000. Ajith
+C
+           IF (IOPPAR(238).NE.1) THEN
+              IOPPAR(3)=1
+           ELSE
+              IOPPAR(3)=0
+           ENDIF
+C
+          ICHECK=-1
+          IRECAL=IOPPAR(55)
+c         IF(IRECAL.NE.0)ICHECK=MOD(ICYCLE-1,IRECAL)
+          IF(IOPPAR(54).EQ.1.OR.ICHECK.EQ.0)IOPPAR(3)=2
+        ENDIF
+        IF(IOPPAR(103).EQ.1)IOPPAR(3)=1
+      ENDIF
+C
+C IF STABILITY OF HF IS ANALYZED, MUST RUN AT LEAST MBPT[2]
+C
+      IF(IOPPAR(74).NE.0.AND.IOPPAR(2).EQ.0.AND.IOPPAR(3).EQ.0
+     &     .AND.IOPPAR(47).EQ.0.AND.IOPPAR(54).EQ.0)IOPPAR(2)=1
+      IF(IOPPAR(74).EQ.2)IOPPAR(26)=1
+C
+C SET APPROPRIATE FLAGS FOR BRUECKNER CALCULATION
+C
+      IF(IOPPAR(22).NE.0)THEN
+        IOPPAR(26)=1
+        IOPPAR(38)=1
+      ENDIF
+c
+cKJW 1/18/98 turn save_ints on for all fno methods
+c            props need to be first order for cc densities
+c
+      if(ioppar(244).gt.0)then
+       ioppar(26)=1
+       if(ioppar(2).gt.1)then
+        ioppar(18)=1
+       endif
+      endif
+C
+C TRAP METHODS WHICH DON'T WORK YET
+C
+      IF(IOPPAR(11).LT.2)THEN
+        IF(ENAVA1(IOPPAR(2)).EQ.0)THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3009)TMPSTR(1:linblnk(TMPSTR))
+ 3009     FORMAT(T3,'@GTFLGS-F, CALCLEVEL ',A,' not implemented for ',
+     &         'RHF/UHF references.')
+          CALL ERREX
+        ENDIF
+      ELSEIF(IOPPAR(11).EQ.2)THEN
+        IF(ENAVA2(IOPPAR(2)).EQ.0)THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3019)TMPSTR(1:linblnk(TMPSTR))
+ 3019     FORMAT(T3,'@GTFLGS-F, CALCLEVEL ',A,' not implemented for ',
+     &         'ROHF references.')
+          CALL ERREX
+        ENDIF
+      ENDIF
+C
+      IF(TDCALC)THEN
+        IF(ENAVA3(IOPPAR(2)).EQ.0)THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3020)TMPSTR(1:linblnk(TMPSTR))
+ 3020     FORMAT(T3,'@GTFLGS-F, CALCLEVEL ',A,' not implemented for ',
+     &         'TWODET references.')
+          CALL ERREX
+        ENDIF
+      ENDIF
+C
+C******************************************************************
+C IF THIS IS A CC CALCULATION SET MAXCYC, AND TURN ON RLE WITH ORDER
+C   EQUAL TO 5.
+C
+      IF(IOPPAR(2).GE.5)THEN
+        IF(IOPPAR(7).EQ.0)IOPPAR(7)=50
+        IF(IOPPAR(12).EQ.0)IOPPAR(12)=5
+        IF(IOPPAR(13).EQ.0)IOPPAR(13)=5
+        IF(IOPPAR(14).EQ.0)IOPPAR(14)=15
+      ELSE
+        IOPPAR(21)=1
+      ENDIF
+C
+C PROPERTY CALCULATION FOR CORRELATED CALCULATION - TURN ON RELAXED DENSITY.
+C
+      IF(IOPPAR(18).GE.1)THEN
+        IOPPAR(3)=1
+        IF(IOPPAR(2).GT.0) IOPPAR(19)=1
+      ENDIF
+CJDW     6/16/95 Try to keep IOPPAR(3)=1 for PROP=J_FC, J_SD, J_SO
+CJDW/MN 10/23/95 IOPPAR(18).NE.13 added; JSC_ALL.
+      IF(IOPPAR(18).GE.2.AND.IOPPAR(18).NE.11
+     &     .AND.IOPPAR(18).NE. 8
+     &     .AND.IOPPAR(18).NE. 9
+     &     .AND.IOPPAR(18).NE.10
+     &     .AND.IOPPAR(18).NE.13)THEN
+        IOPPAR(3)=2
+        IF(IOPPAR(2).GT.3.AND.IOPPAR(2).NE.8.AND.
+     &       IOPPAR(2).NE.10.AND.IOPPAR(2).NE.23) THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3013)TMPSTR(1:linblnk(TMPSTR))
+ 3013     FORMAT(T3,'@GTFLGS-F, Second-order properties not ',
+     &       'available for CALCLEVEL ',A,'.')
+          CALL ERREX
+        ENDIF
+      ENDIF
+C
+C IF THIS IS A POST-SCF ROHF CALCULATION, TURN SEMICANONICAL ORBITALS ON,
+C  UNLESS TURNED OFF EXPLICITLY. FOR SECOND DERIVATIVES, HOWEVER, THEY
+C  ARE BE TURNED OFF.
+C
+      IF(IOPPAR(39).EQ.999)THEN
+C
+C SG 1/8/96 Also set semicanonical for other non-HF triples calculations.
+C
+        IF (IOPPAR(38) .EQ. 1) THEN
+          IF (IOPPAR(2).EQ.4 .OR. IOPPAR(2).EQ.13 .OR.
+     &         IOPPAR(2).EQ.22) IOPPAR(39) = 1
+        ENDIF
+C
+        IF(IOPPAR(11).EQ.2)THEN
+          IF(IOPPAR(2).GE.1.AND.IOPPAR(3).LE.1)IOPPAR(39)=1
+          IF(IOPPAR(2).GE.1.AND.IOPPAR(3).NE.0)IOPPAR(39)=0
+          IF(IOPPAR(2).EQ.0)IOPPAR(39)=0
+        ELSE
+          IOPPAR(39)=0
+        ENDIF
+      ENDIF
+C
+C AO LADDER LOGIC
+C
+      IF(IOPPAR(93).EQ.2)THEN
+      ENDIF
+C
+C IF TRIPLES ARE REQUESTED, AND STANDARD ORBITALS ARE
+C REQUIRED BY THE USER, WRITE OUT A WARNING MESSAGE
+C
+      IF(IOPPAR(39).EQ.0.AND.IOPPAR(11).EQ.2) THEN
+        IF(IOPPAR(2).EQ.4.OR.IOPPAR(2).EQ.13.OR.IOPPAR(2).EQ.22)
+     &       THEN
+C
+          WRITE(6,3100)
+ 3100     FORMAT(//,T3,'********** WARNING !!! **********',/
+     &         '  The requested method is not correct to fourth',
+     &         ' order nor satisfy the',/,'  usual invariance of',
+     &         ' CC/MBPT methods with respect to orbital rotations.',/
+     &         '  Are you sure what you are doing ?',/
+     &         '  We recommend using semicanonical orbitals !',/
+     &         '  ********** WARNING !!! **********')
+        ENDIF
+      ENDIF
+
+C
+C******************************************************************
+C NEXT - MAKE SURE ALL OF THE INTEGER VALUES OF THE IOPPARS ARE
+C         SENSIBLE.
+C
+ 1000 CONTINUE
+      IF(IOPPAR(17).NE.999)THEN
+        IFACT=1
+        IF(IOPPAR(11).GE.1)IFACT=2
+        IF(NIRRPS.NE.NIRREP.AND.IOK.EQ.0)THEN
+          WRITE(LUOUT,4321)
+ 4321     FORMAT(T3,'@GTFLGS-F, Dimension of occupation vector ',
+     &         'does not match NIRREP.')
+          CLOSE(UNIT=LUZ,STATUS='KEEP')
+          CALL ERREX
+        ENDIF
+      ENDIF
+C
+C  TRAP GRADIENT OR SECOND DERIVATIVE CALCULATIONS WHICH WON'T WORK FOR
+C  UHF AND RHF.
+C  Test for FD_CALCTYPE is no longer needed, Ajith 06/2000
+C
+      IF(IOPPAR(3).GT.0.AND.IOPPAR(11).LT.2)THEN
+        IF(GRAVA1(IOPPAR(2)).EQ.0.AND.IOPPAR(3).EQ.1
+     &       .AND.IOPPAR(238).NE.1)THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3001)TMPSTR(1:linblnk(TMPSTR))
+ 3001     FORMAT(T3,'@GTFLGS-F, RHF/UHF gradient calculations not ',
+     &         'possible for CALCLEVEL ',A,'.')
+          CLOSE(UNIT=LUZ,STATUS='KEEP')
+          CALL ERREX
+        ENDIF
+        IF(HSAVA1(IOPPAR(2)).EQ.0.AND.IOPPAR(3).EQ.2)THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3002)TMPSTR(1:linblnk(TMPSTR))
+ 3002     FORMAT(T3,'@GTFLGS-F, RHF/UHF Hessian calculations not ',
+     &         'possible for CALCLEVEL ',A,'.')
+          CLOSE(UNIT=LUZ,STATUS='KEEP')
+          CALL ERREX
+        ENDIF
+        IF(IOPPAR(2).GE.1)THEN
+          IOPPAR(19)=1
+        ENDIF
+      ELSEIF(IOPPAR(3).GT.0.AND.IOPPAR(11).EQ.2)THEN
+C
+C Check for FD_CALCTYPE is no longer needed, Ajith 06/2000
+C
+        IF(GRAVA2(IOPPAR(2)).EQ.0.AND.IOPPAR(3).EQ.1.AND.
+     &     IOPPAR(238).NE.1)THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3011)TMPSTR(1:linblnk(TMPSTR))
+ 3011     FORMAT(T3,'@GTFLGS-F, ROHF gradient calculations not ',
+     &         'possible for CALCLEVEL ',A,'.')
+          CLOSE(UNIT=LUZ,STATUS='KEEP')
+          CALL ERREX
+        ENDIF
+        IF(HSAVA2(IOPPAR(2)).EQ.0.AND.IOPPAR(3).EQ.2)THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3012)TMPSTR(1:linblnk(TMPSTR))
+ 3012     FORMAT(T3,'@GTFLGS-F, ROHF Hessian calculations not ',
+     &         'possible for CALCLEVEL ',A,'.')
+          CLOSE(UNIT=LUZ,STATUS='KEEP')
+          CALL ERREX
+        ENDIF
+        IF(IOPPAR(2).GE.1)THEN
+          IOPPAR(19)=1
+        ENDIF
+      ENDIF
+C
+      IF(IOPPAR(3).GT.0.AND.TDCALC)THEN
+C
+C Check for FD_CALCTYPE is no longer needed, Ajith 06/2000
+C
+         IF(GRAVA2(IOPPAR(2)).EQ.0.AND.IOPPAR(3).EQ.1.AND.
+     &      IOPPAR(238).NE.1)THEN
+          TMPSTR=TRMBLK(VALUEX(2,IOPPAR(2)))
+          WRITE(LUOUT,3014)TMPSTR(1:linblnk(TMPSTR))
+ 3014     FORMAT(T3,'@GTFLGS-F, TWODET gradient calculations not ',
+     &         'possible for CALCLEVEL ',A,'.')
+          CLOSE(UNIT=LUZ,STATUS='KEEP')
+          CALL ERREX
+        ENDIF
+        IF(IOPPAR(2).GE.1)THEN
+          IOPPAR(19)=1
+        ENDIF
+      ENDIF
+C
+C IF RELAXED DENSITY IS ON, THEN ALSO TURN ON NATURAL ORBITALS IF
+C  THIS OPTION HAS NOT BEEN SWITCHED OFF EXPLICITLY
+C
+      IF(IOPPAR(19).EQ.1.AND.IOPPAR(9).EQ.555)IOPPAR(9)=1
+      IF(IOPPAR(9).EQ.555)IOPPAR(9)=0
+C
+C FOR GRADIENT CALCULATIONS INVOLVING TRIPLE EXCITATIONS,
+C USE ALWAYS PERTURBED CANONICAL OR SEMI-CANONICAL ORBITALS.
+CJDW 9/16/97. Modification. Default means PERT_ORB=UNKNOWN. In default
+C             case, we set PERT_ORB=STANDARD for all methods except
+C             if they involve triples. If they involve triples, we set
+C             PERT_ORB=CANONICAL. If either PERT_ORB=STANDARD or
+C             PERT_ORB=CANONICAL is set by user, then nothing changes.
+C
+      IF(IOPPAR(3).GT.0) THEN
+       IF(IOPPAR(64) .EQ. 2)THEN
+        IF(IOPPAR(2).EQ.4.OR.IOPPAR(2).EQ.19.OR.
+     &       IOPPAR(2).EQ.9.OR.IOPPAR(2).EQ.20.OR.
+     &       IOPPAR(2).EQ.21.OR.IOPPAR(2).EQ.22.OR.
+     &       (IOPPAR(2).LE.18.AND.IOPPAR(2).GE.11)) THEN
+          IOPPAR(64)=1
+        ELSE
+          IOPPAR(64)=0
+        ENDIF
+       ENDIF
+C
+C Stop calculations for UHF/ROHF if triples and PERT_ORB=STANDARD. This
+C limitation will be removed eventually.
+C
+       IF(IOPPAR(11) .GE. 1 .AND. IOPPAR(64) .EQ. 0)THEN
+        IF(IOPPAR(2).EQ.4.OR.IOPPAR(2).EQ.19.OR.
+     &       IOPPAR(2).EQ.9.OR.IOPPAR(2).EQ.20.OR.
+     &       IOPPAR(2).EQ.21.OR.IOPPAR(2).EQ.22.OR.
+     &       (IOPPAR(2).LE.18.AND.IOPPAR(2).GE.11)) THEN
+         WRITE(6,*) '  @GTFLGS-F, PERT_ORB=STANDARD for specified CALC '
+         WRITE(6,*) '             or REFERENCE is not implemented. '
+         CALL ERREX
+        ENDIF
+       ENDIF
+      ENDIF
+C
+C LOGIC FOR EOM-CC CALCULATIONS AND OTHER STUFF REQUIRING FORMATION
+C OF H-BAR
+C
+CMN/JDW 1
+CJDW     6/16/95. Three lines for PROP=J_FC, J_SD, J_SO.
+CMN/JDW 10/23/95 Extra options for 18, 87, 201, 214 included.
+C
+      IF(IOPPAR( 87).EQ.  3.OR.IOPPAR(87).EQ. 7.OR.
+     &     IOPPAR( 18).GE.100.OR.
+     &     IOPPAR( 18).EQ.  8.OR.
+     &     IOPPAR( 18).EQ.  9.OR.
+     &     IOPPAR( 18).EQ. 10.OR.
+     &     IOPPAR( 18).EQ. 11.OR.
+     &     IOPPAR( 18).EQ. 13.OR.
+     &     IOPPAR(201).GE.  4.OR.IOPPAR(214) .GE. 4
+cmn
+     &      .or. ioppar(228) .ge. 2 .or. ioppar(230).ge. 2)THEN
+        IF(IOPPAR(2).EQ.10)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.1)THEN
+          DUMMY='MBPT(2) '
+          IOPPAR(217) = 2
+CMN           IOPPAR(2)=10
+C           write(6,*) ' calculation changed from mbpt[2] to ccsd'
+        ELSEIF(IOPPAR(2).EQ.13)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.14)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.15)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.16)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.18)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.22)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.33)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.34)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ.40)THEN
+          IOPPAR(217) = 1
+          DUMMY='CCSD    '
+        ELSEIF(IOPPAR(2).EQ. 0)THEN
+          IOPPAR(217) = 0
+          IOPPAR(3)   = 2
+          DUMMY = 'SCF     '
+        ELSE
+          WRITE(6,7000) VALUEX(2,IOPPAR(2))
+          CALL ERREX
+        ENDIF
+CMN          CALL PUTREC(20,'JOBARC','EOMREFTP',IINTFP,DUMMY)
+        IOPPAR(43)=1
+        IF(IOPPAR(91).EQ.3)THEN
+          WRITE(6,7001)
+          CALL ERREX
+        ENDIF
+CMN/JDW 8 EA
+        IF (IOPPAR(201) .GE. 1) THEN
+CJDW 3/28/95. Trouble on Cray. NIRREP is 0. Use NIRR.
+C             CALL GETREC(-1,'JOBARC','EA_IRREP',IONE,NIRREP)
+CMN/JDW 5/4/95. Trouble with dropped core.
+C            CALL PUTREC(20,'JOBARC','EASYM_A ',NIRR,EAROOT(1,1))
+          CALL PUTREC(20,'JOBARC','EASYM_A ',   8,EAROOT(1,1))
+          IF (IOPPAR(11) .GE. 1) THEN
+CMN/JDW 5/4/95. Trouble with dropped core.
+C              CALL PUTREC(20,'JOBARC','EASYM_B ',NIRR,EAROOT(1,2))
+            CALL PUTREC(20,'JOBARC','EASYM_B ',   8,EAROOT(1,2))
+          ENDIF
+        ENDIF
+CMN IP
+CMN/JDW 10/23/95. NIRREP line commented out. NIRREP set to 8.
+        IF (IOPPAR(214) .GE. 1) THEN
+C            CALL GETREC(-1,'JOBARC','IP_IRREP',IONE,NIRREP)
+          NIRREP = 8
+          CALL PUTREC(20,'JOBARC','IPSYM_A ',NIRREP,IPROOT(1,1))
+          IF (IOPPAR(11) .GE. 1) THEN
+            CALL PUTREC(20,'JOBARC','IPSYM_B ',NIRREP,IPROOT(1,2))
+          ENDIF
+        ENDIF
+C
+      ENDIF
+C
+CMN   New parameters in vee
+C  Does not work with old vee
+C
+      IF(IOPPAR(101).EQ.1)THEN
+        IF(IOPPAR(88).EQ.0)IOPPAR(88)=7
+        IF(IOPPAR(102).EQ.0)IOPPAR(102)=50
+      ELSE
+        IF(IOPPAR(88).EQ.0)IOPPAR(88)=14
+      ENDIF
+C
+      IF((IOPPAR(87).GE.1 .AND. IOPPAR(238) .NE. 1) .AND.
+     &     ((IOPPAR(47).NE.0.OR.IOPPAR(54).NE.0).OR.
+     &     IOPPAR(103).EQ.1.OR.
+     &     IOPPAR(3).EQ.1))THEN
+        IOPPAR(91)= 2
+      ENDIF
+C
+C MAKE SURE THAT CALCTYPE IS SCF FOR TDA AND MBPT[2] FOR CIS[D]
+C
+      IF(IOPPAR(87).EQ.5.OR.IOPPAR(87).EQ.1)THEN
+        IOPPAR(87)=1
+        IOPPAR(2)=0
+      ELSEIF(IOPPAR(87).EQ.6)THEN
+        IOPPAR(2)=1
+      ENDIF
+C
+C SET VTRAN=FULL FOR CIS[D] GRADIENT CALCULATIONS
+C
+      IF(IOPPAR(87).EQ.6.AND.IOPPAR(47).NE.0.OR.
+     &     IOPPAR(87).EQ.6.AND.IOPPAR(54).NE.0)THEN
+        IOPPAR(83)=1
+      ENDIF
+c
+cmn set vtran/abcdfull to full for dea calculations.
+c
+      if (ioppar(230) .ne. 0) then
+         ioppar(83) = 1
+         ioppar(207) = 1
+      endif
+C
+C SG 3/11/96
+C Make sure that analytic gradients are available if the calculation is
+C   asking for them.
+C
+      IF (IOPPAR(87).GT.0 .AND. IOPPAR(3).GT.0) THEN
+        IF (IOPPAR(3) .GT. 1) THEN
+          WRITE (6,7003)
+          CALL ERREX
+        ENDIF
+        IF (.NOT.(IOPPAR(87).EQ.1 .OR. IOPPAR(87).EQ.3 .OR.
+     &       IOPPAR(87).EQ.5 .OR. IOPPAR(87) .EQ. 9 .OR.
+     &       (IOPPAR(87).EQ.7.AND.
+     &       IOPPAR(217).EQ.2))) THEN
+          WRITE (6,7004)
+          CALL ERREX
+        ENDIF
+      ENDIF
+C
+C SG 5/7/96
+C For excited state gradients and frequencies, set the convergence at
+C   10**-7, otherwise set it at 10**-5
+C
+      IF (IOPPAR(98) .EQ. 999) THEN
+        IF (IOPPAR(87).GT.0 .AND. (IOPPAR(47).NE.0.OR.
+     &       IOPPAR(54).NE.0)) THEN
+          IOPPAR(98) = 7
+        ELSE
+          IOPPAR(98) = 5
+        ENDIF
+      ENDIF
+C
+ 7000 FORMAT(T3,'@GTFLGS-F, EOM calculation not possible with ',
+     &     A,' reference state.')
+ 7001 FORMAT(T3,'@GTFLGS-F, Analytic response properties not ',
+     &     'available for EOM-CC calculations.')
+ 7002 FORMAT(T3,'@GTFLGS-I, Property calculations not compatible ',
+     &     'with analytic TDA gradients.')
+ 7003 FORMAT(T3,'@GTFLGS-F, Analytical frequencies are not ',
+     &     'available for excited states.')
+ 7004 FORMAT(T3,'@GTFLGS-F, Analytic gradients are not available ',
+     &     'for this excited state method.')
+C
+C FOR HBAR CALCULATIONS, SET DERIVATIVE LEVEL TO 1
+C
+c         IF(IOPPAR(43).GT.0.AND.IOPPAR(3).EQ.0) IOPPAR(3)=1
+c        write(6,*) 'modification to gtflgs'
+C
+C FOR A CC-RESTART, SET RESET FLAG
+C
+      IF(IOPPAR(72).EQ.1) IOPPAR(63)=1
+C
+C SG 1/8/97 Set HF2_FILE=SAVE if ABCDTYPE=MULTIPASS
+C
+      IF (IOPPAR(93) .EQ. 1) IOPPAR(84) = 2
+C
+CMN  DETERMINE INTEGRAL TRANSFORMATION
+C
+         IF (IOPPAR(217) .GE. 1 .AND. IOPPAR(83).EQ.0) IOPPAR(83) = 1
+C
+C SET ABCDTYPE=AOBASIS IF DIRECT=ON
+C
+      IF (IOPPAR(99).EQ.1) IOPPAR(93)=2
+C
+C******************************************************************
+C IF THE `ABCDTYPE=AOBASIS', SET 'VTRAN=PARTIAL' AND VICE VERSA
+C ALSO SET GAMMA_ABCD = DIRECT BUT ONLY FOR UHF!
+C
+      IF(IOPPAR(93).EQ.2) THEN
+        IOPPAR(83)=2
+        IF(IOPPAR(11).EQ.0)IOPPAR(100)=1
+      ENDIF
+      IF(IOPPAR(83).EQ.2) IOPPAR(93)=2
+C
+C******************************************************************
+C IF THE CALCULATION TYPE IS ROHF, AND THIS IS A CORRELATED CALCULATION
+C   THEN SET NON-HF FLAG.
+C
+      IF(IOPPAR(11).EQ.2.AND.IOPPAR(2).GE.1)IOPPAR(38)=1
+c
+c HANDLE LOGIC FOR ENERGY ONLY OPTIMIZATIONS AND FREQUANCY 
+C CALCUALTIONS
+C Check for FD_CALCTYPE is not needed, Ajith 06/2000
+C 
+C All the logic that deals with the FD_STEPSIZE is moved to 
+C the following block of code. Ajith Perera 06/2001
+C      IF(IOPPAR(238).EQ.1)THEN
+c
+         I2=0
+c
+c method .eq. 6 (47) -> numerical gradient  (lstar = .true. : asterisks in zmat'
+c FD_calc .eq.1  (81) -> numerical frequencies (energy only)
+c grad_calc = numerical (238) -> either gradient or numerical frequencies.
+c
+       if (lstar) then
+c
+c geometry optimization
+c
+          if (ioppar(238) .eq. 1) then
+C
+C A Numerical gradients. Set the FD_STEPSIZE if the user has 
+C not specified. 
+C
+              if (ioppar(57).eq.0) IOPPAR(57) = 25
+
+C
+c only symmetric distortions
+c
+                  ICOUNT=1
+                  CALL PUTREC(20,'JOBARC','NFDIRREP',IONE,ICOUNT)
+                  CALL PUTREC(20,'JOBARC','FDIRREP ',ICOUNT,ICOUNT)
+          endif
+C
+       else
+C          
+           if (ioppar(54) .ge. 2 ) then
+C
+C A vibrational frequency calculation
+C 
+               If (ioppar(238) .eq. 1) Then 
+C
+C A Numerical gradients. Set the FD_STEPSIZE if the user has
+C not specified.
+C
+                   if (ioppar(57).eq.0) IOPPAR(57) = 200
+C 
+               Else
+C
+                   if (ioppar(57) .eq. 0) IOPPAR(57)= 50
+C
+               Endif
+C
+           endif
+C
+       endif 
+C
+cmn      I2=0
+cmn      IF(IOPPAR(54).GE.2.AND.IOPPAR(57).EQ.0)IOPPAR(57)=50
+cmn      IF(IOPPAR(81).NE.0)IOPPAR(57)=200
+cmn        IOPPAR(81)=1
+c        ioppar(48)=3
+cmn        IF (IOPPAR(57) .EQ. 0) IOPPAR(57)=25
+cmn        ICOUNT=1
+cmn        CALL PUTREC(20,'JOBARC','NFDIRREP',IONE,ICOUNT)
+cmn        CALL PUTREC(20,'JOBARC','FDIRREP ',ICOUNT,ICOUNT)
+cmn      endif
+c
+CJDW 10/23/95. Block of code from MN.
+C******************************************************************
+C   LOGIC FOR DEALING WITH NEWVRT
+C
+      IF (IOPPAR(221) .EQ. 1 .OR. DOQRHF) THEN
+C
+cmn        IF (IOPPAR(39) .EQ. 1) THEN
+cmn          WRITE(6,*)
+cmn     &         ' SEMICANONICAL AND NEWVRT OPTIONS ARE INCOMPATIBLE'
+cmn          CALL ERREX
+cmn        ENDIF
+C
+C   SWITCH ON NON-HF FLAG
+C
+        IOPPAR(38) = 1
+C
+      ENDIF
+
+C
+CMN  LOGIC FOR DEALING WITH HBARABCD, HBARABCI
+C
+CJDW 10/23/95. Note that these settings are biased to the new vee code.
+C              for the old vee code, we need DOABCD and DOABCI to be true
+C              in the UHF/MO basis code.
+C
+C  SET HBARABCD/HBARABCI FLAGS: ONLY USED IN ACES2
+C
+C  FULL HBARABCD/HBARABCI IS REQUIRED FOR EA-EOMCC AND MOST VCCEH CALCULATIONS
+C
+      IF (ACES2) THEN
+C
+      DOABCD = .FALSE.
+      DOABCI = .FALSE.
+C
+      IF ( (IOPPAR(18) .GE. 8 .AND. IOPPAR(18) .LE. 11)
+     &     .OR. IOPPAR(18) .EQ. 13) THEN
+        DOABCD = .TRUE.
+        DOABCI = .TRUE.
+        IF ( IOPPAR(87) .GE. 7 .AND. IOPPAR(206) .LE. 1)
+     &       DOABCD = .FALSE.
+      ENDIF
+      IF (IOPPAR(201) .GE. 5) THEN
+        DOABCD = .TRUE.
+        DOABCI = .TRUE.
+      ENDIF
+      IF (IOPPAR(201) .EQ. 4) THEN
+        IF (IOPPAR(217) .EQ. 1) DOABCI = .TRUE.
+      ENDIF
+      IF (IOPPAR(87) .EQ. 7 .OR. IOPPAR(87) .EQ. 8) DOABCI = .TRUE.
+C
+      IF (IOPPAR(217) .EQ. 2 .AND. IOPPAR(38) .EQ. 0)
+     &     DOABCI = .FALSE.
+C
+      IF (DOABCD) THEN
+        IF (IOPPAR(222) .EQ. 0) THEN
+          IOPPAR(222) = 2
+        ELSE IF (IOPPAR(222) .EQ. 1) THEN
+CMN          WRITE(6,*) ' NOT THE RECOMMENDED VALUE FOR HBARABCD'
+CMN          WRITE(6,*) ' HBARABCD SEEMS REQUIRED'
+        ENDIF
+      ELSE
+        IF (IOPPAR(222) .EQ. 0) THEN
+          IOPPAR(222) = 1
+        ELSE IF (IOPPAR(222) .EQ. 2) THEN
+CMN          WRITE(6,*) ' NOT THE RECOMMENDED VALUE FOR HBARABCD'
+CMN          WRITE(6,*) ' HBARABCD SEEM NOT REQUIRED'
+        ENDIF
+      ENDIF
+C
+      IF (DOABCI) THEN
+        IF (IOPPAR(223) .EQ. 0) THEN
+          IOPPAR(223) = 2
+        ELSE IF (IOPPAR(223) .EQ. 1) THEN
+CMN          WRITE(6,*) ' NOT THE RECOMMENDED VALUE FOR HBARABCI'
+CMN          WRITE(6,*) ' HBARABCI SEEMS REQUIRED'
+        ENDIF
+      ELSE
+        IF (IOPPAR(223) .EQ. 0) THEN
+          IOPPAR(223) = 1
+        ELSE IF (IOPPAR(223) .EQ. 2) THEN
+CMN          WRITE(6,*) ' NOT THE RECOMMENDED VALUE FOR HBARABCI'
+CMN          WRITE(6,*) ' HBARABCI ARE NOT REQUIRED'
+        ENDIF
+      ENDIF
+C
+      ELSE
+        IOPPAR(222) = 1
+        IOPPAR(223) = 1
+      ENDIF
+C
+C
+CMN COMPRESS
+C
+C DETERMINE IF COMPRESSED ABCD INTEGRALS ARE TO BE USED.
+C
+C UNCOMPRESSED ABCD INTEGRALS ARE AT PRESENT REQUIRED FOR
+C    1. CCSDT VARIANTS (SEE BELOW).
+C    2. ACES2 EA_EOMCC CALCULATIONS.
+C    3. ENERGY GRADIENT CALCULATIONS.
+C    4. IN CASE OF EOMCC CALCULATIONS THE SETTING IS COMPLICATED.
+C        WE FOLLOW THE LOGIC GIVEN BY HBARABCD/HBARABCI
+C    5. CERTAIN EOM PROPERTY CALCULATIONS USING VCCEH.
+C    6. DEA CALCULATIONS IN ACES3
+C    7. ANALYTICAL GRADIENTS IN ACES3
+C    8. ACCSD CALCULATIONS
+C
+C  THIS FLAG IS SET IF IT HAS THE DEFAULT VALUE ('UNKNOWN')
+C  IN OTHER CASES WE LEAVE THE FLAG AS IS BUT PRINT OUT A WARNING
+C
+C     JDW. 5/13/93. CCSDT3 determines whether the calculations is
+C     CCSDT-3, CCSDT-4, or CCSDT. This affects list 233 in RHF calc-
+C     ulations. This variable occurs in the main program and in
+C     DS16AB.
+C     JDW. 6/28/93. CCSDT3 extended to include noniterative fifth-order
+C     triples in "CCSD+T*(CCSD)" (CC5SD[T]).
+C     JDW. 10/14/93. CCSDT3 extended to include other noniterative
+C     fifth-order calculations.
+C
+      CCSDT3 = .FALSE.
+      IF(IOPPAR(2).EQ.12.OR.(IOPPAR(2).GE.26.AND.IOPPAR(2).LE.31).OR.
+     &     (IOPPAR(2).GE.16.AND.IOPPAR(2).LE.18).OR.IOPPAR(2).EQ.33
+     &     .OR.IOPPAR(2).EQ.34 )
+     &     CCSDT3 = .TRUE.
+C
+      COMPRESS = .TRUE.
+C
+      IF (CCSDT3) COMPRESS = .FALSE.
+      IF (IOPPAR(201) .GE. 5 .AND. ACES2) COMPRESS = .FALSE.
+      IF (IOPPAR(230) .GE. 1) COMPRESS = .FALSE.
+      IF (IOPPAR(2) .EQ. 40) COMPRESS=.FALSE.
+      IF(
+     &     (IOPPAR(3).NE.0.OR.IOPPAR(18).NE.0.OR.IOPPAR(19).NE.0)
+     &     .AND.(IOPPAR(87).EQ.0.AND.IOPPAR(18).LT.100)
+     &     .AND.(IOPPAR(87).EQ.0.AND.
+     &     IOPPAR(18).NE.11)
+     &     ) COMPRESS =.FALSE.
+      IF (IOPPAR(87).GE.3.AND.IOPPAR(91).EQ.2) COMPRESS=.FALSE.
+      IF (IOPPAR(222) .EQ. 2 .OR. IOPPAR(223) .EQ. 2)
+     &     COMPRESS = .FALSE.
+CMN      IF (ACES3 .AND.
+CMN     & ((IOPPAR(47) .NE. 0 .OR.
+CMN     &   (IOPPAR(47).EQ.4 .AND. IOPPAR(238).EQ.1)) )) COMPRESS=.FALSE.
+CMN
+CMN      IF(IOPPAR( 87).EQ. 7.AND.IOPPAR(217).EQ.1) COMPRESS=.FALSE.
+c (should be set by hbarabci)
+C
+      IF(ACES3) COMPRESS = .FALSE.
+      IF (IOPPAR(207) . EQ. 0) THEN
+C
+C  SET ABCDFULL FLAG
+C
+        IF (COMPRESS) THEN
+          IOPPAR(207) = 2
+        ELSE
+          IOPPAR(207) = 1
+        ENDIF
+      ELSE
+        IF ((.NOT. COMPRESS .AND. IOPPAR(207) .EQ. 2)) THEN
+          WRITE(6,*)
+          WRITE(6,*) ' COMPRESSED ABCD INTEGRALS NOT SUPPORTED '
+          WRITE(6,*) ' SWITCH ABCDFULL TO ON'
+          WRITE(6,*)
+          CALL ERREX
+        ENDIF
+      ENDIF
+C
+CMN END COMPRESS
+C
+C
+C  CHECK COMPATIBILITY COMPRESSED ABCD / AO ALGORITHM AND HBARABCD, HBARABCI
+C
+      IF (IOPPAR(222) .EQ. 2 .OR. IOPPAR(223) .EQ. 2) THEN
+        IF (IOPPAR(207) .EQ. 2) THEN
+          WRITE(6,*) ' INCOMPATIBILITY COMPRESS,HBARABCD, HBARABCI'
+          WRITE(6,*) ' PROGRAM JODA NEEDS TO BE FIXED! '
+          IOPPAR(207) = 1
+        ENDIF
+C
+        IF (IOPPAR(93) .EQ. 2) THEN
+          WRITE(6,*) ' INCOMPATIBILITY AOBASIS,HBARABCD, HBARABCI'
+          WRITE(6,*) ' PROGRAM JODA NEEDS TO BE FIXED! '
+          IOPPAR(93) = 0
+        ENDIF
+      ENDIF
+C
+CMN END
+
+C
+CKB/JDW 10/26/95. Put in block of code to set GUESS=CORE,PERT_ORB=
+C                 CANONICAL for dropped core gradient/property/findif
+C                 calculations. Also, set ORBITAL=SEMICANONICAL for
+C                 ROHF. Write variable NDRGEO to JOBARC. This is 0
+C                 if no dropped core and 1 if dropped gradient/prop,
+C                 etc.
+CJDW 8/26/97.     Removed restriction to core guess for dropped core.
+C                 Changes made to scf code.
+C
+      NDRGEO = 0
+      IF( (IOPPAR(47).NE.0 .AND. IOPPAR(238).NE.1)   .OR.
+     &     IOPPAR(18).EQ.1  .OR.
+     &     ((IOPPAR(54).EQ.2  .OR. IOPPAR(54).EQ.3))) THEN
+C
+C     &     (IOPPAR(81).EQ.0  .OR. IOPPAR(81).EQ.2)) )THEN
+C
+        IF(NDROP(1).GT.0)THEN
+c         IOPPAR(45) = 1
+          IOPPAR(64) = 1
+          IF(IOPPAR(11).EQ.2) IOPPAR(39) = 1
+          NDRGEO = 1
+          WRITE(LUOUT,*)
+     &         '  @GTFLGS-I, Dropped core derivative calculation. '
+          WRITE(LUOUT,*)
+     &         '             ORBITAL, PERT_ORB have been reset. '
+        ENDIF
+      ENDIF
+      CALL PUTREC(20,'JOBARC','NDROPGEO',1,NDRGEO)
+CKB END
+C
+C Call figIO to calculate CACHE_RECS and FILE_RECSIZ based on MEMORY_SIZE
+C SG 11/15/97
+C
+      CALL FIGIO(IOPPAR(36),IOPPAR(44),IOPPAR(37))
+C
+C******************************************************************
+C
+C IF REQUESTED, PRINT A NICE TABULAR LISTING OF THE CONTROL PARAMETERS.
+C
+      IF(IPRT.EQ.-999)THEN
+ 8700   FORMAT(T5,67('-'))
+        WRITE(LUOUT,8700)
+        WRITE(LUOUT,8500)
+ 8500   FORMAT(T20,' ACES2 Control Parameters ')
+        WRITE(LUOUT,8700)
+        WRITE(LUOUT,8501)
+ 8501   FORMAT(T9,'External',T28,'Internal',T47,'Value',T64,'Units')
+        WRITE(LUOUT,8502)
+ 8502   FORMAT(T11,'Name',T30,'Name')
+        WRITE(LUOUT,8700)
+        DO 155 I=1,NPARAM
+C
+          if(i.eq.200) write(luout,*)' '
+CJDW 3/19/94
+C Skip entries which have not yet been defined.
+C
+          IF(IOPYNO(I).EQ.0) GOTO 155
+C
+          IF(MOD(I,10).EQ.0)WRITE(LUOUT,*)' '
+          IF(ICHAR(I).EQ.1)THEN
+            WRITE(LUOUT,8601)OPPAR(I),OPPARS(I),VALUEX(I,IOPPAR(I)),
+     &           IOPPAR(I),UNITS(I)
+          ELSEIF(ICHAR(I).EQ.0)THEN
+            WRITE(LUOUT,8602)OPPAR(I),OPPARS(I),IOPPAR(I),UNITS(I)
+          ELSEIF(ICHAR(I).EQ.4)THEN
+            WRITE(LUOUT,8608)OPPAR(I),OPPARS(I),IOPPAR(I),UNITS(I)
+          ELSEIF(ICHAR(I).EQ.3)THEN
+            WRITE(LUOUT,8600)OPPAR(I),OPPARS(I),IOPPAR(I),UNITS(I)
+          ELSEIF(IOPPAR(32).EQ.999.AND.I.EQ.32)THEN
+            CALL GETREC(20,'JOBARC','QRHFIRR ',IQRHF,IARR)
+            WRITE(LUOUT,8603)OPPAR(I),OPPARS(I),(IARR(J),J=1,IQRHF)
+          ELSEIF(IOPPAR(33).EQ.999.AND.I.EQ.33)THEN
+            CALL GETREC(20,'JOBARC','QRHFIRR ',IQRHF,IARR)
+            WRITE(LUOUT,8603)OPPAR(I),OPPARS(I),(IARR(J),J=1,IQRHF)
+          ELSEIF(IOPPAR(77).EQ.999.AND.I.EQ.77)THEN
+            CALL GETREC(20,'JOBARC','QRHFIRR ',IQRHF,IARR)
+            WRITE(LUOUT,8603)OPPAR(I),OPPARS(I),(IARR(J),J=1,IQRHF)
+          ELSEIF(IOPPAR(82).EQ.999.AND.I.EQ.82)THEN
+            CALL GETREC(20,'JOBARC','NFDIRREP',IONE,IJNK)
+            CALL GETREC(20,'JOBARC','FDIRREP ',IJNK,IARR)
+            WRITE(LUOUT,8603)OPPAR(I),OPPARS(I),(IARR(J),J=1,IJNK)
+          ELSEIF(IOPPAR(89).EQ.999.AND.I.EQ.89)THEN
+            CALL GETREC(20,'JOBARC','ICOUNT  ',IONE,NIRREP)
+            CALL GETREC(20,'JOBARC','EESYMINF',NIRREP,IARR)
+            WRITE(LUOUT,8603)OPPAR(I),OPPARS(I),(IARR(J),J=1,NIRREP)
+CMN/JDW 8
+          ELSEIF(IOPPAR(201).GE.1.AND.I.EQ.202)THEN
+            CALL GETREC(-1,'JOBARC','EA_IRREP',IONE,NIRREP)
+            CALL GETREC(20,'JOBARC','EASYM_A ',NIRREP,IARR)
+            WRITE(LUOUT,9901)OPPARS(I),(IARR(J),J=1,NIRREP)
+            IF (IOPPAR(11) .GE. 1) THEN
+              CALL GETREC(20,'JOBARC','EASYM_B ',NIRREP,IARR)
+              WRITE(LUOUT,9902)OPPARS(I),(IARR(J),J=1,NIRREP)
+            ENDIF
+CMN IP
+          ELSEIF(IOPPAR(214).GE.1.AND.I.EQ.215)THEN
+            CALL GETREC(-1,'JOBARC','IP_IRREP',IONE,NIRREP)
+            CALL GETREC(20,'JOBARC','IPSYM_A ',NIRREP,IARR)
+            WRITE(LUOUT,9903)OPPARS(I),(IARR(J),J=1,NIRREP)
+            IF (IOPPAR(11) .GE. 1) THEN
+              CALL GETREC(20,'JOBARC','IPSYM_B ',NIRREP,IARR)
+              WRITE(LUOUT,9904)OPPARS(I),(IARR(J),J=1,NIRREP)
+            ENDIF
+C
+          ELSEIF(IOPPAR(34).EQ.999.AND.I.EQ.34)THEN
+            CALL GETREC(20,'JOBARC','QRHFLOC ',IQRHF,IARR)
+            WRITE(LUOUT,8603)OPPAR(I),OPPARS(I),(IARR(J),J=1,IQRHF)
+
+          ELSEIF(ICHAR(I).EQ.2.AND.IOPPAR(17).EQ.0.AND.I.EQ.17)THEN
+            IF(ISPIN.EQ.1)THEN
+              WRITE(LUOUT,8603)OPPAR(I),OPPARS(I),(NOCC(J,1),
+     &             J=1,NIRRPS)
+            ELSEIF(ISPIN.EQ.2)THEN
+              WRITE(LUOUT,8604)OPPAR(I),OPPARS(I),(NOCC(J,1),
+     &             J=1,NIRRPS)
+              WRITE(LUOUT,8605)(NOCC(J,2),
+     &             J=1,NIRRPS)
+            ENDIF
+
+cSB write out Basis
+          elseif (ichar(i).eq.2.and.i.eq.61) then
+            write(luout,8609) oppar(i),oppars(i),BasNam
+
+          ELSEIF(ICHAR(I).EQ.2.AND.IOPPAR(27).EQ.0.AND.I.EQ.27)THEN
+            IF(ISPIN.EQ.1)THEN
+              WRITE(LUOUT,8603)OPPAR(I),OPPARS(I),(IDROP(J,1),
+     &             J=1,NDROP(1))
+            ELSEIF(ISPIN.EQ.2)THEN
+              WRITE(LUOUT,8604)OPPAR(I),OPPARS(I),(IDROP(J,1),
+     &             J=1,NDROP(1))
+              WRITE(LUOUT,8605)(IDROP(J,2),
+     &             J=1,NDROP(2))
+            ENDIF
+          ELSEIF(ICHAR(I).EQ.2.AND.IOPPAR(17).EQ.999.AND.I.EQ.17)THEN
+            WRITE(LUOUT,8606)OPPAR(I),OPPARS(I)
+          ELSEIF(ICHAR(I).EQ.2.AND.IOPPAR(27).EQ.999.AND.I.EQ.27)THEN
+            WRITE(LUOUT,8607)OPPAR(I),OPPARS(I)
+          ENDIF
+  155   CONTINUE
+        WRITE(LUOUT,8700)
+ 8600   FORMAT(T8,A11,T29,A6,T47,I3,T62,A9)
+ 8601   FORMAT(T8,A11,T29,A6,T44,A13,'[',I3,']',T62,A9)
+ 8602   FORMAT(T8,A11,T29,A6,T45,'10D-',I3,T62,A9)
+ 8603   FORMAT(T8,A11,T29,A6,(T36,8(I3,',')))
+ 8604   FORMAT(T8,A11,T29,A6,T36,'A',(T38,8(I3,',')))
+ 8605   FORMAT(T36,'B',(T38,8(I3,',')))
+ 8606   FORMAT(T8,A11,T29,A6,T36,' ESTIMATED BY SCF ')
+ 8607   FORMAT(T8,A11,T29,A6,T36,'     NONE         ')
+ 8608   FORMAT(T8,A11,T29,A6,T44,I9,T62,A9)
+csb
+ 8609   format(t8,a11,t29,a6,t44,a35)
+CMN
+ 9901   FORMAT(T8,'EA_SYM (ALPHA)',T29,A6,(T36,8(I3,',')))
+ 9902   FORMAT(T8,'EA_SYM (BETA)',T29,A6,(T36,8(I3,',')))
+ 9903   FORMAT(T8,'IP_SYM (ALPHA)',T29,A6,(T36,8(I3,',')))
+ 9904   FORMAT(T8,'IP_SYM (BETA)',T29,A6,(T36,8(I3,',')))
+      ENDIF
+CWJL 1/12/94 JDW; 3/14/94
+C  Here we need to check that the user is doing a TDHF calculation only for
+C  a RHF reference.  If not, then bomb out!
+C
+      IF(IOPPAR(11).NE.0.AND.IOPPAR(203).EQ.1) THEN
+        WRITE(LUOUT,5111)
+ 5111   FORMAT(T3,'@GTFLGS-F, TDHF calculation only valid for RHF',
+     &       ' reference.')
+        CALL ERREX
+      ENDIF
+CWJL
+C
+CJDW 3/31/94
+C Stop NMR calculations (apart from ccsdeh) which cannot use sphericals.
+C Also, always stop if PROP=TDHF has been specified.
+C
+      IF(IOPPAR(62).EQ.1.AND.IOPPAR(18).NE. 7.AND.IOPPAR(18).NE.11.
+     &     AND.IOPPAR(18).GE. 3)THEN
+        WRITE(LUOUT,5112)
+ 5112   FORMAT(T3,'@GTFLGS-F, SPHERICAL=ON impossible for this kind of',
+     &       ' NMR calculation. ')
+        CALL ERREX
+      ENDIF
+      IF(IOPPAR(18).EQ.7)THEN
+        WRITE(LUOUT,5114)
+ 5114   FORMAT(T3,'@GTFLGS-F, Use TDHF=ON and $INPUT namelist for TDHF',
+     &       ' calculations (see manual). ')
+        CALL ERREX
+      ENDIF
+C
+C ALL DONE!!!  DUMP IOPPAR TO JOBARC.  THIS WILL BE THE JOB CONTROL
+C  PARAMETER LIST.  ALSO DUMP THE OCCUPATION VECTOR.
+C
+  159 ISIZE=100
+      ISIZE2=500
+      IF(.NOT.SKIPIT)GOTO 2
+
+      CALL PUTREC(20,'JOBARC','IFLAGS  ',ISIZE,IOPPAR)
+      CALL PUTREC(20,'JOBARC','IFLAGS2 ',ISIZE2,IOPPAR(ISIZE+1))
+      CALL PUTREC(20,'JOBARC','OCCUPYA ',NIRMAX,NOCC(1,1))
+      CALL PUTREC(20,'JOBARC','NUMDROPA',IONE,NDROP(1))
+      IF(NDROP(1).NE.0)THEN
+        CALL PUTREC(20,'JOBARC','MODROPA ',NDROP(1),IDROP(1,1))
+      ENDIF
+      IF(IOPPAR(11).GE.1)THEN
+        CALL PUTREC(20,'JOBARC','NUMDROPB',IONE,NDROP(2))
+        IF(NDROP(2).NE.0)THEN
+          CALL PUTREC(20,'JOBARC','MODROPB ',NDROP(2),IDROP(1,2))
+        ENDIF
+      ENDIF
+      IF(IOPPAR(11).GT.0)THEN
+        CALL PUTREC(20,'JOBARC','OCCUPYB ',NIRMAX,NOCC(1,2))
+      ENDIF
+C      CLOSE(UNIT=LUZ,STATUS='KEEP')
+      CALL PUTREC(20,'JOBARC','JODAFLAG',JPARAM,IOPPAR(46))
+    2 I1=IOPPAR(46)
+      I2=IOPPAR(47)
+      I3=IOPPAR(48)
+      I4=IOPPAR(49)
+      I5=IOPPAR(50)
+      I6=IOPPAR(51)
+      I7=IOPPAR(52)
+      I8=IOPPAR(53)
+      I9=IOPPAR(54)
+      I10=IOPPAR(55)
+      I11=IOPPAR(56)
+      I12=IOPPAR(57)
+      I13=IOPPAR(58)
+      I14=IOPPAR(59)
+      I15=IOPPAR(60)
+
+cSB to take account for BASIS= keyword missing
+      if (ioppar(61).eq.999) then
+         BasNam='SPECIAL'
+         ioppar(61)=0
+      endif
+
+      I16=IOPPAR(61)
+      I17=IOPPAR(62)
+      IERR=0
+      IF(IOPPAR(63).EQ.1)THEN
+        CALL DUMPJA('O')
+        STOP
+      ENDIF
+
+
+      RETURN
+
+ 8000 WRITE(LUOUT,*) '@GTFLGS: There was a problem reading ZMAT.'
+      IERR = 1
+      Call ErrEx
+
+ 8111 IERR = 2
+      GOTO 159
+
+ 5400 WRITE(LUOUT,*) '@GTFLGS: ZMAT is missing the ACES2 namelist.'
+      CLOSE(UNIT=LUZ,STATUS='KEEP')
+      CALL ERREX
+
+      RETURN
+      END
+

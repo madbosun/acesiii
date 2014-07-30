@@ -426,11 +426,18 @@
 #
       PARDO mu, nu 
 #
-            Txx(mu,nu)       = oed_nai(mu,nu)  
-            Txx(mu,nu)      += oed_kin(mu,nu)  
-#
-            PUT Fpq_a(mu,nu) = Txx(mu,nu) 
-            PUT Fpq_b(mu,nu) = Txx(mu,nu) 
+            GET IDHFa(mu,nu) 
+            GET IDHFb(mu,nu) 
+            Txx(mu,nu) = 0.0 
+            T1xx(mu,nu) = 0.0 
+            execute return_h1_nodiag Txx 
+           #execute return_h1        Txx 
+
+            T1xx(mu,nu)      = Txx(mu,nu)  
+            Txx(mu,nu)      += IDHFa(mu,nu) 
+            PUT Fpq_a(mu,nu)+= Txx(mu,nu) 
+            T1xx(mu,nu)     += IDHFb(mu,nu) 
+            PUT Fpq_b(mu,nu)+= T1xx(mu,nu) 
 #
       ENDPARDO mu, nu 
 #
@@ -2313,7 +2320,7 @@
        ENDPARDO mu, nu  
 
 #
-       if kiter == 3 # (scf_beg - scf_order + 1)  
+       if kiter == 3 # diis_start - 1  
           PARDO mu, nu 
                 GET              Fpq_a(mu,nu) 
                 GET              Fpq_b(mu,nu) 
@@ -2324,7 +2331,7 @@
           ENDPARDO mu, nu 
        endif # kiter 
 #
-       if kiter == 4 # (scf_beg - scf_order + 2)  
+       if kiter == 4 # 
           PARDO mu, nu 
                 GET              Fpq_a(mu,nu) 
                 GET              Fpq_b(mu,nu) 
@@ -2335,7 +2342,7 @@
           ENDPARDO mu, nu 
        endif # kiter 
 #
-       if kiter == 5 # (scf_beg - scf_order + 3)  
+       if kiter == 5 # 
           PARDO mu, nu 
                 GET              Fpq_a(mu,nu) 
                 GET              Fpq_b(mu,nu) 
@@ -2346,7 +2353,7 @@
           ENDPARDO mu, nu 
        endif # kiter 
 #
-       if kiter == 6 # (scf_beg - scf_order + 4)  
+       if kiter == 6 # 
           PARDO mu, nu 
                 GET              Fpq_a(mu,nu) 
                 GET              Fpq_b(mu,nu) 
@@ -2357,7 +2364,7 @@
           ENDPARDO mu, nu 
        endif # kiter 
 #
-       if kiter == 7 # (scf_beg - scf_order + 5) = scf+beg   
+       if kiter == 7 # 
           PARDO mu, nu 
                 GET              Fpq_a(mu,nu) 
                 GET              Fpq_b(mu,nu) 
@@ -2368,7 +2375,7 @@
           ENDPARDO mu, nu 
        endif # kiter 
 #
-       if kiter >= 8 # (scf_beg - scf_order + 6) = scf+beg   
+       if kiter >= 8 # 
           PARDO mu, nu 
                 GET              Fpq_a(mu,nu) 
                 GET              Fpq_b(mu,nu) 
@@ -2385,27 +2392,27 @@
 #
              GET Fai(a,i) 
 #
-             if kiter == 3  # (scf_beg - scf_order + 1) 
+             if kiter == 3  # diis_start - 1  
                 PUT F1ai(a,i) = Fai(a,i) 
              endif # kiter  
 #
-             if kiter == 4  # (scf_beg - scf_order + 2) 
+             if kiter == 4  # 
                 PUT F2ai(a,i) = Fai(a,i) 
              endif # kiter  
 #
-             if kiter == 5  # (scf_beg - scf_order + 3) 
+             if kiter == 5  # 
                 PUT F3ai(a,i) = Fai(a,i) 
              endif # kiter  
 #
-             if kiter == 6  # (scf_beg - scf_order + 4) 
+             if kiter == 6  # 
                 PUT F4ai(a,i) = Fai(a,i) 
              endif # kiter  
 #
-             if kiter == 7  # (scf_beg - scf_order + 5) 
+             if kiter == 7  # 
                 PUT F5ai(a,i) = Fai(a,i) 
              endif # kiter  
 #
-             if kiter >= 8  # (scf_beg - scf_order + 6) 
+             if kiter >= 8  # 
                 PUT F6ai(a,i) = Fai(a,i) 
              endif # kiter  
 #
@@ -2415,27 +2422,27 @@
 #
              GET Fbj(b,j) 
 #
-             if kiter == 3  # (scf_beg - scf_order + 1) 
+             if kiter == 3  # diis_start - 1  
                 PUT F1bj(b,j) = Fbj(b,j) 
              endif # kiter  
 #
-             if kiter == 4  # (scf_beg - scf_order + 2) 
+             if kiter == 4  # 
                 PUT F2bj(b,j) = Fbj(b,j) 
              endif # kiter  
 #
-             if kiter == 5  # (scf_beg - scf_order + 3) 
+             if kiter == 5  # 
                 PUT F3bj(b,j) = Fbj(b,j) 
              endif # kiter  
 #
-             if kiter == 6  # (scf_beg - scf_order + 4) 
+             if kiter == 6  # 
                 PUT F4bj(b,j) = Fbj(b,j) 
              endif # kiter  
 #
-             if kiter == 7  # (scf_beg - scf_order + 5) 
+             if kiter == 7  # 
                 PUT F5bj(b,j) = Fbj(b,j) 
              endif # kiter  
 #
-             if kiter >= 8  # (scf_beg - scf_order + 6) 
+             if kiter >= 8  # 
                 PUT F6bj(b,j) = Fbj(b,j) 
              endif # kiter  
 #
@@ -9179,8 +9186,8 @@
       etemp  = 1.0 
       etemp += damp  
       damp1  = 1.0/etemp         # 1/(1+damp)  
-     #execute print_scalar damp 
-     #execute print_scalar damp1
+      execute print_scalar damp 
+      execute print_scalar damp1
       one = 1.0 
       two = 2.0 
       three = 3.0 
@@ -9228,26 +9235,27 @@
       PARDO mu, nu
             GET               IDHFa(mu,nu)
             GET               IDHFb(mu,nu)
-            txx(mu,nu)      = IDHFa(mu,nu)
-            txx(mu,nu)     += IDHFb(mu,nu)
-            txx(mu,nu)     *= 0.5
-            PUT DHFa(mu,nu) = txx(mu,nu)
-            PUT DHFb(mu,nu) = txx(mu,nu)
-            etemp = txx(mu,nu)*txx(mu,nu) 
-            esum += etemp 
+           #txx(mu,nu)      = IDHFa(mu,nu)
+           #txx(mu,nu)     += IDHFb(mu,nu)
+           #txx(mu,nu)     *= 0.5
+           #PUT DHFa(mu,nu) = txx(mu,nu)
+           #PUT DHFb(mu,nu) = txx(mu,nu)
+#           etemp = txx(mu,nu)*txx(mu,nu) 
+#           esum += etemp 
       ENDPARDO mu, nu
       execute sip_barrier
-      collective esum1 += esum  
-      delete IDhfa
-      delete IDhfb
+#     collective esum1 += esum  
 
-      if esum1 > 0.001 
-         CALL FOCK_MATRIX
-      endif 
+#     if esum1 > 0.001 
+        #CALL FOCK_MATRIX
+#     endif 
 
-      if esum1 <= 0.001 
+#     if esum1 <= 0.001 
          CALL IGUESS  
-      endif 
+         execute sip_barrier 
+         delete IDhfa
+         delete IDhfb
+#     endif 
 #
 #     execute sip_barrier 
 #     execute list_to_blocks Fpq_a 
@@ -9307,7 +9315,7 @@
 #     Compute the energy 
 #     ------------------ 
 #
-      CALL HF_ENERGY 
+     #CALL HF_ENERGY 
       energy1 = energy 
       execute sip_barrier
 #
@@ -9387,7 +9395,7 @@
          CALL GEN_6HISTORY 
          execute sip_barrier 
 #
-         if kiter == 4 # scf_beg  
+         if kiter == 4 # diis_start  
             damp   = 0.0    
             damp1  = 1.0    
 #

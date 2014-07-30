@@ -63,7 +63,7 @@
 #
 #     eom indeces
 #
-      index eomcycle = 1, 150
+      index eomcycle = 1, 350
       index spdim = 1, 20 
       index spdim2 = 1, 20 
       index spdim20 = 1, 20 
@@ -127,6 +127,8 @@
 #
       served Vaajj(a,a1,j,j1)
       served Viabj(i,a,b,j)
+      temp tomegacis(kindex12,jindex28)
+      distributed omegacis(kindex12,jindex28)
 #
 # VFL arrays to use simple indeces
 
@@ -1649,6 +1651,7 @@
       execute blocks_to_list VSTART1A11
       execute blocks_to_list VSTART1A12
       execute blocks_to_list VSTART1A12
+      execute blocks_to_list omegacis
 #
       execute write_blocks_to_list
       execute sip_barrier
@@ -23909,6 +23912,7 @@
       create VCEND1B10
       create VCEND1B11
       create VCEND1B12
+      create omegacis
 #======================================================
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #--end of script generated part of the code
@@ -24183,6 +24187,49 @@
        endif
 #
        enddo jindex12
+ #
+       do jindex28
+             eroot = 0.0 
+             if imax == 1.0
+                eroot = root1 
+             endif 
+             if imax == 2.0
+                eroot = root2 
+             endif 
+             if imax == 3.0
+                eroot = root3 
+             endif 
+             if imax == 4.0
+                eroot = root4 
+             endif 
+             if imax == 5.0
+                eroot = root5 
+             endif 
+             if imax == 6.0
+                eroot = root6 
+             endif 
+             if imax == 7.0
+                eroot = root7 
+             endif 
+             if imax == 8.0
+                eroot = root8 
+             endif 
+             if imax == 9.0
+                eroot = root9 
+             endif 
+             if imax == 10.0
+                eroot = root10 
+             endif 
+             if imax == 11.0
+                eroot = root11 
+             endif 
+             if imax == 12.0
+                eroot = root12 
+             endif 
+             tomegacis(kindex12,jindex28) = eroot  
+             put omegacis(kindex12,jindex28) = tomegacis(kindex12,jindex28)
+       enddo jindex28
+#
 #
         if imax == 1.0
         root1 = 1001.0
@@ -24861,9 +24908,10 @@
        root11=100000.0
        root12=100000.0
 #
-       eomthresh=0.0001
+      #eomthresh=0.0001
       #rootmax=7.0
-      #eomthresh=eom_tol  #
+       eomthresh=eom_tol  #
+       eomthresh=0.0000001
        rootmax=eom_roots  # Watson Added
        EXECUTE  PRINT_SCALAR  eom_roots
        EXECUTE  PRINT_SCALAR  eom_tol

@@ -5,65 +5,8 @@ ENDJOBFLOW SCF_RHF_ENERGY
 
 JOBFLOW SCF_UHF_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 ENDJOBFLOW SCF_UHF_ENERGY
-
-JOBFLOW SCF_UHF_ENERGY_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-ENDJOBFLOW SCF_UHF_ENERGY_INSTAB
-
-JOBFLOW LCCSD_RHF_ENERGY
-scf_aguess.sio
-scf_rhf_aguess.sio
-tran_rhf_ao_sv1.sio
-linccsd_rhf_ao_sv1_cg.sio
-ENDJOBFLOW LCCSD_RHF_ENERGY
-
-JOBFLOW LCCSD_UHF_ENERGY
-scf_aguess.sio
-scf_uhf_aguess.sio
-tran_uhf_ao_sv1.sio
-linccsd_uhf_ao_sv2_cg.sio
-ENDJOBFLOW LCCSD_UHF_ENERGY
-
-JOBFLOW LCCSD_UHF_ENERGY_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-linccsd_uhf_ao_sv2_cg.sio
-ENDJOBFLOW LCCSD_UHF_ENERGY_INSTAB
-
-JOBFLOW LCCSD_UHF_GRADIENT
-scf_aguess.sio
-scf_uhf_aguess.sio
-tran_uhf_ao_sv1.sio
-linccsd_uhf_ao_sv2_cg.sio
-one_grad_herm_uhf_ao_sv1_diis5.sio
-two_grad_herm_uhf_ao_sv1.sio
-ENDJOBFLOW LCCSD_UHF_GRADIENT
-
-JOBFLOW LCCSD_UHF_GRADIENT_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-linccsd_uhf_ao_sv2_cg.sio
-one_grad_herm_uhf_ao_sv1_diis5.sio
-two_grad_herm_uhf_ao_sv1.sio
-ENDJOBFLOW LCCSD_UHF_GRADIENT_INSTAB
-
-JOBFLOW LCCSD_RHF_GRADIENT
-scf_aguess.sio
-scf_rhf_aguess.sio
-tran_rhf_ao_sv1.sio
-linccsd_rhf_ao_sv1_cg.sio
-one_grad_herm_rhf_ao_sv1.sio
-two_grad_herm_rhf_ao_sv1.sio
-ENDJOBFLOW LCCSD_RHF_GRADIENT
 
 JOBFLOW CCSD_RHF_ENERGY
 scf_aguess.sio
@@ -74,39 +17,20 @@ ENDJOBFLOW CCSD_RHF_ENERGY
 
 JOBFLOW CCSD_UHF_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 tran_uhf_ao_sv1.sio
 rccsd_uhf.sio
 ENDJOBFLOW CCSD_UHF_ENERGY
 
-JOBFLOW CCSD_UHF_ENERGY_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-ccsd_uhf_ao_sv2_diis5.sio
-ENDJOBFLOW CCSD_UHF_ENERGY_INSTAB
-
 JOBFLOW CCSD_UHF_GRADIENT
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 tran_uhf_ao_sv1.sio
 ccsd_uhf_ao_sv2_diis5.sio
 lambda_uhf_ao_sv1_new.sio
 one_grad_uhf_ao_sv1_diis5.sio
 two_grad_uhf_ao_sv1.sio
 ENDJOBFLOW CCSD_UHF_GRADIENT
-
-JOBFLOW CCSD_UHF_GRADIENT_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-ccsd_uhf_ao_sv2_diis5.sio
-lambda_uhf_ao_sv1_new.sio
-one_grad_uhf_ao_sv1_diis5.sio
-two_grad_uhf_ao_sv1.sio
-ENDJOBFLOW CCSD_UHF_GRADIENT_INSTAB
 
 JOBFLOW CCSD_RHF_GRADIENT
 scf_aguess.sio
@@ -126,17 +50,9 @@ ENDJOBFLOW SCF_RHF_GRADIENT
 
 JOBFLOW SCF_UHF_GRADIENT
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 gradscf.sio
 ENDJOBFLOW SCF_UHF_GRADIENT
-
-JOBFLOW SCF_UHF_GRADIENT_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-gradscf.sio
-ENDJOBFLOW SCF_UHF_GRADIENT_INSTAB
 
 JOBFLOW MP2_RHF_ENERGY
 scf_aguess.sio
@@ -146,17 +62,9 @@ ENDJOBFLOW MP2_RHF_ENERGY
 
 JOBFLOW MP2_UHF_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 mp2_uhf_sp.sio
 ENDJOBFLOW MP2_UHF_ENERGY
-
-JOBFLOW MP2_UHF_ENERGY_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-mp2_uhf_sp.sio
-ENDJOBFLOW MP2_UHF_ENERGY_INSTAB
 
 JOBFLOW MP2_RHF_GRADIENT
 scf_aguess.sio
@@ -166,88 +74,16 @@ ENDJOBFLOW MP2_RHF_GRADIENT
 
 JOBFLOW MP2_UHF_GRADIENT
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 mp2grad_uhf.sio
 ENDJOBFLOW MP2_UHF_GRADIENT
 
-JOBFLOW MP2_UHF_GRADIENT_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-mp2grad_uhf.sio
-ENDJOBFLOW MP2_UHF_GRADIENT_INSTAB
-
-JOBFLOW LCCSD_UHF_DROPMO_ENERGY
-scf_aguess.sio
-scf_uhf_aguess.sio
-tran_uhf_ao_sv1.sio
-linccsd_uhf_dropmo.sio
-ENDJOBFLOW LCCSD_UHF_DROPMO_ENERGY
-
-JOBFLOW LCCSD_UHF_DROPMO_ENERGY_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-linccsd_uhf_dropmo.sio
-ENDJOBFLOW LCCSD_UHF_DROPMO_ENERGY_INSTAB
-
-JOBFLOW LCCSD_RHF_DROPMO_ENERGY
-scf_aguess.sio
-scf_rhf_aguess.sio
-tran_rhf_ao_sv1.sio
-linccsd_rhf_dropmo.sio
-ENDJOBFLOW LCCSD_RHF_DROPMO_ENERGY
-
-JOBFLOW LCCSD_UHF_DROPMO_GRADIENT
-scf_aguess.sio
-scf_uhf_aguess.sio
-tran_uhf_ao_sv1.sio
-linccsd_uhf_dropmo.sio
-expand_lincc.sio
-tran_uhf_expanded_lincc.sio
-one_grad_herm_uhf_ao_sv1_dropmo_diis5.sio
-two_grad_herm_uhf_ao_sv1_dropmo.sio
-ENDJOBFLOW LCCSD_UHF_DROPMO_GRADIENT
-
-JOBFLOW LCCSD_UHF_DROPMO_GRADIENT_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-linccsd_uhf_dropmo.sio
-expand_lincc.sio
-tran_uhf_expanded_lincc.sio
-one_grad_herm_uhf_ao_sv1_dropmo_diis5.sio
-two_grad_herm_uhf_ao_sv1_dropmo.sio
-ENDJOBFLOW LCCSD_UHF_DROPMO_GRADIENT_INSTAB
-
-JOBFLOW LCCSD_RHF_DROPMO_GRADIENT
-scf_aguess.sio
-scf_rhf_aguess.sio
-tran_rhf_ao_sv1.sio
-linccsd_rhf_dropmo.sio
-expand_linccsd_rhf.sio
-tran_rhf_expanded_lincc.sio
-one_grad_herm_rhf_ao_sv1_dropmo.sio
-two_grad_herm_rhf_ao_sv1.sio
-ENDJOBFLOW LCCSD_RHF_DROPMO_GRADIENT
-
 JOBFLOW CCSD_UHF_DROPMO_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 tran_uhf_ao_sv1.sio
 rccsd_uhf.sio
 ENDJOBFLOW CCSD_UHF_DROPMO_ENERGY
-
-JOBFLOW CCSD_UHF_DROPMO_ENERGY_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-ccsd_uhf_dropmo.sio
-ENDJOBFLOW CCSD_UHF_DROPMO_ENERGY_INSTAB
 
 JOBFLOW CCSD_RHF_DROPMO_ENERGY
 scf_aguess.sio
@@ -258,7 +94,7 @@ ENDJOBFLOW CCSD_RHF_DROPMO_ENERGY
 
 JOBFLOW CCSD_UHF_DROPMO_GRADIENT
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 tran_uhf_ao_sv1.sio
 ccsd_uhf_ao_sv2_diis5.sio
 lambda_uhf_dropmo.sio
@@ -267,19 +103,6 @@ tran_uhf_expanded.sio
 one_grad_uhf_ao_sv1_dropmo_diis5.sio
 two_grad_uhf_ao_sv1_dropmo.sio
 ENDJOBFLOW CCSD_UHF_DROPMO_GRADIENT
-
-JOBFLOW CCSD_UHF_DROPMO_GRADIENT_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-ccsd_uhf_dropmo.sio
-lambda_uhf_dropmo_new.sio
-expand_cc.sio
-tran_uhf_expanded.sio
-one_grad_uhf_ao_sv1_dropmo_diis5.sio
-two_grad_uhf_ao_sv1_dropmo.sio
-ENDJOBFLOW CCSD_UHF_DROPMO_GRADIENT_INSTAB
 
 JOBFLOW CCSD_RHF_DROPMO_GRADIENT
 scf_aguess.sio
@@ -304,7 +127,7 @@ ENDJOBFLOW CCSD_RHF_TRIPLES_ENERGY
 
 JOBFLOW CCSD_UHF_TRIPLES_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 tran_uhf_ao_sv1.sio
 rccsd_uhf.sio
 urccsdpt_aaa.sio
@@ -312,16 +135,6 @@ urccsdpt_bbb.sio
 urccsdpt_aab.sio
 urccsdpt_bba.sio
 ENDJOBFLOW CCSD_UHF_TRIPLES_ENERGY
-
-JOBFLOW CCSD_UHF_TRIPLES_ENERGY_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-ccsd_uhf_ao_sv1_diis5.sio
-ccsdpt_uhf_aax_new.sio
-ccsdpt_uhf_bbx_new.sio
-ENDJOBFLOW CCSD_UHF_TRIPLES_ENERGY_INSTAB
 
 JOBFLOW CCSD_RHF_DROPMO_TRIPLES_ENERGY
 scf_aguess.sio
@@ -334,7 +147,7 @@ ENDJOBFLOW CCSD_RHF_DROPMO_TRIPLES_ENERGY
 
 JOBFLOW CCSD_UHF_DROPMO_TRIPLES_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 tran_uhf_ao_sv1.sio
 rccsd_uhf.sio
 urccsdpt_aaa.sio
@@ -342,16 +155,6 @@ urccsdpt_bbb.sio
 urccsdpt_aab.sio
 urccsdpt_bba.sio
 ENDJOBFLOW CCSD_UHF_DROPMO_TRIPLES_ENERGY
-
-JOBFLOW CCSD_UHF_DROPMO_TRIPLES_ENERGY_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-ccsd_uhf_dropmo.sio
-ccsdpt_uhf_aax_new.sio
-ccsdpt_uhf_bbx_new.sio
-ENDJOBFLOW CCSD_UHF_DROPMO_TRIPLES_ENERGY_INSTAB
 
 JOBFLOW SCF_RHF_HESSIAN
 scf_aguess.sio
@@ -361,17 +164,9 @@ ENDJOBFLOW SCF_RHF_HESSIAN
 
 JOBFLOW SCF_UHF_HESSIAN
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 hess_uhf_scf.sio
 ENDJOBFLOW SCF_UHF_HESSIAN
-
-JOBFLOW SCF_UHF_HESSIAN_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-hess_uhf_scf.sio
-ENDJOBFLOW SCF_UHF_HESSIAN_INSTAB
 
 JOBFLOW MP2_RHF_HESSIAN
 scf_aguess.sio
@@ -381,17 +176,9 @@ ENDJOBFLOW MP2_RHF_HESSIAN
 
 JOBFLOW MP2_UHF_HESSIAN
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio 
 hess_uhf_mp2_seg.sio
 ENDJOBFLOW MP2_UHF_HESSIAN
-
-JOBFLOW MP2_UHF_HESSIAN_INSTAB
-scf_uhf_init.sio
-guess_scf_uhf_finish.sio
-tran_uhf_ao_sv1.sio
-instab_scf_uhf_mo_ao.sio
-hess_uhf_mp2_seg.sio
-ENDJOBFLOW MP2_UHF_HESSIAN_INSTAB
 
 JOBFLOW EOM_RHF_CCSD_ENERGY
 scf_aguess.sio
@@ -405,7 +192,7 @@ ENDJOBFLOW EOM_RHF_CCSD_ENERGY
 
 JOBFLOW EOM_UHF_CCSD_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio 
 cis_uhf.sio
 eccsd_uhf.sio
 elambda_uhf_ao_sv1.sio
@@ -425,7 +212,7 @@ ENDJOBFLOW EOM_RHF_CCSD_DROPMO_ENERGY
 
 JOBFLOW EOM_UHF_CCSD_DROPMO_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 cis_uhf.sio
 eccsd_uhf.sio
 elambda_uhf_ao_sv1.sio
@@ -445,7 +232,7 @@ ENDJOBFLOW EOM_RHF_CCSD_DENS_ENERGY
 
 JOBFLOW EOM_UHF_CCSD_DENS_ENERGY
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 cis_uhf.sio
 eccsd_uhf.sio
 elambda_uhf_ao_sv1.sio
@@ -464,7 +251,7 @@ lccsdpt_rhf_aab.sio
 ENDJOBFLOW LCCSDPT_RHF_ENERGY
 
 
-EOMCCSD_RHF_PROPERTY_RDAG
+JOBFLOW EOMCCSD_RHF_PROPERTY_RDAG
 scf_aguess.sio
 scf_rhf_aguess.sio
 cis_rhf.sio
@@ -473,17 +260,19 @@ eccsd_rhf.sio
 elambda_rhf.sio
 reom_rhf_prop.sio
 eomccsd_density_rhf.sio
+ENDJOBFLOW EOMCCSD_RHF_PROPERTY_RDAG
 
-EOMCCSD_UHF_PROPERY_RDAG
+JOBFLOW EOMCCSD_UHF_PROPERY_RDAG
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio 
 cis_uhf.sio
 eccsd_uhf.sio
 elambda_uhf_ao_sv1.sio
 reom_uhf_prop.sio
 eomccsd_density_uhf.sio
+ENDJOBFLOW EOMCCSD_UHF_PROPERY_RDAG
 
-EOMCCSD_RHF_PROPERTY_LEFT
+JOBFLOW EOMCCSD_RHF_PROPERTY_LEFT
 scf_aguess.sio
 scf_rhf_aguess.sio
 cis_rhf.sio
@@ -493,18 +282,20 @@ elambda_rhf.sio
 reom_rhf_prop.sio
 leom_rhf.sio
 eomccsd_density_rhf.sio
+ENDJOBFLOW EOMCCSD_RHF_PROPERTY_LEFT
 
-EOMCCSD_UHF_PROPERY_LEFT
+JOBFLOW EOMCCSD_UHF_PROPERY_LEFT
 scf_aguess.sio
-scf_uhf_aguess.sio
+scf_uhf_finish_aguess.sio
 cis_uhf.sio
 eccsd_uhf.sio
 elambda_uhf_ao_sv1.sio
 reom_uhf_prop.sio
 leom_uhf.sio
 eomccsd_density_uhf.sio
+ENDJOBFLOW EOMCCSD_UHF_PROPERY_LEFT
 
-EOMCCSD_RHF_TRIPLES_RDAG
+JOBFLOW EOMCCSD_RHF_TRIPLES_RDAG
 scf_aguess.sio
 scf_rhf_aguess.sio
 cis_rhf.sio
@@ -515,8 +306,9 @@ reom_rhf_prop.sio
 eomccsdpt_rhf_aaa.sio
 eomccsdpt_rhf_aab.sio
 eomccsd_density_rhf.sio
+ENDJOBFLOW EOMCCSD_RHF_TRIPLES_RDAG
 
-EOMCCSD_RHF_TRIPLES_LEFT
+JOBFLOW EOMCCSD_RHF_TRIPLES_LEFT
 scf_aguess.sio
 scf_rhf_aguess.sio
 cis_rhf.sio
@@ -528,8 +320,9 @@ leom_rhf.sio
 leomccsdpr_rhf_aaa.sio
 leomccsdpr_rhf_aab.sio
 eomccsd_density_rhf.sio
+ENDJOBFLOW EOMCCSD_RHF_TRIPLES_LEFT
 
-LCCD_RHF_GRAD
+JOBFLOW LCCD_RHF_GRAD
 scf_aguess.sio
 scf_rhf_aguess.sio
 lccd_rhf.sio
@@ -537,4 +330,137 @@ expand_lccd_rhf.sio
 lccd_gtran_rhf.sio
 lccd_g1_rhf.sio
 lccd_g2_rhf.sio
+ENDJOBFLOW LCCD_RHF_GRAD
+
+JOBFLOW EOMDIP_CCSD_SINGLET
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+cis_uhf.sio
+tran_uhf_dip.sio
+ccsd_uhf_dip.sio
+eom_dip_singlets.sio
+ENDJOBFLOW EOMDIP_CCSD_SINGLET
+
+JOBFLOW EOMDIP_CCSD_TRIPLET
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+cis_uhf.sio
+tran_uhf_dip.sio
+ccsd_uhf_dip.sio
+eom_dip_singlets.sio
+ENDJOBFLOW EOMDIP_CCSD_TRIPLET
+
+JOBFLOW EOMDEA_CCSD_SINGLET
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+cis_uhf.sio
+tran_uhf_dea.sio
+ccsd_uhf_dea.sio
+hbar_uhf_dea.sio
+eom_dea_singlets.sio
+ENDJOBFLOW EOMDEA_CCSD_SINGLET
+
+JOBFLOW EOMDEA_CCSD_TRIPLET
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+cis_uhf.sio
+tran_uhf_dea.sio
+ccsd_uhf_dea.sio
+hbar_uhf_dea.sio
+eom_dea_singlets.sio
+ENDJOBFLOW EOMDEA_CCSD_TRIPLET
+
+JOBFLOW HF_AISO
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+HF_Aiso.sio
+ENDJOBFLOW HF_AISO
+
+JOBFLOW MBPT2_AISO
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+MP2_Aiso.sio
+ENDJOBFLOW MBPT2_AISO
+
+JOBFLOW CCSD_RELAX_DENS_AISO
+scf_aguess.sio
+scf_uhf_aguess.sio
+tran_uhf_ao_sv1.sio
+ccsd_uhf_ao_sv2_diis5.sio
+lambda_uhf_ao_sv1_new.sio
+CCSD_relx_Aiso.sio
+ENDJOBFLOW CCSD_RELAX_DENS_AISO
+
+JOBFLOW CCSD_RELAX_DENS_DROMO_AISO
+scf_aguess.sio
+scf_uhf_aguess.sio
+tran_uhf_ao_sv1.sio
+ccsd_uhf_ao_sv2_diis5.sio
+lambda_uhf_dropmo.sio
+expand_cc.sio
+tran_uhf_expanded.sio
+CCSD_relx_dropMO_Aiso.sio
+ENDJOBFLOW CCSD_RELAX_DENS_DROMO_AISO
+
+JOBFLOW CCSD_RESPONSE_DENS_AISO
+scf_aguess.sio
+scf_uhf_aguess.sio
+tran_uhf_ao_sv1.sio
+ccsd_uhf_ao_sv2_diis5.sio
+lambda_uhf_ao_sv1_new.sio
+CCSD_resp_Aiso.sio
+ENDJOBFLOW CCSD_RESPONSE_DENS_AISO
+
+JOBFLOW CCSDPT_RELAX_DENS_AISO
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+tran_uhf_ao_sv1.sio
+ccsd_uhf_ao_sv1_diis5.sio
+temp_ref.sio
+lambdaT_uhf_ao_sv1.sio
+CCSDT_Aiso.sio
+ENDJOBFLOW CCSDPT_RELAX_DENS_AISO
+
+JOBFLOW LCCD_RHF_GRAD
+scf_aguess.sio
+scf_rhf_aguess.sio
+lccd_rhf.sio
+expand_lccd_rhf.sio
+lccd_gtran_rhf.sio
+lccd_g1_rhf.sio
+lccd_g2_rhf.sio
+ENDJOBFLOW LCCD_RHF_GRAD
+
+JOBFLOW LCCD_RHF
+scf_aguess.sio
+scf_rhf_aguess.sio
+lccd_rhf.sio
+ENDJOBFLOW LCCD_RHF
+
+JOBFLOW LCCD_UHF
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+lccd_rhf.sio
+ENDJOBFLOW LCCD_UHF
+
+JOBFLOW LCCD_RHF_GRAD
+scf_aguess.sio
+scf_rhf_aguess.sio
+lccd_rhf.sio
+expand_lccd_rhf.sio
+lccd_gtran_rhf.sio
+lccd_g1_rhf.sio
+lccd_g2_rhf.sio
+ENDJOBFLOW LCCD_RHF_GRAD
+
+JOBFLOW LCCD_UHF_GRAD
+scf_aguess.sio
+scf_uhf_finish_aguess.sio
+lccd_uhf.sio
+expand_lccd_uhf.sio
+lccd_gtran_uhf.sio
+lccd_g1_uhf.sio
+lccd_g2_uhf.sio
+ENDJOBFLOW LCCD_RHF_GRAD
+
 

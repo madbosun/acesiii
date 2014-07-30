@@ -42,7 +42,8 @@ c--------------------------------------------------------------------------
       integer block_map_table(lblock_map_entry, nblock_map_table)
       integer nscalar_table
       double precision scalar_table(nscalar_table)
-      double precision sind, shift  
+      double precision shift  
+      integer sind 
       integer*8 address_table(narray_table)
 
       integer i, j, k
@@ -166,7 +167,7 @@ c---------------------------------------------------------------------------
       end
 
       subroutine eps_ty_divide4(x,a1,a2,atype,
-     *                      b1,b2,btype,i1,i2,itype,
+     *                      i1,i2,itype,b1,b2,btype,
      *                      j1,j2, jtype, epsilon, epsilonb,
      *                      shift)
       implicit none
@@ -174,7 +175,7 @@ c---------------------------------------------------------------------------
 
       integer a1,a2,b1,b2,i1,i2,j1,j2
       integer atype, itype, btype, jtype
-      double precision x(a1:a2,b1:b2,i1:i2,j1:j2)
+      double precision x(a1:a2,i1:i2,b1:b2,j1:j2)
 
       double precision epsilon(*), epsilonb(*)
 
@@ -208,7 +209,7 @@ c---------------------------------------------------------------------------
          endif
          val =  x(a,i,b,j)
          eps = epsi + epsj - epsa - epsb + shift 
-         if (eps .ne. 0.0) x(a,b,j,i) = val/eps
+         if (eps .ne. 0.0) x(a,i,b,j) = val/eps
       enddo
       enddo
       enddo

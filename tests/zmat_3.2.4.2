@@ -1,0 +1,31 @@
+CH2 DEA, Triplet
+C
+H 1 RCH
+H 1 RCH 2 ACHH
+
+RCH  =     1.0774358008
+ACHH =   133.2967452256
+
+*ACES2
+symmetry=off
+SPHERICAL=ON
+BASIS=6-311++G**
+SCF_CONV=6
+CC_CONV=6
+CALC=CCSD
+REF=RHF
+CHARGE=2
+
+*SIP
+MAXMEM=1500
+TIMERS = YES
+SIAL_PROGRAM = scf_aguess.sio
+SIAL_PROGRAM = scf_uhf_ainit_aguess.sio
+SIAL_PROGRAM = scf_uhf_finish_aguess.sio
+SIAL_PROGRAM = cis_uhf.sio
+SIAL_PROGRAM = tran_uhf_dea.sio
+SIAL_PROGRAM = ccsd_uhf_dea.sio
+SIAL_PROGRAM = hbar_uhf_dea.sio
+SIAL_PROGRAM = eom_dea_triplets.sio
+
+

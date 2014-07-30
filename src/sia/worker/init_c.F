@@ -98,11 +98,13 @@ c--------------------------------------------------------------------------
 c   Reorder the coefficients in each column to correspond to ERD order.
 c--------------------------------------------------------------------------
 
+      go to 10 
       if (intpkg .eq. flocke_package) 
      *    call apply_erd_order(xxx(ixc), n, ibuf(ierdind), 
      *                        xxx(iscale_fac))
        
       return
+10    continue 
       end
 
       subroutine apply_erd_order(c, n, erd_ind, scale)

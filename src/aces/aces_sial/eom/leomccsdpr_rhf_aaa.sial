@@ -1589,7 +1589,7 @@
                  GET                         D3ijk(a,a1,a2,k1)
                  GET                         LD3ijk(a,a1,a2,k1)
                  taaaoii(a,a1,a2,k1,i,j)    = D3ijk(a,a1,a2,k1)
-                 execute energy_ty_denominator taaaoii  omega
+                 #execute energy_ty_denominator taaaoii  omega
 #
 # Form contribution to the energy
 # -------------------------------

@@ -54,7 +54,7 @@ c--------------------------------------------------------------------------
       integer type, next, nreq
       
       integer mx_blk
-      parameter (mx_blk = 200)
+      parameter (mx_blk = 25000)
 
       integer request(mx_blk)
       integer msg(2,mx_blk)

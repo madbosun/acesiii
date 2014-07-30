@@ -1,17 +1,3 @@
-C  Copyright (c) 2003-2010 University of Florida
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-
-C  The GNU General Public License is included in this distribution
-C  in the file COPYRIGHT.
 
 C Purpose: Produce an VMOL .MOL file based on the ZMAT file
 C
@@ -23,6 +9,7 @@ C     AtNr    Atomic numbers for each center (input)
 C     NUnique Number of unique internal coordinates (input)
 C     geom    Cartesian coordinates (input)
 c             will not be the same as Q in FINDIF
+C     GenBy   To hold the Genby list (internal)
 C     IStat   Error codes (output)
 C             = 0  Successful
 C             = 1  Fatal error from dependent
@@ -58,8 +45,8 @@ C     it to act like it encountered a real error on reading the file.
 
 #include "flags.h"
 
-      SUBROUTINE MKVMOL(geom, PTGRP,NATMS,NUNIQUE,ZSYM,ATNR,
-     $     GenBy, Scratch, ISTAT, BasName)
+      SUBROUTINE MKVMOL(geom, PTGRP,NATMS,NUNIQUE,ZSYM,ATNR,GENBY,
+     $     SCRATCH, ISTAT, BasName)
       IMPLICIT DOUBLE PRECISION (A-H, O-Z)
 
 #include "mxatms.par"
@@ -67,6 +54,7 @@ C     it to act like it encountered a real error on reading the file.
 #include "linelen.par"
 #include "baslims.par"
 #include "molstrct.com"
+#include "coord.com"
 
       character*(*) BasName
 
@@ -82,6 +70,7 @@ C     it to act like it encountered a real error on reading the file.
       Character*6 Slask,NullSt
       Character*1 Lb
       Character*1 Indxx(150)
+      Character*2 Symbol
 
 cYAU - parse ZMAT like fetchz()
       integer izl(2,7)
@@ -89,7 +78,8 @@ cYAU - parse ZMAT like fetchz()
 
 csb 1/97 Hold long basis set names
 #include "baslen.par"
-      character*(baslen) BasNam(MxAtms),BlnkBN,ScrBas,EcpNam(MxAtms)
+      character*(baslen) BasNam(MxAtms), BasNam_hold(MxAtms), BlnkBN,
+     &                   ScrBas,EcpNam(MxAtms),EcpNam_hold(MxAtms)
 
       dimension icrcor(mxatms)
       common /turbo / iturbo,matom,ioffsh
@@ -106,6 +96,9 @@ CKJW 5-24-00
       logical seward,bCpBasis,bExist,bOpened
       Integer OldLu
       Dimension Nord(2*MxAtms),Scratch(NAtms)
+
+      integer  atomnumb
+C
 C     Main OPTIM control data
 C     IPRNT   Print level - not used yet by most routines
 C     INR     Step-taking algorithm to use
@@ -135,7 +128,6 @@ CSSS     &                 PRIMORBT(MXTNSH),PROFFSET(MXTNSH)
       COMMON /INPTYP/XYZIN,NWFINDIF
       COMMON /FLAGS/IFLAGS(100),IFLAGS2(500)
       COMMON /MACHSP/ IINTLN,IFLTLN,IINTFP,IALONE,IBITWD
-#include "coord.com"
 C
 C     Length of BasNam is fixed by the basis library
 C
@@ -163,12 +155,10 @@ csb     &            'qz2p    ','pz2p    '/
 
 c ----------------------------------------------------------------------
 
+      external atomnumb
 C
 C Initialize some things.
 C
-
-      seward = .false.
-
       do i=1,baslen
         BlnkBN(i:i)=' '
       end do
@@ -244,7 +234,7 @@ C     skip the header
             READ (LUZ,'(A)', ERR=8500, END=8510) WRK
          END DO
       END IF
-      IF (IFLAGS(h_IOPPAR_coordinates) .EQ. 0) THEN
+      IF (IFLAGS(68) .EQ. 0) THEN
          Read (LuZ,'(A)', ERR=8500, END=8510) Wrk
          Do i = 1, NUnique
             Read (LuZ, '(A)', ERR=8500, END=8510) Wrk
@@ -252,6 +242,20 @@ C     skip the header
       END IF
       Read (LuZ, '(A)', ERR=8500, END=8800) Wrk
 
+c YAU : old
+c     Get the optimizer settings & another blank line after
+c      Call GtFlgs(0,IErr,
+c     &            IPrnt, INR,   IContl,IVec,  IDie,
+c     &            ICurvy,IStCrt,IMxStp,IVib,  IRecal,
+c     &            IntTyp,IDisFD,IGrdFD,ICNTYP,ISym,
+c     &            IBasis,IDFGHI,
+c     &            BasName)
+c      If (IErr.eq.2) Goto 8800
+c      If (IErr.eq.1) Goto 8500
+cC      Read (LuZ, '(11I3)', ERR=8500, END=8800) IPrnt, INR, IContl,
+cC     $ IVec, IDie, ICurvy, IStCrt, IMxStp, IVib, IRecal, IntTyp
+c      Read (LuZ, '(A)', ERR=8500, END=8810) Wrk
+c YAU : new
       IPrnt  = iFlags(h_IFLAGS_joda_print)
       INR    = iFlags(h_IFLAGS_opt_method)
       IContl = iFlags(h_IFLAGS_convergence)
@@ -302,20 +306,97 @@ C     center in the Z-matrix, in the order of appearance.  We put this
 C     into an array length NAtms, with blanks for dummies.  This makes
 C     it easier to match the basis with the right coordinates later.
 C     NOTE: blank line after basis names.
-      Do 250 i = 1, NAtms
-         BasNam(i) = BlnkBN
-         if (AtNr(i).ne.0) then
-            if (iBasis.eq.0) then
-c            o read special
-               read(LuZ,'(A)',err=8500,end=8510,iostat=IOS) BasNam(i)
-            else
+C     
+C Having to type the same basis set name for every atom is error prone
+C and time consuming for when the molecule is large (> 10 atoms). In
+C order to aviod that this new logic will ask the user to input the 
+C number of distinct atoms in the molecule and the use specify the 
+C basis for those distinct atoms and the rest will get generated 
+C automatically. If the user wants to have different basis sets for
+C distinct atoms then he/she has to specify the basis set for each
+C line correspond to a center in the Z-matrix. The distinct atom 
+C basis pair do not need need to be in particular order. The 
+C same applies for ECP basis sets. Ajith Perera, 06/2013.
+C
+C
+      If (Ibasis .EQ. 0) Then
+          backspace(luz)
+          read(LuZ,'(i4)',err=8500,end=8510,iostat=IOS) Num_unique
+      Else
+          Num_unique = 0
+      Endif
+
+      If (Num_unique .EQ. Natms .OR. Num_unique .EQ. 0) Then
+
+          Do 250 i = 1, NAtms
+             BasNam(i) = BlnkBN
+             if (AtNr(i).ne.0) then
+               if (iBasis.eq.0) then
+
+c   o read special
+                 read(LuZ,'(A)',err=8500,end=8510,iostat=IOS) BasNam(i)
+
+               else
+C
 csb 1/97 Allow arbitrary basis set names
-               BasNam(i)=ZSym(i)(1:linblnk(ZSym(i)))//':'//
-     &                   BasName(1:linblnk(BasName))
-            end if
-         end if
- 250  Continue
+
+                  BasNam(i)=ZSym(i)(1:linblnk(ZSym(i)))//':'//
+     &                      BasName(1:linblnk(BasName))
+C
+csb               izz=index(Basis(IBasis),'*')
+csb               ixx=index(Basis(IBasis),'**')
+csb               ipop=0
+csbCJDW 8/29/94. 1.5 ---> 4.5 (what about He ?)
+csb               if(ixx.ne.0.and.atmass(i).gt.4.5)ipop=1
+csb               if(izz.ne.ixx.and.atmass(i).lt.4.5)ipop=1
+csb               BasNam(i)=ZSym(i)(1:linblnk(ZSym(i)))//':'//
+csb     &                   Basis(IBasis)(1:linblnk(Basis(IBasis))-ipop)
+               end if
+
+c        end if ([not dummy atom])
+             end if
+ 250      Continue
+     
+      Else
+        
+          Do Iatm = 1,  Num_unique
+             read(LuZ,'(A)',err=8500,end=8510,iostat=IOS)
+     &                      BasNam_hold(Iatm)
+          Enddo 
+C
+          Katm = 0
+          Do Iatm = 1, NAtms
+             If (AtNr(Iatm).EQ.0) Katm = Katm + 1
+
+             Do Jatm = 1, Num_unique
+                Ilen   = Index(Basnam_hold(Jatm), ":")
+                Symbol = Basnam_hold(Jatm)(1:Ilen-1)
+                JAtnr  = ATOMNUMB(Symbol)
+                If (AtNr(Iatm) .EQ. JAtNr) Then
+                   Katm  = Katm + 1
+                   Basnam(Katm) = Basnam_hold(Jatm)
+                Endif
+             Enddo
+          Enddo
+
+          If(Bad123)then
+            ScrBas=BasNam(1)
+            BasNam(1)=BasNam(2)
+            BasNam(2)=ScrBas
+          EndIf
+C
+      Endif 
+
+#ifdef _DEBUG_LVL0
+      Write(6,*)
+      Write(6,"(a)") "The basis set definitions"
+      do i=1,natms
+         Write(6,"(1x,i3,1x,A20)") Atnr(i), basnam(i)
+      enddo
+#endif
+C
       If(IBasis.eq.0)Read (LuZ,'(A)', ERR=8500, END=8510) Wrk
+
 C ADDITION (JFS,4/90)
 C Now take care of situation which occurs when 2--1--3 Z-matrix
 C  specification and nonstandard basis set input is used.  In this case,
@@ -326,16 +407,117 @@ C
        BasNam(1)=BasNam(2)
        BasNam(2)=ScrBas
       EndIf
+C
+C DEAL WITh ECPs
+C
+      IF (IECP.EQ.1) THEN
+
+csb        IF (IBASIS.EQ.0) THEN
+C
+C  NOW READ THE NAMES OF THE ECPS. JODA TRIES TO READ THEM FROM
+C  THE ZMAT FILE. THE USE OF ECPS REQUIRES "BASIS = SPECIAL"
+C
+        Read (LuZ,'(A)', ERR=8500, END=8510) Wrk
+        If (Wrk(2:2) .EQ. ":" .OR. Wrk(3:3) .EQ. ":") Then
+           backspace(Luz)
+           Num_unique = 0
+        Else
+           backspace(Luz)
+           read(LuZ,'(i4)',err=8500,end=8510,iostat=IOS) Num_unique
+        ENdif
+
+        If (Num_unique .EQ. Natms .OR. Num_unique .EQ. 0) Then
+
+           DO 255 I = 1, NATMS
+              ECPNAM(I) = BLNKBN
+              IF (ATNR(i) .NE. 0 .AND. IBASIS .EQ. 0) THEN
+                 READ (LUZ, '(A)', ERR=8500, END=8510, IOSTAT=IOS)
+     &           ECPNAM(I)
+csb
+              ElseIf(AtNr(i) .ne. 0 .and. IBasis .ne. 0)then
+
+                 EcpNam(i)=BasName
+
+              ENDIF
+ 255       CONTINUE
+
+        Else
+
+          Do Iatm = 1,  Num_unique
+              read(LuZ,'(A)',err=8500,end=8510,iostat=IOS)
+     &                   Ecpnam_hold(Iatm)
+          Enddo
+C
+          Katm = 0
+          Do Iatm = 1, NAtms
+             If (AtNr(Iatm).EQ.0) Katm = Katm + 1
+
+             Do Jatm = 1, Num_unique
+                Ilen   = Index(Basnam_hold(Jatm), ":")
+                Symbol = Ecpnam_hold(Jatm)(1:Ilen-1)
+                JAtnr  = ATOMNUMB(Symbol)
+                If (AtNr(Iatm) .EQ. JAtNr) Then
+                   Katm  = Katm + 1
+                   Ecpnam(Katm) = Ecpnam_hold(Jatm)
+                Endif
+             Enddo
+          Enddo
+
+          If(Bad123)then
+            ScrBas=BasNam(1)
+            BasNam(1)=BasNam(2)
+            BasNam(2)=ScrBas
+          EndIf
+C
+        Endif
+
+#ifdef _DEBUG_LVL0
+      Write(6,*)
+      Write(6,"(a)") "The ECP definitions"
+      do i=1,natms
+         Write(6,"(1x,i3,1x,A20)") Atnr(i), ecpnam(i)
+      enddo
+      Write(6,*)
+#endif
+
+        IF(IBASIS.EQ.0)READ (LUZ,'(A)', ERR=8500, END=8510) WRK
+
+C ADDITION (JFS,4/90)
+C Now take care of situation which occurs when 2--1--3 Z-matrix
+C  specification and nonstandard basis set input is used.  In this case,
+C  the basis sets for atoms #1 and #2 must be switched.
+C
+        IF(BAD123.AND.IBASIS.EQ.0) THEN
+          SCRBAS=ECPNAM(1)
+          ECPNAM(1)=ECPNAM(2)
+          ECPNAM(2)=SCRBAS
+        ENDIF
+C
+C NOW CORRECT THE CHARGES OF THE ATOMS BY THE CORE-ELECTRONS
+C DESCRIBED BY THE ECP
+C
+        CALL CORCHR(ECPNAM,ATNR,ICRCOR,NATMS)
+        DO 94 I=1,NATMS
+          IF (ATNR(I).NE.0) THEN
+            ICRCOR(i)=ATNR(I)-ICRCOR(i)
+          ENDIF
+   94   CONTINUE
+        CALL PUTREC(10,'JOBARC','ECPNAM',80*NATMS,ECPNAM)
+        CALL PUTREC(10,'JOBARC','NATOLD',1,NATMS)
+C
+csb        ELSE
+csb          WRITE(*,*) 'INCOMPATIBLE KEYWORDS IN MKVMOL!'
+csb          CALL ERREX
+csb        ENDIF
+      ENDIF
+C
+CCH END OF READING ECP NAMES
 
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
 C     Let's find out which centers are equivalent
 C
-c      Call SymEqv ( NAtms, GenBy)
-       do i = 1, natms
-          GenBy(i) = 0
-       enddo
-
+      Call SymEqv ( NAtms, GenBy)
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
 C Count number of centers having *different* atomic numbers in this grou
@@ -378,11 +560,33 @@ C
          End Do
       End If
 
-      do i = 1, 3
-         ka(i) = ' '
-      enddo
-      NSymOp = 0
-
+C Now get symmetry information written by SYMMETRY to file VMINF.
+      Opn = .False.
+      OldLu = 0
+      IF (PTGRP.EQ.'C1 ') THEN
+         INQUIRE(FILE='VMLSYM',EXIST=Opn)
+         IF (OPN) THEN
+            OPEN(UNIT=30,FILE='VMLSYM',FORM='UNFORMATTED',
+     &           STATUS='OLD')
+            CLOSE(UNIT=30,STATUS='DELETE')
+         END IF
+         GOTO 5400
+      END IF
+      Inquire (FILE='VMLSYM', OPENED=Opn, NUMBER=OldLu)
+      If (Opn) Close (OldLu)
+C
+      Open (30, FILE='VMLSYM', STATUS='OLD',FORM='UNFORMATTED')
+      Rewind(30)
+      Read (30,Err=9400) NSymOp, (KA(i),i=1,3)
+      Close(30, Status='Delete')
+5400  CONTINUE
+      If (PtGrp.EQ.'C1 ') Then
+         Do I = 1, 3
+            KA(I)='   '
+         End Do
+         NSymOp = 0
+      End If
+C
 C     Now we've got (pretty much) all the information we need, so
 C     we can start writing out the MOL file.
 C     Begin with a very cautious opening of the file.
@@ -411,6 +615,27 @@ CJDW  11/2/94
         Zink=9999.0
         Zink2=3.0
         Write(LuVMol,'(2F10.2)',ERR=8300)Zink,Zink2
+      if(inttyp.eq.4) then
+        seward = .true.
+        opn = .false.
+        inquire(file=sewfil,opened=opn)
+        if (.not. opn)open(lusew,file=sewfil,form='FORMATTED',
+     &    status='UNKNOWN')
+        rewind lusew
+        write(lusew,'(A)')' &SEWARD  &END'
+        write(lusew,'(A)')'ACES'
+        write(lusew,'(A)')'TITLE'
+        write(lusew,'(A)') JobTtl(:linblnk(JobTtl))
+        write(lusew,'(A)')'MOLECULE'
+        write(lusew,'(A)')'THRESHOLD'
+        write(lusew,'(E10.2)') DBLE(10.0D+00**(-IFLAGS2(108)))
+c kjw 7-27-00 bug fix for cases with no symmetry
+        if(ka(1).eq.'   '.and.ka(2).eq.'   '.and.ka(3).eq.'   ')then
+        else
+          write(lusew,'(A)')'SYMMETRY'
+          write(lusew,'(3a3)') Ka
+        endif
+      endif
 
 c   o open a basis set file for rdbas and create ZMAT.BAS if necessary
       inquire(unit=12,opened=bOpened)
@@ -420,6 +645,7 @@ c   o open a basis set file for rdbas and create ZMAT.BAS if necessary
             open(unit=12,file='ZMAT.BAS',form='formatted',status='old')
          end if
          bCpBasis = .false.
+         rewind(12)
       else
          if (.not.bOpened) then
             open(unit=12,file='GENBAS',form='formatted',status='old')
@@ -474,7 +700,6 @@ c7001   Format(F10.1,I5,$)
      &  LuVMol,0,1,IStat,IntTyp,Nullst,IAtnum(Nord(Nstart)),
      &  Nord(MxAtms+I))
        ENDIF
-
        Do J = 1, Nord(MxAtms+J)
           IBotm = -2 + 3*Nord(NStart-1+J)
           IINFIL = IINFIL + 1
@@ -537,6 +762,18 @@ c   o if we created ZMAT.BAS, then close GENBAS and connect ZMAT.BAS to unit 12
          bCpBasis = .false.
       end if
 
+c
+c create the interfacefile to TURBOMOLE
+c
+      if (iturbo.eq.1) then
+cYAU        ispher=iflags(62)
+cYAU        call mkturb(basnam,geom,zsym,atmass,iatnum,natms,nontyp,
+cYAU     &              ispher)
+         write(*,*) '@MKVMOL: MkTurb was temporarily removed.'
+         write(*,*) '         This calculation cannot complete.'
+         call errex
+      end if
+C
 C     Dump vector to disk which relates the atoms listed in the
 C     MOL file to their position in the user supplied Z-matrix.
 C
@@ -563,6 +800,7 @@ C
 C     Make sure every body gets closed & stuff
 C
  8000 If(IntTyp.ne.0)Close (LuVMol)
+      if(inttyp.eq.4)close (lusew)
       Close (LuZ)
 C
 C WRITE BASIS SET INFORMATION TO JOBARC
@@ -590,9 +828,11 @@ C
        CALL IPUTREC(20,'JOBARC','PRIMORBT',NONTYP,PRIMORBT)
       ENDIF
 C
+CJDW  6/ 6/95. Add JFS call to SHELLINF.
+C
       call shellinf(nontyp,natoms,ntotshel,shellorb,shoffset,shellang,
      &              shellsiz)
-
+C
       Return
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C

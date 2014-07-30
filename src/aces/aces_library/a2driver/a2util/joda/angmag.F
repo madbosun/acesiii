@@ -1,0 +1,28 @@
+        DOUBLE PRECISION FUNCTION ANGMAG(ORBIT,D,IORDER,IRETURN)
+        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+        IRETURN=0
+        ANGMAG=0.D0
+        DTOR=DACOS(-1.D0)/180.D0
+        ORDER=DFLOAT(IORDER)
+        A1=180.D0/ORDER
+        IF(DABS(A1-90.D0).LT.1.D-3)THEN
+          ANGMAG=0.D0
+        RETURN
+        ENDIF
+        X=ORBIT**2-0.25D0*D**2/DSIN(DTOR*A1)**2
+        TOP=D/DTAN(DTOR*A1)
+        IF(X.LT.-1.D-12)THEN
+C
+C THE ROTATION IS IMPOSSIBLE
+C
+         IRETURN=1
+         RETURN
+        ENDIF
+        IF(DABS(X).LT.1.D-6)THEN
+          ANGMAG=90.D0
+        ELSE
+        BOT=2.D0*DSQRT(X)
+          ANGMAG=DATAN(TOP/BOT)/DTOR
+        ENDIF
+        RETURN
+        END         

@@ -37,6 +37,7 @@ c--------------------------------------------------------------------------
       include 'interpreter.h'
       include 'parallel_info.h'
       include 'trace.h'
+      include 'int_gen_parms.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -74,7 +75,8 @@ c---------------------------------------------------------------------------
       array = op(c_result_array)
       evec_array = op(c_op1_array)
       if (array .eq. 0 .or. evec_array .eq. 0) then
-         print *,'Error: EIG routine requires 2 array arguments.'
+         print *,'Error: eom_root_print_new routine requires 
+     *            2 array arguments.'
          print *,(op(i),i=1,loptable_entry)
          call abort_job()
       endif
@@ -83,7 +85,8 @@ c---------------------------------------------------------------------------
       evec_type  = array_table(c_array_type, evec_array)
       if (array_type .ne. static_array .or. 
      *    evec_type .ne. static_array) then
-         print *,'Error: Both arrays in EIG routine must be static.'
+         print *,'Error: Both arrays in eom_root_print_new routine 
+     *            must be static.'
          call abort_job()
       endif
 
@@ -112,7 +115,10 @@ c---------------------------------------------------------------------------
       iarray = get_index_from_base(address_table(array), x, 2)
       ievec  = get_index_from_base(address_table(evec_array), x, 2)
 
-      n = index_table(c_index_size, ind(1))  ! pick up length of index
+CSSS   n = index_table(c_index_size, ind(1))  ! pick up length of index
+C Print exactly the number of roots requested in the input
+
+      n = Int(eom_roots)
       call doeomroot_print_new(x(iarray), x(ievec), n)
 
       return

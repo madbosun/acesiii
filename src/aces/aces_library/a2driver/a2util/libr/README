@@ -1,0 +1,26 @@
+
+The following subdirectories contain the source files
+in liblibr.a.
+
+libr.common : Architecture-independent routines.
+libr.arch   : Architecture-dependent routines with preprocessor directives.
+
+*****************
+
+SOURCE CONTROL!!!
+
+If you port the code to another machine, chances are the changes you make to
+the code will be local to that machine. Well, it does us no good if you leave
+the changes there and do not update the central source.
+
+Additionally, if you copy all the source from libr.arch and libr.common to
+one directory and change something, be sure to categorize the new source
+accordingly. E.G., if libr.common/dump.F needs an "#ifdef M_*" then move it
+to libr.arch after making the changes.
+
+I (Anthony) would suggest symbolically linking to the source in both
+directories from one build directory. This way: 1) changes will automatically
+be updated to their source files, 2) there is a reduced chance that a file
+will coexist in libr.common AND libr.arch, and 3) changes to the central source
+will be added automatically to your copies since no one likes CVS.
+

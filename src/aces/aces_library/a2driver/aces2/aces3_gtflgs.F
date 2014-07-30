@@ -324,6 +324,8 @@ c   o only print the logs and summaries on the first run
          bVerbose = .true.
       end if
 
+      call putrec(1,'JOBARC','STGF12',1,0)
+
 c   o nIrrps tracks the number of irreps in all of the user's value
 c     tokens. Originally, we would load COMPNIRR from JOBARC, but this
 c     method fails if a low-order point group finished running in a
@@ -768,6 +770,17 @@ c         o BASIS
                end if
                goto 101
             end if
+
+c---------Explicitly-correlated calculation option----------------------
+            if (iASV.eq.h_IOPPAR_stgf12) then
+              if (ioppar(h_IOPPAR_stgf12).eq.1) then
+              call putrec(1,'JOBARC','STGF12',1,1)
+              else
+              call putrec(1,'JOBARC','STGF12',1,0)
+              endif
+              goto 101
+            endif
+c-----------------------------------------------------------------------
 
 c YAU - add a conditional for SUBGROUP that sets nIrrps
 
@@ -1621,10 +1634,6 @@ c turn save_ints on for all fno methods
 c props need to be first order for cc densities
       if (ioppar(h_IOPPAR_fno_keep).gt.0) then
          call asv_update_kv('save_ints'//achar(0),iASV,szData,0)
-         if (ioppar(h_IOPPAR_calc).gt.1) then
-            szTmp = 'props=first_order'//achar(0)
-            call asv_update_kv(szTmp,iASV,szData,0)
-         end if
       end if
 
 c   o TRAP METHODS WHICH DON'T WORK YET
@@ -1650,6 +1659,18 @@ c   o TRAP METHODS WHICH DON'T WORK YET
      &               ' not implemented for TWODET references.'
             call errex
          end if
+      end if
+
+c     Set the initial scf diis iteration and order VFL 1/2/2013 
+
+      if (ioppar(h_IOPPAR_scf_expstar).eq.0) then
+         szTmp = 'scf_expstar=2'//achar(0)
+         call asv_update_kv(szTmp,iASV,szData,0)
+      end if
+
+      if (ioppar(h_IOPPAR_scf_exporde).eq.0) then
+         szTmp = 'scf_exporde=8'//achar(0)
+         call asv_update_kv(szTmp,iASV,szData,0)
       end if
 
 c   o If CC calc, then set MAXCYC and turn on RLE with order equal to 5

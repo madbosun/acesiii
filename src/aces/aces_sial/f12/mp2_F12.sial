@@ -1,0 +1,552 @@
+#----------------------------------------------------------------------------------------|
+# The purpose of this part is to  generate necessary set of F12-related intermediates    |
+#                       and calculate MP2-F12 energy.                                    |
+#     Added to ACES3 by Denis Bokhan, Moscow Lomonosov State University,                 |
+#                            Moscow, Russian  Federation                                 |
+#----------------------------------------------------------------------------------------|
+
+                           SIAL MP2_F12
+
+#--------------Definition of indices------------------------------------------------------
+
+      moaindex    p  = baocc, eavirt
+      moaindex    q  = baocc, eavirt
+      moaindex   p1  = baocc, eavirt
+      moaindex   p2  = baocc, eavirt
+      moaindex    a  = bavirt, eavirt
+      moaindex    b  = bavirt, eavirt
+      moaindex   a1  = bavirt, eavirt
+      moaindex   a2  = bavirt, eavirt
+      moaindex   a3  = bavirt, eavirt
+      moaindex    i  = baocc, eaocc
+      moaindex    j  = baocc, eaocc
+      moaindex    k  = baocc, eaocc
+      moaindex    l  = baocc, eaocc
+      moaindex    m  = baocc, eaocc
+      moaindex    n  = baocc, eaocc
+      moaindex   i1  = baocc, eaocc
+      moaindex   i2  = baocc, eaocc
+      moaindex   i3  = baocc, eaocc
+      moaindex   i4  = baocc, eaocc
+
+      index kkk =1, 6
+      index iii=1,1
+
+#-------------Definition of arrays---------------------------------------------------------
+
+#---------Coulomb integrals----------------------------------------------------------------
+      served V0iiii(i,i1,i2,i3)
+      served V0aiai(a2,i1,a1,i)
+      served V0aaii(a1,a2,i1,i)
+      served V0aiii(a1,i1,i2,i)
+      served V0piii(p1,i1,i2,i)
+      served V0aaai(a1,a2,a3,i)
+
+#---------Yukawa integrals-----------------------------------------------------------------
+      served V1aiai(a,i,a1,i1)
+      served V1iiii(i,i1,i2,i3)
+      served V1aiii(a1,i1,i2,i)
+
+#---------Slater integrals-----------------------------------------------------------------
+      served V2pipi(p2,i,p1,i1)
+      served V2piai(p2,i,a1,i1)
+      served V2piii(p1,i,i1,i2)
+      served V2iiii(i,i1,i2,i3)
+      served V2aiai(a2,i1,a1,i)
+      served V2aaii(a1,a2,i1,i)
+      served V2aiii(a1,i1,i2,i)
+      served V2aaai(a1,a2,a3,i)
+
+#---------Slater squared integrals---------------------------------------------------------
+      served V3iiii(i,i1,i2,i3)
+
+#-----------[T12,f12] integrals------------------------------------------------------------
+      served V4aiai(a1,i,a2,i1)
+      served V4iiii(i,i1,i2,i3)
+#--------Three - electron integrals -------------------------------------------------------
+       served V_ijkl(i,i1,i2,i3)
+       served V_ijka(i1,i2,i,a1)
+       served V_ijab(i,a,i1,a1)
+       served X12(p,i,p1,i1)
+       served KF12(p,i,p1,i1)
+       served K1F12(i,i2,p,i1)
+       served KFF12(i1,i2,i3,i)
+       served F12F23(p,i1,i2,i3)
+       served KIN3e(i,i1,i2,i3)
+#------------------------------------------------------------------------------------------
+
+
+
+      served C_coef(i,i1,i2,i3) 
+      served phi(a1,i,a2,i1)
+      served Viiii(i,i1,i2,i3)
+      served Biiii(i,i1,i2,i3)
+      served Btemp(i,i1,i2,i3)
+      served Btmp1(i,i1,i2,i3)
+      served zv1(i,p)
+      served zv2(p,m,n,i)
+
+      temp tphi(a1,i,a2,i1)
+      temp tphi1(a1,i,a2,i1)
+      temp tviiii(i,i1,i2,i3)
+      temp tv1iiii(i,i1,i2,i3)
+      temp tv_ijkl(i,i1,i2,i3)
+      temp tbiiii(i,i1,i2,i3)
+      temp tccusp(i,j,k,l)
+      temp tzv1(p,m,n,i)    
+      temp tzv2(p,i,i1,i2)
+      temp tzv3(p,i,i1,i2)
+      temp tzv4(p,i,p1,i1)
+      temp tzv(i,p)
+      temp tv0aiai(a,i,a1,i1)
+      temp tv10aiai(a,i,a1,i1)
+
+      scalar F12GAMMA
+      scalar SQF12GAMMA
+      scalar E_v
+      scalar E_b
+      scalar E_v_tot
+      scalar E_b_tot
+      scalar etmp
+      scalar etmp1
+      scalar E_mp2_xxx
+      scalar E_mp2
+      scalar E_F12
+      scalar E2_corr
+      scalar printnumber
+      scalar Etot
+
+      static mp2_f12_info(kkk,iii)
+#--- Procedure which calculate atomic integrals-----
+
+       PROC READ_MOINTS
+#      --------------- 
+
+#-----------Coulomb integrals--------------------------------------------------------------
+      execute list_to_blocks                V0iiii
+      execute list_to_blocks                V0aiai
+      execute list_to_blocks                V0aaii
+      execute list_to_blocks                V0aiii
+      execute list_to_blocks                V0piii
+      execute list_to_blocks                V0aaai
+#-----------Yukawa integrals--------------------------------------------------------------
+      execute list_to_blocks                V1iiii
+      execute list_to_blocks                V1aiii
+      execute list_to_blocks                V1aiai
+#----------Slater integrals---------------------------------------------------------------
+      execute list_to_blocks                V2iiii
+      execute list_to_blocks                V2aiai
+      execute list_to_blocks                V2aaii
+      execute list_to_blocks                V2aiii
+      execute list_to_blocks                V2aaai
+      execute list_to_blocks                V2pipi
+      execute list_to_blocks                V2piii
+      execute list_to_blocks                V2piai
+#----------Slater squared integrals-------------------------------------------------------
+      execute list_to_blocks                V3iiii
+#---------- [T12,f12] integrals-----------------------------------------------------------
+      execute list_to_blocks                V4iiii
+      execute list_to_blocks                V4aiai
+#---------- Three-electron integrals------------------------------------------------------
+      execute list_to_blocks                X12
+      execute list_to_blocks                KF12
+      execute list_to_blocks                K1F12
+      execute list_to_blocks                KFF12
+      execute list_to_blocks                F12F23
+      execute list_to_blocks                V_ijkl
+      execute list_to_blocks                KIN3e
+
+#---Here we read arrays of integrals from the disk---
+      execute read_list_to_blocks      
+#-----------------------------------------------------------------------------------------
+       ENDPROC READ_MOINTS
+
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#                     Main part of MP2-F12 sial code                                    |
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+#----------------Step 1 - read the molecular integrals from the disk---------------------
+
+       CALL READ_MOINTS 
+
+      execute server_barrier
+
+#-------------------Easy part - calculation of MP2 energy
+       PARDO a,i,a1,i1
+       REQUEST V0aiai(a,i,a1,i1) a
+       REQUEST V0aiai(a1,i,a,i1) a1     
+
+       tv0aiai(a,i,a1,i1) = V0aiai(a,i,a1,i1)
+       tv10aiai(a,i,a1,i1) = V0aiai(a1,i,a,i1)
+       tv0aiai(a,i,a1,i1) *= 2.0
+       tv0aiai(a,i,a1,i1) -= tv10aiai(a,i,a1,i1)
+       execute energy_denominator tv0aiai  
+       etmp = tv0aiai(a,i,a1,i1)*V0aiai(a,i,a1,i1)
+       E_mp2_xxx += etmp         
+       ENDPARDO a,i,a1,i1
+      
+       execute server_barrier
+       collective E_mp2 += E_mp2_xxx
+
+
+          execute print_scalar E_mp2 
+#----------------Step 2 - preparation of phi(a,b,i,j)------------------------------------
+       PARDO a,i,a1,i1 
+            REQUEST V4aiai(a,i,a1,i1) a
+            REQUEST X12(a,i,a1,i1) a
+            tphi(a,i,a1,i1) = V4aiai(a,i,a1,i1)
+            tphi1(a,i,a1,i1) = X12(a,i,a1,i1)
+            tphi(a,i,a1,i1) += tphi1(a,i,a1,i1)
+            execute energy_denominator tphi
+            tphi(a,i,a1,i1) *= -1.0
+            PREPARE phi(a,i,a1,i1) = tphi(a,i,a1,i1)
+       ENDPARDO a,i,a1,i1
+
+       execute server_barrier
+
+
+#---------------Step 3 - construction of V_ijkl------------------------------------------
+
+       PARDO i,j,k,l
+            REQUEST V1iiii(i,j,k,l) i
+            tviiii(i,j,k,l) = V1iiii(i,j,k,l)
+            tv1iiii(i,j,k,l) = tviiii(i,j,k,l)
+            REQUEST V_ijkl(i,j,k,l) i
+            tv_ijkl(i,j,k,l) = V_ijkl(i,j,k,l)
+            tv1iiii(i,j,k,l) += tv_ijkl(i,j,k,l)
+#------------------M,N - contribution----------------------------------------------------
+
+            DO m
+            DO n 
+            REQUEST V2iiii(m,i,n,k) m
+            REQUEST V0iiii(m,j,n,l) m
+            tviiii(i,j,k,l) =  V2iiii(m,i,n,k)*V0iiii(m,j,n,l) 
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)  
+            ENDDO n
+            ENDDO m       
+#-----------------A,B - contribution-----------------------------------------------------
+
+            DO a
+            DO b
+            REQUEST phi(a,i,b,k) a
+            REQUEST V0aiai(a,j,b,l) a
+            tviiii(i,j,k,l)  = V0aiai(a,j,b,l)*phi(a,i,b,k)
+            tviiii(i,j,k,l)  *= -1.0
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+            ENDDO b
+            ENDDO a
+
+            PREPARE Viiii(i,j,k,l) += tv1iiii(i,j,k,l)
+#--------------Make C-coefficients according to cusp conditions-------------------------
+ 
+            tccusp(i,j,k,l) = 0.0
+            execute f12_c_coef tccusp F12GAMMA
+            PREPARE C_coef(i,j,k,l) = tccusp(i,j,k,l)
+
+            SQF12GAMMA = F12GAMMA
+            SQF12GAMMA *= F12GAMMA
+
+       ENDPARDO i,j,k,l
+
+      execute server_barrier 
+#--------------F12 contribution of V - intermediate-------------------------------------
+
+      PARDO i,j,k,l
+            REQUEST Viiii(i,j,k,l) i 
+            REQUEST C_coef(i,j,k,l) i
+            REQUEST C_coef(k,j,i,l) k
+
+            etmp = C_coef(i,j,k,l) * Viiii(i,j,k,l)
+            etmp1= C_coef(k,j,i,l) * Viiii(i,j,k,l)
+            etmp  *=  4.0 
+            etmp1 *= -2.0
+            etmp += etmp1 
+            E_v += etmp
+
+
+      ENDPARDO i,j,k,l
+#---------------------------------------------------------------------------------------
+
+      execute server_barrier 
+
+#---------------Step 4 - construction of B_ijkl------------------------------------------
+       PARDO i,j,k,l
+#---------------------------------------------------
+            tccusp(i,j,k,l) = 0.0
+            execute f12_c_coef tccusp F12GAMMA
+            SQF12GAMMA = F12GAMMA
+            SQF12GAMMA *= F12GAMMA
+#---------------------------------------------------
+
+             tviiii(i,j,k,l)  = 0.0
+             tv1iiii(i,j,k,l) = 0.0
+            REQUEST V3iiii(i,j,k,l) i
+
+            tviiii(i,j,k,l)  =  V3iiii(i,j,k,l)
+            tviiii(i,j,k,l)  *= SQF12GAMMA
+            tv1iiii(i,j,k,l) = tviiii(i,j,k,l)
+
+#--------------Kinetic eenergy---------------------------------------------------------
+            tv_ijkl(i,j,k,l) = 0.0
+            REQUEST KIN3e(i,j,k,l) i
+            tv_ijkl(i,j,k,l) = KIN3e(i,j,k,l)
+            tv1iiii(i,j,k,l) += tv_ijkl(i,j,k,l)
+#--------------Exchange part---------------------------------------------------------
+            tv_ijkl(i,j,k,l) = 0.0
+            REQUEST KFF12(i,j,k,l) i
+            tv_ijkl(i,j,k,l) = KFF12(i,j,k,l)
+            tv1iiii(i,j,k,l) += tv_ijkl(i,j,k,l)
+#------------------M,N - contribution-----------------------------------------------------
+
+            DO m
+            DO n
+            tviiii(i,j,k,l) = 0.0 
+            REQUEST V2iiii(m,i,n,k) m
+            REQUEST V4iiii(m,j,n,l) m
+            tviiii(i,j,k,l) =  V2iiii(m,i,n,k)*V4iiii(m,j,n,l)
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+#-------------KF12 -contribution----------------------------------------------------------
+            tviiii(i,j,k,l) = 0.0
+            REQUEST V2iiii(m,j,n,l) m
+            REQUEST KF12(m,i,n,k) m
+            tviiii(i,j,k,l) = V2iiii(m,j,n,l)*KF12(m,i,n,k)
+            tviiii(i,j,k,l) *= 1.0
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+            ENDDO n
+            ENDDO m
+#-----------------A,B - contribution------------------------------------------------------
+
+
+            DO a
+            DO b
+            tviiii(i,j,k,l) = 0.0
+            REQUEST phi(a,j,b,l) a
+            REQUEST V4aiai(a,i,b,k) a
+            tviiii(i,j,k,l)  = V4aiai(a,i,b,k)*phi(a,j,b,l)
+            tviiii(i,j,k,l)  *= -1.0
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+#------------KF12-contribution------------------------------------------------------------
+             tviiii(i,j,k,l) = 0.0 
+            REQUEST phi(a,j,b,l) a
+            REQUEST KF12(a,i,b,k) a 
+            tviiii(i,j,k,l)  = KF12(a,i,b,k)*phi(a,j,b,l)
+            tviiii(i,j,k,l) *= -1.0  
+            tv1iiii(i,j,k,l) += tviiii(i,j,k,l) 
+            ENDDO b
+            ENDDO a
+
+#----------------------------------------------------------------------------------|
+#         sum_{M,P} <ij|K1*F12|Mp><Mp|f12|kl>                                      |
+#----------------------------------------------------------------------------------|
+
+             DO p
+              DO m
+
+              tzv3(p,m,j,l) = 0.0
+              tzv4(i,k,p,m) = 0.0
+              tviiii(i,j,k,l) = 0.0
+
+              REQUEST V2piii(p,l,j,m) p
+              REQUEST K1F12(m,i,p,k) m
+              tzv3(p,m,j,l) = V2piii(p,l,j,m)
+              tzv4(i,k,p,m) = K1F12(m,i,p,k)
+              tviiii(i,j,k,l)  =  tzv3(p,m,j,l)*tzv4(i,k,p,m)
+              tviiii(i,j,k,l) *= 1.0
+              tv1iiii(i,j,k,l) += tviiii(i,j,k,l)
+ 
+              tzv3(p,m,j,l) = 0.0
+              tzv4(i,k,p,m) = 0.0
+              tviiii(i,j,k,l) = 0.0
+
+              REQUEST V2piii(p,j,l,m) p
+              REQUEST K1F12(m,k,p,i) m
+              tzv3(p,m,j,l) = V2piii(p,j,l,m)
+              tzv4(i,k,p,m) = K1F12(m,k,p,i)
+              tviiii(i,j,k,l)  = tzv3(p,m,j,l)*tzv4(i,k,p,m)
+              tviiii(i,j,k,l) *= 1.0
+              tv1iiii(i,j,k,l) += tviiii(i,j,k,l)                       
+
+              ENDDO m
+             ENDDO p
+
+
+
+
+            PREPARE Biiii(i,j,k,l) += tv1iiii(i,j,k,l)
+
+
+      ENDPARDO i,j,k,l
+
+#-----------------------------------------------------------------------------------------
+
+      execute server_barrier
+#-------------------- sum_{P,N,Q}<i|K1|P><Pj|f12|NQ><NQ|f12|kl>---------------------------
+
+#----------------------Substep 1 - preparation of intermediate zv1(i,P) = <i|K1|P>-------------------
+      PARDO p,m,n,i
+         tzv1(p,m,n,i) = 0.0
+         WHERE n == m 
+        REQUEST V0piii(p,m,n,i) p
+        tzv1(p,m,n,i) = V0piii(p,m,n,i)
+        tzv(i,p) = 0.0
+        execute mkexch tzv1 tzv
+        PREPARE zv1(i,p) += tzv(i,p)   
+      ENDPARDO p,m,n,i  
+
+      execute server_barrier
+#-----------------------Substep 2 - zv2(q,j,k,l) = sum_{P,M} <Qk|f12|MP><MP|f12|jl> ----------------
+
+      PARDO p,q,k,l,j
+         DO m
+            tzv3(p,m,j,l) = 0.0
+            tzv4(q,k,p,m) = 0.0
+            REQUEST V2piii(p,l,m,j) p
+            REQUEST V2pipi(p,k,q,m) p
+            tzv3(p,m,j,l) = V2piii(p,l,m,j)
+            tzv4(q,k,p,m) = V2pipi(p,k,q,m)
+            tzv2(q,j,k,l) = tzv3(p,m,j,l)*tzv4(q,k,p,m)
+            PREPARE zv2(q,j,k,l) += tzv2(q,j,k,l) 
+         ENDDO m
+      ENDPARDO p,q,k,l,j
+
+      execute server_barrier
+
+#-----------------------Substep 3 - Btmp1(i,j,k,l) =  sum_{Q} zv1(i,Q)*zv2(q,j,k,l)----------------
+
+      PARDO i,j,k,l
+             tviiii(i,j,k,l) = 0.0
+          DO q
+             REQUEST zv2(q,j,k,l) q
+             REQUEST zv1 (i,q) i
+             tviiii(i,j,k,l) = zv1(i,q)*zv2(q,j,k,l)
+#----------------------------------------------------------------------------------|
+#               sum_{P,N} <i|K1|P><PjN|f12*f23|NLK>                                |
+#----------------------------------------------------------------------------------|
+             tv1iiii(i,j,k,l) = 0.0 
+             REQUEST F12F23(q,j,k,l) q
+             tv1iiii(i,j,k,l) = zv1(i,q)*F12F23(q,j,k,l)
+             tv1iiii(i,j,k,l) *= -1.0 
+             tviiii(i,j,k,l) += tv1iiii(i,j,k,l) 
+
+
+             PREPARE Btmp1(i,j,k,l) += tviiii(i,j,k,l)
+          ENDDO q
+      ENDPARDO i,j,k,l
+
+      execute server_barrier
+#-----------------------Substep 4 - contribution to the B - intermediate------------------------ 
+
+     PARDO i,j,k,l
+       REQUEST Btmp1(i,j,k,l) i
+       REQUEST Btmp1(k,l,i,j) k
+        tviiii(i,j,k,l) = Btmp1(i,j,k,l) 
+        tv1iiii(i,j,k,l) = Btmp1(k,l,i,j)
+        tviiii(i,j,k,l) += tv1iiii(i,j,k,l)
+        PREPARE Biiii(i,j,k,l) += tviiii(i,j,k,l)
+     ENDPARDO i,j,k,l
+
+     execute server_barrier
+#--------------F12 contribution of B - intermediate---------------------------------------
+
+      PARDO i,j,k,l
+         DO m
+         DO n
+            REQUEST Biiii(m,i,n,k) m
+            REQUEST C_coef(m,j,n,l) m
+            tviiii(i,j,k,l) = Biiii(m,i,n,k)*C_coef(m,j,n,l)
+            PREPARE Btemp(i,j,k,l) += tviiii(i,j,k,l)
+         ENDDO n
+         ENDDO m 
+
+
+      ENDPARDO i,j,k,l
+
+      execute server_barrier        
+
+      PARDO i,j,k,l
+            REQUEST Btemp(i,j,k,l) i
+            REQUEST C_coef(i,j,k,l) i
+            REQUEST C_coef(k,j,i,l) k
+
+            etmp = C_coef(i,j,k,l) * Btemp(i,j,k,l)
+            etmp1= C_coef(k,j,i,l) * Btemp(i,j,k,l)
+            etmp  *=  2.0
+            etmp1 *= -1.0
+            etmp += etmp1
+            E_b += etmp
+
+
+      ENDPARDO i,j,k,l
+
+            execute server_barrier
+
+            collective E_v_tot += E_v        
+            collective E_b_tot += E_b
+#----------------------------------------------------------------------------------------- 
+      execute print_scalar E_v_tot
+      execute print_scalar E_b_tot
+      E_F12 += E_v_tot
+      E_F12 += E_b_tot
+      E2_corr += E_mp2
+      E2_corr += E_F12
+      Etot = scfeneg
+      Etot += E2_corr      
+      execute print_scalar E_F12
+      execute print_scalar E2_corr
+
+       execute server_barrier
+
+
+#----------Print out calculated MP2-F12 energies to the file summary.out------------------
+                DO iii
+              DO kkk
+                 IF kkk == 1
+                 mp2_f12_info(kkk,iii) = E_mp2
+                 ENDIF
+
+                 IF kkk == 2
+                 mp2_f12_info(kkk,iii) = E_v_tot
+                 ENDIF
+
+                 IF kkk == 3
+                 mp2_f12_info(kkk,iii) = E_b_tot
+                 ENDIF
+
+                 IF kkk == 4
+                 mp2_f12_info(kkk,iii) = E_F12
+                 ENDIF
+
+                 IF kkk == 5
+                 mp2_f12_info(kkk,iii) = E2_corr
+                 ENDIF
+
+                 IF kkk == 6
+                 mp2_f12_info(kkk,iii) = Etot
+                 ENDIF 
+
+       
+              ENDDO kkk
+                ENDDO iii
+ 
+
+                printnumber = 40.0
+
+                execute print_rel_info printnumber mp2_f12_info 
+#-----------------------------------------------------------------------------------------
+#       PARDO i,p
+#       REQUEST zv1(i,p) i
+#       execute dump_amp zv1
+#       ENDPARDO i,p
+
+#       PARDO p,j,k,l
+#       REQUEST V0piii(p,j,k,l) p 
+#       execute dump_amp V0piii
+#       ENDPARDO p,j,k,l
+
+                        ENDSIAL MP2_F12
+
+

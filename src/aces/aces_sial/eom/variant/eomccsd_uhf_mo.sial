@@ -83485,7 +83485,7 @@
      t2ai(a,i)*=-1.0
      t11ai(a,i)=omega
      t2ai(a,i)+=t11ai(a,i)
-     execute apply_den2 t1ai t2ai
+     execute apply_den2_nor t1ai t2ai
 #
      if spdim == 1
      PUT VC1A2(a,i)=t1ai(a,i)
@@ -83792,7 +83792,7 @@
      t2bj(b,j)*=-1.0
      t11bj(b,j)=omega
      t2bj(b,j)+=t11bj(b,j)
-     execute apply_den2 t1bj t2bj
+     execute apply_den2_nor t1bj t2bj
 #
      if spdim == 1
      PUT VC1B2(b,j)=t1bj(b,j)

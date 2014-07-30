@@ -1,0 +1,12 @@
+
+C THIS ROUTINE NEGATES THE FIRST LEN ELEMENTS OF A VECTOR V.
+
+      SUBROUTINE VMINUS(V,LEN)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION V(LEN)
+      if (len.lt.1) return
+      DO I = 1, LEN
+         V(I) = -V(I)
+      END DO
+      RETURN
+      END

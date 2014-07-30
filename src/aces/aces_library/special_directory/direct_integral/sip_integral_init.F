@@ -30,6 +30,7 @@ c---------------------------------------------------------------------
       include 'machine_types.h'
       include 'dbugcom.h'
       include 'erd_dbug.h'
+      include 'F12.h'
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -41,6 +42,7 @@ c---------------------------------------------------------------------
       integer itemp, ztemp
       integer nalpha
       integer ihrr, zhrr 
+      integer ECP 
 
       integer nw
       integer*8 nw8
@@ -68,6 +70,9 @@ c---------------------------------------------------------------------
       equivalence (ibuf, dbuf)  
       common dbuf    ! blank common for scratch.
 #endif
+
+      common /flags/ iflags
+      integer iflags(100)
 
       logical do_erd_scratch_calc
       save do_erd_scratch_calc
@@ -182,8 +187,31 @@ c-------------------------------------------------------------------------
          ipcoeff = ialpha + nalpha
 
          if (configure) then
-            call aces_to_erd(nfps, ivangmom, nshells, ispherical,
-     *                       ibuf(ierdind), dbuf(iscale_fac)) 
+
+c For ECP must renormalize/reorder 
+            ECP = iflags(71) 
+
+            IF (ECP .eq. 1) then 
+               call ecp_to_erd(nfps, ivangmom, nshells, ispherical,
+     *                         ibuf(ierdind), dbuf(iscale_fac))
+               call ecp_renorm(nbasis, ibuf(ierdind), 
+     *                         dbuf(iscale_fac)) 
+            Else
+               call aces_to_erd(nfps, ivangmom, nshells, ispherical,
+
+     *                          ibuf(ierdind), dbuf(iscale_fac))
+
+C The mapping from ERD <-> VMOL (ACES II) is written to JOBARC
+C for post ACES II processing. Within ACES III a ERD normalization
+C and order is maintained. Ajith Perera, 07/2013.
+ 
+               If (master .EQ. me) then
+                   call iputrec(20, "JOBARC", "ERDORDER", nbasis,
+     *                          ibuf(ierdind))
+                   call dputrec(20, "JOBARC", "ERD2A2CS", nbasis,
+     *                          dbuf(iscale_fac))
+               Endif
+            Endif
 
             call setup_ccbeg(dbuf(ialpha), ixalpha, dbuf(ipcoeff), 
      *                       ixpcoef, ncfps, npfps, nshells, 
@@ -212,6 +240,12 @@ c-------------------------------------------------------------------------
      *                          calc_2der_integrals,
      *                          intmax, zmax, me, company_size)
             endif
+
+
+         if(STGF12) then
+             zmax = zmax*5
+             intmax = intmax*5
+         endif
 
 c-------------------------------------------------------------------------
 c   Add correction for memory needed in the HRR transformation.

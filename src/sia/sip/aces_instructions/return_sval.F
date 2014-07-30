@@ -32,25 +32,30 @@ c--------------------------------------------------------------------------
       integer nindex2, type2(*), bval2(*), eval2(*)
       integer bdim2(*), edim2(*)
 
-      if (nindex .ne. 2) then
+      if (nindex .gt. 2) then
          print *,'Error: return_sval at line ',current_line
-         print *,'First arg. must be a block of a 2-index array.'
+         print *,'First arg. must be a block of 1 or 2-index array.'
          call abort_job()
       endif
 
       if (nindex2 .ne. 0) then
          print *,'Error: return_sval at line ',current_line,' not ',
-     *           'called with scalar in 2nd arg.'
+     *           'called with scalar in 2nd arg. nindex2 =', nindex2 
          call abort_job()
       endif
 
-      call doreturn(x, x2,
-     *             bval(1),eval(1),bval(2),eval(2))
+      if (nindex .eq. 2) 
+     *    call doreturn2(x, x2,
+     *                  bval(1),eval(1),bval(2),eval(2))
+
+      if (nindex .eq. 1) 
+     *    call doreturn1(x, x2,
+     *                  bval(1),eval(1))
 
       return 
       end 
 
-      subroutine doreturn(array1,sval,a1,a2,b1,b2) 
+      subroutine doreturn2(array1,sval,a1,a2,b1,b2) 
 
 c---------------------------------------------------------------------------
 c
@@ -71,6 +76,31 @@ c      enddo ! b
 c      enddo ! a 
 c     write(6,*) ' Maximum density difference :', val 
       sval = array1(a2,b2)
+c
+      return
+      end
+
+      subroutine doreturn1(array1,sval,a1,a2) 
+
+c---------------------------------------------------------------------------
+c
+c 
+c---------------------------------------------------------------------------
+
+      implicit none
+      integer a, a1, a2
+      double precision array1(a1:a2), sval   
+
+      sval = 0.0d+0 
+c     write(6,*) ' RANGE :', a1, a2, b1, b2 
+c      do a = a1, a2 
+c      do b = b1, b2 
+c           sval = array1(a,b) 
+c          write(6,*) ' SVAL ', a, b, sval 
+c      enddo ! b 
+c      enddo ! a 
+c     write(6,*) ' Maximum density difference :', val 
+      sval = array1(a2)
 c
       return
       end

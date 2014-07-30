@@ -153,7 +153,8 @@ c-------------------------------------------------------------------------
      *                       alpha_pack, nalpha, pcoeff_pack,
      *                       ncoeff, ibuf(iccbeg), ibuf(iccend), 
      *                       indx_cc,
-     *                       ccbeg_pack, ccend_pack)
+     *                       ccbeg_pack, ccend_pack,
+     *                       max_dim_coeff)
 
 c ------------------------------------------------------------------------ 
 c  KIN (type=2) integrals next.   
