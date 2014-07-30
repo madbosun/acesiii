@@ -867,6 +867,21 @@
          prepare CT_ab(a,i,b,j) = Taiai(a,i,b,j)
      endpardo a,i,b,j
      execute server_barrier
+     esum = 0.0
+     ecorr2 = 0.0
+     execute server_barrier
+     pardo a,i,b,j
+         request CT_ab(a,i,b,j) j
+         T1aiai(a,i,b,j) = CT_ab(a,i,b,j)
+         T2aiai(a,i,b,j) = CT_ab(a,i,b,j)
+         etemp = T1aiai(a,i,b,j)*T2aiai(a,i,b,j)
+         esum += etemp
+     endpardo a,i,b,j
+     execute server_barrier
+     collective ecorr2 += esum
+     execute sip_barrier
+     execute print_scalar ecorr2
+     execute server_barrier
 #
      endproc Caibj
 #
@@ -1050,7 +1065,7 @@
              T1pp(a,i) = Faa(a,b)*cai(b,i)
              Tpp(a,i) += T1pp(a,i)
          enddo b
-##
+#
          do j
              request Fii(i,j) i
              request cai(a,j) a

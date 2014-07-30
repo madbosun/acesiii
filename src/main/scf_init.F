@@ -54,7 +54,7 @@ c-------------------------------------------------------------------------
 
 c Sets the linear dependence tolerance in cases when JOBARC exists so that 
 c it does not become 1.0!! 
-          lindep_tol = 9 
+c      lindep_tol = 9 
 
       endif
 

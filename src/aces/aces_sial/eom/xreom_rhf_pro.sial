@@ -31454,6 +31454,32 @@
       deallocate lbj(*,*)
 #
       execute server_barrier
+      etemp1 = 0.0
+      etemp2 = 0.0
+      sum1 = 0.0
+      sum2 = 0.0
+      execute server_barrier
+      pardo a,i
+         get VCE1A(a,i)
+         GET VSTART1A9(a,i)
+         etemp = VCE1A(a,i)*VSTART1A9(a,i)
+         sum1 += etemp
+      endpardo a,i
+      pardo a,i
+         get VCE1A(a,i)
+         tai(a,i) = VCE1A(a,i)
+         etemp = VCE1A(a,i)*tai(a,i)
+         sum2 += etemp
+      endpardo a,i
+      execute server_barrier
+      collective etemp1+= sum1
+      collective etemp2+= sum2
+      execute server_barrier
+      execute print_scalar zero
+      execute print_scalar etemp1
+      execute print_scalar etemp2
+      execute print_scalar zero
+      execute server_barrier
 #
 # Calculate properties for this root 
       CALL XPROP 
