@@ -45,7 +45,7 @@ C
 
       CLOSE(UNIT=4,STATUS='KEEP')
       Write(6,*)
-      Write(6,"(3x,2a)") "Constrained Cartesian "
+      Write(6,"(3x,2a)") "Constrained Cartesian ",
      &                   "optimization is requested but no constraints"
       Write(6,"(3x,a)")  "are specified in the inputfile (ZMAT)."
       Write(6,"(3x,2a)") "Calculation proceeds as a unconstrained ",
