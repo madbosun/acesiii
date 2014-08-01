@@ -502,7 +502,7 @@ c
      *              x1a(1),x1b(1),x1a(2),x1b(2),x1a(3),x1b(3),
      *              x1a(4),x1b(4),
      *              indx1, x2(ix2), nx2a(1), nx2b(1),
-     *              x2a(1),  x2b(1), indx2(1),, cind,
+     *              x2a(1),  x2b(1), indx2(1), cind,
      *              flopcount, scr(iscr1), scr(iscr2))
             return
          endif

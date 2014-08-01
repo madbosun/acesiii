@@ -4069,6 +4069,8 @@ ac_config_files="$ac_config_files src/aces/aces_library/special_directory/erd_F1
 
 ac_config_files="$ac_config_files src/aces/aces_library/special_directory/oed_F12/Makefile"
 
+ac_config_files="$ac_config_files src/aces/aces_library/special_directory/prop_ints/Makefile"
+
 ac_config_files="$ac_config_files src/aces/aces_library/special_directory/direct_integral/Makefile"
 
 ac_config_files="$ac_config_files src/aces/aces_library/special_directory/F12_grid/Makefile"
