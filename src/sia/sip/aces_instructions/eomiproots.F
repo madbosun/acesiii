@@ -19,8 +19,10 @@ c--------------------------------------------------------------------------
       include 'int_gen_parms.h'
       include 'trace.h'
       include 'parallel_info.h'
+#ifdef F12
       include 'F12.h'
       include 'F12_gr.h'
+#endif
       include 'eominit.h'
 #ifdef ALTIX
       include 'sheap.h'

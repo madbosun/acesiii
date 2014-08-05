@@ -73,6 +73,8 @@ c----------------------------------------------------------------------
       common /d2int_com/jatom, jx, jcenter
       integer jatom, jx, jcenter
 
+#ifdef F12
+
       array = op(c_result_array)
       direct_flag = .false.
 
@@ -209,7 +211,7 @@ c-----------------------------------------------------------------------
          
        endif
 
-
+#endif
       return
       end
 

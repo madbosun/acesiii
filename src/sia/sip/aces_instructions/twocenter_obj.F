@@ -54,6 +54,8 @@ C------------------------------------------------------------------------
       common dbuf    ! blank common for scratch.
 #endif
 
+#ifdef F12
+
 #ifdef ALTIX
       dptr = dshptr     ! set dbuf pointer to shared mem.
       iptr = ishptr     ! set ibuf pointer to shared mem.
@@ -514,6 +516,8 @@ c----------------------------------
            enddo
 
 c--------------------------------------------------------------------------------------
+
+#endif
 
       return
       end

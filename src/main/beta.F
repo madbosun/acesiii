@@ -32,7 +32,9 @@ c      subroutine beta()
       include 'timerz.h'
       include 'sial_config_params.h'
       include 'checkpoint_data.h'
+#ifdef F12
       include 'F12.h'
+#endif
       include 'eominit.h'
 #ifdef ALTIX
       include 'sheap.h'
@@ -1026,6 +1028,7 @@ c--------------------------------------------------------------------------
 C
 C Explicitly correlated contribution
 c
+#ifdef F12
             istg=0
             call getrec(1,'JOBARC', 'STGF12', 1, istg)
             if(istg.eq.1) then 
@@ -1042,6 +1045,7 @@ c
             endif
             if(istg.eq.0) write(6,*) 
      & 'Lame calculation - slater-type geminals are not included'
+#endif
 c---------------------------------------------------------------------------
 c---------------------------------------------------------------------------
            call igetrec(1,'JOBARC','IFLAGS2',500,iflags2)    

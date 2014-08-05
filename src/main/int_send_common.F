@@ -24,8 +24,10 @@ c-------------------------------------------------------------------------
       include 'machine_types.h'
       include 'fmo.h'
       include 'scflindep.h'
+#ifdef F12
       include 'F12.h'
       include 'F12_gr.h'
+#endif
       include 'eominit.h'
       include 'frag_def.h'
       include 'dropmo.h'
@@ -67,7 +69,7 @@ c---------------------------------------------------------------------------
 c---------------------------------------------------------------------------
 c  Explicitly correlated stuff
 c---------------------------------------------------------------------------
-
+#ifdef F12
       call mpi_bcast(STGF12, 1, mpi_logical, 0, 
      *               mpi_comm_world, ierr)
 
@@ -88,7 +90,7 @@ c---------------------------------------------------------------------------
 
       call mpi_bcast(PTW, 1000001, mpi_double_precision, 0,
      *               mpi_comm_world, ierr)
-
+#endif
 c---------------------------------------------------------------------------
 c  Broadcast ecp labeled common block.
 c---------------------------------------------------------------------------
