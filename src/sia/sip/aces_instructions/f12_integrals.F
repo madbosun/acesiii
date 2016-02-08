@@ -71,6 +71,8 @@ c----------------------------------------------------------------------
       common /d2int_com/jatom, jx, jcenter
       integer jatom, jx, jcenter
 
+#ifdef F12
+
       array = op(c_result_array)
       direct_flag = .false.
 
@@ -199,6 +201,7 @@ c           write(6,*) 'Exponential parameter',F12GAMMA
 
        endif
 
+#endif
 
       return
       end

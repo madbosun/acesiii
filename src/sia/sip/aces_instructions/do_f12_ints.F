@@ -15,6 +15,7 @@ c---------------------------------------------------------------------------
 
       implicit none
 
+
       include 'mpif.h'
       include 'int_gen_parms.h'
       include 'machine_types.h'
@@ -74,7 +75,7 @@ c---------------------------------------------------------------------------
       save me,alpha_pack, pcoeff_pack, ccbeg_pack, ccend_pack,
      *     ccbeg_pack64, ccend_pack64
 
-
+#ifdef F12
 
       call mpi_comm_rank(mpi_comm_world, me, ierr)
 
@@ -326,6 +327,7 @@ c---------------------------------------------------------------------------
 100      continue
          enddo   ! m
 
+#endif
   
       return
       end

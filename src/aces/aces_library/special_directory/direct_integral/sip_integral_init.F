@@ -30,7 +30,9 @@ c---------------------------------------------------------------------
       include 'machine_types.h'
       include 'dbugcom.h'
       include 'erd_dbug.h'
+#ifdef F12
       include 'F12.h'
+#endif
 #ifdef ALTIX
       include 'sheap.h'
 #endif
@@ -241,11 +243,12 @@ C and order is maintained. Ajith Perera, 07/2013.
      *                          intmax, zmax, me, company_size)
             endif
 
-
+#ifdef F12
          if(STGF12) then
              zmax = zmax*5
              intmax = intmax*5
          endif
+#endif
 
 c-------------------------------------------------------------------------
 c   Add correction for memory needed in the HRR transformation.

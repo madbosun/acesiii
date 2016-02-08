@@ -13,7 +13,10 @@ CPPFLAGS=@CXXFLAGS@
 
 #ACESLIBS variable will be replaced by the autoconf script with appropriate libraries
 LIBS = @ACESLIBS@
-LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lprop_ints -lerd -loed -lecp -ldup -lsip1 -lsip2 -lsialinst -lerd_F12 -lF12grid -loed_F12 -lsip1 -lsip2 $(LIBS)
+LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lprop_ints -lerd -loed -lecp -ldup -lsip1 -lsip2 -lsialinst -lsip1 -lsip2 $(LIBS)
+
+#F12 
+#LIBS:= -lstdc++ -lsip1 -lsip2 -lsialinst -lsip_shared -lframelib -laces2 -lgeopt -lsymcor -laces2 -lprop_ints -lerd -loed -lecp -ldup -lsip1 -lsip2 -lsialinst -lerd_F12 -lF12grid -loed_F12 -lsip1 -lsip2 $(LIBS)
 
 #ACESFLAGS variable will be replaced by the autoconf script with location of libraries
 LIB_DIRS= @ACESFLAGS@
@@ -38,9 +41,9 @@ GEOPT_LIB=../../lib/libgeopt.a
 SYMCOR_LIB=../../lib/libsymcor.a
 OED_LIB=../../lib/liboed.a
 ECP_LIB=../../lib/libecp.a
-OEDF12_LIB=../../lib/liboed_F12.a
-ERDF12_LIB=../../lib/liberd_F12.a
-F12GRID_LIB=../../lib/libF12grid.a
+#OEDF12_LIB=../../lib/liboed_F12.a
+#ERDF12_LIB=../../lib/liberd_F12.a
+#F12GRID_LIB=../../lib/libF12grid.a
 PROP_INTS_LIB=../../lib/libprop_ints.a
 DUP_LIB=../../lib/libdup.a
 INTEGRAL_OBJS=$(shell ls ../aces/aces_library/special_directory/direct_integral/*.o 2>/dev/null)

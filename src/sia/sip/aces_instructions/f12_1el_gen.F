@@ -83,6 +83,8 @@ c--------------------------------------------------------------------------
       common /d2int_com/jatom, jx, jcenter
       integer jatom, jx, jcenter, dcoord
 
+#ifdef F12
+
       nl2 = (nbasis * nbasis + nbasis)/2
       handle = op(c_result_array)
       direct_flag = .false.
@@ -90,6 +92,7 @@ c--------------------------------------------------------------------------
 #ifdef ALTIX
       dptr = dshptr
 #endif
+
 
 c------------------------------------------------------------------------
 c   Make sure the requested block exists.  create_current_block will
@@ -162,6 +165,8 @@ c---------------------------------------------------------------------------
       else
         write(6,*) ' MUST USE ERD IN FOCK_DER!!! ' 
       endif 
+
+#endif
 
       return
       end

@@ -71,6 +71,7 @@ c-----------------------------------------------------------------------------|
 
       common /d2int_com/jatom, jx, jcenter
       integer jatom, jx, jcenter, dcoord
+#ifdef F12
 
 #ifdef ALTIX
       iptr = ishptr
@@ -358,6 +359,8 @@ c---------------------------------------------------------------------------
 
          enddo   ! n shells
          enddo   ! m shells
+
+#endif
 
       return
       end

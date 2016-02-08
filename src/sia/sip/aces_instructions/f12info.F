@@ -73,6 +73,8 @@ c----------------------------------------------------------------------
       common /d2int_com/jatom, jx, jcenter
       integer jatom, jx, jcenter
 
+#ifdef F12
+
       array = op(c_result_array)
 
 #ifdef ALTIX
@@ -127,7 +129,7 @@ c            integral_scr = i0wrk
 c            maxblk = 15**4    ! max. angular momentum for GAMESS is 15.
 c         endif
 
-
+#endif
 
       return
       end

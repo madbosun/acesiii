@@ -41,7 +41,9 @@ c--------------------------------------------------------------------------
       implicit none
       include 'machine_types.h'
       include 'dbugcom.h'
+#ifdef F12
       include 'F12.h'
+#endif
 
       integer nshells 
       integer shtype(nshells), ncfps(nshells), npfps(nshells)
@@ -289,7 +291,9 @@ c--------------------------------------------------------------------------
 c   Set the derivative flag arguments.
 c--------------------------------------------------------------------------
  
+#ifdef F12
                if(.not.STGF12) then
+#endif
                call erd__memory_eri_derv_batch(nalpha, ncoeff, 
      *                 ncfps(m), ncfps(n), ncfps(r), ncfps(s),
      *                 npfps(m), npfps(n), npfps(r), npfps(s),
@@ -304,6 +308,7 @@ c--------------------------------------------------------------------------
      *                 der_flags(10),der_flags(11), der_flags(12),    
      *                   alpha_pack, pcoeff_pack, spherical,
      *                   imin, iblk, zmin, zblk)   
+#ifdef F12
                else
                call erd__memory_eri_derv_k12_batch(nalpha, ncoeff,
      *                 ncfps(m), ncfps(n), ncfps(r), ncfps(s),
@@ -325,6 +330,7 @@ c     *                    2,0,0,
      *                   imin, iblk, zmin, zblk)
 
                      endif
+#endif
 
             imax = max0(imax, iblk)
             zmax = max0(zmax, zblk)
